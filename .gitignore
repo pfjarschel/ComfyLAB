@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.venv/
+venv/
+ENV/
+env/
+pip-log.txt
+pip-delete-this-directory.txt
+.ipynb_checkpoints
+
+# Python Packaging / PyInstaller
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Node / Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/yarn.lock
+frontend/.eslintcache
+
+# IDE / Editor Settings
+.vscode/
+.idea/
+*.swp
+*.swo
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.csproj
+
+# OS Metadata
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ComfyLAB local runtime / temp files (if run inside the repository)
+**/__pycache__/
+**/.pytest_cache/
+**/.temp/
+**/.tmp/

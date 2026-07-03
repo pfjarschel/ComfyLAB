@@ -1,0 +1,306 @@
+/*
+ * Copyright (C) 2026 Paulo Felipe Jarschel
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ */
+
+:root {
+  /* Dark Mode (Default) */
+  --bg-color: #0f172a;
+  --text-color: #f8fafc;
+  --text-muted: #94a3b8;
+  --accent-color: #3b82f6;
+  --node-bg: rgba(30, 41, 59, 0.7);
+  --node-border: rgba(148, 163, 184, 0.2);
+  --node-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
+  --sidebar-bg: rgba(10, 15, 28, 0.95);
+  --sidebar-border: rgba(96, 165, 250, 0.2);
+  --dnd-bg: rgba(30, 41, 59, 0.4);
+  --dnd-hover-bg: rgba(59, 130, 246, 0.15);
+  --input-bg: rgba(15, 23, 42, 0.6);
+  --dropdown-bg: rgba(10, 15, 28, 0.95);
+  --modal-bg: rgba(10, 15, 28, 0.95);
+  --modal-overlay-bg: rgba(4, 6, 12, 0.75);
+  --editor-bg: #1e1e1e;
+  --panel-bg: rgba(15, 23, 42, 0.95);
+  --logo-gradient: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+  --node-id-bg: rgba(30, 41, 59, 0.5);
+  --node-id-color: #94a3b8;
+  
+  /* Menu Hover Highlights */
+  --menu-hover-bg: rgba(59, 130, 246, 0.15);
+  --menu-hover-color: #60a5fa;
+  
+  /* Status states colors */
+  --status-success-color: #4ade80;
+  --status-error-color: #f87171;
+  --status-stopped-color: #fb923c;
+
+  /* Script Edit Button */
+  --script-btn-bg: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
+  --script-btn-color: #93c5fd;
+  --script-btn-border: rgba(96, 165, 250, 0.3);
+  --script-btn-hover-bg: linear-gradient(135deg, rgba(59, 130, 246, 0.35) 0%, rgba(139, 92, 246, 0.35) 100%);
+  --script-btn-hover-color: #bfdbfe;
+  --script-btn-hover-border: rgba(96, 165, 250, 0.6);
+
+  /* Zoom & Lock Controls */
+  --controls-bg: rgba(30, 41, 59, 0.9);
+  --controls-button-bg: transparent;
+  --controls-button-border: rgba(148, 163, 184, 0.2);
+  --controls-button-color: #f8fafc;
+  
+  /* Button Secondary Styles */
+  --button-secondary-bg: rgba(30, 41, 59, 0.7);
+  --button-secondary-color: #f1f5f9;
+  --button-secondary-border: rgba(148, 163, 184, 0.3);
+  --button-secondary-hover-bg: rgba(51, 65, 85, 0.8);
+  
+  /* Sidebar Toggle styles */
+  --sidebar-toggle-active-bg: rgba(59, 130, 246, 0.15);
+  --sidebar-toggle-active-color: #60a5fa;
+
+  /* MiniMap colors */
+  --minimap-bg: rgba(15, 23, 42, 0.65);
+  --minimap-node-fill: rgba(96, 165, 250, 0.25);
+  --minimap-node-stroke: rgba(96, 165, 250, 0.4);
+  --minimap-mask: rgba(255, 255, 255, 0.08);
+
+  /* Macro Node Styles */
+  --macro-border-color: rgba(139, 92, 246, 0.55);
+  --macro-border-style: dashed;
+  --macro-badge-bg: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(99, 102, 241, 0.25));
+}
+
+.light-theme {
+  /* Light Mode Overrides */
+  --bg-color: #f1f5f9;
+  --text-color: #0f172a;
+  --text-muted: #475569;
+  --accent-color: #1d4ed8;
+  --node-bg: rgba(255, 255, 255, 0.85);
+  --node-border: rgba(148, 163, 184, 0.4);
+  --node-shadow: 0 4px 25px rgba(15, 23, 42, 0.05);
+  --sidebar-bg: rgba(255, 255, 255, 0.95);
+  --sidebar-border: rgba(148, 163, 184, 0.4);
+  --dnd-bg: rgba(241, 245, 249, 0.85);
+  --dnd-hover-bg: rgba(59, 130, 246, 0.15);
+  --input-bg: rgba(241, 245, 249, 0.95);
+  --dropdown-bg: rgba(255, 255, 255, 0.95);
+  --modal-bg: rgba(255, 255, 255, 0.98);
+  --modal-overlay-bg: rgba(15, 23, 42, 0.4);
+  --editor-bg: #ffffff;
+  --panel-bg: rgba(255, 255, 255, 0.95);
+  --logo-gradient: linear-gradient(135deg, #004ba6 0%, #8060e1 100%);
+  --node-id-bg: rgba(148, 163, 184, 0.18);
+  --node-id-color: #334155;
+
+  /* Menu Hover Highlights */
+  --menu-hover-bg: rgba(29, 78, 216, 0.2);
+  --menu-hover-color: #1d4ed8;
+
+  /* Status states colors */
+  --status-success-color: #15803d;
+  --status-error-color: #b91c1c;
+  --status-stopped-color: #c2410c;
+
+  /* Script Edit Button */
+  --script-btn-bg: linear-gradient(135deg, rgba(29, 78, 216, 0.08) 0%, rgba(124, 58, 237, 0.08) 100%);
+  --script-btn-color: #1d4ed8;
+  --script-btn-border: rgba(29, 78, 216, 0.35);
+  --script-btn-hover-bg: linear-gradient(135deg, rgba(29, 78, 216, 0.18) 0%, rgba(124, 58, 237, 0.18) 100%);
+  --script-btn-hover-color: #1e40af;
+  --script-btn-hover-border: rgba(29, 78, 216, 0.65);
+
+  /* Zoom & Lock Controls */
+  --controls-bg: rgba(255, 255, 255, 0.9);
+  --controls-button-bg: transparent;
+  --controls-button-border: rgba(148, 163, 184, 0.35);
+  --controls-button-color: #0f172a;
+
+  /* Button Secondary Styles */
+  --button-secondary-bg: rgba(255, 255, 255, 0.95);
+  --button-secondary-color: #334155;
+  --button-secondary-border: rgba(148, 163, 184, 0.45);
+  --button-secondary-hover-bg: rgba(241, 245, 249, 0.95);
+
+  /* Sidebar Toggle styles */
+  --sidebar-toggle-active-bg: rgba(29, 78, 216, 0.1);
+  --sidebar-toggle-active-color: #1d4ed8;
+
+  /* MiniMap colors */
+  --minimap-bg: rgba(241, 245, 249, 0.9);
+  --minimap-node-fill: rgba(29, 78, 216, 0.2);
+  --minimap-node-stroke: rgba(29, 78, 216, 0.4);
+  --minimap-mask: rgba(15, 23, 42, 0.06);
+
+  /* Macro Node Styles */
+  --macro-border-color: rgba(124, 58, 237, 0.5);
+  --macro-border-style: dashed;
+  --macro-badge-bg: linear-gradient(135deg, rgba(124, 58, 237, 0.12), rgba(99, 102, 241, 0.12));
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.glass-panel {
+  background: var(--node-bg);
+  border: 1px solid var(--node-border);
+  box-shadow: var(--node-shadow);
+  border-radius: 12px;
+  /* Optimization for sharp zoom */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.button-primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.button-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.button-primary:active {
+  transform: translateY(1px);
+}
+
+.button-secondary {
+  background: var(--button-secondary-bg);
+  color: var(--button-secondary-color);
+  border: 1px solid var(--button-secondary-border);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.button-secondary:hover {
+  background: var(--button-secondary-hover-bg);
+  border-color: var(--button-secondary-border);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--node-shadow);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+
+/* React Flow customizations for dark/light themes */
+.react-flow__background {
+  background-color: var(--bg-color);
+}
+
+.react-flow__controls {
+  background: var(--controls-bg);
+  border: 1px solid var(--node-border);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--node-shadow);
+}
+
+.react-flow__controls-button {
+  background: var(--controls-button-bg) !important;
+  border-bottom: 1px solid var(--controls-button-border) !important;
+  fill: var(--controls-button-color) !important;
+}
+
+.react-flow__controls-button svg {
+  fill: var(--controls-button-color) !important;
+}
+
+
+
+.react-flow__controls-button:hover {
+  background: rgba(148, 163, 184, 0.15) !important;
+}
+
+.react-flow__controls-button.control-btn-active {
+  background: var(--sidebar-toggle-active-bg) !important;
+  fill: var(--sidebar-toggle-active-color) !important;
+  color: var(--sidebar-toggle-active-color) !important;
+}
+
+.react-flow__controls-button.control-btn-active svg {
+  fill: none !important;
+  stroke: var(--sidebar-toggle-active-color) !important;
+}
+
+/* Pan button uses fill-based icons (not stroke) — override the general active rule */
+.react-flow__controls-button.control-btn-pan.control-btn-active svg {
+  fill: var(--sidebar-toggle-active-color) !important;
+  stroke: none !important;
+}
+
+/* Snap-to-grid button uses fill-based icons — override the general active rule */
+.react-flow__controls-button.control-btn-snap.control-btn-active svg {
+  fill: var(--sidebar-toggle-active-color) !important;
+  stroke: none !important;
+}
+
+/* Snap-to-grid button default (inactive) icon color */
+.react-flow__controls-button.control-btn-snap svg {
+  fill: var(--controls-button-color) !important;
+  stroke: none !important;
+}
+
+.canvas-mode-select .react-flow__pane,
+.canvas-mode-select .react-flow__pane.selection {
+  cursor: default !important;
+}
+
+.canvas-mode-select .react-flow__node,
+.canvas-mode-select .react-flow__node.selectable {
+  cursor: default !important;
+}
+
+.canvas-mode-select .react-flow__node.draggable {
+  cursor: grab !important;
+}
+
+.canvas-mode-select .react-flow__node.draggable:active {
+  cursor: grabbing !important;
+}
+
+.canvas-mode-pan .react-flow__pane {
+  cursor: grab !important;
+}
+
+.canvas-mode-pan .react-flow__pane:active {
+  cursor: grabbing !important;
+}
+
+
