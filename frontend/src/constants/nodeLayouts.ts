@@ -31,6 +31,7 @@ export interface NodeSchema {
   }[];
   dataOuts: { name: string; label: string; type?: string }[];
   original_code?: string;
+  isPassthrough?: boolean;
 }
 
 export const getPinColor = (type: string | undefined): string => {

@@ -12,7 +12,7 @@
  * GNU General Public License for more details.
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import Plotly from 'plotly.js-dist-min';
 import { ResizablePlotContainer } from '../common/ResizablePlotContainer';
 
@@ -30,7 +30,7 @@ export const TimePlotWidget = ({ points, strokeColor = '#34d399' }: TimePlotWidg
     );
   }
 
-  const numericPoints = points.map(v => Number(v) || 0);
+  const numericPoints = useMemo(() => points.map(v => Number(v) || 0), [points]);
 
   return (
     <ResizablePlotContainer 
@@ -40,12 +40,10 @@ export const TimePlotWidget = ({ points, strokeColor = '#34d399' }: TimePlotWidg
       borderRadius="6px"
       border="1px solid var(--node-border)"
     >
-      {(width, height) => (
+      {(_width, _height) => (
         <PlotlyTimeRenderer
           points={numericPoints}
           strokeColor={strokeColor}
-          width={width}
-          height={height}
         />
       )}
     </ResizablePlotContainer>
@@ -55,72 +53,107 @@ export const TimePlotWidget = ({ points, strokeColor = '#34d399' }: TimePlotWidg
 interface PlotlyTimeRendererProps {
   points: number[];
   strokeColor: string;
-  width: number;
-  height: number;
 }
 
-const PlotlyTimeRenderer = ({ points, strokeColor, width, height }: PlotlyTimeRendererProps) => {
+const PlotlyTimeRenderer = ({ points, strokeColor }: PlotlyTimeRendererProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const lastUpdateRef = useRef<number>(0);
+  const throttleTimeoutRef = useRef<any>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const isLight = document.documentElement.classList.contains('light-theme');
-    const gridColor = isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)';
-    const textColor = isLight ? '#475569' : '#94a3b8';
-    const zeroLineColor = isLight ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)';
+    const runUpdate = () => {
+      if (!containerRef.current) return;
+      const isLight = document.documentElement.classList.contains('light-theme');
+      const gridColor = isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)';
+      const textColor = isLight ? '#475569' : '#94a3b8';
+      const zeroLineColor = isLight ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)';
 
-    const xVals = points.map((_, i) => i);
+      const xVals = points.map((_, i) => i);
 
-    const trace: Partial<Plotly.PlotData> = {
-      x: xVals,
-      y: points,
-      type: 'scatter',
-      mode: 'lines',
-      line: { color: strokeColor, width: 1.5 }
+      const trace: Partial<Plotly.PlotData> = {
+        x: xVals,
+        y: points,
+        type: 'scatter',
+        mode: 'lines',
+        line: { color: strokeColor, width: 1.5 }
+      };
+
+      const layout: Partial<Plotly.Layout> = {
+        autosize: true,
+        margin: { l: 40, r: 15, t: 15, b: 25 },
+        paper_bgcolor: 'transparent',
+        plot_bgcolor: 'transparent',
+        xaxis: {
+          title: { text: 'Time Index', font: { size: 9, color: textColor } },
+          tickfont: { size: 8, color: textColor },
+          gridcolor: gridColor,
+          zerolinecolor: zeroLineColor,
+          exponentformat: 'SI',
+          showexponent: 'all',
+          tickformat: '.3~s'
+        },
+        yaxis: {
+          title: { text: 'Value', font: { size: 9, color: textColor } },
+          tickfont: { size: 8, color: textColor },
+          gridcolor: gridColor,
+          zerolinecolor: zeroLineColor,
+          exponentformat: 'SI',
+          showexponent: 'all',
+          tickformat: '.3~s'
+        },
+        showlegend: false
+      };
+
+      const config = {
+        responsive: true,
+        displayModeBar: 'hover' as const,
+        displaylogo: false
+      };
+
+      Plotly.react(containerRef.current, [trace], layout, config);
+      lastUpdateRef.current = Date.now();
     };
 
-    const layout: Partial<Plotly.Layout> = {
-      autosize: true,
-      width,
-      height,
-      margin: { l: 40, r: 15, t: 15, b: 25 },
-      paper_bgcolor: 'transparent',
-      plot_bgcolor: 'transparent',
-      xaxis: {
-        title: { text: 'Time Index', font: { size: 9, color: textColor } },
-        tickfont: { size: 8, color: textColor },
-        gridcolor: gridColor,
-        zerolinecolor: zeroLineColor,
-        exponentformat: 'SI',
-        showexponent: 'all',
-        tickformat: '.3~s'
-      },
-      yaxis: {
-        title: { text: 'Value', font: { size: 9, color: textColor } },
-        tickfont: { size: 8, color: textColor },
-        gridcolor: gridColor,
-        zerolinecolor: zeroLineColor,
-        exponentformat: 'SI',
-        showexponent: 'all',
-        tickformat: '.3~s'
-      },
-      showlegend: false
-    };
+    if (throttleTimeoutRef.current) {
+      clearTimeout(throttleTimeoutRef.current);
+      throttleTimeoutRef.current = null;
+    }
 
-    const config = {
-      responsive: true,
-      displayModeBar: 'hover' as const,
-      displaylogo: false
-    };
+    const now = Date.now();
+    const elapsed = now - lastUpdateRef.current;
 
-    Plotly.react(containerRef.current, [trace], layout, config);
-  }, [points, strokeColor, width, height]);
+    if (elapsed >= 60) {
+      runUpdate();
+    } else {
+      throttleTimeoutRef.current = setTimeout(runUpdate, 60 - elapsed);
+    }
 
-  useEffect(() => {
     return () => {
-      if (containerRef.current) {
-        Plotly.purge(containerRef.current);
+      if (throttleTimeoutRef.current) {
+        clearTimeout(throttleTimeoutRef.current);
+        throttleTimeoutRef.current = null;
+      }
+    };
+  }, [points, strokeColor]);
+
+  // Imperative resize observer and cleanup
+  useEffect(() => {
+    const node = containerRef.current;
+    if (!node) return;
+
+    const observer = new ResizeObserver(() => {
+      if (node) {
+        Plotly.Plots.resize(node);
+      }
+    });
+    observer.observe(node);
+
+    return () => {
+      observer.disconnect();
+      if (node) {
+        Plotly.purge(node);
       }
     };
   }, []);

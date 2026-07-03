@@ -192,37 +192,27 @@ export function useFlowExecution({
                 const updatedData = { ...node.data };
                 const oldResults = node.data.results || {};
                 
+                updatedData.results = {
+                  ...oldResults,
+                  ...msg.data
+                };
+                
                 if (msg.data.waveform !== undefined) {
-                  updatedData.results = {
-                    ...oldResults,
-                    waveform: msg.data.waveform
-                  };
                   updatedData.resultMessage = `Captured: ${msg.data.waveform?.length || 0} pts`;
-} else if (msg.data.x !== undefined && msg.data.y !== undefined) {
-                  updatedData.results = {
-                    ...oldResults,
-                    x: msg.data.x,
-                    y: msg.data.y,
-                    x_label: msg.data.x_label,
-                    y_label: msg.data.y_label
-                  };
+                } else if (msg.data.x !== undefined && msg.data.y !== undefined) {
                   updatedData.resultMessage = `Plotted ${msg.data.y?.length || 0} pts`;
                 } else if (msg.data.value !== undefined) {
                   if (node.data.action === 'outputs/plots/plot') {
                     const val = parseFloat(msg.data.value);
                     const oldHistory = oldResults.history || [];
-                    updatedData.results = {
-                      ...oldResults,
-                      history: [...oldHistory, val].slice(-50)
-                    };
+                    updatedData.results.history = [...oldHistory, val].slice(-50);
                     updatedData.resultMessage = `Value: ${val.toFixed(2)}`;
                   } else {
-                    updatedData.results = {
-                      ...oldResults,
-                      displayValue: msg.data.value
-                    };
+                    updatedData.results.displayValue = msg.data.value;
                     updatedData.resultMessage = `Value: ${msg.data.value}`;
                   }
+                } else if (msg.data.state !== undefined) {
+                  updatedData.resultMessage = `State: ${msg.data.state ? 'ON' : 'OFF'}`;
                 }
                 
                 return { ...node, data: updatedData };
@@ -240,37 +230,27 @@ export function useFlowExecution({
                   const updatedData = { ...node.data };
                   const oldResults = node.data.results || {};
                   
+                  updatedData.results = {
+                    ...oldResults,
+                    ...msg.data
+                  };
+                  
                   if (msg.data.waveform !== undefined) {
-                    updatedData.results = {
-                      ...oldResults,
-                      waveform: msg.data.waveform
-                    };
                     updatedData.resultMessage = `Captured: ${msg.data.waveform?.length || 0} pts`;
                   } else if (msg.data.x !== undefined && msg.data.y !== undefined) {
-                    updatedData.results = {
-                      ...oldResults,
-                      x: msg.data.x,
-                      y: msg.data.y,
-                      x_label: msg.data.x_label,
-                      y_label: msg.data.y_label
-                    };
                     updatedData.resultMessage = `Plotted ${msg.data.y?.length || 0} pts`;
                   } else if (msg.data.value !== undefined) {
                     if (node.data.action === 'outputs/plots/plot') {
                       const val = parseFloat(msg.data.value);
                       const historyArr = Array.isArray(oldResults.history) ? oldResults.history : [];
-                      updatedData.results = {
-                        ...oldResults,
-                        history: [...historyArr, val].slice(-50)
-                      };
+                      updatedData.results.history = [...historyArr, val].slice(-50);
                       updatedData.resultMessage = `Value: ${val.toFixed(2)}`;
                     } else {
-                      updatedData.results = {
-                        ...oldResults,
-                        displayValue: msg.data.value
-                      };
+                      updatedData.results.displayValue = msg.data.value;
                       updatedData.resultMessage = `Value: ${msg.data.value}`;
                     }
+                  } else if (msg.data.state !== undefined) {
+                    updatedData.resultMessage = `State: ${msg.data.state ? 'ON' : 'OFF'}`;
                   }
                   
                   return { ...node, data: updatedData };

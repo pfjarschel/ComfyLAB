@@ -36,6 +36,7 @@ interface NodeSchema {
   execOuts: string[];
   dataIns: PinSchema[];
   dataOuts: { name: string; label: string; type?: string }[];
+  isPassthrough?: boolean;
 }
 
 interface NodeInspectorPanelProps {
@@ -100,6 +101,41 @@ export const NodeInspectorPanel = ({
         label: out.name,
         type: out.type || 'any',
       })),
+    };
+  }
+
+  if (action === 'math/arithmetic/calculator' && registryLayout) {
+    const variables: string[] = Array.isArray(node.data.variables)
+      ? node.data.variables
+      : typeof node.data.variables === 'string'
+        ? node.data.variables.split(',').map((v: string) => v.trim()).filter(Boolean)
+        : ['a', 'b'];
+    layout = {
+      ...registryLayout,
+      dataIns: variables.map((v: string) => ({
+        name: v,
+        label: v,
+        type: 'number',
+        widget: 'number',
+      })),
+    };
+  }
+
+  if (action === 'math/signal_processing/filter' && registryLayout) {
+    const filterType = node.data.FilterType ?? 'Moving Average';
+    layout = {
+      ...registryLayout,
+      dataIns: registryLayout.dataIns.filter((pin: any) => {
+        if (pin.name === 'Signal' || pin.name === 'FilterType') return true;
+        if (filterType === 'Moving Average') {
+          return pin.name === 'Window';
+        } else if (filterType === 'Low-pass' || filterType === 'High-pass') {
+          return pin.name === 'Cutoff' || pin.name === 'Order';
+        } else if (filterType === 'Band-pass') {
+          return pin.name === 'LowCutoff' || pin.name === 'HighCutoff' || pin.name === 'Order';
+        }
+        return true;
+      }),
     };
   }
 

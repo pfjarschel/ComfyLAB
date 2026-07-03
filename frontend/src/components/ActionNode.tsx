@@ -21,6 +21,7 @@ import type { NodeSchema } from '../constants/nodeLayouts';
 import { NumericTextInput } from './common/NumericTextInput';
 import { TimePlotWidget } from './widgets/TimePlotWidget';
 import { XYPlotWidget } from './widgets/XYPlotWidget';
+import { HeatmapPlotWidget } from './widgets/HeatmapPlotWidget';
 import { DisplayScreenWidget } from './widgets/DisplayScreenWidget';
 import { RFGeneratorWidget } from './widgets/RFGeneratorWidget';
 
@@ -59,13 +60,15 @@ const DISPLAY_AND_PLOT_NODES = [
   'arrays/manipulation/accumulate',
   'hardware/virtual_oscilloscope',
   'outputs/plots/plot',
-  'outputs/plots/xy_plot'
+  'outputs/plots/xy_plot',
+  'outputs/plots/heatmap_plot'
 ];
 
 const PLOT_NODES = [
   'hardware/virtual_oscilloscope',
   'outputs/plots/plot',
-  'outputs/plots/xy_plot'
+  'outputs/plots/xy_plot',
+  'outputs/plots/heatmap_plot'
 ];
 
 const NODES_WITH_CUSTOM_UI = [
@@ -73,6 +76,7 @@ const NODES_WITH_CUSTOM_UI = [
   'constants/boolean',
   'constants/string',
   'hardware/virtual_generator',
+  'math/arithmetic/calculator',
   ...DISPLAY_AND_PLOT_NODES
 ];
 
@@ -123,6 +127,23 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
       }
     : registryLayout;
 
+  if (layout && data.action === 'math/arithmetic/calculator') {
+    const variables: string[] = Array.isArray(data.variables)
+      ? data.variables
+      : typeof data.variables === 'string'
+        ? data.variables.split(',').map((v: string) => v.trim()).filter(Boolean)
+        : ['a', 'b'];
+    layout = {
+      ...layout,
+      dataIns: variables.map((v: string) => ({
+        name: v,
+        label: v,
+        type: 'number',
+        widget: 'number',
+      })),
+    };
+  }
+
   // Library Call: augment static layout with dynamic pins from library_args
   if (layout && isLibraryCallNode) {
     const libraryArgs: any[] = data.library_args || data.ffi_args || [];
@@ -147,6 +168,24 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
       ...layout,
       dataIns: [...layout.dataIns, ...dynIns],
       dataOuts: [...layout.dataOuts, ...dynOuts],
+    };
+  }
+
+  if (layout && data.action === 'math/signal_processing/filter') {
+    const filterType = data.FilterType ?? 'Moving Average';
+    layout = {
+      ...layout,
+      dataIns: layout.dataIns.filter((pin: any) => {
+        if (pin.name === 'Signal' || pin.name === 'FilterType') return true;
+        if (filterType === 'Moving Average') {
+          return pin.name === 'Window';
+        } else if (filterType === 'Low-pass' || filterType === 'High-pass') {
+          return pin.name === 'Cutoff' || pin.name === 'Order';
+        } else if (filterType === 'Band-pass') {
+          return pin.name === 'LowCutoff' || pin.name === 'HighCutoff' || pin.name === 'Order';
+        }
+        return true;
+      }),
     };
   }
 
@@ -186,12 +225,12 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState(data.customName || layout?.name || '');
   const [showOptional, setShowOptional] = useState(false);
+  const [newVarVal, setNewVarVal] = useState('');
 
   useEffect(() => {
     setTempName(data.customName || layout?.name || '');
   }, [data.customName, layout?.name]);
 
-  const isPassthrough = !!layout?.isPassthrough && !layout.execIns?.includes('In');
   const isExecPassthrough = !!layout?.isPassthrough && !!layout.execIns?.includes('In');
   const isAnyPassthrough = !!layout?.isPassthrough;
 
@@ -336,14 +375,13 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
     if (!statusBarRef.current) return;
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
-        const rectHeight = entry.contentRect.height;
-        // add margin-top (10px) to status bar height
-        setMeasuredStatusHeight(rectHeight + 10);
+        const newHeight = entry.contentRect.height + 10;
+        setMeasuredStatusHeight((prev) => (Math.abs(prev - newHeight) > 0.5 ? newHeight : prev));
       }
     });
     observer.observe(statusBarRef.current);
     return () => observer.disconnect();
-  }, [data.status, data.resultMessage]);
+  }, []);
 
   // Measure optional settings toggle button height dynamically when present
   useEffect(() => {
@@ -353,9 +391,8 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
     }
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
-        const rectHeight = entry.contentRect.height;
-        // add marginTop (4px) + marginBottom (4px) = 8px
-        setMeasuredOptionalHeight(rectHeight + 8);
+        const newHeight = entry.contentRect.height + 8;
+        setMeasuredOptionalHeight((prev) => (Math.abs(prev - newHeight) > 0.5 ? newHeight : prev));
       }
     });
     observer.observe(optionalToggleRef.current);
@@ -564,6 +601,109 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
   }
 
   if (!registryLayout || !layout) return null;
+
+  const isLED = data.action === 'outputs/basic/led_indicator';
+  if (isLED) {
+    const isStateTrue = !!data.results?.state;
+    // Glowing color palette matching standard light/dark modes
+    const ledColor = isStateTrue ? '#10b981' : '#ef4444';
+    const ledGlow = isStateTrue ? '0 0 14px #10b981cc, 0 0 4px #10b98155' : '0 0 14px #ef4444aa, 0 0 4px #ef444455';
+    const statePinColor = getPinColor('boolean');
+
+    return (
+      <div
+        className={`led-indicator-node ${selected ? 'selected' : ''}`}
+        style={{
+          width: '40px',
+          height: '40px',
+          borderRadius: '50%',
+          background: ledColor,
+          border: `3px solid ${selected ? '#3b82f6' : 'var(--node-border)'}`,
+          boxShadow: `${ledGlow}, inset 0 0 8px rgba(0,0,0,0.5)`,
+          position: 'relative',
+          cursor: 'move',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          transition: 'background-color 0.25s ease, box-shadow 0.25s ease',
+        }}
+        title={`LED Status Indicator: ${isStateTrue ? 'ON' : 'OFF'}`}
+      >
+        {/* Inner lens glare */}
+        <div style={{
+          width: '12px',
+          height: '12px',
+          borderRadius: '50%',
+          background: 'rgba(255, 255, 255, 0.3)',
+          filter: 'blur(1px)',
+          position: 'absolute',
+          top: '6px',
+          left: '6px',
+          pointerEvents: 'none'
+        }} />
+
+        {/* Exec Input (top-left) */}
+        <Handle
+          type="target"
+          position={Position.Left}
+          id="In"
+          style={{
+            top: '12px',
+            left: '-4.5px',
+            background: '#a78bfa',
+            borderColor: '#ffffff',
+            borderRadius: '2px',
+            width: '6px',
+            height: '6px',
+            minWidth: 0,
+            minHeight: 0,
+            borderWidth: '1px',
+          }}
+          title="Exec Input: In"
+        />
+
+        {/* State Data Input (bottom-left) */}
+        <Handle
+          type="target"
+          position={Position.Left}
+          id="State"
+          style={{
+            top: '28px',
+            left: '-4.5px',
+            background: statePinColor,
+            borderColor: '#ffffff',
+            borderRadius: '50%',
+            width: '6px',
+            height: '6px',
+            minWidth: 0,
+            minHeight: 0,
+            borderWidth: '1px',
+          }}
+          title={`Data Input: State\nValue: ${getConnectedPinValue('State')}`}
+        />
+
+        {/* Exec Output (middle-right) */}
+        <Handle
+          type="source"
+          position={Position.Right}
+          id="Out"
+          style={{
+            top: '20px',
+            right: '-4.5px',
+            background: '#a78bfa',
+            borderColor: '#ffffff',
+            borderRadius: '2px',
+            width: '6px',
+            height: '6px',
+            minWidth: 0,
+            minHeight: 0,
+            borderWidth: '1px',
+          }}
+          title="Exec Output: Out"
+        />
+      </div>
+    );
+  }
 
   if (isAnyPassthrough) {
     const isExec = isExecPassthrough;
@@ -851,6 +991,167 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
           </button>
         )}
 
+        {data.action === 'math/arithmetic/calculator' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%', padding: '4px' }}>
+            {/* Expression Input */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Formula:</span>
+              <input
+                type="text"
+                className="nodrag"
+                value={data.expression ?? 'a + b'}
+                onChange={(e) => handleChange('expression', e.target.value)}
+                placeholder="a + b"
+                style={{
+                  background: 'var(--input-bg)',
+                  border: '1px solid var(--node-border)',
+                  color: 'var(--text-color)',
+                  borderRadius: '4px',
+                  padding: '4px 6px',
+                  fontSize: '0.75rem',
+                  width: '100%',
+                  fontFamily: 'monospace',
+                }}
+              />
+            </div>
+            
+            {/* Variables List & Add/Remove */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '2px' }}>
+              <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>Variables:</span>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', alignItems: 'center' }}>
+                {(Array.isArray(data.variables)
+                  ? data.variables
+                  : typeof data.variables === 'string'
+                    ? data.variables.split(',').map((v: string) => v.trim()).filter(Boolean)
+                    : ['a', 'b']
+                ).map((v: string, index: number) => (
+                  <div
+                    key={index}
+                    style={{
+                      background: 'rgba(59, 130, 246, 0.12)',
+                      border: '1px solid rgba(59, 130, 246, 0.35)',
+                      borderRadius: '3px',
+                      padding: '2px 6px',
+                      fontSize: '0.7rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      color: '#60a5fa',
+                    }}
+                  >
+                    <span>{v}</span>
+                    <button
+                      className="nodrag"
+                      onClick={() => {
+                        const currentVars = Array.isArray(data.variables)
+                          ? [...data.variables]
+                          : typeof data.variables === 'string'
+                            ? data.variables.split(',').map((x: string) => x.trim()).filter(Boolean)
+                            : ['a', 'b'];
+                        const updatedVars = currentVars.filter((x: string) => x !== v);
+                        handleChange('variables', updatedVars);
+                      }}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#ef4444',
+                        cursor: 'pointer',
+                        padding: 0,
+                        fontSize: '0.75rem',
+                        fontWeight: 'bold',
+                        display: 'flex',
+                        alignItems: 'center',
+                        marginLeft: '2px',
+                      }}
+                      title={`Remove ${v}`}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+                {(Array.isArray(data.variables)
+                  ? data.variables
+                  : typeof data.variables === 'string'
+                    ? data.variables.split(',').map((v: string) => v.trim()).filter(Boolean)
+                    : ['a', 'b']
+                ).length === 0 && (
+                  <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                    No variables. Add one below!
+                  </span>
+                )}
+              </div>
+
+              {/* Add Variable input and button */}
+              <div style={{ display: 'flex', gap: '4px', marginTop: '4px', width: '100%' }}>
+                <input
+                  type="text"
+                  placeholder="name"
+                  value={newVarVal}
+                  onChange={(e) => setNewVarVal(e.target.value)}
+                  className="nodrag"
+                  style={{
+                    background: 'var(--input-bg)',
+                    border: '1px solid var(--node-border)',
+                    color: 'var(--text-color)',
+                    borderRadius: '4px',
+                    padding: '2px 4px',
+                    fontSize: '0.68rem',
+                    width: '65px',
+                    minWidth: 0,
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      const val = newVarVal.trim().toLowerCase();
+                      if (val && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(val)) {
+                        const currentVars = Array.isArray(data.variables)
+                          ? [...data.variables]
+                          : typeof data.variables === 'string'
+                            ? data.variables.split(',').map((x: string) => x.trim()).filter(Boolean)
+                            : ['a', 'b'];
+                        if (!currentVars.includes(val)) {
+                          handleChange('variables', [...currentVars, val]);
+                        }
+                        setNewVarVal('');
+                      }
+                    }
+                  }}
+                />
+                <button
+                  className="nodrag"
+                  onClick={() => {
+                    const val = newVarVal.trim().toLowerCase();
+                    if (val && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(val)) {
+                      const currentVars = Array.isArray(data.variables)
+                        ? [...data.variables]
+                        : typeof data.variables === 'string'
+                          ? data.variables.split(',').map((x: string) => x.trim()).filter(Boolean)
+                          : ['a', 'b'];
+                      if (!currentVars.includes(val)) {
+                        handleChange('variables', [...currentVars, val]);
+                      }
+                      setNewVarVal('');
+                    }
+                  }}
+                  style={{
+                    background: 'var(--controls-bg)',
+                    border: '1px solid var(--node-border)',
+                    color: 'var(--text-color)',
+                    borderRadius: '4px',
+                    padding: '2px 6px',
+                    fontSize: '0.68rem',
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  + Add
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {data.action === 'script/rust' && (
           <div className="input-row" style={{ justifyContent: 'space-between', padding: '4px 0' }}>
             <span className="input-row-label" style={{ fontSize: '0.8rem' }}>Persist Cache: {data.persist_cache !== false ? 'ON' : 'OFF'}</span>
@@ -987,6 +1288,21 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
           <>
             <div style={{ fontSize: '0.75rem', color: 'var(--text-color)' }}>XY Graph:</div>
             <XYPlotWidget x={data.results?.x} y={data.results?.y} xLabel={data.results?.x_label} yLabel={data.results?.y_label} />
+          </>
+        )}
+
+        {data.action === 'outputs/plots/heatmap_plot' && (
+          <>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-color)' }}>2D Grid:</div>
+            <HeatmapPlotWidget 
+              z={data.results?.z} 
+              x={data.results?.x} 
+              y={data.results?.y} 
+              xLabel={data.results?.x_label} 
+              yLabel={data.results?.y_label}
+              plotType={data.results?.plot_type}
+              colormap={data.results?.colormap}
+            />
           </>
         )}
 
@@ -1137,7 +1453,16 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
         )}
 
         {/* Display connection label rows for pure visual clarity (only for visual overrides that don't render standard widgets) */}
-        {visibleDataIns.length > 0 && ['outputs/basic/display', 'control_flow/timing/measure_time', 'arrays/manipulation/accumulate', 'hardware/virtual_oscilloscope', 'outputs/plots/plot', 'outputs/plots/xy_plot'].includes(data.action) && (
+        {visibleDataIns.length > 0 && [
+          'outputs/basic/display', 
+          'control_flow/timing/measure_time', 
+          'arrays/manipulation/accumulate', 
+          'hardware/virtual_oscilloscope', 
+          'outputs/plots/plot', 
+          'outputs/plots/xy_plot',
+          'outputs/plots/heatmap_plot',
+          'math/arithmetic/calculator'
+        ].includes(data.action) && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {visibleDataIns.map(pin => (
               <div key={`label-in-${pin.name}`} style={{ fontSize: '0.7rem', color: 'var(--text-color)', textAlign: 'left', position: 'relative', width: '100%' }}>

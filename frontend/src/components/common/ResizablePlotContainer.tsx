@@ -38,8 +38,9 @@ export const ResizablePlotContainer = ({
     if (!containerRef.current) return;
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
-        const { width, height } = entry.contentRect;
-        setDimensions({ width, height });
+        const width = Math.round(entry.contentRect.width);
+        const height = Math.round(entry.contentRect.height);
+        setDimensions((prev) => (prev.width === width && prev.height === height ? prev : { width, height }));
       }
     });
     observer.observe(containerRef.current);

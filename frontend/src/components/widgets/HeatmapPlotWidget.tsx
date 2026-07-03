@@ -16,28 +16,40 @@ import { useEffect, useRef, useMemo } from 'react';
 import Plotly from 'plotly.js-dist-min';
 import { ResizablePlotContainer } from '../common/ResizablePlotContainer';
 
-interface XYPlotWidgetProps {
-  x: any[] | undefined;
-  y: any[] | undefined;
+interface HeatmapPlotWidgetProps {
+  z: any[] | undefined;
+  x?: any[] | undefined;
+  y?: any[] | undefined;
   xLabel?: string;
   yLabel?: string;
+  plotType?: 'heatmap' | 'contour';
+  colormap?: string;
 }
 
-export const XYPlotWidget = ({ x, y, xLabel = 'X', yLabel = 'Y' }: XYPlotWidgetProps) => {
-  if (!x || !y || !Array.isArray(x) || !Array.isArray(y) || x.length === 0 || y.length === 0) {
+export const HeatmapPlotWidget = ({
+  z,
+  x,
+  y,
+  xLabel = 'X',
+  yLabel = 'Y',
+  plotType = 'heatmap',
+  colormap = 'Viridis',
+}: HeatmapPlotWidgetProps) => {
+  if (!z || !Array.isArray(z) || z.length === 0 || !Array.isArray(z[0])) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.75rem', background: 'var(--input-bg)', border: '1px solid var(--node-border)', marginTop: '6px', borderRadius: '6px', flex: 1, minHeight: '150px' }}>
-        Waiting for X/Y data...
+        Waiting for 2D Z data...
       </div>
     );
   }
 
-  const { xVals, yVals } = useMemo(() => {
-    const len = Math.min(x.length, y.length);
-    const xVals = x.slice(0, len).map((v: any) => Number(v) || 0);
-    const yVals = y.slice(0, len).map((v: any) => Number(v) || 0);
-    return { xVals, yVals };
-  }, [x, y]);
+  // Pre-process inputs
+  const { zVals, xVals, yVals } = useMemo(() => {
+    const zVals = z.map((row: any) => (Array.isArray(row) ? row.map((v) => Number(v) || 0) : []));
+    const xVals = Array.isArray(x) && x.length > 0 ? x.map((v) => Number(v) || 0) : undefined;
+    const yVals = Array.isArray(y) && y.length > 0 ? y.map((v) => Number(v) || 0) : undefined;
+    return { zVals, xVals, yVals };
+  }, [z, x, y]);
 
   return (
     <ResizablePlotContainer 
@@ -48,25 +60,39 @@ export const XYPlotWidget = ({ x, y, xLabel = 'X', yLabel = 'Y' }: XYPlotWidgetP
       border="1px solid var(--node-border)"
     >
       {(_width, _height) => (
-        <PlotlyXYRenderer
+        <PlotlyHeatmapRenderer
+          zVals={zVals}
           xVals={xVals}
           yVals={yVals}
           xLabel={xLabel}
           yLabel={yLabel}
+          plotType={plotType}
+          colormap={colormap}
         />
       )}
     </ResizablePlotContainer>
   );
 };
 
-interface PlotlyXYRendererProps {
-  xVals: number[];
-  yVals: number[];
+interface PlotlyHeatmapRendererProps {
+  zVals: number[][];
+  xVals?: number[];
+  yVals?: number[];
   xLabel: string;
   yLabel: string;
+  plotType: 'heatmap' | 'contour';
+  colormap: string;
 }
 
-const PlotlyXYRenderer = ({ xVals, yVals, xLabel, yLabel }: PlotlyXYRendererProps) => {
+const PlotlyHeatmapRenderer = ({
+  zVals,
+  xVals,
+  yVals,
+  xLabel,
+  yLabel,
+  plotType,
+  colormap,
+}: PlotlyHeatmapRendererProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const lastUpdateRef = useRef<number>(0);
   const throttleTimeoutRef = useRef<any>(null);
@@ -77,48 +103,54 @@ const PlotlyXYRenderer = ({ xVals, yVals, xLabel, yLabel }: PlotlyXYRendererProp
     const runUpdate = () => {
       if (!containerRef.current) return;
       const isLight = document.documentElement.classList.contains('light-theme');
-      const gridColor = isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)';
       const textColor = isLight ? '#475569' : '#94a3b8';
-      const zeroLineColor = isLight ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)';
+      const gridColor = isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)';
+
+      // Define colorscale helper
+      let colorscale: any = colormap;
+      if (colormap.toLowerCase() === 'wave') {
+        colorscale = [
+          [0.0, '#3b82f6'], // blue
+          [0.5, '#f1f5f9'], // white/gray
+          [1.0, '#ef4444'], // red
+        ];
+      }
 
       const trace: Partial<Plotly.PlotData> = {
+        z: zVals,
         x: xVals,
         y: yVals,
-        type: 'scatter',
-        mode: 'lines',
-        line: { color: '#10b981', width: 1.5 }
+        type: plotType as any,
+        colorscale: colorscale,
+        showscale: true,
+        colorbar: {
+          thickness: 10,
+          len: 0.9,
+          tickfont: { size: 7, color: textColor },
+        },
       };
 
       const layout: Partial<Plotly.Layout> = {
         autosize: true,
-        margin: { l: 40, r: 15, t: 15, b: 35 },
+        margin: { l: 40, r: 45, t: 15, b: 35 },
         paper_bgcolor: 'transparent',
         plot_bgcolor: 'transparent',
         xaxis: {
-          title: { text: xLabel, font: { size: 10, color: textColor } },
+          title: { text: xLabel, font: { size: 9, color: textColor } },
           tickfont: { size: 8, color: textColor },
           gridcolor: gridColor,
-          zerolinecolor: zeroLineColor,
-          exponentformat: 'SI',
-          showexponent: 'all',
-          tickformat: '.3~s'
         },
         yaxis: {
-          title: { text: yLabel, font: { size: 10, color: textColor } },
+          title: { text: yLabel, font: { size: 9, color: textColor } },
           tickfont: { size: 8, color: textColor },
           gridcolor: gridColor,
-          zerolinecolor: zeroLineColor,
-          exponentformat: 'SI',
-          showexponent: 'all',
-          tickformat: '.3~s'
         },
-        showlegend: false
       };
 
       const config = {
         responsive: true,
         displayModeBar: 'hover' as const,
-        displaylogo: false
+        displaylogo: false,
       };
 
       Plotly.react(containerRef.current, [trace], layout, config);
@@ -133,10 +165,10 @@ const PlotlyXYRenderer = ({ xVals, yVals, xLabel, yLabel }: PlotlyXYRendererProp
     const now = Date.now();
     const elapsed = now - lastUpdateRef.current;
 
-    if (elapsed >= 60) {
+    if (elapsed >= 100) {
       runUpdate();
     } else {
-      throttleTimeoutRef.current = setTimeout(runUpdate, 60 - elapsed);
+      throttleTimeoutRef.current = setTimeout(runUpdate, 100 - elapsed);
     }
 
     return () => {
@@ -145,7 +177,7 @@ const PlotlyXYRenderer = ({ xVals, yVals, xLabel, yLabel }: PlotlyXYRendererProp
         throttleTimeoutRef.current = null;
       }
     };
-  }, [xVals, yVals, xLabel, yLabel]);
+  }, [zVals, xVals, yVals, xLabel, yLabel, plotType, colormap]);
 
   // Imperative resize observer and cleanup
   useEffect(() => {

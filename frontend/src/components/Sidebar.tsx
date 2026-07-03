@@ -12,7 +12,7 @@
  * GNU General Public License for more details.
  */
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 interface SidebarNode {
   type: string;

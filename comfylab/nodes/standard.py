@@ -270,203 +270,6 @@ class StringNode(BaseNode):
         return None
 
 
-@register_node("control_flow/timing/sleep")
-class SleepNode(BaseNode):
-    """Delays execution for a specified number of seconds."""
-    icon = "⏳"
-    display_name = "Sleep"
-    description = "Delays execution for a specified number of seconds."
-
-    inputs_def = [
-        ExecIn("In"),
-        DataIn("Delay", type_hint=float, default=1.0, widget="number", min_val=0.0)
-    ]
-    outputs_def = [ExecOut("Out")]
-
-    async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
-        delay = await context.pull(self.id, "Delay")
-        d = max(0.0, float(delay))
-        await asyncio.sleep(d)
-        return "Out"
-
-
-@register_node("control_flow/timing/measure_time")
-class MeasureTimeNode(BaseNode):
-    """Measures the execution time of connected nodes in its timed block."""
-    icon = "⏱️"
-    display_name = "Measure Time"
-    description = "Measures the execution time of all nodes connected to the timed block."
-
-    inputs_def = [
-        ExecIn("In")
-    ]
-    outputs_def = [
-        ExecOut("Body"),
-        ExecOut("Out"),
-        DataOut("Time", type_hint=float)
-    ]
-
-    def __init__(self, node_id: str, properties: Optional[Dict[str, Any]] = None):
-        super().__init__(node_id, properties)
-        self._time = 0.0
-
-    async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
-        start_time = time.perf_counter()
-        
-        # Trigger execution of the timed block connected to "Body"
-        await context.engine.trigger_exec(self.id, "Body", context)
-        
-        end_time = time.perf_counter()
-        duration = end_time - start_time
-        self._time = duration
-        
-        # Format duration with appropriate units for telemetry display
-        if duration < 1e-6:
-            display_val = f"{duration * 1e9:.2f} ns"
-        elif duration < 1e-3:
-            display_val = f"{duration * 1e6:.2f} µs"
-        elif duration < 1.0:
-            display_val = f"{duration * 1000:.2f} ms"
-        else:
-            display_val = f"{duration:.4f} s"
-
-        await context.send_telemetry(self.id, {"value": display_val})
-        return "Out"
-
-    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
-        if pin_name == "Time":
-            return self._time
-        return None
-
-    async def clear_data(self) -> None:
-        self._time = 0.0
-
-
-@register_node("outputs/plots/xy_plot")
-class XYPlotNode(BaseNode):
-    """Receives X and Y array data and streams them to the UI for XY graphing."""
-    icon = "📊"
-    display_name = "XY Plot"
-    description = "Receives X and Y data lists and streams them to the UI for XY plotting."
-    default_width = 290
-    default_height = 220
-
-    inputs_def = [
-        ExecIn("Plot"),
-        DataIn("X", type_hint=list),
-        DataIn("Y", type_hint=list),
-        DataIn("XLabel", type_hint=str, default="X", optional=True),
-        DataIn("YLabel", type_hint=str, default="Y", optional=True)
-    ]
-    outputs_def = [ExecOut("Out")]
-
-    async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
-        x = await context.pull(self.id, "X")
-        y = await context.pull(self.id, "Y")
-        x_label = await context.pull(self.id, "XLabel")
-        y_label = await context.pull(self.id, "YLabel")
-
-        # Send telemetry payload
-        payload = {
-            "x": x if isinstance(x, list) else [],
-            "y": y if isinstance(y, list) else [],
-            "x_label": str(x_label) if x_label else "X",
-            "y_label": str(y_label) if y_label else "Y"
-        }
-        await context.send_telemetry(self.id, payload)
-        return "Out"
-
-
-@register_node("math/signal_processing/fft")
-class FFTNode(BaseNode):
-    """Computes a Discrete Fourier Transform (spectrum magnitude) of a signal."""
-    icon = "📈"
-    display_name = "FFT Spectrum"
-    description = "Computes a Discrete Fourier Transform (spectrum magnitude) of a signal."
-
-    inputs_def = [
-        ExecIn("Analyze"),
-        DataIn("Signal", type_hint=list),
-        DataIn("X", type_hint=list, optional=True)
-    ]
-    outputs_def = [
-        ExecOut("Out"),
-        DataOut("Spectrum", type_hint=list),
-        DataOut("Frequencies", type_hint=list)
-    ]
-
-    def __init__(self, node_id: str, properties: Optional[Dict[str, Any]] = None):
-        super().__init__(node_id, properties)
-        self._last_spectrum: List[float] = []
-        self._last_freqs: Optional[List[float]] = None
-
-    async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
-        import numpy as np
-
-        signal = await context.pull(self.id, "Signal")
-        x_input = await context.pull(self.id, "X")
-
-        if signal is None or not isinstance(signal, list) or len(signal) == 0:
-            self._last_spectrum = []
-            self._last_freqs = None
-            return "Out"
-
-        try:
-            sig = np.asarray(signal, dtype=float)
-        except (ValueError, TypeError):
-            self._last_spectrum = []
-            self._last_freqs = None
-            return "Out"
-
-        N = len(sig)
-        magnitude = np.abs(np.fft.rfft(sig)) / N
-        self._last_spectrum = magnitude.tolist()
-
-        if x_input is not None and isinstance(x_input, list) and len(x_input) == N and N >= 2:
-            try:
-                x = np.asarray(x_input, dtype=float)
-                dx = float(x[1] - x[0])
-                self._last_freqs = np.fft.rfftfreq(N, d=dx).tolist()
-            except (ValueError, TypeError, IndexError):
-                self._last_freqs = None
-        else:
-            self._last_freqs = None
-
-        return "Out"
-
-    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
-        if pin_name == "Spectrum":
-            return self._last_spectrum
-        if pin_name == "Frequencies":
-            return self._last_freqs
-        return None
-
-    async def clear_data(self) -> None:
-        self._last_spectrum = []
-        self._last_freqs = None
-
-
-@register_node("outputs/plots/plot")
-class PlotNode(BaseNode):
-    """Receives data values and streams them to the UI for live graphing."""
-    icon = "📉"
-    display_name = "Time Plot"
-    description = "Receives data values and streams them to the UI for live graphing."
-    default_width = 210
-    default_height = 220
-    
-    inputs_def = [
-        ExecIn("Plot"),
-        DataIn("InputData")
-    ]
-    outputs_def = [ExecOut("Out")]
-
-    async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
-        val = await context.pull(self.id, "InputData")
-        # Send numerical or array telemetry package
-        await context.send_telemetry(self.id, {"value": val})
-        return "Out"
-
 
 @register_node("math/arithmetic/subtract")
 class SubtractNode(BaseNode):
@@ -942,4 +745,209 @@ class ExecPassthroughNode(BaseNode):
         if trigger_pin == "In":
             return "Out"
         return None
+
+
+@register_node("logic/has_changed")
+class HasChangedNode(BaseNode):
+    """Stateful node that triggers when a value changes since the last execution."""
+    icon = "🔄"
+    display_name = "Has Changed"
+    description = "Compares an input value to its previous execution value, and outputs whether it has changed."
+
+    inputs_def = [
+        ExecIn("In"),
+        DataIn("Value", type_hint=Any)
+    ]
+    outputs_def = [
+        ExecOut("Out"),
+        DataOut("Changed", type_hint=bool)
+    ]
+
+    def __init__(self, node_id: str, properties: Optional[Dict[str, Any]] = None):
+        super().__init__(node_id, properties)
+        self._last_value = None
+        self._has_run = False
+        self._changed = False
+
+    async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
+        val = await context.pull(self.id, "Value")
+        
+        # If first run, check if last_value is different
+        if not self._has_run:
+            self._changed = True
+            self._has_run = True
+        else:
+            # NumPy array cycles / comparison
+            import numpy as np
+            if isinstance(val, (list, np.ndarray)) or isinstance(self._last_value, (list, np.ndarray)):
+                self._changed = not np.array_equal(val, self._last_value)
+            else:
+                self._changed = (val != self._last_value)
+
+        self._last_value = val
+        return "Out"
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Changed":
+            return self._changed
+        return None
+
+    async def clear_data(self) -> None:
+        self._changed = False
+
+
+@register_node("math/arithmetic/calculator")
+class CalculatorNode(BaseNode):
+    """Evaluates a mathematical expression with dynamic variable inputs."""
+    icon = "🧮"
+    display_name = "Calculator"
+    description = "Evaluates a mathematical expression using variable inputs defined in properties."
+
+    inputs_def = []
+    outputs_def = [
+        DataOut("Result", type_hint=float)
+    ]
+
+    def __init__(self, node_id: str, properties: Optional[Dict[str, Any]] = None):
+        super().__init__(node_id, properties)
+        variables = self.properties.get("variables", ["a", "b"])
+        if isinstance(variables, str):
+            variables = [v.strip() for v in variables.split(",") if v.strip()]
+        
+        for var in variables:
+            self.inputs[var] = DataIn(var, type_hint=float, default=0.0, widget="number")
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Result":
+            expression = self.properties.get("expression", self.properties.get("Expression", "a + b"))
+            if not expression:
+                return 0.0
+
+            expr_processed = expression.replace("^", "**")
+
+            variables = self.properties.get("variables", ["a", "b"])
+            if isinstance(variables, str):
+                variables = [v.strip() for v in variables.split(",") if v.strip()]
+
+            local_vars = {}
+            for var in variables:
+                val = await context.pull(self.id, var)
+                try:
+                    local_vars[var] = float(val) if val is not None else 0.0
+                except (ValueError, TypeError):
+                    local_vars[var] = 0.0
+
+            import math
+            math_namespace = {
+                'sin': math.sin, 'cos': math.cos, 'tan': math.tan,
+                'asin': math.asin, 'acos': math.acos, 'atan': math.atan, 'atan2': math.atan2,
+                'sinh': math.sinh, 'cosh': math.cosh, 'tanh': math.tanh,
+                'exp': math.exp, 'log': math.log, 'log10': math.log10,
+                'sqrt': math.sqrt, 'abs': abs, 'pi': math.pi, 'e': math.e,
+                'min': min, 'max': max, 'round': round, 'floor': math.floor, 'ceil': math.ceil
+            }
+            eval_namespace = {**math_namespace, **local_vars}
+
+            try:
+                result = eval(expr_processed, {"__builtins__": {}}, eval_namespace)
+                return float(result)
+            except Exception as e:
+                logger.error(f"Error evaluating Calculator expression '{expression}': {e}")
+                raise e
+        return None
+
+
+@register_node("math/operations/linear_scale")
+class LinearScaleNode(BaseNode):
+    """Scales an input value or list of values using y = ax + b."""
+    icon = "⚖️"
+    display_name = "Linear Scale"
+    description = "Scales a value or array linearly: ax + b."
+
+    inputs_def = [
+        DataIn("X", type_hint=Any),
+        DataIn("A", type_hint=float, default=1.0, widget="number"),
+        DataIn("B", type_hint=float, default=0.0, widget="number")
+    ]
+    outputs_def = [
+        DataOut("Result", type_hint=Any)
+    ]
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Result":
+            x = await context.pull(self.id, "X")
+            a = float(await context.pull(self.id, "A"))
+            b = float(await context.pull(self.id, "B"))
+
+            if x is None:
+                return None
+
+            if isinstance(x, list):
+                try:
+                    return [float(item) * a + b for item in x]
+                except (ValueError, TypeError):
+                    pass
+            try:
+                return float(x) * a + b
+            except (ValueError, TypeError):
+                return None
+        return None
+
+
+@register_node("arrays/manipulation/ramp_generator")
+class RampGeneratorNode(BaseNode):
+    """Generates a linear ramp of values, equivalent to numpy.linspace."""
+    icon = "📈"
+    display_name = "Ramp Generator"
+    description = "Generates a list of evenly spaced numbers over a specified interval."
+
+    inputs_def = [
+        DataIn("Start", type_hint=float, default=0.0, widget="number"),
+        DataIn("Stop", type_hint=float, default=10.0, widget="number"),
+        DataIn("Steps", type_hint=int, default=11, widget="number", min_val=1)
+    ]
+    outputs_def = [
+        DataOut("Array", type_hint=list)
+    ]
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Array":
+            start = float(await context.pull(self.id, "Start"))
+            stop = float(await context.pull(self.id, "Stop"))
+            steps = int(await context.pull(self.id, "Steps"))
+
+            steps = max(1, steps)
+            if steps == 1:
+                return [start]
+
+            import numpy as np
+            return np.linspace(start, stop, steps).tolist()
+        return None
+
+
+@register_node("outputs/basic/led_indicator")
+class LEDNode(BaseNode):
+    """Circular passthrough node displaying state (green/red) dynamically."""
+    icon = "🔴"
+    display_name = "LED Status"
+    description = "Circular passthrough status indicator showing green (True) or red (False) dynamically."
+    default_width = 40
+    default_height = 40
+    is_passthrough = True
+
+    inputs_def = [
+        ExecIn("In"),
+        DataIn("State", type_hint=bool, default=False)
+    ]
+    outputs_def = [
+        ExecOut("Out")
+    ]
+
+    async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
+        if trigger_pin == "In":
+            state = bool(await context.pull(self.id, "State"))
+            await context.send_telemetry(self.id, {"state": state})
+            return "Out"
+        return None
+
 
