@@ -71,9 +71,77 @@ export function useFlowExecution({
   useEffect(() => { nodesRef.current = nodes; }, [nodes]);
   useEffect(() => { edgesRef.current = edges; }, [edges]);
 
+  // Ref for batching high-frequency telemetry updates
+  const pendingUpdatesRef = useRef<Record<string, {
+    status?: string;
+    statusMessage?: string;
+    results?: Record<string, any>;
+    resultMessage?: string;
+    pinValues?: Record<string, any>;
+    value?: any;
+  }>>({});
+
+  // Flush pending updates every 100ms to throttle React state updates & avoid scheduler queue leaks
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const updates = pendingUpdatesRef.current;
+      if (Object.keys(updates).length === 0) return;
+
+      // Clear the ref immediately so subsequent messages go into a clean state
+      pendingUpdatesRef.current = {};
+
+      // 1. Update active nodes state
+      // 1. Dispatch custom events to bypass React's state tree and avoid Fiber re-allocations
+      if (activeTabIdRef.current === runningTabIdRef.current) {
+        Object.keys(updates).forEach(nodeId => {
+          const update = updates[nodeId];
+          const existingNode = nodesRef.current.find((n: any) => n.id === nodeId);
+          if (existingNode) {
+            // Mutate in-place
+            if (update.status !== undefined) existingNode.data.status = update.status;
+            if (update.statusMessage !== undefined) existingNode.data.resultMessage = update.statusMessage;
+            if (update.results) {
+               existingNode.data.results = { ...(existingNode.data.results || {}), ...update.results };
+            }
+            if (update.value !== undefined) {
+               if (existingNode.data.action === 'outputs/plots/plot') {
+                  const val = parseFloat(update.value);
+                  const oldHistory = existingNode.data.results?.history || [];
+                  existingNode.data.results = { ...(existingNode.data.results || {}), history: [...oldHistory, val].slice(-50) };
+                  existingNode.data.resultMessage = `Value: ${val.toFixed(2)}`;
+               } else {
+                  existingNode.data.results = { ...(existingNode.data.results || {}), displayValue: update.value };
+                  existingNode.data.resultMessage = `Value: ${update.value}`;
+               }
+            }
+            if (update.resultMessage !== undefined && update.value === undefined && update.statusMessage === undefined) {
+               existingNode.data.resultMessage = update.resultMessage;
+            }
+            if (update.pinValues) {
+               existingNode.data.pinValues = { ...(existingNode.data.pinValues || {}), ...update.pinValues };
+            }
+            
+            // Dispatch to local node
+            window.dispatchEvent(new CustomEvent(`telemetry-${nodeId}`, {
+              detail: {
+                status: existingNode.data.status,
+                resultMessage: existingNode.data.resultMessage,
+                revision: existingNode.data.results?.revision
+              }
+            }));
+          }
+        });
+      }
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [setNodes]);
+
   const startTelemetryStream = useCallback((runId: string) => {
     if (wsRef.current) {
-      wsRef.current.close();
+      try {
+        wsRef.current.close();
+      } catch (e) {}
     }
 
     const savedToken = localStorage.getItem("comfylab-auth-token") || "";
@@ -81,11 +149,13 @@ export function useFlowExecution({
     const ws = new WebSocket(`${WS_BACKEND_URL}/telemetry/${runId}${tokenQuery}`);
     ws.binaryType = 'arraybuffer';
     wsRef.current = ws;
+    pendingUpdatesRef.current = {};
+
+    const decoder = new TextDecoder('utf-8');
 
     ws.onmessage = (event) => {
       if (event.data instanceof ArrayBuffer) {
         const buffer = event.data;
-        const decoder = new TextDecoder('utf-8');
         
         // 1. Read node_id (first 36 bytes)
         const nodeIdBytes = new Uint8Array(buffer, 0, 36);
@@ -98,214 +168,98 @@ export function useFlowExecution({
         // 3. Read waveform floats (bytes 40 onwards)
         const waveform = new Float32Array(buffer, 40, pointCount);
         
-        // 4. Update the nodes state if active tab is running tab
-        if (activeTabIdRef.current === runningTabIdRef.current) {
-          setNodes((nds) =>
-            nds.map((node) => {
-              if (node.id === nodeId) {
-                const updatedData = { ...node.data };
-                updatedData.results = {
-                  ...node.data.results,
-                  waveform: Array.from(waveform)
-                };
-                updatedData.resultMessage = `Captured (Binary): ${waveform.length} pts`;
-                return { ...node, data: updatedData };
-              }
-              return node;
-            })
-          );
+        // Mutate in-place to avoid React state GC pressure and Fiber memory leaks
+        const existingNode = nodesRef.current.find((n: any) => n.id === nodeId);
+        if (existingNode) {
+          if (!existingNode.data.results) existingNode.data.results = {};
+          existingNode.data.results.waveform = waveform;
+          existingNode.data.resultMessage = `Captured (Binary): ${waveform.length} pts`;
+          // Increment revision to trigger Plotly without copying the array
+          existingNode.data.results.revision = (existingNode.data.results.revision || 0) + 1;
         }
 
-        // Keep inactive tab state in tabs array updated
-        setTabs((prevTabs) =>
-          prevTabs.map((t) => {
-            if (t.id === runningTabIdRef.current) {
-              const updatedNodes = t.nodes.map((node: any) => {
-                if (node.id === nodeId) {
-                  const updatedData = { ...node.data };
-                  updatedData.results = {
-                    ...node.data.results,
-                    waveform: Array.from(waveform)
-                  };
-                  updatedData.resultMessage = `Captured (Binary): ${waveform.length} pts`;
-                  return { ...node, data: updatedData };
-                }
-                return node;
-              });
-              return { ...t, nodes: updatedNodes };
-            }
-            return t;
-          })
-        );
+        // We specifically DO NOT add the waveform array to pendingUpdatesRef to prevent it from going into React state.
+        if (!pendingUpdatesRef.current[nodeId]) {
+          pendingUpdatesRef.current[nodeId] = {};
+        }
+        if (!pendingUpdatesRef.current[nodeId].results) {
+          pendingUpdatesRef.current[nodeId].results = {};
+        }
+        pendingUpdatesRef.current[nodeId].results.revision = existingNode?.data?.results?.revision || 1;
+        pendingUpdatesRef.current[nodeId].resultMessage = `Captured (Binary): ${waveform.length} pts`;
         return;
       }
 
       const msg = JSON.parse(event.data);
       
       if (msg.type === 'status') {
-        // Update node running status
-        if (activeTabIdRef.current === runningTabIdRef.current) {
-          setNodes((nds) =>
-            nds.map((node) => {
-              if (node.id === msg.node_id) {
-                return {
-                  ...node,
-                  data: {
-                    ...node.data,
-                    status: msg.status,
-                    resultMessage: msg.message || (msg.status === 'success' ? 'Success' : ''),
-                  },
-                };
-              }
-              return node;
-            })
-          );
+        // Batch status updates into pendingUpdatesRef instead of direct state updates
+        const nodeId = msg.node_id;
+        if (!pendingUpdatesRef.current[nodeId]) {
+          pendingUpdatesRef.current[nodeId] = {};
         }
-
-        setTabs((prevTabs) =>
-          prevTabs.map((t) => {
-            if (t.id === runningTabIdRef.current) {
-              const updatedNodes = t.nodes.map((node: any) => {
-                if (node.id === msg.node_id) {
-                  return {
-                    ...node,
-                    data: {
-                      ...node.data,
-                      status: msg.status,
-                      resultMessage: msg.message || (msg.status === 'success' ? 'Success' : ''),
-                    },
-                  };
-                }
-                return node;
-              });
-              return { ...t, nodes: updatedNodes };
-            }
-            return t;
-          })
-        );
+        pendingUpdatesRef.current[nodeId].status = msg.status;
+        pendingUpdatesRef.current[nodeId].statusMessage = msg.message || (msg.status === 'success' ? 'Success' : '');
       } else if (msg.type === 'telemetry') {
-        // Stream live array or scalar data
-        if (activeTabIdRef.current === runningTabIdRef.current) {
-          setNodes((nds) =>
-            nds.map((node) => {
-              if (node.id === msg.node_id) {
-                const updatedData = { ...node.data };
-                const oldResults = node.data.results || {};
-                
-                updatedData.results = {
-                  ...oldResults,
-                  ...msg.data
-                };
-                
-                if (msg.data.waveform !== undefined) {
-                  updatedData.resultMessage = `Captured: ${msg.data.waveform?.length || 0} pts`;
-                } else if (msg.data.x !== undefined && msg.data.y !== undefined) {
-                  updatedData.resultMessage = `Plotted ${msg.data.y?.length || 0} pts`;
-                } else if (msg.data.value !== undefined) {
-                  if (node.data.action === 'outputs/plots/plot') {
-                    const val = parseFloat(msg.data.value);
-                    const oldHistory = oldResults.history || [];
-                    updatedData.results.history = [...oldHistory, val].slice(-50);
-                    updatedData.resultMessage = `Value: ${val.toFixed(2)}`;
-                  } else {
-                    updatedData.results.displayValue = msg.data.value;
-                    updatedData.resultMessage = `Value: ${msg.data.value}`;
-                  }
-                } else if (msg.data.state !== undefined) {
-                  updatedData.resultMessage = `State: ${msg.data.state ? 'ON' : 'OFF'}`;
-                }
-                
-                return { ...node, data: updatedData };
-              }
-              return node;
-            })
-          );
+        const { node_id, data } = msg;
+        
+        // Find existing node to perform in-place mutation for large arrays
+        const existingNode = nodesRef.current.find((n: any) => n.id === node_id);
+        let hasArrayData = false;
+        
+        if (existingNode && data) {
+          if (!existingNode.data.results) existingNode.data.results = {};
+          
+          for (const key of Object.keys(data)) {
+            // If the payload contains a large array, intercept it
+            if (Array.isArray(data[key]) && data[key].length > 50) {
+              existingNode.data.results[key] = data[key];
+              hasArrayData = true;
+              // Remove from data so it doesn't enter React's setNodes pipeline
+              delete data[key]; 
+            }
+          }
+          
+          if (hasArrayData) {
+            existingNode.data.results.revision = (existingNode.data.results.revision || 0) + 1;
+          }
         }
 
-        setTabs((prevTabs) =>
-          prevTabs.map((t) => {
-            if (t.id === runningTabIdRef.current) {
-              const updatedNodes = t.nodes.map((node: any) => {
-                if (node.id === msg.node_id) {
-                  const updatedData = { ...node.data };
-                  const oldResults = node.data.results || {};
-                  
-                  updatedData.results = {
-                    ...oldResults,
-                    ...msg.data
-                  };
-                  
-                  if (msg.data.waveform !== undefined) {
-                    updatedData.resultMessage = `Captured: ${msg.data.waveform?.length || 0} pts`;
-                  } else if (msg.data.x !== undefined && msg.data.y !== undefined) {
-                    updatedData.resultMessage = `Plotted ${msg.data.y?.length || 0} pts`;
-                  } else if (msg.data.value !== undefined) {
-                    if (node.data.action === 'outputs/plots/plot') {
-                      const val = parseFloat(msg.data.value);
-                      const historyArr = Array.isArray(oldResults.history) ? oldResults.history : [];
-                      updatedData.results.history = [...historyArr, val].slice(-50);
-                      updatedData.resultMessage = `Value: ${val.toFixed(2)}`;
-                    } else {
-                      updatedData.results.displayValue = msg.data.value;
-                      updatedData.resultMessage = `Value: ${msg.data.value}`;
-                    }
-                  } else if (msg.data.state !== undefined) {
-                    updatedData.resultMessage = `State: ${msg.data.state ? 'ON' : 'OFF'}`;
-                  }
-                  
-                  return { ...node, data: updatedData };
-                }
-                return node;
-              });
-              return { ...t, nodes: updatedNodes };
-            }
-            return t;
-          })
-        );
+        if (!pendingUpdatesRef.current[node_id]) {
+          pendingUpdatesRef.current[node_id] = {};
+        }
+        if (!pendingUpdatesRef.current[node_id].results) {
+          pendingUpdatesRef.current[node_id].results = {};
+        }
+        
+        // Carry over the revision increment so the plot node re-renders
+        if (hasArrayData) {
+          pendingUpdatesRef.current[node_id].results.revision = existingNode?.data?.results?.revision || 1;
+        }
+
+        pendingUpdatesRef.current[node_id].results = {
+          ...pendingUpdatesRef.current[node_id].results,
+          ...data
+        };
+        
+        if (data.waveform !== undefined) {
+          pendingUpdatesRef.current[node_id].resultMessage = `Captured: ${data.waveform?.length || 0} pts`;
+        } else if (data.x !== undefined && data.y !== undefined) {
+          pendingUpdatesRef.current[node_id].resultMessage = `Plotted ${data.y?.length || 0} pts`;
+        } else if (data.value !== undefined) {
+          pendingUpdatesRef.current[node_id].value = data.value;
+        } else if (data.state !== undefined) {
+          pendingUpdatesRef.current[node_id].resultMessage = `State: ${data.state ? 'ON' : 'OFF'}`;
+        }
       } else if (msg.type === 'pin_values') {
-        if (activeTabIdRef.current === runningTabIdRef.current) {
-          setNodes((nds) =>
-            nds.map((node) => {
-              if (node.id === msg.node_id) {
-                return {
-                  ...node,
-                  data: {
-                    ...node.data,
-                    pinValues: {
-                      ...(node.data.pinValues || {}),
-                      ...msg.pin_values
-                    }
-                  }
-                };
-              }
-              return node;
-            })
-          );
+        const { node_id, pin_values } = msg;
+        if (!pendingUpdatesRef.current[node_id]) {
+          pendingUpdatesRef.current[node_id] = {};
         }
-
-        setTabs((prevTabs) =>
-          prevTabs.map((t) => {
-            if (t.id === runningTabIdRef.current) {
-              const updatedNodes = t.nodes.map((node: any) => {
-                if (node.id === msg.node_id) {
-                  return {
-                    ...node,
-                    data: {
-                      ...node.data,
-                      pinValues: {
-                        ...(node.data.pinValues || {}),
-                        ...msg.pin_values
-                      }
-                    }
-                  };
-                }
-                return node;
-              });
-              return { ...t, nodes: updatedNodes };
-            }
-            return t;
-          })
-        );
+        pendingUpdatesRef.current[node_id].pinValues = {
+          ...pendingUpdatesRef.current[node_id].pinValues,
+          ...pin_values
+        };
       } else if (msg.type === 'run_status') {
         if (msg.status === 'completed' || msg.status === 'failed' || msg.status === 'aborted') {
           setIsRunning(false);
@@ -314,6 +268,8 @@ export function useFlowExecution({
           if (msg.status === 'failed') {
             setErrorMessage(msg.error || 'Execution failed.');
           }
+
+          pendingUpdatesRef.current = {};
 
           if (msg.status === 'failed' || msg.status === 'aborted') {
             setNodes((nds) =>
@@ -366,6 +322,7 @@ export function useFlowExecution({
 
     ws.onclose = () => {
       console.log('[Telemetry WS] Closed.');
+      pendingUpdatesRef.current = {};
     };
   }, [WS_BACKEND_URL, setNodes, setTabs, setIsRunning, setIsPaused, setRunningTabId, setErrorMessage]);
 

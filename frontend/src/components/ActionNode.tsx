@@ -425,6 +425,44 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
     updateNodeInternals(id);
   }, [id, calculatedMinHeight, updateNodeInternals]);
 
+  // Add local revision state to trigger focused re-renders when data (arrays/plots) changes
+  const [localRevision, setLocalRevision] = useState(data.results?.revision || 0);
+
+  // High-frequency telemetry listener for DOM bypass
+  useEffect(() => {
+    const handleTelemetry = (e: any) => {
+      const { status, resultMessage, revision } = e.detail;
+      if (status) {
+        const containerEl = document.getElementById(`node-container-${id}`);
+        if (containerEl) {
+          containerEl.classList.remove('idle', 'running', 'success', 'error', 'stopped');
+          containerEl.classList.add(status);
+        }
+        const statusEl = document.getElementById(`node-status-${id}`);
+        if (statusEl) {
+          statusEl.classList.remove('idle', 'running', 'success', 'error', 'stopped');
+          statusEl.classList.add(status);
+        }
+      }
+      if (resultMessage !== undefined || status) {
+        const msgEl = document.getElementById(`node-msg-${id}`);
+        if (msgEl) {
+          msgEl.innerText = status === 'running' ? '⏳ Running...' : status === 'stopped' ? '⏹️ Stopped' : (resultMessage || msgEl.innerText || 'Idle');
+        }
+      }
+      // Only trigger a React re-render of this specific node if the revision actually changed
+      if (revision !== undefined) {
+        setLocalRevision((prev) => {
+          if (prev !== revision) return revision;
+          return prev;
+        });
+      }
+    };
+    const eventName = `telemetry-${id}`;
+    window.addEventListener(eventName, handleTelemetry);
+    return () => window.removeEventListener(eventName, handleTelemetry);
+  }, [id]);
+
   if (isMissing) {
     const targetHandles = Array.from(new Set(edges.filter(e => e.target === id).map(e => e.targetHandle).filter(Boolean))) as string[];
     const sourceHandles = Array.from(new Set(edges.filter(e => e.source === id).map(e => e.sourceHandle).filter(Boolean))) as string[];
@@ -778,6 +816,7 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
 
   return (
     <div
+      id={`node-container-${id}`}
       className={`glass-panel action-node ${data.status || 'idle'} ${isMacro ? 'macro-node' : ''} ${data.pinned ? 'pinned-node' : ''} ${data.isPersistent ? 'persistent-node' : ''} ${selected ? 'selected' : ''}`}
       onDoubleClick={(e) => {
         // Do not open inspector when double-clicking interactive elements
@@ -1561,8 +1600,10 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
       )}
 
       {/* --- STATUS BAR --- */}
-      <div ref={statusBarRef} className={`node-status ${data.status || 'idle'}`}>
-        {data.status === 'running' ? '⏳ Running...' : data.status === 'stopped' ? '⏹️ Stopped' : (data.resultMessage || 'Idle')}
+      <div ref={statusBarRef} id={`node-status-${id}`} className={`node-status ${data.status || 'idle'}`}>
+        <span id={`node-msg-${id}`}>
+          {data.status === 'running' ? '⏳ Running...' : data.status === 'stopped' ? '⏹️ Stopped' : (data.resultMessage || 'Idle')}
+        </span>
       </div>
     </div>
   );
