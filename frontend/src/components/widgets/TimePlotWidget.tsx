@@ -13,7 +13,7 @@
  */
 
 import { useEffect, useRef, useMemo } from 'react';
-import Plotly from 'plotly.js-dist-min';
+import * as echarts from 'echarts';
 import { ResizablePlotContainer } from '../common/ResizablePlotContainer';
 
 interface TimePlotWidgetProps {
@@ -30,8 +30,6 @@ export const TimePlotWidget = ({ points, strokeColor = '#34d399' }: TimePlotWidg
     );
   }
 
-  const numericPoints = useMemo(() => points.map(v => Number(v) || 0), [points]);
-
   return (
     <ResizablePlotContainer 
       minHeight="120px"
@@ -41,8 +39,8 @@ export const TimePlotWidget = ({ points, strokeColor = '#34d399' }: TimePlotWidg
       border="1px solid var(--node-border)"
     >
       {(_width, _height) => (
-        <PlotlyTimeRenderer
-          points={numericPoints}
+        <EChartsTimeRenderer
+          points={points}
           strokeColor={strokeColor}
         />
       )}
@@ -50,92 +48,84 @@ export const TimePlotWidget = ({ points, strokeColor = '#34d399' }: TimePlotWidg
   );
 };
 
-interface PlotlyTimeRendererProps {
-  points: number[];
+interface EChartsTimeRendererProps {
+  points: any[];
   strokeColor: string;
 }
 
-const PlotlyTimeRenderer = ({ points, strokeColor }: PlotlyTimeRendererProps) => {
+const EChartsTimeRenderer = ({ points, strokeColor }: EChartsTimeRendererProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const lastUpdateRef = useRef<number>(0);
-  const throttleTimeoutRef = useRef<any>(null);
+  const chartRef = useRef<echarts.ECharts | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const runUpdate = () => {
-      if (!containerRef.current) return;
-      const isLight = document.documentElement.classList.contains('light-theme');
-      const gridColor = isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)';
-      const textColor = isLight ? '#475569' : '#94a3b8';
-      const zeroLineColor = isLight ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)';
-
-      const xVals = points.map((_, i) => i);
-
-      const trace: Partial<Plotly.PlotData> = {
-        x: xVals,
-        y: points,
-        type: 'scatter',
-        mode: 'lines',
-        line: { color: strokeColor, width: 1.5 }
-      };
-
-      const layout: Partial<Plotly.Layout> = {
-        autosize: true,
-        margin: { l: 40, r: 15, t: 15, b: 25 },
-        paper_bgcolor: 'transparent',
-        plot_bgcolor: 'transparent',
-        xaxis: {
-          title: { text: 'Time Index', font: { size: 9, color: textColor } },
-          tickfont: { size: 8, color: textColor },
-          gridcolor: gridColor,
-          zerolinecolor: zeroLineColor,
-          exponentformat: 'SI',
-          showexponent: 'all',
-          tickformat: '.3~s'
-        },
-        yaxis: {
-          title: { text: 'Value', font: { size: 9, color: textColor } },
-          tickfont: { size: 8, color: textColor },
-          gridcolor: gridColor,
-          zerolinecolor: zeroLineColor,
-          exponentformat: 'SI',
-          showexponent: 'all',
-          tickformat: '.3~s'
-        },
-        showlegend: false
-      };
-
-      const config = {
-        responsive: true,
-        displayModeBar: 'hover' as const,
-        displaylogo: false
-      };
-
-      Plotly.react(containerRef.current, [trace], layout, config);
-      lastUpdateRef.current = Date.now();
-    };
-
-    if (throttleTimeoutRef.current) {
-      clearTimeout(throttleTimeoutRef.current);
-      throttleTimeoutRef.current = null;
+    if (!chartRef.current) {
+      chartRef.current = echarts.init(containerRef.current, null, { renderer: 'canvas' });
     }
 
-    const now = Date.now();
-    const elapsed = now - lastUpdateRef.current;
+    const isLight = document.documentElement.classList.contains('light-theme');
+    const gridColor = isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)';
+    const textColor = isLight ? '#475569' : '#94a3b8';
 
-    if (elapsed >= 60) {
-      runUpdate();
-    } else {
-      throttleTimeoutRef.current = setTimeout(runUpdate, 60 - elapsed);
-    }
-
-    return () => {
-      if (throttleTimeoutRef.current) {
-        clearTimeout(throttleTimeoutRef.current);
-        throttleTimeoutRef.current = null;
-      }
+    const option: echarts.EChartsOption = {
+      backgroundColor: 'transparent',
+      animation: false, // Critical for real-time performance
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: { type: 'cross' }
+      },
+      toolbox: {
+        feature: {
+          dataZoom: { yAxisIndex: 'none' },
+          restore: {},
+          saveAsImage: {},
+          dataView: { readOnly: true }
+        },
+        iconStyle: { borderColor: textColor }
+      },
+      grid: {
+        left: 45,
+        right: 15,
+        top: 35,
+        bottom: 25
+      },
+      xAxis: {
+        type: 'category',
+        name: 'Time Index',
+        nameLocation: 'middle',
+        nameGap: 15,
+        nameTextStyle: { color: textColor, fontSize: 9 },
+        axisLabel: { color: textColor, fontSize: 8 },
+        splitLine: { show: true, lineStyle: { color: gridColor } }
+      },
+      yAxis: {
+        type: 'value',
+        name: 'Value',
+        nameLocation: 'middle',
+        nameGap: 30,
+        nameTextStyle: { color: textColor, fontSize: 9 },
+        axisLabel: { color: textColor, fontSize: 8 },
+        splitLine: { lineStyle: { color: gridColor } }
+      },
+      dataset: {
+        source: {
+          y: points
+        }
+      },
+      series: [
+        {
+          type: 'line',
+          encode: { y: 'y' },
+          showSymbol: false,
+          large: true,
+          largeThreshold: 100,
+          lineStyle: { color: strokeColor, width: 1.5 }
+        }
+      ]
     };
+
+    chartRef.current.setOption(option, true); // true = notMerge
   }, [points, strokeColor]);
 
   // Imperative resize observer and cleanup
@@ -144,16 +134,17 @@ const PlotlyTimeRenderer = ({ points, strokeColor }: PlotlyTimeRendererProps) =>
     if (!node) return;
 
     const observer = new ResizeObserver(() => {
-      if (node) {
-        Plotly.Plots.resize(node);
+      if (chartRef.current) {
+        chartRef.current.resize();
       }
     });
     observer.observe(node);
 
     return () => {
       observer.disconnect();
-      if (node) {
-        Plotly.purge(node);
+      if (chartRef.current) {
+        chartRef.current.dispose();
+        chartRef.current = null;
       }
     };
   }, []);

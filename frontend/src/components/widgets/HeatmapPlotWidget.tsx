@@ -13,7 +13,7 @@
  */
 
 import { useEffect, useRef, useMemo } from 'react';
-import Plotly from 'plotly.js-dist-min';
+import * as echarts from 'echarts';
 import { ResizablePlotContainer } from '../common/ResizablePlotContainer';
 
 interface HeatmapPlotWidgetProps {
@@ -51,6 +51,36 @@ export const HeatmapPlotWidget = ({
     return { zVals, xVals, yVals };
   }, [z, x, y]);
 
+  // ECharts requires data as [xIndex, yIndex, value]
+  const { chartData, xCategories, yCategories, minZ, maxZ } = useMemo(() => {
+    const data = [];
+    let minZ = Infinity;
+    let maxZ = -Infinity;
+
+    const numRows = zVals.length;
+    const numCols = zVals[0]?.length || 0;
+
+    const xCat = xVals ? xVals.map(String) : Array.from({ length: numCols }, (_, i) => String(i));
+    const yCat = yVals ? yVals.map(String) : Array.from({ length: numRows }, (_, i) => String(i));
+
+    for (let i = 0; i < numRows; i++) {
+      const row = zVals[i];
+      for (let j = 0; j < numCols; j++) {
+        const val = row[j] || 0;
+        if (val < minZ) minZ = val;
+        if (val > maxZ) maxZ = val;
+        data.push([j, i, val]);
+      }
+    }
+    
+    if (minZ === Infinity) {
+      minZ = 0;
+      maxZ = 1;
+    }
+
+    return { chartData: data, xCategories: xCat, yCategories: yCat, minZ, maxZ };
+  }, [zVals, xVals, yVals]);
+
   return (
     <ResizablePlotContainer 
       minHeight="150px" 
@@ -60,13 +90,14 @@ export const HeatmapPlotWidget = ({
       border="1px solid var(--node-border)"
     >
       {(_width, _height) => (
-        <PlotlyHeatmapRenderer
-          zVals={zVals}
-          xVals={xVals}
-          yVals={yVals}
+        <EChartsHeatmapRenderer
+          chartData={chartData}
+          xCategories={xCategories}
+          yCategories={yCategories}
+          minZ={minZ}
+          maxZ={maxZ}
           xLabel={xLabel}
           yLabel={yLabel}
-          plotType={plotType}
           colormap={colormap}
         />
       )}
@@ -74,137 +105,143 @@ export const HeatmapPlotWidget = ({
   );
 };
 
-interface PlotlyHeatmapRendererProps {
-  zVals: number[][];
-  xVals?: number[];
-  yVals?: number[];
+interface EChartsHeatmapRendererProps {
+  chartData: any[];
+  xCategories: string[];
+  yCategories: string[];
+  minZ: number;
+  maxZ: number;
   xLabel: string;
   yLabel: string;
-  plotType: 'heatmap' | 'contour';
   colormap: string;
 }
 
-const PlotlyHeatmapRenderer = ({
-  zVals,
-  xVals,
-  yVals,
+const EChartsHeatmapRenderer = ({
+  chartData,
+  xCategories,
+  yCategories,
+  minZ,
+  maxZ,
   xLabel,
   yLabel,
-  plotType,
   colormap,
-}: PlotlyHeatmapRendererProps) => {
+}: EChartsHeatmapRendererProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const lastUpdateRef = useRef<number>(0);
-  const throttleTimeoutRef = useRef<any>(null);
+  const chartRef = useRef<echarts.ECharts | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const runUpdate = () => {
-      if (!containerRef.current) return;
-      const isLight = document.documentElement.classList.contains('light-theme');
-      const textColor = isLight ? '#475569' : '#94a3b8';
-      const gridColor = isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)';
-
-      // Define colorscale helper
-      let colorscale: any = colormap;
-      if (colormap.toLowerCase() === 'wave') {
-        colorscale = [
-          [0.0, '#3b82f6'], // blue
-          [0.5, '#f1f5f9'], // white/gray
-          [1.0, '#ef4444'], // red
-        ];
-      }
-
-      const trace: Partial<Plotly.PlotData> = {
-        z: zVals,
-        x: xVals,
-        y: yVals,
-        type: plotType as any,
-        colorscale: colorscale,
-        showscale: true,
-        colorbar: {
-          thickness: 10,
-          len: 0.9,
-          tickfont: { size: 7, color: textColor },
-        },
-      };
-
-      const layout: Partial<Plotly.Layout> = {
-        autosize: true,
-        margin: { l: 40, r: 45, t: 15, b: 35 },
-        paper_bgcolor: 'transparent',
-        plot_bgcolor: 'transparent',
-        xaxis: {
-          title: { text: xLabel, font: { size: 9, color: textColor } },
-          tickfont: { size: 8, color: textColor },
-          gridcolor: gridColor,
-        },
-        yaxis: {
-          title: { text: yLabel, font: { size: 9, color: textColor } },
-          tickfont: { size: 8, color: textColor },
-          gridcolor: gridColor,
-        },
-      };
-
-      const config = {
-        responsive: true,
-        displayModeBar: 'hover' as const,
-        displaylogo: false,
-      };
-
-      Plotly.react(containerRef.current, [trace], layout, config);
-      lastUpdateRef.current = Date.now();
-    };
-
-    if (throttleTimeoutRef.current) {
-      clearTimeout(throttleTimeoutRef.current);
-      throttleTimeoutRef.current = null;
+    if (!chartRef.current) {
+      chartRef.current = echarts.init(containerRef.current, null, { renderer: 'canvas' });
     }
 
-    const now = Date.now();
-    const elapsed = now - lastUpdateRef.current;
+    const isLight = document.documentElement.classList.contains('light-theme');
+    const textColor = isLight ? '#475569' : '#94a3b8';
+    const gridColor = isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)';
 
-    if (elapsed >= 100) {
-      runUpdate();
-    } else {
-      throttleTimeoutRef.current = setTimeout(runUpdate, 100 - elapsed);
+    // Define colorscale colors based on colormap
+    let inRangeColors = ['#440154', '#31688e', '#35b779', '#fde725']; // Default Viridis approximation
+    if (colormap.toLowerCase() === 'wave') {
+      inRangeColors = ['#3b82f6', '#f1f5f9', '#ef4444'];
     }
 
-    return () => {
-      if (throttleTimeoutRef.current) {
-        clearTimeout(throttleTimeoutRef.current);
-        throttleTimeoutRef.current = null;
-      }
+    const option: echarts.EChartsOption = {
+      backgroundColor: 'transparent',
+      animation: false,
+      tooltip: {
+        position: 'top',
+        formatter: function (params: any) {
+          return `${xLabel}: ${params.value[0]}<br/>${yLabel}: ${params.value[1]}<br/>Value: ${params.value[2]}`;
+        }
+      },
+      toolbox: {
+        feature: {
+          dataZoom: { yAxisIndex: 'none' },
+          restore: {},
+          saveAsImage: {},
+          dataView: { readOnly: true }
+        },
+        iconStyle: { borderColor: textColor }
+      },
+      grid: {
+        left: 55,
+        right: 75,
+        top: 35,
+        bottom: 45
+      },
+      xAxis: {
+        type: 'category',
+        data: xCategories,
+        name: xLabel,
+        nameLocation: 'middle',
+        nameGap: 30,
+        nameTextStyle: { color: textColor, fontSize: 10 },
+        axisLabel: { color: textColor, fontSize: 8 },
+        splitArea: { show: true, areaStyle: { color: ['rgba(255,255,255,0.02)', 'rgba(0,0,0,0.02)'] } },
+        splitLine: { show: false }
+      },
+      yAxis: {
+        type: 'category',
+        data: yCategories,
+        name: yLabel,
+        nameLocation: 'middle',
+        nameGap: 40,
+        nameTextStyle: { color: textColor, fontSize: 10 },
+        axisLabel: { color: textColor, fontSize: 8 },
+        splitArea: { show: true, areaStyle: { color: ['rgba(255,255,255,0.02)', 'rgba(0,0,0,0.02)'] } },
+        splitLine: { show: false }
+      },
+      visualMap: {
+        min: minZ,
+        max: maxZ,
+        calculable: true,
+        realtime: false,
+        inRange: { color: inRangeColors },
+        textStyle: { color: textColor, fontSize: 9 },
+        right: 0,
+        top: 'center',
+        itemHeight: 120,
+        itemWidth: 12
+      },
+      series: [{
+        name: 'Heatmap',
+        type: 'heatmap',
+        data: chartData,
+        emphasis: {
+          itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0, 0, 0, 0.5)' }
+        }
+      }]
     };
-  }, [zVals, xVals, yVals, xLabel, yLabel, plotType, colormap]);
 
-  // Imperative resize observer and cleanup
+    chartRef.current.setOption(option);
+  }, [chartData, xCategories, yCategories, minZ, maxZ, xLabel, yLabel, colormap]);
+
   useEffect(() => {
     const node = containerRef.current;
     if (!node) return;
 
     const observer = new ResizeObserver(() => {
-      if (node) {
-        Plotly.Plots.resize(node);
+      if (chartRef.current) {
+        chartRef.current.resize();
       }
     });
     observer.observe(node);
 
     return () => {
       observer.disconnect();
-      if (node) {
-        Plotly.purge(node);
+      if (chartRef.current) {
+        chartRef.current.dispose();
+        chartRef.current = null;
       }
     };
   }, []);
 
   return (
-    <div 
-      className="nodrag" 
-      style={{ width: '100%', height: '100%', overflow: 'hidden' }}
-    >
+    <div className="nodrag" style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
       <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
     </div>
   );
 };
+
+

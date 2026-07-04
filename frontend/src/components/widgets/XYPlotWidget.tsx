@@ -13,7 +13,7 @@
  */
 
 import { useEffect, useRef, useMemo } from 'react';
-import Plotly from 'plotly.js-dist-min';
+import * as echarts from 'echarts';
 import { ResizablePlotContainer } from '../common/ResizablePlotContainer';
 
 interface XYPlotWidgetProps {
@@ -32,13 +32,6 @@ export const XYPlotWidget = ({ x, y, xLabel = 'X', yLabel = 'Y' }: XYPlotWidgetP
     );
   }
 
-  const { xVals, yVals } = useMemo(() => {
-    const len = Math.min(x.length, y.length);
-    const xVals = x.slice(0, len).map((v: any) => Number(v) || 0);
-    const yVals = y.slice(0, len).map((v: any) => Number(v) || 0);
-    return { xVals, yVals };
-  }, [x, y]);
-
   return (
     <ResizablePlotContainer 
       minHeight="150px" 
@@ -48,9 +41,9 @@ export const XYPlotWidget = ({ x, y, xLabel = 'X', yLabel = 'Y' }: XYPlotWidgetP
       border="1px solid var(--node-border)"
     >
       {(_width, _height) => (
-        <PlotlyXYRenderer
-          xVals={xVals}
-          yVals={yVals}
+        <EChartsXYRenderer
+          xVals={x}
+          yVals={y}
           xLabel={xLabel}
           yLabel={yLabel}
         />
@@ -59,92 +52,88 @@ export const XYPlotWidget = ({ x, y, xLabel = 'X', yLabel = 'Y' }: XYPlotWidgetP
   );
 };
 
-interface PlotlyXYRendererProps {
-  xVals: number[];
-  yVals: number[];
+interface EChartsXYRendererProps {
+  xVals: any[];
+  yVals: any[];
   xLabel: string;
   yLabel: string;
 }
 
-const PlotlyXYRenderer = ({ xVals, yVals, xLabel, yLabel }: PlotlyXYRendererProps) => {
+const EChartsXYRenderer = ({ xVals, yVals, xLabel, yLabel }: EChartsXYRendererProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const lastUpdateRef = useRef<number>(0);
-  const throttleTimeoutRef = useRef<any>(null);
+  const chartRef = useRef<echarts.ECharts | null>(null);
 
+  // Initialize and update ECharts
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const runUpdate = () => {
-      if (!containerRef.current) return;
-      const isLight = document.documentElement.classList.contains('light-theme');
-      const gridColor = isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)';
-      const textColor = isLight ? '#475569' : '#94a3b8';
-      const zeroLineColor = isLight ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)';
-
-      const trace: Partial<Plotly.PlotData> = {
-        x: xVals,
-        y: yVals,
-        type: 'scatter',
-        mode: 'lines',
-        line: { color: '#10b981', width: 1.5 }
-      };
-
-      const layout: Partial<Plotly.Layout> = {
-        autosize: true,
-        margin: { l: 40, r: 15, t: 15, b: 35 },
-        paper_bgcolor: 'transparent',
-        plot_bgcolor: 'transparent',
-        xaxis: {
-          title: { text: xLabel, font: { size: 10, color: textColor } },
-          tickfont: { size: 8, color: textColor },
-          gridcolor: gridColor,
-          zerolinecolor: zeroLineColor,
-          exponentformat: 'SI',
-          showexponent: 'all',
-          tickformat: '.3~s'
-        },
-        yaxis: {
-          title: { text: yLabel, font: { size: 10, color: textColor } },
-          tickfont: { size: 8, color: textColor },
-          gridcolor: gridColor,
-          zerolinecolor: zeroLineColor,
-          exponentformat: 'SI',
-          showexponent: 'all',
-          tickformat: '.3~s'
-        },
-        showlegend: false
-      };
-
-      const config = {
-        responsive: true,
-        displayModeBar: 'hover' as const,
-        displaylogo: false
-      };
-
-      Plotly.react(containerRef.current, [trace], layout, config);
-      lastUpdateRef.current = Date.now();
-    };
-
-    if (throttleTimeoutRef.current) {
-      clearTimeout(throttleTimeoutRef.current);
-      throttleTimeoutRef.current = null;
+    if (!chartRef.current) {
+      chartRef.current = echarts.init(containerRef.current, null, { renderer: 'canvas' });
     }
 
-    const now = Date.now();
-    const elapsed = now - lastUpdateRef.current;
+    const isLight = document.documentElement.classList.contains('light-theme');
+    const gridColor = isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)';
+    const textColor = isLight ? '#475569' : '#94a3b8';
 
-    if (elapsed >= 60) {
-      runUpdate();
-    } else {
-      throttleTimeoutRef.current = setTimeout(runUpdate, 60 - elapsed);
-    }
-
-    return () => {
-      if (throttleTimeoutRef.current) {
-        clearTimeout(throttleTimeoutRef.current);
-        throttleTimeoutRef.current = null;
-      }
+    const option: echarts.EChartsOption = {
+      backgroundColor: 'transparent',
+      animation: false, // Critical for real-time performance
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: { type: 'cross' }
+      },
+      toolbox: {
+        feature: {
+          dataZoom: { yAxisIndex: 'none' },
+          restore: {},
+          saveAsImage: {},
+          dataView: { readOnly: true }
+        },
+        iconStyle: { borderColor: textColor }
+      },
+      grid: {
+        left: 45,
+        right: 15,
+        top: 35,
+        bottom: 35
+      },
+      xAxis: {
+        type: 'value',
+        name: xLabel,
+        nameLocation: 'middle',
+        nameGap: 22,
+        nameTextStyle: { color: textColor, fontSize: 10 },
+        axisLabel: { color: textColor, fontSize: 8 },
+        splitLine: { lineStyle: { color: gridColor } }
+      },
+      yAxis: {
+        type: 'value',
+        name: yLabel,
+        nameLocation: 'middle',
+        nameGap: 30,
+        nameTextStyle: { color: textColor, fontSize: 10 },
+        axisLabel: { color: textColor, fontSize: 8 },
+        splitLine: { lineStyle: { color: gridColor } }
+      },
+      dataset: {
+        source: {
+          x: xVals,
+          y: yVals
+        }
+      },
+      series: [
+        {
+          type: 'line',
+          encode: { x: 'x', y: 'y' },
+          showSymbol: false,
+          large: true,
+          largeThreshold: 100,
+          lineStyle: { color: '#10b981', width: 1.5 }
+        }
+      ]
     };
+
+    chartRef.current.setOption(option, true); // true = notMerge
   }, [xVals, yVals, xLabel, yLabel]);
 
   // Imperative resize observer and cleanup
@@ -153,16 +142,17 @@ const PlotlyXYRenderer = ({ xVals, yVals, xLabel, yLabel }: PlotlyXYRendererProp
     if (!node) return;
 
     const observer = new ResizeObserver(() => {
-      if (node) {
-        Plotly.Plots.resize(node);
+      if (chartRef.current) {
+        chartRef.current.resize();
       }
     });
     observer.observe(node);
 
     return () => {
       observer.disconnect();
-      if (node) {
-        Plotly.purge(node);
+      if (chartRef.current) {
+        chartRef.current.dispose();
+        chartRef.current = null;
       }
     };
   }, []);
