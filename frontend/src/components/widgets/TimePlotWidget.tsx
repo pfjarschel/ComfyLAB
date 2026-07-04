@@ -12,24 +12,18 @@
  * GNU General Public License for more details.
  */
 
-import { useEffect, useRef, useMemo } from 'react';
+import { useEffect, useRef } from 'react';
 import * as echarts from 'echarts';
 import { ResizablePlotContainer } from '../common/ResizablePlotContainer';
+import { useReactFlow } from '@xyflow/react';
 
 interface TimePlotWidgetProps {
-  points: number[] | undefined;
+  nodeId: string;
   strokeColor?: string;
+  dataKey?: string;
 }
 
-export const TimePlotWidget = ({ points, strokeColor = '#34d399' }: TimePlotWidgetProps) => {
-  if (!points || !Array.isArray(points) || points.length === 0) {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.65rem', background: 'var(--input-bg)', border: '1px solid var(--node-border)', marginTop: '6px', borderRadius: '4px', flex: 1, minHeight: '120px' }}>
-        Waiting for data...
-      </div>
-    );
-  }
-
+export const TimePlotWidget = ({ nodeId, strokeColor = '#34d399', dataKey = 'waveform' }: TimePlotWidgetProps) => {
   return (
     <ResizablePlotContainer 
       minHeight="120px"
@@ -40,8 +34,9 @@ export const TimePlotWidget = ({ points, strokeColor = '#34d399' }: TimePlotWidg
     >
       {(_width, _height) => (
         <EChartsTimeRenderer
-          points={points}
+          nodeId={nodeId}
           strokeColor={strokeColor}
+          dataKey={dataKey}
         />
       )}
     </ResizablePlotContainer>
@@ -49,14 +44,17 @@ export const TimePlotWidget = ({ points, strokeColor = '#34d399' }: TimePlotWidg
 };
 
 interface EChartsTimeRendererProps {
-  points: any[];
+  nodeId: string;
   strokeColor: string;
+  dataKey: string;
 }
 
-const EChartsTimeRenderer = ({ points, strokeColor }: EChartsTimeRendererProps) => {
+const EChartsTimeRenderer = ({ nodeId, strokeColor, dataKey }: EChartsTimeRendererProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<echarts.ECharts | null>(null);
+  const { getNode } = useReactFlow();
 
+  // Initialize and update ECharts
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -68,7 +66,7 @@ const EChartsTimeRenderer = ({ points, strokeColor }: EChartsTimeRendererProps) 
     const gridColor = isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)';
     const textColor = isLight ? '#475569' : '#94a3b8';
 
-    const option: echarts.EChartsOption = {
+    const baseOption = {
       backgroundColor: 'transparent',
       animation: false, // Critical for real-time performance
       tooltip: {
@@ -107,26 +105,55 @@ const EChartsTimeRenderer = ({ points, strokeColor }: EChartsTimeRendererProps) 
         nameTextStyle: { color: textColor, fontSize: 9 },
         axisLabel: { color: textColor, fontSize: 8 },
         splitLine: { lineStyle: { color: gridColor } }
-      },
-      dataset: {
-        source: {
-          y: points
-        }
-      },
-      series: [
-        {
-          type: 'line',
-          encode: { y: 'y' },
-          showSymbol: false,
-          large: true,
-          largeThreshold: 100,
-          lineStyle: { color: strokeColor, width: 1.5 }
-        }
-      ]
+      }
     };
 
-    chartRef.current.setOption(option, true); // true = notMerge
-  }, [points, strokeColor]);
+    const updateChart = () => {
+      const node = getNode(nodeId);
+      if (!node) return;
+      const points = (node.data?.results as any)?.[dataKey];
+      
+      if (!points || points.length === 0) return;
+
+      const option: echarts.EChartsOption = {
+        ...baseOption as any,
+        dataset: {
+          source: {
+            y: points
+          }
+        },
+        series: [
+          {
+            type: 'line',
+            encode: { y: 'y' },
+            showSymbol: false,
+            large: true,
+            largeThreshold: 100,
+            lineStyle: { color: strokeColor, width: 1.5 }
+          }
+        ]
+      };
+
+      if (chartRef.current) {
+        chartRef.current.setOption(option, true); // true = notMerge
+      }
+    };
+
+    // Initial update
+    updateChart();
+
+    // Listen to high-frequency telemetry events directly to bypass React render cycle
+    const eventName = `telemetry-${nodeId}`;
+    const handleTelemetry = () => {
+      updateChart();
+    };
+    
+    window.addEventListener(eventName, handleTelemetry);
+    
+    return () => {
+      window.removeEventListener(eventName, handleTelemetry);
+    };
+  }, [nodeId, strokeColor, dataKey, getNode]);
 
   // Imperative resize observer and cleanup
   useEffect(() => {

@@ -425,13 +425,10 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
     updateNodeInternals(id);
   }, [id, calculatedMinHeight, updateNodeInternals]);
 
-  // Add local revision state to trigger focused re-renders when data (arrays/plots) changes
-  const [localRevision, setLocalRevision] = useState(data.results?.revision || 0);
-
   // High-frequency telemetry listener for DOM bypass
   useEffect(() => {
     const handleTelemetry = (e: any) => {
-      const { status, resultMessage, revision } = e.detail;
+      const { status, resultMessage } = e.detail;
       if (status) {
         const containerEl = document.getElementById(`node-container-${id}`);
         if (containerEl) {
@@ -450,13 +447,12 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
           msgEl.innerText = status === 'running' ? '⏳ Running...' : status === 'stopped' ? '⏹️ Stopped' : (resultMessage || msgEl.innerText || 'Idle');
         }
       }
-      // Only trigger a React re-render of this specific node if the revision actually changed
-      if (revision !== undefined) {
-        setLocalRevision((prev) => {
-          if (prev !== revision) return revision;
-          return prev;
-        });
-      }
+      // We DO NOT trigger a React re-render of this node here.
+      // This is a CRITICAL memory optimization. Re-rendering a 1500-line node component
+      // at 10Hz with massive arrays attached to it causes massive VDOM thrashing
+      // and React Fiber memory leaks (since Fiber holds old prop closures).
+      // The Plot Widgets (XY, Time, Heatmap) now listen to this event directly
+      // and pull data from nodesRef (via getNode).
     };
     const eventName = `telemetry-${id}`;
     window.addEventListener(eventName, handleTelemetry);
@@ -1310,39 +1306,23 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
 
         {/* Outputs / Live Plots */}
         {data.action === 'hardware/virtual_oscilloscope' && (
-          <>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-color)' }}>Waveform Capture:</div>
-            <TimePlotWidget points={data.results?.waveform} strokeColor="#60a5fa" />
-          </>
+          <TimePlotWidget nodeId={id} strokeColor="#60a5fa" />
         )}
 
         {data.action === 'outputs/plots/plot' && (
-          <>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-color)' }}>Live Reading history:</div>
-            <TimePlotWidget points={data.results?.history} strokeColor="#34d399" />
-          </>
+          <TimePlotWidget nodeId={id} strokeColor="#34d399" dataKey="history" />
         )}
 
         {data.action === 'outputs/plots/xy_plot' && (
-          <>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-color)' }}>XY Graph:</div>
-            <XYPlotWidget x={data.results?.x} y={data.results?.y} xLabel={data.results?.x_label} yLabel={data.results?.y_label} />
-          </>
+          <XYPlotWidget nodeId={id} xLabel={data.results?.x_label} yLabel={data.results?.y_label} />
         )}
 
         {data.action === 'outputs/plots/heatmap_plot' && (
-          <>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-color)' }}>2D Grid:</div>
-            <HeatmapPlotWidget 
-              z={data.results?.z} 
-              x={data.results?.x} 
-              y={data.results?.y} 
-              xLabel={data.results?.x_label} 
-              yLabel={data.results?.y_label}
-              plotType={data.results?.plot_type}
-              colormap={data.results?.colormap}
-            />
-          </>
+          <HeatmapPlotWidget 
+            nodeId={id}
+            xLabel={data.results?.x_label}
+            yLabel={data.results?.y_label}
+          />
         )}
 
         {/* Render dynamic input parameter widgets dynamically based on Registry schema definitions */}

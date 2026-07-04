@@ -12,25 +12,19 @@
  * GNU General Public License for more details.
  */
 
-import { useEffect, useRef, useMemo } from 'react';
+import { useEffect, useRef } from 'react';
 import * as echarts from 'echarts';
 import { ResizablePlotContainer } from '../common/ResizablePlotContainer';
 
+import { useReactFlow } from '@xyflow/react';
+
 interface XYPlotWidgetProps {
-  x: any[] | undefined;
-  y: any[] | undefined;
+  nodeId: string;
   xLabel?: string;
   yLabel?: string;
 }
 
-export const XYPlotWidget = ({ x, y, xLabel = 'X', yLabel = 'Y' }: XYPlotWidgetProps) => {
-  if (!x || !y || !Array.isArray(x) || !Array.isArray(y) || x.length === 0 || y.length === 0) {
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '0.75rem', background: 'var(--input-bg)', border: '1px solid var(--node-border)', marginTop: '6px', borderRadius: '6px', flex: 1, minHeight: '150px' }}>
-        Waiting for X/Y data...
-      </div>
-    );
-  }
+export const XYPlotWidget = ({ nodeId, xLabel = 'X', yLabel = 'Y' }: XYPlotWidgetProps) => {
 
   return (
     <ResizablePlotContainer 
@@ -42,8 +36,7 @@ export const XYPlotWidget = ({ x, y, xLabel = 'X', yLabel = 'Y' }: XYPlotWidgetP
     >
       {(_width, _height) => (
         <EChartsXYRenderer
-          xVals={x}
-          yVals={y}
+          nodeId={nodeId}
           xLabel={xLabel}
           yLabel={yLabel}
         />
@@ -53,15 +46,15 @@ export const XYPlotWidget = ({ x, y, xLabel = 'X', yLabel = 'Y' }: XYPlotWidgetP
 };
 
 interface EChartsXYRendererProps {
-  xVals: any[];
-  yVals: any[];
+  nodeId: string;
   xLabel: string;
   yLabel: string;
 }
 
-const EChartsXYRenderer = ({ xVals, yVals, xLabel, yLabel }: EChartsXYRendererProps) => {
+const EChartsXYRenderer = ({ nodeId, xLabel, yLabel }: EChartsXYRendererProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<echarts.ECharts | null>(null);
+  const { getNode } = useReactFlow();
 
   // Initialize and update ECharts
   useEffect(() => {
@@ -75,7 +68,7 @@ const EChartsXYRenderer = ({ xVals, yVals, xLabel, yLabel }: EChartsXYRendererPr
     const gridColor = isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)';
     const textColor = isLight ? '#475569' : '#94a3b8';
 
-    const option: echarts.EChartsOption = {
+    const baseOption = {
       backgroundColor: 'transparent',
       animation: false, // Critical for real-time performance
       tooltip: {
@@ -114,27 +107,58 @@ const EChartsXYRenderer = ({ xVals, yVals, xLabel, yLabel }: EChartsXYRendererPr
         nameTextStyle: { color: textColor, fontSize: 10 },
         axisLabel: { color: textColor, fontSize: 8 },
         splitLine: { lineStyle: { color: gridColor } }
-      },
-      dataset: {
-        source: {
-          x: xVals,
-          y: yVals
-        }
-      },
-      series: [
-        {
-          type: 'line',
-          encode: { x: 'x', y: 'y' },
-          showSymbol: false,
-          large: true,
-          largeThreshold: 100,
-          lineStyle: { color: '#10b981', width: 1.5 }
-        }
-      ]
+      }
     };
 
-    chartRef.current.setOption(option, true); // true = notMerge
-  }, [xVals, yVals, xLabel, yLabel]);
+    const updateChart = () => {
+      const node = getNode(nodeId);
+      if (!node) return;
+      const results = node.data?.results as any;
+      const xVals = results?.x;
+      const yVals = results?.y;
+      
+      if (!xVals || !yVals || xVals.length === 0 || yVals.length === 0) return;
+
+      const option: echarts.EChartsOption = {
+        ...baseOption as any,
+        dataset: {
+          source: {
+            x: xVals,
+            y: yVals
+          }
+        },
+        series: [
+          {
+            type: 'line',
+            encode: { x: 'x', y: 'y' },
+            showSymbol: false,
+            large: true,
+            largeThreshold: 100,
+            lineStyle: { color: '#10b981', width: 1.5 }
+          }
+        ]
+      };
+
+      if (chartRef.current) {
+        chartRef.current.setOption(option, true); // true = notMerge
+      }
+    };
+
+    // Initial update
+    updateChart();
+
+    // Listen to high-frequency telemetry events directly to bypass React render cycle
+    const eventName = `telemetry-${nodeId}`;
+    const handleTelemetry = () => {
+      updateChart();
+    };
+    
+    window.addEventListener(eventName, handleTelemetry);
+    
+    return () => {
+      window.removeEventListener(eventName, handleTelemetry);
+    };
+  }, [nodeId, xLabel, yLabel, getNode]);
 
   // Imperative resize observer and cleanup
   useEffect(() => {

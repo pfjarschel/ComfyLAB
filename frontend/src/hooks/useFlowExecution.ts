@@ -121,12 +121,11 @@ export function useFlowExecution({
                existingNode.data.pinValues = { ...(existingNode.data.pinValues || {}), ...update.pinValues };
             }
             
-            // Dispatch to local node
+            // Dispatch to local node plot widgets
             window.dispatchEvent(new CustomEvent(`telemetry-${nodeId}`, {
               detail: {
                 status: existingNode.data.status,
-                resultMessage: existingNode.data.resultMessage,
-                revision: existingNode.data.results?.revision
+                resultMessage: existingNode.data.resultMessage
               }
             }));
           }
@@ -174,18 +173,12 @@ export function useFlowExecution({
           if (!existingNode.data.results) existingNode.data.results = {};
           existingNode.data.results.waveform = waveform;
           existingNode.data.resultMessage = `Captured (Binary): ${waveform.length} pts`;
-          // Increment revision to trigger Plotly without copying the array
-          existingNode.data.results.revision = (existingNode.data.results.revision || 0) + 1;
         }
 
         // We specifically DO NOT add the waveform array to pendingUpdatesRef to prevent it from going into React state.
         if (!pendingUpdatesRef.current[nodeId]) {
           pendingUpdatesRef.current[nodeId] = {};
         }
-        if (!pendingUpdatesRef.current[nodeId].results) {
-          pendingUpdatesRef.current[nodeId].results = {};
-        }
-        pendingUpdatesRef.current[nodeId].results.revision = existingNode?.data?.results?.revision || 1;
         pendingUpdatesRef.current[nodeId].resultMessage = `Captured (Binary): ${waveform.length} pts`;
         return;
       }
@@ -215,13 +208,7 @@ export function useFlowExecution({
             if (Array.isArray(data[key]) && data[key].length > 50) {
               existingNode.data.results[key] = data[key];
               hasArrayData = true;
-              // Remove from data so it doesn't enter React's setNodes pipeline
-              delete data[key]; 
             }
-          }
-          
-          if (hasArrayData) {
-            existingNode.data.results.revision = (existingNode.data.results.revision || 0) + 1;
           }
         }
 
@@ -231,10 +218,26 @@ export function useFlowExecution({
         if (!pendingUpdatesRef.current[node_id].results) {
           pendingUpdatesRef.current[node_id].results = {};
         }
-        
-        // Carry over the revision increment so the plot node re-renders
+
+        // Generate messages based on the intercepted arrays on the node, since we are about to delete them from `data`
+        if (hasArrayData && existingNode) {
+          if (existingNode.data.results.waveform) {
+            pendingUpdatesRef.current[node_id].resultMessage = `Captured: ${existingNode.data.results.waveform.length} pts`;
+          } else if (existingNode.data.results.z) {
+             const zArr = existingNode.data.results.z;
+             pendingUpdatesRef.current[node_id].resultMessage = `Plotted 2D: ${zArr[0]?.length || 0}x${zArr.length || 0}`;
+          } else if (existingNode.data.results.x && existingNode.data.results.y) {
+            pendingUpdatesRef.current[node_id].resultMessage = `Plotted ${existingNode.data.results.y.length} pts`;
+          }
+        }
+
+        // Remove large arrays from data so they don't enter React's setNodes pipeline
         if (hasArrayData) {
-          pendingUpdatesRef.current[node_id].results.revision = existingNode?.data?.results?.revision || 1;
+          for (const key of Object.keys(data)) {
+             if (Array.isArray(data[key]) && data[key].length > 50) {
+                 delete data[key];
+             }
+          }
         }
 
         pendingUpdatesRef.current[node_id].results = {
@@ -242,11 +245,8 @@ export function useFlowExecution({
           ...data
         };
         
-        if (data.waveform !== undefined) {
-          pendingUpdatesRef.current[node_id].resultMessage = `Captured: ${data.waveform?.length || 0} pts`;
-        } else if (data.x !== undefined && data.y !== undefined) {
-          pendingUpdatesRef.current[node_id].resultMessage = `Plotted ${data.y?.length || 0} pts`;
-        } else if (data.value !== undefined) {
+        // Handle small/scalar data messages
+        if (data.value !== undefined) {
           pendingUpdatesRef.current[node_id].value = data.value;
         } else if (data.state !== undefined) {
           pendingUpdatesRef.current[node_id].resultMessage = `State: ${data.state ? 'ON' : 'OFF'}`;
