@@ -27,7 +27,9 @@ class NumberNode(BaseNode):
     """Outputs a static numerical value defined in properties."""
     icon = "#️⃣"
     display_name = "Number"
-    description = "Outputs a static numerical value defined in properties."
+    description = "Outputs a constant numerical value."
+    default_width = 160
+    ui_behavior = {"custom_widget": "constant_number"}
     
     outputs_def = [DataOut("Value", type_hint=float)]
 
@@ -221,8 +223,10 @@ class WhileLoopNode(BaseNode):
 class BooleanNode(BaseNode):
     """Outputs a static boolean value (e.g. from an on/off toggle button)."""
     icon = "🔘"
-    display_name = "Boolean Toggle"
-    description = "Outputs a static boolean value (e.g. from an on/off toggle button)."
+    display_name = "Boolean"
+    description = "Outputs a constant boolean value (True/False)."
+    default_width = 160
+    ui_behavior = {"custom_widget": "constant_boolean"}
     
     outputs_def = [DataOut("Value", type_hint=bool)]
 
@@ -236,8 +240,9 @@ class BooleanNode(BaseNode):
 class DisplayNode(BaseNode):
     """Displays a pulled value on the node itself by broadcasting telemetry."""
     icon = "🖥️"
-    display_name = "Display"
-    description = "Displays a pulled value on the node itself."
+    display_name = "Display Value"
+    description = "Displays the incoming value in the UI."
+    ui_behavior = {"custom_widget": "display_area"}
     
     inputs_def = [
         ExecIn("In"),
@@ -260,7 +265,9 @@ class StringNode(BaseNode):
     """Outputs a static string value defined in properties."""
     icon = "🔤"
     display_name = "String"
-    description = "Outputs a static string value defined in properties."
+    description = "Outputs a constant string."
+    default_width = 160
+    ui_behavior = {"custom_widget": "constant_string"}
     
     outputs_def = [DataOut("Value", type_hint=str)]
 
@@ -422,6 +429,7 @@ class AccumulateArrayNode(BaseNode):
     icon = "📥"
     display_name = "Accumulate"
     description = "Accumulates input values into an array. Has an Append pin to add items and a Reset pin to clear them."
+    ui_behavior = {"custom_widget": "display_area"}
 
     inputs_def = [
         ExecIn("Append"),
@@ -801,7 +809,9 @@ class CalculatorNode(BaseNode):
     """Evaluates a mathematical expression with dynamic variable inputs."""
     icon = "🧮"
     display_name = "Calculator"
-    description = "Evaluates a mathematical expression using variable inputs defined in properties."
+    description = "Evaluates a mathematical expression with variable inputs."
+    default_width = 240
+    ui_behavior = {"custom_widget": "calculator"}
 
     inputs_def = []
     outputs_def = [

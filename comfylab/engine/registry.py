@@ -291,6 +291,7 @@ def get_all_nodes_schema() -> Dict[str, Any]:
             "execOuts": exec_outs,
             "dataIns": data_ins,
             "dataOuts": data_outs,
+            "ui_behavior": getattr(cls, "ui_behavior", {}) or {},
             "original_code": getattr(cls, "original_code", "") or "",
             "script_language": getattr(cls, "script_language", "") or "",
             "unauthorized": getattr(cls, "unauthorized", False),

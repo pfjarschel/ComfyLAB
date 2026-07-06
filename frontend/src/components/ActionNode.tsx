@@ -54,30 +54,6 @@ export type ActionNodeData = {
   count?: number;
 };
 
-const DISPLAY_AND_PLOT_NODES = [
-  'outputs/basic/display',
-  'control_flow/timing/measure_time',
-  'arrays/manipulation/accumulate',
-  'hardware/virtual_oscilloscope',
-  'outputs/plots/plot',
-  'outputs/plots/xy_plot'
-];
-
-const PLOT_NODES = [
-  'hardware/virtual_oscilloscope',
-  'outputs/plots/plot',
-  'outputs/plots/xy_plot',
-  'outputs/plots/heatmap_plot'
-];
-
-const NODES_WITH_CUSTOM_UI = [
-  'constants/number',
-  'constants/boolean',
-  'constants/string',
-  'hardware/virtual_generator',
-  'math/arithmetic/calculator',
-  ...DISPLAY_AND_PLOT_NODES
-];
 
 export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
   const nodeRegistry = useContext(RegistryContext);
@@ -314,20 +290,20 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
     }
 
     // Node-specific widgets
-    if (data.action === 'constants/number' || data.action === 'constants/string') {
+    if (registryLayout?.ui_behavior?.custom_widget === 'constant_number' || registryLayout?.ui_behavior?.custom_widget === 'constant_string') {
       bodyHeight += 58;
-    } else if (data.action === 'constants/boolean') {
+    } else if (registryLayout?.ui_behavior?.custom_widget === 'constant_boolean') {
       bodyHeight += 38;
-    } else if (data.action === 'hardware/virtual_generator') {
+    } else if (registryLayout?.ui_behavior?.custom_widget === 'rf_generator') {
       bodyHeight += 138;
-    } else if (DISPLAY_AND_PLOT_NODES.includes(data.action) && !PLOT_NODES.includes(data.action)) {
+    } else if (registryLayout?.ui_behavior?.custom_widget === 'display_area') {
       bodyHeight += 96;
-    } else if (PLOT_NODES.includes(data.action)) {
+    } else if (registryLayout?.ui_behavior?.custom_widget === 'time_plot' || registryLayout?.ui_behavior?.custom_widget === 'xy_plot' || registryLayout?.ui_behavior?.custom_widget === 'heatmap_plot') {
       bodyHeight += 152;
     }
 
     // Dynamic inputs (checks both showOptional and connected optional pins)
-    if (!NODES_WITH_CUSTOM_UI.includes(data.action)) {
+    if (!registryLayout?.ui_behavior?.custom_widget || registryLayout?.ui_behavior?.render_standard_inputs) {
       const visiblePins = (layout.dataIns || []).filter((pin: any) => !pin.optional || showOptional || edges.some(e => e.target === id && e.targetHandle === pin.name));
       visiblePins.forEach((pin: any) => {
         const isConnected = edges.some(e => e.target === id && e.targetHandle === pin.name);
@@ -348,7 +324,7 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
     }
 
     // Visual Override connection label rows (checks both showOptional and connected optional pins)
-    if (DISPLAY_AND_PLOT_NODES.includes(data.action)) {
+    if (!registryLayout?.ui_behavior?.render_standard_inputs && (registryLayout?.ui_behavior?.custom_widget === 'display_area' || registryLayout?.ui_behavior?.custom_widget === 'time_plot' || registryLayout?.ui_behavior?.custom_widget === 'xy_plot' || registryLayout?.ui_behavior?.custom_widget === 'heatmap_plot')) {
       const visiblePins = (layout.dataIns || []).filter((pin: any) => !pin.optional || showOptional || edges.some(e => e.target === id && e.targetHandle === pin.name));
       bodyHeight += visiblePins.length * 32;
     }
@@ -443,7 +419,15 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
       if (resultMessage !== undefined || status) {
         const msgEl = document.getElementById(`node-msg-${id}`);
         if (msgEl) {
-          msgEl.innerText = status === 'running' ? '⏳ Running...' : status === 'stopped' ? '⏹️ Stopped' : (resultMessage || msgEl.innerText || 'Idle');
+          if (status === 'running') {
+            msgEl.innerText = '⏳ Running...';
+          } else if (status === 'stopped') {
+            msgEl.innerText = '⏹️ Stopped';
+          } else if (resultMessage !== undefined) {
+            msgEl.innerText = resultMessage || 'Idle';
+          } else if (status === 'success' && msgEl.innerText === '⏳ Running...') {
+            msgEl.innerText = 'Idle';
+          }
         }
       }
 
@@ -1037,7 +1021,7 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
           </button>
         )}
 
-        {data.action === 'math/arithmetic/calculator' && (
+        {registryLayout?.ui_behavior?.custom_widget === 'calculator' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%', padding: '4px' }}>
             {/* Expression Input */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
@@ -1245,7 +1229,7 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
           </button>
         )}
 
-        {data.action === 'constants/number' && (
+        {registryLayout?.ui_behavior?.custom_widget === 'constant_number' && (
           <div className="input-group">
             <label>Value</label>
             <NumericTextInput
@@ -1256,7 +1240,7 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
           </div>
         )}
 
-        {data.action === 'constants/string' && (
+        {registryLayout?.ui_behavior?.custom_widget === 'constant_string' && (
           <div className="input-group">
             <label>Value</label>
             <input
@@ -1268,7 +1252,7 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
           </div>
         )}
 
-        {data.action === 'constants/boolean' && (
+        {registryLayout?.ui_behavior?.custom_widget === 'constant_boolean' && (
           <div className="input-row" style={{ justifyContent: 'space-between', padding: '4px 0' }}>
             <span className="input-row-label" style={{ fontSize: '0.85rem' }}>State: {data.value ? 'ON' : 'OFF'}</span>
             <div 
@@ -1302,7 +1286,7 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
           </div>
         )}
 
-        {data.action === 'hardware/virtual_generator' && (
+        {registryLayout?.ui_behavior?.custom_widget === 'rf_generator' && (
           <RFGeneratorWidget
             waveType={data.wave_type}
             frequency={data.frequency}
@@ -1311,27 +1295,22 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
           />
         )}
 
-        {(data.action === 'outputs/basic/display' || data.action === 'control_flow/timing/measure_time' || data.action === 'arrays/manipulation/accumulate') && (
+        {registryLayout?.ui_behavior?.custom_widget === 'display_area' && (
           <DisplayScreenWidget 
             nodeId={id} 
             initialValue={data.results?.displayValue ?? data.results?.result} 
           />
         )}
 
-        {/* Outputs / Live Plots */}
-        {data.action === 'hardware/virtual_oscilloscope' && (
-          <TimePlotWidget nodeId={id} strokeColor="#60a5fa" />
-        )}
-
-        {data.action === 'outputs/plots/plot' && (
+        {registryLayout?.ui_behavior?.custom_widget === 'time_plot' && (
           <TimePlotWidget nodeId={id} strokeColor="#34d399" dataKey="history" />
         )}
 
-        {data.action === 'outputs/plots/xy_plot' && (
+        {registryLayout?.ui_behavior?.custom_widget === 'xy_plot' && (
           <XYPlotWidget nodeId={id} xLabel={data.results?.x_label} yLabel={data.results?.y_label} />
         )}
 
-        {data.action === 'outputs/plots/heatmap_plot' && (
+        {registryLayout?.ui_behavior?.custom_widget === 'heatmap_plot' && (
           <HeatmapPlotWidget 
             nodeId={id}
             xLabel={data.results?.x_label}
@@ -1340,7 +1319,7 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
         )}
 
         {/* Render dynamic input parameter widgets dynamically based on Registry schema definitions */}
-        {!NODES_WITH_CUSTOM_UI.includes(data.action) && (
+        {(!registryLayout?.ui_behavior?.custom_widget || registryLayout?.ui_behavior?.render_standard_inputs) && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {visibleDataIns.map((pin: any) => {
               const isConnected = isPinConnected(pin.name);
@@ -1486,15 +1465,13 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
         )}
 
         {/* Display connection label rows for pure visual clarity (only for visual overrides that don't render standard widgets) */}
-        {visibleDataIns.length > 0 && [
-          'outputs/basic/display', 
-          'control_flow/timing/measure_time', 
-          'arrays/manipulation/accumulate', 
-          'hardware/virtual_oscilloscope', 
-          'outputs/plots/plot', 
-          'outputs/plots/xy_plot',
-          'math/arithmetic/calculator'
-        ].includes(data.action) && (
+        {visibleDataIns.length > 0 && !registryLayout?.ui_behavior?.render_standard_inputs && [
+          'display_area', 
+          'time_plot', 
+          'xy_plot',
+          'heatmap_plot',
+          'calculator'
+        ].includes(registryLayout?.ui_behavior?.custom_widget as string) && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             {visibleDataIns.map(pin => (
               <div key={`label-in-${pin.name}`} style={{ fontSize: '0.7rem', color: 'var(--text-color)', textAlign: 'left', position: 'relative', width: '100%' }}>

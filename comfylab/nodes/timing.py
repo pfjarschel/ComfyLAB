@@ -46,7 +46,8 @@ class MeasureTimeNode(BaseNode):
     """Measures the execution time of connected nodes in its timed block."""
     icon = "⏱️"
     display_name = "Measure Time"
-    description = "Measures the execution time of all nodes connected to the timed block."
+    description = "Measures the time elapsed between execution tokens on 'Start' and 'Stop', and emits the duration in seconds."
+    ui_behavior = {"custom_widget": "display_area"}
 
     inputs_def = [
         ExecIn("In")

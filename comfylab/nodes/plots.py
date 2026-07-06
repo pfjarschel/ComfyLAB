@@ -25,8 +25,9 @@ class XYPlotNode(BaseNode):
     icon = "📊"
     display_name = "XY Plot"
     description = "Receives X and Y data lists and streams them to the UI for XY plotting."
-    default_width = 290
-    default_height = 220
+    default_width = 300
+    default_height = 300
+    ui_behavior = {"custom_widget": "xy_plot"}
 
     inputs_def = [
         ExecIn("Plot"),
@@ -62,6 +63,7 @@ class PlotNode(BaseNode):
     description = "Receives data values and streams them to the UI for live graphing."
     default_width = 210
     default_height = 220
+    ui_behavior = {"accumulate_history": True, "custom_widget": "time_plot"}
     
     inputs_def = [
         ExecIn("Plot"),
@@ -84,6 +86,7 @@ class HeatmapPlotNode(BaseNode):
     description = "Plots a 2D array of values with optional extents and color mapping."
     default_width = 320
     default_height = 340
+    ui_behavior = {"custom_widget": "heatmap_plot", "render_standard_inputs": True}
 
     inputs_def = [
         ExecIn("Plot"),
@@ -93,7 +96,9 @@ class HeatmapPlotNode(BaseNode):
         DataIn("XLabel", type_hint=str, default="X", optional=True),
         DataIn("YLabel", type_hint=str, default="Y", optional=True),
         DataIn("Colormap", type_hint=str, default="Viridis", widget="dropdown", 
-               options=["Viridis", "Plasma", "Hot", "Cividis", "Gray", "Jet", "Rainbow", "Inferno", "Bone", "Wave"])
+               options=["Viridis", "Plasma", "Hot", "Cividis", "Gray", "Jet", "Rainbow", "Inferno", "Bone", "Wave"]),
+        DataIn("Interpolation", type_hint=str, default="None", widget="dropdown",
+               options=["None", "Bilinear (Not Supported by ECharts natively)"])
     ]
     outputs_def = [ExecOut("Out")]
 
@@ -104,6 +109,7 @@ class HeatmapPlotNode(BaseNode):
         x_label = await context.pull(self.id, "XLabel")
         y_label = await context.pull(self.id, "YLabel")
         colormap = await context.pull(self.id, "Colormap")
+        interpolation = await context.pull(self.id, "Interpolation")
 
         payload = {
             "z": z if isinstance(z, list) else [],
@@ -111,7 +117,8 @@ class HeatmapPlotNode(BaseNode):
             "y": y if isinstance(y, list) else None,
             "x_label": str(x_label) if x_label else "X",
             "y_label": str(y_label) if y_label else "Y",
-            "colormap": str(colormap) if colormap else "Viridis"
+            "colormap": str(colormap) if colormap else "Viridis",
+            "interpolation": str(interpolation) if interpolation else "None"
         }
         await context.send_telemetry(self.id, payload)
         return "Out"

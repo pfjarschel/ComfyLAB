@@ -34,6 +34,7 @@ export interface UseFlowExecutionProps {
   runningTabId: string | null;
   setRunningTabId: React.Dispatch<React.SetStateAction<string | null>>;
   setErrorMessage: React.Dispatch<React.SetStateAction<string | null>>;
+  nodeRegistry: Record<string, any> | null;
 }
 
 export function useFlowExecution({
@@ -53,6 +54,7 @@ export function useFlowExecution({
   runningTabId,
   setRunningTabId,
   setErrorMessage,
+  nodeRegistry,
 }: UseFlowExecutionProps) {
   const wsRef = useRef<WebSocket | null>(null);
   
@@ -60,6 +62,9 @@ export function useFlowExecution({
   const isPausedRef = useRef(isPaused);
   const activeTabIdRef = useRef(activeTabId);
   const runningTabIdRef = useRef(runningTabId);
+  const nodeRegistryRef = useRef(nodeRegistry);
+
+  useEffect(() => { nodeRegistryRef.current = nodeRegistry; }, [nodeRegistry]);
 
   useEffect(() => { isRunningRef.current = isRunning; }, [isRunning]);
   useEffect(() => { isPausedRef.current = isPaused; }, [isPaused]);
@@ -108,18 +113,15 @@ export function useFlowExecution({
             }
             if (update.value !== undefined) {
                if (!existingNode.data.results) existingNode.data.results = {};
-               if (existingNode.data.action === 'outputs/plots/plot') {
+               
+               const uiBehavior = nodeRegistryRef.current?.[existingNode.data.action]?.ui_behavior || {};
+               
+               if (uiBehavior.accumulate_history) {
                   const val = parseFloat(update.value);
                   const oldHistory = existingNode.data.results.history || [];
                   existingNode.data.results.history = [...oldHistory, val].slice(-50);
-                  existingNode.data.resultMessage = `Value: ${val.toFixed(2)}`;
                } else {
                   existingNode.data.results.displayValue = update.value;
-                  if (existingNode.data.action !== 'outputs/basic/display') {
-                     existingNode.data.resultMessage = `Value: ${update.value}`;
-                  } else {
-                     existingNode.data.resultMessage = '';
-                  }
                }
             }
             if (update.resultMessage !== undefined && update.value === undefined && update.statusMessage === undefined) {

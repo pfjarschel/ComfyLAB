@@ -1319,6 +1319,7 @@ return {
           runningTabId,
           setRunningTabId,
           setErrorMessage,
+          nodeRegistry,
         });
 
         const handleRunRef = useRef(handleRun);
@@ -2031,16 +2032,7 @@ return {
       initialProps.customInputs = [{ name: 'value', type: 'number', default: 1.0 }];
       initialProps.customOutputs = [{ name: 'result', type: 'number' }];
     }
-    if (type === 'hardware/virtual_laser') {
-      initialProps.Power = 0.0;
-      initialProps.Emission = false;
-    }
-    if (type === 'hardware/virtual_generator') {
-      initialProps.wave_type = 'sine';
-      initialProps.frequency = 5.0;
-      initialProps.amplitude = 1.0;
-      initialProps.noise = 0.05;
-    }
+
 
     const newNode: Node = {
       id: getId(),

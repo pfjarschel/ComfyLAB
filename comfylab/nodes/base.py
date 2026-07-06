@@ -127,6 +127,9 @@ class BaseNode:
 
     inputs_def: List[Pin] = []
     outputs_def: List[Pin] = []
+    
+    # Allows nodes to dictate frontend behaviors (e.g., {"suppress_value_msg": True})
+    ui_behavior: Dict[str, Any] = {}
 
     def __init__(self, node_id: str, properties: Optional[Dict[str, Any]] = None):
         self.id = node_id
