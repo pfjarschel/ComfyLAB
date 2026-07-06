@@ -108,10 +108,10 @@ const EChartsTimeRenderer = ({ nodeId, strokeColor, dataKey }: EChartsTimeRender
       }
     };
 
-    const updateChart = () => {
+    const updateChart = (eventResults?: any) => {
       const node = getNode(nodeId);
-      if (!node) return;
-      const points = (node.data?.results as any)?.[dataKey];
+      if (!node && !eventResults) return;
+      const points = eventResults?.[dataKey] || (node?.data?.results as any)?.[dataKey];
       
       if (!points || points.length === 0) return;
 
@@ -144,8 +144,8 @@ const EChartsTimeRenderer = ({ nodeId, strokeColor, dataKey }: EChartsTimeRender
 
     // Listen to high-frequency telemetry events directly to bypass React render cycle
     const eventName = `telemetry-${nodeId}`;
-    const handleTelemetry = () => {
-      updateChart();
+    const handleTelemetry = (e: any) => {
+      updateChart(e.detail?.results);
     };
     
     window.addEventListener(eventName, handleTelemetry);

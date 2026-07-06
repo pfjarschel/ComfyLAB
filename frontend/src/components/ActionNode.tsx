@@ -60,8 +60,7 @@ const DISPLAY_AND_PLOT_NODES = [
   'arrays/manipulation/accumulate',
   'hardware/virtual_oscilloscope',
   'outputs/plots/plot',
-  'outputs/plots/xy_plot',
-  'outputs/plots/heatmap_plot'
+  'outputs/plots/xy_plot'
 ];
 
 const PLOT_NODES = [
@@ -447,6 +446,17 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
           msgEl.innerText = status === 'running' ? '⏳ Running...' : status === 'stopped' ? '⏹️ Stopped' : (resultMessage || msgEl.innerText || 'Idle');
         }
       }
+
+      const ledEl = document.getElementById(`led-${id}`);
+      if (ledEl) {
+        const node = getNode(id);
+        const isStateTrue = !!(node?.data?.results as any)?.state;
+        ledEl.style.background = isStateTrue ? '#10b981' : '#ef4444';
+        ledEl.style.boxShadow = isStateTrue 
+          ? '0 0 14px #10b981cc, 0 0 4px #10b98155, inset 0 0 8px rgba(0,0,0,0.5)' 
+          : '0 0 14px #ef4444aa, 0 0 4px #ef444455, inset 0 0 8px rgba(0,0,0,0.5)';
+      }
+      
       // We DO NOT trigger a React re-render of this node here.
       // This is a CRITICAL memory optimization. Re-rendering a 1500-line node component
       // at 10Hz with massive arrays attached to it causes massive VDOM thrashing
@@ -646,6 +656,7 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
 
     return (
       <div
+        id={`led-${id}`}
         className={`led-indicator-node ${selected ? 'selected' : ''}`}
         style={{
           width: '40px',
@@ -1301,7 +1312,10 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
         )}
 
         {(data.action === 'outputs/basic/display' || data.action === 'control_flow/timing/measure_time' || data.action === 'arrays/manipulation/accumulate') && (
-          <DisplayScreenWidget displayValue={data.results?.displayValue} />
+          <DisplayScreenWidget 
+            nodeId={id} 
+            initialValue={data.results?.displayValue ?? data.results?.result} 
+          />
         )}
 
         {/* Outputs / Live Plots */}
@@ -1479,7 +1493,6 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
           'hardware/virtual_oscilloscope', 
           'outputs/plots/plot', 
           'outputs/plots/xy_plot',
-          'outputs/plots/heatmap_plot',
           'math/arithmetic/calculator'
         ].includes(data.action) && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>

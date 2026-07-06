@@ -27,6 +27,7 @@ frontend/yarn-error.log*
 frontend/yarn.lock
 frontend/.eslintcache
 frontend/package-lock*
+frontend/public/backend_port*
 
 # IDE / Editor Settings
 .vscode/

@@ -83,7 +83,7 @@ class HeatmapPlotNode(BaseNode):
     display_name = "Heatmap Plot"
     description = "Plots a 2D array of values with optional extents and color mapping."
     default_width = 320
-    default_height = 260
+    default_height = 340
 
     inputs_def = [
         ExecIn("Plot"),
@@ -92,7 +92,6 @@ class HeatmapPlotNode(BaseNode):
         DataIn("Y", type_hint=list, optional=True),
         DataIn("XLabel", type_hint=str, default="X", optional=True),
         DataIn("YLabel", type_hint=str, default="Y", optional=True),
-        DataIn("PlotType", type_hint=str, default="heatmap", widget="dropdown", options=["heatmap", "contour"]),
         DataIn("Colormap", type_hint=str, default="Viridis", widget="dropdown", 
                options=["Viridis", "Plasma", "Hot", "Cividis", "Gray", "Jet", "Rainbow", "Inferno", "Bone", "Wave"])
     ]
@@ -104,7 +103,6 @@ class HeatmapPlotNode(BaseNode):
         y = await context.pull(self.id, "Y")
         x_label = await context.pull(self.id, "XLabel")
         y_label = await context.pull(self.id, "YLabel")
-        plot_type = await context.pull(self.id, "PlotType")
         colormap = await context.pull(self.id, "Colormap")
 
         payload = {
@@ -113,7 +111,6 @@ class HeatmapPlotNode(BaseNode):
             "y": y if isinstance(y, list) else None,
             "x_label": str(x_label) if x_label else "X",
             "y_label": str(y_label) if y_label else "Y",
-            "plot_type": str(plot_type) if plot_type else "heatmap",
             "colormap": str(colormap) if colormap else "Viridis"
         }
         await context.send_telemetry(self.id, payload)

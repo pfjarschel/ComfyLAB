@@ -110,10 +110,10 @@ const EChartsXYRenderer = ({ nodeId, xLabel, yLabel }: EChartsXYRendererProps) =
       }
     };
 
-    const updateChart = () => {
+    const updateChart = (eventResults?: any) => {
       const node = getNode(nodeId);
-      if (!node) return;
-      const results = node.data?.results as any;
+      if (!node && !eventResults) return;
+      const results = eventResults || (node?.data?.results as any);
       const xVals = results?.x;
       const yVals = results?.y;
       
@@ -149,8 +149,8 @@ const EChartsXYRenderer = ({ nodeId, xLabel, yLabel }: EChartsXYRendererProps) =
 
     // Listen to high-frequency telemetry events directly to bypass React render cycle
     const eventName = `telemetry-${nodeId}`;
-    const handleTelemetry = () => {
-      updateChart();
+    const handleTelemetry = (e: any) => {
+      updateChart(e.detail?.results);
     };
     
     window.addEventListener(eventName, handleTelemetry);

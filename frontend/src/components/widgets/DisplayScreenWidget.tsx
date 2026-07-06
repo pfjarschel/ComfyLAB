@@ -12,13 +12,31 @@
  * GNU General Public License for more details.
  */
 
+import { useState, useEffect } from 'react';
 import { FormattedDisplay } from '../common/FormattedDisplay';
+import { useReactFlow } from '@xyflow/react';
 
 interface DisplayScreenWidgetProps {
-  displayValue: any;
+  nodeId: string;
+  initialValue?: any;
 }
 
-export const DisplayScreenWidget = ({ displayValue }: DisplayScreenWidgetProps) => {
+export const DisplayScreenWidget = ({ nodeId, initialValue }: DisplayScreenWidgetProps) => {
+  const [displayValue, setDisplayValue] = useState<any>(initialValue);
+  const { getNode } = useReactFlow();
+
+  useEffect(() => {
+    const handleTelemetry = () => {
+      const node = getNode(nodeId);
+      if (node && (node.data?.results as any)?.displayValue !== undefined) {
+        setDisplayValue((node.data.results as any).displayValue);
+      }
+    };
+    const eventName = `telemetry-${nodeId}`;
+    window.addEventListener(eventName, handleTelemetry);
+    return () => window.removeEventListener(eventName, handleTelemetry);
+  }, [nodeId, getNode]);
+
   return (
     <div
       className="display-screen nodrag"

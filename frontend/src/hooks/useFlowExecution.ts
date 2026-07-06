@@ -81,9 +81,11 @@ export function useFlowExecution({
     value?: any;
   }>>({});
 
+  const flushUpdatesRef = useRef<(() => void) | undefined>(undefined);
+
   // Flush pending updates every 100ms to throttle React state updates & avoid scheduler queue leaks
   useEffect(() => {
-    const interval = setInterval(() => {
+    const flushUpdates = () => {
       const updates = pendingUpdatesRef.current;
       if (Object.keys(updates).length === 0) return;
 
@@ -101,17 +103,23 @@ export function useFlowExecution({
             if (update.status !== undefined) existingNode.data.status = update.status;
             if (update.statusMessage !== undefined) existingNode.data.resultMessage = update.statusMessage;
             if (update.results) {
-               existingNode.data.results = { ...(existingNode.data.results || {}), ...update.results };
+               if (!existingNode.data.results) existingNode.data.results = {};
+               Object.assign(existingNode.data.results, update.results);
             }
             if (update.value !== undefined) {
+               if (!existingNode.data.results) existingNode.data.results = {};
                if (existingNode.data.action === 'outputs/plots/plot') {
                   const val = parseFloat(update.value);
-                  const oldHistory = existingNode.data.results?.history || [];
-                  existingNode.data.results = { ...(existingNode.data.results || {}), history: [...oldHistory, val].slice(-50) };
+                  const oldHistory = existingNode.data.results.history || [];
+                  existingNode.data.results.history = [...oldHistory, val].slice(-50);
                   existingNode.data.resultMessage = `Value: ${val.toFixed(2)}`;
                } else {
-                  existingNode.data.results = { ...(existingNode.data.results || {}), displayValue: update.value };
-                  existingNode.data.resultMessage = `Value: ${update.value}`;
+                  existingNode.data.results.displayValue = update.value;
+                  if (existingNode.data.action !== 'outputs/basic/display') {
+                     existingNode.data.resultMessage = `Value: ${update.value}`;
+                  } else {
+                     existingNode.data.resultMessage = '';
+                  }
                }
             }
             if (update.resultMessage !== undefined && update.value === undefined && update.statusMessage === undefined) {
@@ -125,13 +133,17 @@ export function useFlowExecution({
             window.dispatchEvent(new CustomEvent(`telemetry-${nodeId}`, {
               detail: {
                 status: existingNode.data.status,
-                resultMessage: existingNode.data.resultMessage
+                resultMessage: existingNode.data.resultMessage,
+                results: existingNode.data.results
               }
             }));
           }
         });
       }
-    }, 100);
+    };
+    
+    flushUpdatesRef.current = flushUpdates;
+    const interval = setInterval(flushUpdates, 100);
 
     return () => clearInterval(interval);
   }, [setNodes]);
@@ -205,7 +217,7 @@ export function useFlowExecution({
           
           for (const key of Object.keys(data)) {
             // If the payload contains a large array, intercept it
-            if (Array.isArray(data[key]) && data[key].length > 50) {
+            if (Array.isArray(data[key]) && data[key].length > 0) {
               existingNode.data.results[key] = data[key];
               hasArrayData = true;
             }
@@ -234,7 +246,7 @@ export function useFlowExecution({
         // Remove large arrays from data so they don't enter React's setNodes pipeline
         if (hasArrayData) {
           for (const key of Object.keys(data)) {
-             if (Array.isArray(data[key]) && data[key].length > 50) {
+             if (Array.isArray(data[key]) && data[key].length > 0) {
                  delete data[key];
              }
           }
@@ -262,6 +274,11 @@ export function useFlowExecution({
         };
       } else if (msg.type === 'run_status') {
         if (msg.status === 'completed' || msg.status === 'failed' || msg.status === 'aborted') {
+          // Flush any final telemetry before shutting down the flow!
+          if (flushUpdatesRef.current) {
+             flushUpdatesRef.current();
+          }
+          
           setIsRunning(false);
           setIsPaused(false);
           setRunningTabId(null);
