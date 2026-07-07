@@ -76,7 +76,8 @@ class DataLoggerNode(BaseNode):
         ExecIn("Write"),
         DataIn("FilePath", type_hint=str, default="output.csv", widget="text"),
         DataIn("Data", type_hint=Any),
-        DataIn("Headers", type_hint=list, optional=True)
+        DataIn("Headers", type_hint=list, optional=True),
+        DataIn("Transpose", type_hint=bool, default=True, widget="checkbox", optional=True)
     ]
     outputs_def = [ExecOut("Out")]
 
@@ -84,7 +85,13 @@ class DataLoggerNode(BaseNode):
         filepath = await context.pull(self.id, "FilePath")
         data = await context.pull(self.id, "Data")
         headers = await context.pull(self.id, "Headers")
+        transpose = await context.pull(self.id, "Transpose")
         mode_prop = self.properties.get("mode", "append").lower()
+
+        if isinstance(headers, str):
+            # If the user passed a single string like "Time, Voltage", split it
+            headers = [h.strip() for h in headers.split(',')]
+        # Removed the quote stripping from list items to preserve user's typed quotes
 
         if not filepath:
             raise ValueError("CSV Logger: FilePath input cannot be empty.")
@@ -131,19 +138,27 @@ class DataLoggerNode(BaseNode):
                     writer.writerow(data)
         
         elif isinstance(data, list):
+            if transpose:
+                if len(data) > 0 and isinstance(data[0], list):
+                    # 2D array transpose
+                    data = list(map(list, zip(*data)))
+                else:
+                    # 1D array transpose to column
+                    data = [[x] for x in data]
+
             if len(data) > 0 and isinstance(data[0], list):
                 # Multiple rows
                 with open(filepath, open_mode, newline='', encoding='utf-8') as f:
                     writer = csv.writer(f)
                     if (open_mode == 'w' or file_empty) and headers:
-                        writer.writerow(headers)
+                        f.write(",".join(str(h) for h in headers) + "\n")
                     writer.writerows(data)
             else:
                 # Single row
                 with open(filepath, open_mode, newline='', encoding='utf-8') as f:
                     writer = csv.writer(f)
                     if (open_mode == 'w' or file_empty) and headers:
-                        writer.writerow(headers)
+                        f.write(",".join(str(h) for h in headers) + "\n")
                     writer.writerow(data)
         else:
             # Scalar
@@ -151,7 +166,7 @@ class DataLoggerNode(BaseNode):
             with open(filepath, open_mode, newline='', encoding='utf-8') as f:
                 writer = csv.writer(f)
                 if (open_mode == 'w' or file_empty) and headers:
-                    writer.writerow(headers)
+                    f.write(",".join(str(h) for h in headers) + "\n")
                 writer.writerow(row)
 
         return "Out"

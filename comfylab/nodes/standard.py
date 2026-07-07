@@ -581,6 +581,34 @@ class ConcatArraysNode(BaseNode):
         return None
 
 
+@register_node("arrays/manipulation/transpose")
+class TransposeArrayNode(BaseNode):
+    """Transposes a 1D or 2D array."""
+    icon = "🔄"
+    display_name = "Transpose Array"
+    description = "Transposes a list or 2D array (list of lists)."
+    
+    inputs_def = [
+        DataIn("Array", type_hint=list)
+    ]
+    outputs_def = [DataOut("Transposed", type_hint=list)]
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Transposed":
+            arr = await context.pull(self.id, "Array")
+            if not isinstance(arr, list):
+                return arr
+            
+            if len(arr) > 0 and isinstance(arr[0], list):
+                # 2D array transpose
+                return list(map(list, zip(*arr)))
+            else:
+                # 1D array transpose to column
+                return [[x] for x in arr]
+                
+        return None
+
+
 @register_node("string/concat")
 class ConcatStringsNode(BaseNode):
     """Concatenates string A and B."""
