@@ -109,8 +109,14 @@ const PlotlyHeatmapRenderer = ({ nodeId, initialXLabel, initialYLabel, width, he
       const pType = results.plot_type?.toLowerCase() === 'contour' ? 'contour' : 'heatmap';
       setPlotType(pType);
 
-      const interpStr = results.interpolation?.toLowerCase();
-      setInterpolation(interpStr === 'fast' ? 'fast' : interpStr === 'best' ? 'best' : false);
+      const interpStr = results.interpolation?.toLowerCase() || '';
+      if (interpStr.includes('best')) {
+        setInterpolation('best');
+      } else if (interpStr.includes('fast') || interpStr.includes('good')) {
+        setInterpolation('fast');
+      } else {
+        setInterpolation(false);
+      }
     };
 
     updateChart();
@@ -144,7 +150,9 @@ const PlotlyHeatmapRenderer = ({ nodeId, initialXLabel, initialYLabel, width, he
             zsmooth: plotType === 'heatmap' ? interpolation : false, // Interpolation is for heatmaps
             showscale: true,
             colorbar: {
-              tickfont: { size: 9, color: textColor }
+              tickfont: { size: 9, color: textColor },
+              exponentformat: 'SI',
+              minexponent: 3
             }
           }
         ]}
@@ -159,14 +167,18 @@ const PlotlyHeatmapRenderer = ({ nodeId, initialXLabel, initialYLabel, width, he
             titlefont: { size: 10, color: textColor },
             tickfont: { size: 9, color: textColor },
             gridcolor: gridColor,
-            zerolinecolor: gridColor
+            zerolinecolor: gridColor,
+            exponentformat: 'SI',
+            minexponent: 3
           },
           yaxis: {
             title: labels.y,
             titlefont: { size: 10, color: textColor },
             tickfont: { size: 9, color: textColor },
             gridcolor: gridColor,
-            zerolinecolor: gridColor
+            zerolinecolor: gridColor,
+            exponentformat: 'SI',
+            minexponent: 3
           }
         }}
         config={{

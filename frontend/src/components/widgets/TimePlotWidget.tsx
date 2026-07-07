@@ -112,14 +112,18 @@ const PlotlyTimeRenderer = ({ nodeId, strokeColor, dataKey, width, height }: Plo
             titlefont: { size: 9, color: textColor },
             tickfont: { size: 8, color: textColor },
             gridcolor: gridColor,
-            zerolinecolor: gridColor
+            zerolinecolor: gridColor,
+            exponentformat: 'SI',
+            minexponent: 3
           },
           yaxis: {
             title: 'Value',
             titlefont: { size: 9, color: textColor },
             tickfont: { size: 8, color: textColor },
             gridcolor: gridColor,
-            zerolinecolor: gridColor
+            zerolinecolor: gridColor,
+            exponentformat: 'SI',
+            minexponent: 3
           }
         }}
         config={{

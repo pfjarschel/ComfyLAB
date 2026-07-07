@@ -125,14 +125,18 @@ const PlotlyXYRenderer = ({ nodeId, xLabel, yLabel, width, height }: PlotlyXYRen
             titlefont: { size: 10, color: textColor },
             tickfont: { size: 9, color: textColor },
             gridcolor: gridColor,
-            zerolinecolor: gridColor
+            zerolinecolor: gridColor,
+            exponentformat: 'SI',
+            minexponent: 3
           },
           yaxis: {
             title: labels.y,
             titlefont: { size: 10, color: textColor },
             tickfont: { size: 9, color: textColor },
             gridcolor: gridColor,
-            zerolinecolor: gridColor
+            zerolinecolor: gridColor,
+            exponentformat: 'SI',
+            minexponent: 3
           }
         }}
         config={{

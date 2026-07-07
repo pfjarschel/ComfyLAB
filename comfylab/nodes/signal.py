@@ -15,6 +15,8 @@ from typing import Any, Optional, Dict, List
 
 import numpy as np
 import scipy.signal as signal
+import scipy.interpolate as interpolate
+import scipy.ndimage as ndimage
 
 logger = logging.getLogger("comfylab.nodes.signal")
 
@@ -190,3 +192,132 @@ class FilterNode(BaseNode):
     async def clear_data(self) -> None:
         self._filtered = []
 
+@register_node("math/signal_processing/interpolate_1d")
+class Interpolate1DNode(BaseNode):
+    """Interpolates a 1D signal onto a new X-axis."""
+    icon = "📉"
+    display_name = "1D Interpolation"
+    description = "Interpolates a 1D signal onto a new X-axis."
+
+    inputs_def = [
+        ExecIn("Execute"),
+        DataIn("Y", type_hint=list),
+        DataIn("X", type_hint=list),
+        DataIn("New X", type_hint=list),
+        DataIn("Method", type_hint=str, default="linear", widget="dropdown",
+               options=["linear", "nearest", "nearest-up", "zero", "slinear", "quadratic", "cubic", "previous", "next"])
+    ]
+    outputs_def = [
+        ExecOut("Out"),
+        DataOut("Interpolated Y", type_hint=list)
+    ]
+
+    def __init__(self, node_id: str, properties: Optional[Dict[str, Any]] = None):
+        super().__init__(node_id, properties)
+        self._interpolated: List[float] = []
+
+    async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
+        if trigger_pin == "Execute":
+            y = await context.pull(self.id, "Y")
+            x = await context.pull(self.id, "X")
+            new_x = await context.pull(self.id, "New X")
+            method = await context.pull(self.id, "Method")
+            
+            if not isinstance(y, list) or not isinstance(x, list) or not isinstance(new_x, list):
+                self._interpolated = []
+                return "Out"
+            
+            if len(y) == 0 or len(x) == 0 or len(y) != len(x):
+                self._interpolated = []
+                return "Out"
+
+            try:
+                f = interpolate.interp1d(x, y, kind=method, fill_value="extrapolate")
+                self._interpolated = f(new_x).tolist()
+            except Exception as e:
+                logger.error(f"Error in Interpolate1DNode '{self.id}': {e}")
+                self._interpolated = []
+
+            return "Out"
+        return None
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Interpolated Y":
+            return self._interpolated
+        return None
+
+    async def clear_data(self) -> None:
+        self._interpolated = []
+
+@register_node("math/signal_processing/interpolate_2d")
+class Interpolate2DNode(BaseNode):
+    """Interpolates a 2D array to a new size."""
+    icon = "🖼️"
+    display_name = "2D Interpolation"
+    description = "Resizes a 2D array (matrix) using interpolation."
+
+    inputs_def = [
+        ExecIn("Execute"),
+        DataIn("Z", type_hint=list),
+        DataIn("New Size", type_hint=list),
+        DataIn("Order", type_hint=int, default=3, widget="dropdown",
+               options=[0, 1, 3, 5])
+    ]
+    outputs_def = [
+        ExecOut("Out"),
+        DataOut("Interpolated Z", type_hint=list)
+    ]
+
+    def __init__(self, node_id: str, properties: Optional[Dict[str, Any]] = None):
+        super().__init__(node_id, properties)
+        self._interpolated: List[List[float]] = []
+
+    async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
+        if trigger_pin == "Execute":
+            z = await context.pull(self.id, "Z")
+            new_size = await context.pull(self.id, "New Size")
+            order = await context.pull(self.id, "Order")
+            
+            if not isinstance(z, list) or len(z) == 0:
+                self._interpolated = []
+                return "Out"
+            
+            if not isinstance(new_size, list) or len(new_size) != 2:
+                self._interpolated = []
+                return "Out"
+
+            try:
+                z_arr = np.array(z)
+                if z_arr.ndim != 2:
+                    self._interpolated = []
+                    return "Out"
+
+                current_shape = z_arr.shape
+                target_shape = (int(new_size[0]), int(new_size[1]))
+                
+                zoom_factors = (target_shape[0] / current_shape[0], target_shape[1] / current_shape[1])
+                
+                try:
+                    order_val = int(order)
+                except (ValueError, TypeError):
+                    order_val = 3
+                
+                if order_val not in [0, 1, 3, 5]:
+                    order_val = 3
+                
+                z_zoomed = ndimage.zoom(z_arr, zoom_factors, order=order_val)
+                self._interpolated = z_zoomed.tolist()
+            except Exception as e:
+                logger.error(f"Error in Interpolate2DNode '{self.id}': {e}")
+                self._interpolated = []
+
+            return "Out"
+        return None
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Interpolated Z":
+            return self._interpolated
+        return None
+
+    async def clear_data(self) -> None:
+        self._interpolated = []

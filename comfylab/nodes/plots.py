@@ -12,6 +12,8 @@
 
 import logging
 from typing import Any, Optional, Dict, List
+import numpy as np
+import scipy.ndimage as ndimage
 
 logger = logging.getLogger("comfylab.nodes.plots")
 
@@ -99,8 +101,8 @@ class HeatmapPlotNode(BaseNode):
                options=["Heatmap", "Contour"]),
         DataIn("Colormap", type_hint=str, default="Viridis", widget="dropdown", 
                options=["Viridis", "Plasma", "Hot", "Cividis", "Gray", "Jet", "Rainbow", "Inferno", "Bone", "Wave"]),
-        DataIn("Interpolation", type_hint=str, default="False", widget="dropdown",
-               options=["False", "fast", "best"])
+        DataIn("Interpolation", type_hint=str, default="None", widget="dropdown",
+               options=["None", "Fast (linear)", "Good (bilinear)", "Best (spline36)"])
     ]
     outputs_def = [ExecOut("Out")]
 
@@ -114,14 +116,48 @@ class HeatmapPlotNode(BaseNode):
         interpolation = await context.pull(self.id, "Interpolation")
         plot_type = await context.pull(self.id, "PlotType")
 
+        z_out = z if isinstance(z, list) else []
+        x_out = x if isinstance(x, list) else None
+        y_out = y if isinstance(y, list) else None
+
+        interp_str = str(interpolation) if interpolation else "None"
+
+        if interp_str != "None" and z_out:
+            try:
+                z_arr = np.array(z_out)
+                if z_arr.ndim == 2:
+                    scale = 4
+                    order = 1
+                    if "Good" in interp_str:
+                        scale = 6
+                        order = 3
+                    elif "Best" in interp_str:
+                        scale = 8
+                        order = 5
+
+                    z_zoomed = ndimage.zoom(z_arr, scale, order=order)
+                    z_out = z_zoomed.tolist()
+
+                    if x_out and len(x_out) == z_arr.shape[1]:
+                        x_arr = np.array(x_out)
+                        x_zoomed = ndimage.zoom(x_arr, scale, order=1)
+                        x_out = x_zoomed.tolist()
+                    
+                    if y_out and len(y_out) == z_arr.shape[0]:
+                        y_arr = np.array(y_out)
+                        y_zoomed = ndimage.zoom(y_arr, scale, order=1)
+                        y_out = y_zoomed.tolist()
+            except Exception as e:
+                logger.error(f"Error interpolating Heatmap Z array: {e}")
+
         payload = {
-            "z": z if isinstance(z, list) else [],
-            "x": x if isinstance(x, list) else None,
-            "y": y if isinstance(y, list) else None,
+            "z": z_out,
+            "x": x_out,
+            "y": y_out,
             "x_label": str(x_label) if x_label else "X",
             "y_label": str(y_label) if y_label else "Y",
             "colormap": str(colormap) if colormap else "Viridis",
-            "interpolation": str(interpolation) if interpolation else "False",
+            "interpolation": "False", # Tell frontend not to smooth it since we pre-smoothed it
             "plot_type": str(plot_type) if plot_type else "Heatmap"
         }
         await context.send_telemetry(self.id, payload)
