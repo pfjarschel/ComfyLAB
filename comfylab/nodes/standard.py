@@ -438,6 +438,7 @@ class AccumulateArrayNode(BaseNode):
     ]
     outputs_def = [
         ExecOut("Out"),
+        ExecOut("Skipped"),
         DataOut("Array", type_hint=list)
     ]
 
@@ -445,8 +446,10 @@ class AccumulateArrayNode(BaseNode):
         super().__init__(node_id, properties)
         self._array: List[Any] = []
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
+        output_pin = "Out"
         if trigger_pin == "Reset":
             self._array = []
+            output_pin = "Skipped"
         elif trigger_pin == "Append":
             val = await context.pull(self.id, "Value")
             if val is not None:
@@ -455,7 +458,7 @@ class AccumulateArrayNode(BaseNode):
         # Send the list count or contents to telemetry to display on the node
         display_str = f"[{', '.join(str(x) for x in self._array)}]" if len(self._array) <= 3 else f"Array ({len(self._array)} items)"
         await context.send_telemetry(self.id, {"value": display_str})
-        return "Out"
+        return output_pin
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Array":
