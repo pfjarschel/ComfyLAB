@@ -2197,6 +2197,13 @@ return {
 
   const handleWrapperMouseDown = useCallback((event: React.MouseEvent) => {
     if (canvasMode !== 'cut' || event.button !== 0) return;
+    
+    // Prevent cutting when the user clicks on a node, handle, or controls to drag/connect
+    const target = event.target as HTMLElement;
+    if (target.closest('.react-flow__node') || target.closest('.react-flow__handle') || target.closest('.react-flow__controls')) {
+      return;
+    }
+
     if (!reactFlowWrapper.current) return;
     const rect = reactFlowWrapper.current.getBoundingClientRect();
     const x = event.clientX - rect.left;
