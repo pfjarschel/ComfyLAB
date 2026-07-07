@@ -1400,6 +1400,7 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
                     </select>
                   </div>
                 );
+
               } else if (pin.widget === 'number' || pin.type === 'number') {
                 widgetContent = (
                   <div className="input-row" style={{ opacity: isConnected ? 0.5 : 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '4px 0', transition: 'opacity 0.2s ease', width: '100%' }}>

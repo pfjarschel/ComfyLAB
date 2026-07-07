@@ -117,13 +117,13 @@ const PlotlyXYRenderer = ({ nodeId, xLabel, yLabel, width, height }: PlotlyXYRen
         layout={{
           width: Math.max(10, width - 12),
           height: Math.max(10, height - 12),
-          margin: { l: 45, r: 15, t: 15, b: 35 },
+          margin: { l: 55, r: 15, t: 15, b: 40 },
           paper_bgcolor: 'transparent',
           plot_bgcolor: 'transparent',
           xaxis: {
             title: labels.x,
-            titlefont: { size: 10, color: textColor },
-            tickfont: { size: 9, color: textColor },
+            titlefont: { size: 14, color: textColor },
+            tickfont: { size: 12, color: textColor },
             gridcolor: gridColor,
             zerolinecolor: gridColor,
             exponentformat: 'SI',
@@ -131,8 +131,8 @@ const PlotlyXYRenderer = ({ nodeId, xLabel, yLabel, width, height }: PlotlyXYRen
           },
           yaxis: {
             title: labels.y,
-            titlefont: { size: 10, color: textColor },
-            tickfont: { size: 9, color: textColor },
+            titlefont: { size: 14, color: textColor },
+            tickfont: { size: 12, color: textColor },
             gridcolor: gridColor,
             zerolinecolor: gridColor,
             exponentformat: 'SI',

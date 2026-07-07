@@ -17,24 +17,20 @@ import _Plot from 'react-plotly.js';
 const Plot: any = (_Plot as any).default ?? _Plot;
 import { ResizablePlotContainer } from '../common/ResizablePlotContainer';
 import { useReactFlow } from '@xyflow/react';
-
-// Custom colormaps fallback in case Plotly doesn't perfectly match our specific Python strings
 const COLORMAPS: Record<string, string[]> = {
-  Viridis: ['#440154', '#482878', '#3e4989', '#31688e', '#26828e', '#1f9e89', '#35b779', '#6ece58', '#b5de2b', '#fde725'],
-  Plasma: ['#0d0887', '#46039f', '#7201a8', '#9c179e', '#bd3786', '#d8576b', '#ed7953', '#fb9f3a', '#fdca26', '#f0f921'],
-  Hot: ['#0b0000', '#560000', '#a10000', '#eb0000', '#ff3300', '#ff7f00', '#ffcc00', '#ffff33', '#ffff99', '#ffffff'],
-  Cividis: ['#00204c', '#143160', '#2e4370', '#48577f', '#646c8e', '#82829d', '#a19aab', '#c0b4ba', '#dfcfca', '#ffead9'],
-  Gray: ['#000000', '#1c1c1c', '#383838', '#555555', '#717171', '#8d8d8d', '#aaaaaa', '#c6c6c6', '#e2e2e2', '#ffffff'],
-  Jet: ['#00007f', '#0000ff', '#007fff', '#00ffff', '#7fff7f', '#ffff00', '#ff7f00', '#ff0000', '#7f0000'],
-  Rainbow: ['#ff0000', '#ff7f00', '#ffff00', '#00ff00', '#0000ff', '#4b0082', '#9400d3'],
-  Inferno: ['#000004', '#160b39', '#420a68', '#6a176e', '#932667', '#bc3754', '#dd513a', '#f37819', '#fca50a', '#fcffa4'],
-  Bone: ['#000000', '#1b1b24', '#363648', '#52526c', '#6d6d90', '#8989a3', '#a4a4b7', '#bfbfcb', '#dadadf', '#ffffff'],
-  Wave: ['#00429d', '#2e59a8', '#4771b2', '#5d8abd', '#73a2c6', '#8abccf', '#a5d5d8', '#c0eee1', '#ffffe0']
+  Plotly3: ["#0508b8", "#1910d8", "#3c19f0", "#6b1cfb", "#981cfd", "#bf1cfd", "#dd2bfd", "#f246fe", "#fc67fd", "#fe88fc", "#fea5fd", "#febefe", "#fec3fe"],
+  Inferno: ["#000004", "#1b0c41", "#4a0c6b", "#781c6d", "#a52c60", "#cf4446", "#ed6925", "#fb9b06", "#f7d13d", "#fcffa4"],
+  Turbo: ["#30123b", "#4145ab", "#4675ed", "#39a2fc", "#1bcfd4", "#24eca6", "#61fc6c", "#a4fc3b", "#d1e834", "#f3c63a", "#fe9b2d", "#f36315", "#d93806", "#b11901", "#7a0402"],
+  Agsunset: ["rgb(75, 41, 145)", "rgb(135, 44, 162)", "rgb(192, 54, 157)", "rgb(234, 79, 136)", "rgb(250, 120, 118)", "rgb(246, 169, 122)", "rgb(237, 217, 163)"],
+  Phase: ["rgb(167, 119, 12)", "rgb(197, 96, 51)", "rgb(217, 67, 96)", "rgb(221, 38, 163)", "rgb(196, 59, 224)", "rgb(153, 97, 244)", "rgb(95, 127, 228)", "rgb(40, 144, 183)", "rgb(15, 151, 136)", "rgb(39, 153, 79)", "rgb(119, 141, 17)", "rgb(167, 119, 12)"]
 };
 
 const getPlotlyColorscale = (colormapName: string) => {
-  const colors = COLORMAPS[colormapName] || COLORMAPS['Viridis'];
-  return colors.map((c, i) => [i / (colors.length - 1), c]);
+  if (COLORMAPS[colormapName]) {
+    const colors = COLORMAPS[colormapName];
+    return colors.map((c, i) => [i / (colors.length - 1), c]);
+  }
+  return colormapName; // Pass natively to plotly if not in dict
 };
 
 interface HeatmapPlotWidgetProps {
@@ -150,7 +146,7 @@ const PlotlyHeatmapRenderer = ({ nodeId, initialXLabel, initialYLabel, width, he
             zsmooth: plotType === 'heatmap' ? interpolation : false, // Interpolation is for heatmaps
             showscale: true,
             colorbar: {
-              tickfont: { size: 9, color: textColor },
+              tickfont: { size: 12, color: textColor },
               exponentformat: 'SI',
               minexponent: 3
             }
@@ -159,13 +155,13 @@ const PlotlyHeatmapRenderer = ({ nodeId, initialXLabel, initialYLabel, width, he
         layout={{
           width: Math.max(10, width - 12),
           height: Math.max(10, height - 12),
-          margin: { l: 45, r: 15, t: 15, b: 35 },
+          margin: { l: 55, r: 15, t: 15, b: 40 },
           paper_bgcolor: 'transparent',
           plot_bgcolor: 'transparent',
           xaxis: {
             title: labels.x,
-            titlefont: { size: 10, color: textColor },
-            tickfont: { size: 9, color: textColor },
+            titlefont: { size: 14, color: textColor },
+            tickfont: { size: 12, color: textColor },
             gridcolor: gridColor,
             zerolinecolor: gridColor,
             exponentformat: 'SI',
@@ -173,8 +169,8 @@ const PlotlyHeatmapRenderer = ({ nodeId, initialXLabel, initialYLabel, width, he
           },
           yaxis: {
             title: labels.y,
-            titlefont: { size: 10, color: textColor },
-            tickfont: { size: 9, color: textColor },
+            titlefont: { size: 14, color: textColor },
+            tickfont: { size: 12, color: textColor },
             gridcolor: gridColor,
             zerolinecolor: gridColor,
             exponentformat: 'SI',
