@@ -100,7 +100,7 @@ class HeatmapPlotNode(BaseNode):
         DataIn("PlotType", type_hint=str, default="Heatmap", widget="dropdown",
                options=["Heatmap", "Contour"]),
         DataIn("Colormap", type_hint=str, default="Viridis", widget="dropdown", 
-               options=["Plotly3", "Viridis", "Cividis", "Hot", "Inferno", "Turbo", "Agsunset", "Picnic", "Phase"]),
+               options=["Plotly3", "Viridis", "Cividis", "Hot", "Inferno", "Turbo", "Agsunset", "Picnic", "Phase", "Greys", "Bluered"]),
         DataIn("Interpolation", type_hint=str, default="None", widget="dropdown",
                options=["None", "Fast (linear)", "Good (bilinear)", "Best (spline36)"])
     ]
