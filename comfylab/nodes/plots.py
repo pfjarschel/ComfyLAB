@@ -95,10 +95,12 @@ class HeatmapPlotNode(BaseNode):
         DataIn("Y", type_hint=list, optional=True),
         DataIn("XLabel", type_hint=str, default="X", optional=True),
         DataIn("YLabel", type_hint=str, default="Y", optional=True),
+        DataIn("PlotType", type_hint=str, default="Heatmap", widget="dropdown",
+               options=["Heatmap", "Contour"]),
         DataIn("Colormap", type_hint=str, default="Viridis", widget="dropdown", 
                options=["Viridis", "Plasma", "Hot", "Cividis", "Gray", "Jet", "Rainbow", "Inferno", "Bone", "Wave"]),
-        DataIn("Interpolation", type_hint=str, default="None", widget="dropdown",
-               options=["None", "Bilinear (Not Supported by ECharts natively)"])
+        DataIn("Interpolation", type_hint=str, default="False", widget="dropdown",
+               options=["False", "fast", "best"])
     ]
     outputs_def = [ExecOut("Out")]
 
@@ -110,6 +112,7 @@ class HeatmapPlotNode(BaseNode):
         y_label = await context.pull(self.id, "YLabel")
         colormap = await context.pull(self.id, "Colormap")
         interpolation = await context.pull(self.id, "Interpolation")
+        plot_type = await context.pull(self.id, "PlotType")
 
         payload = {
             "z": z if isinstance(z, list) else [],
@@ -118,7 +121,8 @@ class HeatmapPlotNode(BaseNode):
             "x_label": str(x_label) if x_label else "X",
             "y_label": str(y_label) if y_label else "Y",
             "colormap": str(colormap) if colormap else "Viridis",
-            "interpolation": str(interpolation) if interpolation else "None"
+            "interpolation": str(interpolation) if interpolation else "False",
+            "plot_type": str(plot_type) if plot_type else "Heatmap"
         }
         await context.send_telemetry(self.id, payload)
         return "Out"

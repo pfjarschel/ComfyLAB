@@ -14,7 +14,7 @@
     "@monaco-editor/react": "^4.7.0",
     "@xyflow/react": "^12.10.2",
     "axios": "^1.15.2",
-    "echarts": "^6.0.0",
+    "react-plotly.js": "^3.0.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5"
   },

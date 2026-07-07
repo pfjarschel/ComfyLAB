@@ -12,8 +12,9 @@
  * GNU General Public License for more details.
  */
 
-import { useEffect, useRef } from 'react';
-import * as echarts from 'echarts';
+import { useEffect, useState } from 'react';
+import _Plot from 'react-plotly.js';
+const Plot: any = (_Plot as any).default ?? _Plot;
 import { ResizablePlotContainer } from '../common/ResizablePlotContainer';
 import { useReactFlow } from '@xyflow/react';
 
@@ -32,117 +33,46 @@ export const TimePlotWidget = ({ nodeId, strokeColor = '#34d399', dataKey = 'wav
       borderRadius="6px"
       border="1px solid var(--node-border)"
     >
-      {(_width, _height) => (
-        <EChartsTimeRenderer
+      {(width, height) => (
+        <PlotlyTimeRenderer
           nodeId={nodeId}
           strokeColor={strokeColor}
           dataKey={dataKey}
+          width={width}
+          height={height}
         />
       )}
     </ResizablePlotContainer>
   );
 };
 
-interface EChartsTimeRendererProps {
+interface PlotlyTimeRendererProps {
   nodeId: string;
   strokeColor: string;
   dataKey: string;
+  width: number;
+  height: number;
 }
 
-const EChartsTimeRenderer = ({ nodeId, strokeColor, dataKey }: EChartsTimeRendererProps) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const chartRef = useRef<echarts.ECharts | null>(null);
+const PlotlyTimeRenderer = ({ nodeId, strokeColor, dataKey, width, height }: PlotlyTimeRendererProps) => {
   const { getNode } = useReactFlow();
+  const [plotData, setPlotData] = useState<any[]>([]);
 
-  // Initialize and update ECharts
+  // Initialize and listen to high-frequency telemetry events directly to bypass full node render cycle
   useEffect(() => {
-    if (!containerRef.current) return;
-
-    if (!chartRef.current) {
-      chartRef.current = echarts.init(containerRef.current, null, { renderer: 'canvas' });
-    }
-
-    const isLight = document.documentElement.classList.contains('light-theme');
-    const gridColor = isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)';
-    const textColor = isLight ? '#475569' : '#94a3b8';
-
-    const baseOption = {
-      backgroundColor: 'transparent',
-      animation: false, // Critical for real-time performance
-      tooltip: {
-        trigger: 'axis',
-        axisPointer: { type: 'cross' }
-      },
-      toolbox: {
-        feature: {
-          dataZoom: { yAxisIndex: 'none' },
-          restore: {},
-          saveAsImage: {},
-          dataView: { readOnly: true }
-        },
-        iconStyle: { borderColor: textColor }
-      },
-      grid: {
-        left: 45,
-        right: 15,
-        top: 35,
-        bottom: 25
-      },
-      xAxis: {
-        type: 'category',
-        name: 'Time Index',
-        nameLocation: 'middle',
-        nameGap: 15,
-        nameTextStyle: { color: textColor, fontSize: 9 },
-        axisLabel: { color: textColor, fontSize: 8 },
-        splitLine: { show: true, lineStyle: { color: gridColor } }
-      },
-      yAxis: {
-        type: 'value',
-        name: 'Value',
-        nameLocation: 'middle',
-        nameGap: 30,
-        nameTextStyle: { color: textColor, fontSize: 9 },
-        axisLabel: { color: textColor, fontSize: 8 },
-        splitLine: { lineStyle: { color: gridColor } }
-      }
-    };
-
     const updateChart = (eventResults?: any) => {
       const node = getNode(nodeId);
       if (!node && !eventResults) return;
-      const points = eventResults?.[dataKey] || (node?.data?.results as any)?.[dataKey];
       
-      if (!points || points.length === 0) return;
-
-      const option: echarts.EChartsOption = {
-        ...baseOption as any,
-        dataset: {
-          source: {
-            y: points
-          }
-        },
-        series: [
-          {
-            type: 'line',
-            encode: { y: 'y' },
-            showSymbol: false,
-            large: true,
-            largeThreshold: 100,
-            lineStyle: { color: strokeColor, width: 1.5 }
-          }
-        ]
-      };
-
-      if (chartRef.current) {
-        chartRef.current.setOption(option, true); // true = notMerge
+      const points = eventResults?.[dataKey] || (node?.data?.results as any)?.[dataKey];
+      if (points && Array.isArray(points)) {
+        setPlotData(points);
       }
     };
 
     // Initial update
     updateChart();
 
-    // Listen to high-frequency telemetry events directly to bypass React render cycle
     const eventName = `telemetry-${nodeId}`;
     const handleTelemetry = (e: any) => {
       updateChart(e.detail?.results);
@@ -153,35 +83,53 @@ const EChartsTimeRenderer = ({ nodeId, strokeColor, dataKey }: EChartsTimeRender
     return () => {
       window.removeEventListener(eventName, handleTelemetry);
     };
-  }, [nodeId, strokeColor, dataKey, getNode]);
+  }, [nodeId, dataKey, getNode]);
 
-  // Imperative resize observer and cleanup
-  useEffect(() => {
-    const node = containerRef.current;
-    if (!node) return;
-
-    const observer = new ResizeObserver(() => {
-      if (chartRef.current) {
-        chartRef.current.resize();
-      }
-    });
-    observer.observe(node);
-
-    return () => {
-      observer.disconnect();
-      if (chartRef.current) {
-        chartRef.current.dispose();
-        chartRef.current = null;
-      }
-    };
-  }, []);
+  const isLight = document.documentElement.classList.contains('light-theme');
+  const textColor = isLight ? '#475569' : '#94a3b8';
+  const gridColor = isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)';
 
   return (
-    <div 
-      className="nodrag" 
-      style={{ width: '100%', height: '100%', overflow: 'hidden' }}
-    >
-      <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
+    <div className="nodrag" style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+      <Plot
+        data={[
+          {
+            y: plotData,
+            type: 'scattergl', // Use scattergl for high performance rendering of large datasets
+            mode: 'lines',
+            line: { color: strokeColor, width: 1.5 },
+            hoverinfo: 'y'
+          }
+        ]}
+        layout={{
+          width: Math.max(10, width - 12),
+          height: Math.max(10, height - 12),
+          margin: { l: 45, r: 15, t: 15, b: 25 },
+          paper_bgcolor: 'transparent',
+          plot_bgcolor: 'transparent',
+          xaxis: {
+            title: 'Time Index',
+            titlefont: { size: 9, color: textColor },
+            tickfont: { size: 8, color: textColor },
+            gridcolor: gridColor,
+            zerolinecolor: gridColor
+          },
+          yaxis: {
+            title: 'Value',
+            titlefont: { size: 9, color: textColor },
+            tickfont: { size: 8, color: textColor },
+            gridcolor: gridColor,
+            zerolinecolor: gridColor
+          }
+        }}
+        config={{
+          displayModeBar: 'hover',
+          displaylogo: false,
+          responsive: true
+        }}
+        style={{ width: '100%', height: '100%' }}
+        useResizeHandler={false}
+      />
     </div>
   );
 };

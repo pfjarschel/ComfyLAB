@@ -12,11 +12,13 @@
  * GNU General Public License for more details.
  */
 
-import { useEffect, useRef, useState } from 'react';
-import * as echarts from 'echarts';
+import { useEffect, useState } from 'react';
+import _Plot from 'react-plotly.js';
+const Plot: any = (_Plot as any).default ?? _Plot;
 import { ResizablePlotContainer } from '../common/ResizablePlotContainer';
 import { useReactFlow } from '@xyflow/react';
 
+// Custom colormaps fallback in case Plotly doesn't perfectly match our specific Python strings
 const COLORMAPS: Record<string, string[]> = {
   Viridis: ['#440154', '#482878', '#3e4989', '#31688e', '#26828e', '#1f9e89', '#35b779', '#6ece58', '#b5de2b', '#fde725'],
   Plasma: ['#0d0887', '#46039f', '#7201a8', '#9c179e', '#bd3786', '#d8576b', '#ed7953', '#fb9f3a', '#fdca26', '#f0f921'],
@@ -28,6 +30,11 @@ const COLORMAPS: Record<string, string[]> = {
   Inferno: ['#000004', '#160b39', '#420a68', '#6a176e', '#932667', '#bc3754', '#dd513a', '#f37819', '#fca50a', '#fcffa4'],
   Bone: ['#000000', '#1b1b24', '#363648', '#52526c', '#6d6d90', '#8989a3', '#a4a4b7', '#bfbfcb', '#dadadf', '#ffffff'],
   Wave: ['#00429d', '#2e59a8', '#4771b2', '#5d8abd', '#73a2c6', '#8abccf', '#a5d5d8', '#c0eee1', '#ffffe0']
+};
+
+const getPlotlyColorscale = (colormapName: string) => {
+  const colors = COLORMAPS[colormapName] || COLORMAPS['Viridis'];
+  return colors.map((c, i) => [i / (colors.length - 1), c]);
 };
 
 interface HeatmapPlotWidgetProps {
@@ -45,193 +52,69 @@ export const HeatmapPlotWidget = ({ nodeId, xLabel = 'X', yLabel = 'Y' }: Heatma
       borderRadius="6px"
       border="1px solid var(--node-border)"
     >
-      {(_width, _height) => (
-        <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-          <EChartsHeatmapRenderer
-            nodeId={nodeId}
-            xLabel={xLabel}
-            yLabel={yLabel}
-          />
-        </div>
+      {(width, height) => (
+        <PlotlyHeatmapRenderer
+          nodeId={nodeId}
+          initialXLabel={xLabel}
+          initialYLabel={yLabel}
+          width={width}
+          height={height}
+        />
       )}
     </ResizablePlotContainer>
   );
 };
 
-interface EChartsHeatmapRendererProps {
+interface PlotlyHeatmapRendererProps {
   nodeId: string;
-  xLabel: string;
-  yLabel: string;
+  initialXLabel: string;
+  initialYLabel: string;
+  width: number;
+  height: number;
 }
 
-const EChartsHeatmapRenderer = ({ nodeId, xLabel, yLabel }: EChartsHeatmapRendererProps) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const chartRef = useRef<echarts.ECharts | null>(null);
+const PlotlyHeatmapRenderer = ({ nodeId, initialXLabel, initialYLabel, width, height }: PlotlyHeatmapRendererProps) => {
   const { getNode } = useReactFlow();
-  const [debugInfo, setDebugInfo] = useState<string>('Waiting for data...');
+  
+  const [plotData, setPlotData] = useState<{ z: any[][], x?: any[], y?: any[] }>({ z: [] });
+  const [labels, setLabels] = useState({ x: initialXLabel, y: initialYLabel });
+  const [plotType, setPlotType] = useState<'heatmap' | 'contour'>('heatmap');
+  const [colormap, setColormap] = useState('Viridis');
+  const [interpolation, setInterpolation] = useState<'fast' | 'best' | false>(false);
 
-  // Initialize and update ECharts
   useEffect(() => {
-    if (!containerRef.current) return;
-
-    if (!chartRef.current) {
-      chartRef.current = echarts.init(containerRef.current, null, { renderer: 'canvas' });
-    }
-
     const updateChart = (eventResults?: any) => {
       const node = getNode(nodeId);
       if (!node && !eventResults) return;
-      const results = eventResults || (node?.data?.results as any);
-      const zData = results?.z;
-      const xLabels = results?.x;
-      const yLabels = results?.y;
-      const colormapName = results?.colormap || 'Viridis';
       
-      const isLight = document.documentElement.classList.contains('light-theme');
-      const textColor = isLight ? '#475569' : '#94a3b8';
+      const results = eventResults || node?.data?.results;
+      if (!results) return;
 
-      // Load requested colormap or fallback to Viridis
-      let inRangeColors = [...(COLORMAPS[colormapName] || COLORMAPS.Viridis)];
+      const z = results.z || [];
+      if (z.length > 0) {
+        setPlotData({
+          z: z,
+          x: results.x?.length ? results.x : undefined,
+          y: results.y?.length ? results.y : undefined
+        });
+      }
+
+      setLabels({
+        x: results.x_label || initialXLabel,
+        y: results.y_label || initialYLabel
+      });
+
+      setColormap(results.colormap || 'Viridis');
       
-      if (isLight) {
-        inRangeColors.reverse();
-      }
+      const pType = results.plot_type?.toLowerCase() === 'contour' ? 'contour' : 'heatmap';
+      setPlotType(pType);
 
-
-      const baseOption = {
-        backgroundColor: 'transparent',
-        animation: false,
-        tooltip: {
-          position: 'top',
-          formatter: (params: any) => {
-            return `${xLabel}: ${params.name}<br/>${yLabel}: ${params.value[1]}<br/>Value: ${params.value[2].toFixed(3)}`;
-          }
-        },
-        toolbox: {
-          feature: {
-            dataZoom: { yAxisIndex: 'none' },
-            restore: {},
-            saveAsImage: {}
-          },
-          iconStyle: { borderColor: textColor }
-        },
-        grid: {
-          left: 55,
-          right: 35,
-          top: 35,
-          bottom: 45
-        }
-      };
-
-      if (!zData) {
-        setDebugInfo('zData is undefined/null');
-        return;
-      }
-      if (!Array.isArray(zData)) {
-        setDebugInfo('zData is not an array');
-        return;
-      }
-      if (zData.length === 0) {
-        setDebugInfo('zData is empty array');
-        return;
-      }
-      if (!Array.isArray(zData[0])) {
-        setDebugInfo('zData[0] is not an array (not 2D)');
-        return;
-      }
-
-      const numRows = zData.length;
-      const numCols = zData[0].length;
-
-      const xCategories = xLabels && xLabels.length === numCols 
-        ? xLabels.map(String) 
-        : Array.from({ length: numCols }, (_, i) => String(i));
-        
-      const yCategories = yLabels && yLabels.length === numRows 
-        ? yLabels.map(String) 
-        : Array.from({ length: numRows }, (_, i) => String(i));
-
-      let minZ = Infinity;
-      let maxZ = -Infinity;
-      
-      // We must pre-process zData into [xIndex, yIndex, value] format for ECharts Heatmap series
-      const chartData = new Array(numRows * numCols);
-      let idx = 0;
-      
-      for (let y = 0; y < numRows; y++) {
-        for (let x = 0; x < numCols; x++) {
-          const val = Number(zData[y][x]) || 0;
-          chartData[idx++] = [x, y, val];
-          if (val < minZ) minZ = val;
-          if (val > maxZ) maxZ = val;
-        }
-      }
-
-      if (minZ === Infinity || maxZ === -Infinity || minZ === maxZ) {
-         if (minZ === maxZ && minZ !== Infinity) {
-            maxZ = minZ + 1; // prevent identical min/max
-         } else {
-            minZ = 0; maxZ = 1;
-         }
-      }
-      
-      setDebugInfo(`Grid: ${numCols}x${numRows} | Min: ${minZ.toFixed(3)} | Max: ${maxZ.toFixed(3)}`);
-
-      const option: echarts.EChartsOption = {
-        ...baseOption as any,
-        xAxis: {
-          type: 'category',
-          data: xCategories,
-          name: xLabel,
-          nameLocation: 'middle',
-          nameGap: 30,
-          nameTextStyle: { color: textColor, fontSize: 10 },
-          axisLabel: { color: textColor, fontSize: 8 },
-          splitArea: { show: true, areaStyle: { color: ['rgba(255,255,255,0.02)', 'rgba(0,0,0,0.02)'] } },
-          splitLine: { show: false }
-        },
-        yAxis: {
-          type: 'category',
-          data: yCategories,
-          name: yLabel,
-          nameLocation: 'middle',
-          nameGap: 40,
-          nameTextStyle: { color: textColor, fontSize: 10 },
-          axisLabel: { color: textColor, fontSize: 8 },
-          splitArea: { show: true, areaStyle: { color: ['rgba(255,255,255,0.02)', 'rgba(0,0,0,0.02)'] } },
-          splitLine: { show: false }
-        },
-        visualMap: {
-          min: minZ,
-          max: maxZ,
-          calculable: true,
-          realtime: false,
-          inRange: { color: inRangeColors },
-          textStyle: { color: textColor, fontSize: 9 },
-          right: 0,
-          top: 'center',
-          itemHeight: 120,
-          itemWidth: 12
-        },
-        series: [{
-          name: 'Heatmap',
-          type: 'heatmap',
-          data: chartData,
-          emphasis: {
-            itemStyle: { shadowBlur: 10, shadowColor: 'rgba(0, 0, 0, 0.5)' }
-          }
-        }]
-      };
-
-      if (chartRef.current) {
-        chartRef.current.setOption(option); // rely on ECharts native merge instead of notMerge: true
-      }
+      const interpStr = results.interpolation?.toLowerCase();
+      setInterpolation(interpStr === 'fast' ? 'fast' : interpStr === 'best' ? 'best' : false);
     };
 
-    // Initial update
     updateChart();
 
-    // Listen to high-frequency telemetry events directly to bypass React render cycle
     const eventName = `telemetry-${nodeId}`;
     const handleTelemetry = (e: any) => {
       updateChart(e.detail?.results);
@@ -242,46 +125,58 @@ const EChartsHeatmapRenderer = ({ nodeId, xLabel, yLabel }: EChartsHeatmapRender
     return () => {
       window.removeEventListener(eventName, handleTelemetry);
     };
-  }, [nodeId, xLabel, yLabel, getNode]);
+  }, [nodeId, initialXLabel, initialYLabel, getNode]);
 
-  useEffect(() => {
-    const node = containerRef.current;
-    if (!node) return;
-
-    const observer = new ResizeObserver(() => {
-      if (chartRef.current) {
-        chartRef.current.resize();
-      }
-    });
-    observer.observe(node);
-
-    return () => {
-      observer.disconnect();
-      if (chartRef.current) {
-        chartRef.current.dispose();
-        chartRef.current = null;
-      }
-    };
-  }, []);
+  const isLight = document.documentElement.classList.contains('light-theme');
+  const textColor = isLight ? '#475569' : '#94a3b8';
+  const gridColor = isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)';
 
   return (
-    <div className="nodrag" style={{ width: '100%', height: '100%', overflow: 'hidden', position: 'relative' }}>
-      <div 
-        style={{ 
-          position: 'absolute', 
-          top: 0, 
-          left: 0, 
-          fontSize: '10px', 
-          color: '#ef4444', 
-          background: 'rgba(0,0,0,0.5)', 
-          padding: '2px 4px',
-          zIndex: 10,
-          pointerEvents: 'none'
+    <div className="nodrag" style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+      <Plot
+        data={[
+          {
+            z: plotData.z,
+            x: plotData.x,
+            y: plotData.y,
+            type: plotType,
+            colorscale: getPlotlyColorscale(colormap) as any,
+            zsmooth: plotType === 'heatmap' ? interpolation : false, // Interpolation is for heatmaps
+            showscale: true,
+            colorbar: {
+              tickfont: { size: 9, color: textColor }
+            }
+          }
+        ]}
+        layout={{
+          width: Math.max(10, width - 12),
+          height: Math.max(10, height - 12),
+          margin: { l: 45, r: 15, t: 15, b: 35 },
+          paper_bgcolor: 'transparent',
+          plot_bgcolor: 'transparent',
+          xaxis: {
+            title: labels.x,
+            titlefont: { size: 10, color: textColor },
+            tickfont: { size: 9, color: textColor },
+            gridcolor: gridColor,
+            zerolinecolor: gridColor
+          },
+          yaxis: {
+            title: labels.y,
+            titlefont: { size: 10, color: textColor },
+            tickfont: { size: 9, color: textColor },
+            gridcolor: gridColor,
+            zerolinecolor: gridColor
+          }
         }}
-      >
-        {debugInfo}
-      </div>
-      <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
+        config={{
+          displayModeBar: 'hover',
+          displaylogo: false,
+          responsive: true
+        }}
+        style={{ width: '100%', height: '100%' }}
+        useResizeHandler={false}
+      />
     </div>
   );
 };
