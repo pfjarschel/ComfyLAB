@@ -20,7 +20,7 @@ from typing import Dict, List, Any, Optional, Callable, Union
 from comfylab.engine.models import BlueprintModel
 from comfylab.engine.registry import get_node_class
 from comfylab.engine.locks import ResourceLockManager
-from comfylab.nodes.base import BaseNode, ExecutionContext, ExecIn, DataIn
+from comfylab.nodes.base import BaseNode, ExecutionContext, ExecIn, DataIn, ExecOut
 from backend.workspace import get_workspace_path
 from comfylab.engine.logging import run_id_var, set_node_context, reset_node_context
 
