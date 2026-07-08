@@ -138,6 +138,27 @@ async def list_packages():
     return {"packages": packages}
 
 
+@router.delete("/workspace/packages/{filename:path}")
+async def delete_package(filename: str):
+    """Deletes a specific package .cfy file from the workspace directory."""
+    ws_path = get_workspace_path()
+    packages_dir = ws_path / "packages"
+
+    if not filename.endswith(".cfy"):
+        filename += ".cfy"
+
+    file_path = packages_dir / filename
+
+    if file_path.exists():
+        try:
+            file_path.unlink()
+            return {"status": "success"}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to delete package: {str(e)}")
+    else:
+        raise HTTPException(status_code=404, detail="Package not found")
+
+
 @router.post("/workspace/packages")
 async def export_package(payload: PackageExportPayload):
     """Bundles a blueprint and its custom node/macro dependencies into a .cfy package."""

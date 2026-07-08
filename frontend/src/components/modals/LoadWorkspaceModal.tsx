@@ -19,6 +19,8 @@ interface LoadWorkspaceModalProps {
   onClose: () => void;
   onOpenPackage: (filename: string) => void;
   onLoadBlueprintByName: (filename: string) => void;
+  onDeleteBlueprint: (filename: string, isPackage?: boolean) => void;
+  onOpenExplorer: () => void;
 }
 
 export const LoadWorkspaceModal = ({
@@ -27,6 +29,8 @@ export const LoadWorkspaceModal = ({
   onClose,
   onOpenPackage,
   onLoadBlueprintByName,
+  onDeleteBlueprint,
+  onOpenExplorer,
 }: LoadWorkspaceModalProps) => {
   if (!isOpen) return null;
 
@@ -48,10 +52,11 @@ export const LoadWorkspaceModal = ({
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {workspaceBlueprints.map((bp) => (
                 <div 
-                  key={bp.filename} 
+                  key={bp.filename}
                   className="blueprint-list-item"
                   onClick={() => bp.isPackage ? onOpenPackage(bp.filename) : onLoadBlueprintByName(bp.filename)}
                   style={{
+                    position: 'relative',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '10px',
@@ -61,6 +66,14 @@ export const LoadWorkspaceModal = ({
                     borderRadius: '6px',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    const btn = e.currentTarget.querySelector('.delete-blueprint-btn') as HTMLElement;
+                    if (btn) btn.style.opacity = '1';
+                  }}
+                  onMouseLeave={(e) => {
+                    const btn = e.currentTarget.querySelector('.delete-blueprint-btn') as HTMLElement;
+                    if (btn) btn.style.opacity = '0';
                   }}
                 >
                   <span style={{ fontSize: '1.1rem' }}>{bp.isPackage ? '📦' : '📄'}</span>
@@ -72,13 +85,52 @@ export const LoadWorkspaceModal = ({
                       {bp.path}
                     </span>
                   </div>
+                  <button 
+                    className="delete-blueprint-btn"
+                    style={{ 
+                      position: 'absolute',
+                      top: '4px',
+                      right: '4px',
+                      color: '#ef4444', 
+                      padding: '4px', 
+                      cursor: 'pointer', 
+                      background: 'transparent', 
+                      border: 'none',
+                      fontSize: '0.75rem', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center', 
+                      transition: 'opacity 0.2s, transform 0.1s',
+                      opacity: 0,
+                    }} 
+                    title={bp.isPackage ? "Delete Package" : "Delete Blueprint"}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'scale(1.2)';
+                      e.currentTarget.style.opacity = '1';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const type = bp.isPackage ? "package" : "blueprint";
+                      if (confirm(`Are you sure you want to delete ${type} ${bp.filename}?`)) {
+                        onDeleteBlueprint(bp.filename, bp.isPackage);
+                      }
+                    }}
+                  >
+                    ✕
+                  </button>
                 </div>
               ))}
             </div>
           )}
         </div>
-        <div className="modal-footer" style={{ padding: '12px 20px' }}>
-          <button className="button-secondary" onClick={onClose} style={{ width: '100%' }}>
+        <div className="modal-footer" style={{ padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <button className="button-secondary" style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', textDecoration: 'underline', padding: '0' }} onClick={onOpenExplorer}>
+            Open Folder
+          </button>
+          <button className="button-secondary" onClick={onClose} style={{ width: '100px' }}>
             Cancel
           </button>
         </div>

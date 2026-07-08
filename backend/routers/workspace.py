@@ -11,6 +11,9 @@
 # GNU General Public License for more details.
 
 import json
+import os
+import platform
+import subprocess
 from pathlib import Path
 from typing import Dict, Any, List
 from fastapi import APIRouter, HTTPException
@@ -104,6 +107,46 @@ async def list_workspace_blueprints():
             "modified": f.stat().st_mtime
         })
     return {"blueprints": blueprints}
+
+
+@router.delete("/workspace/blueprints/{filename:path}")
+async def delete_blueprint_from_workspace(filename: str):
+    """Deletes a specific blueprint JSON file from the workspace directory."""
+    ws_path = get_workspace_path()
+    blueprints_dir = ws_path / "blueprints"
+
+    if not filename.endswith(".json"):
+        filename += ".json"
+
+    file_path = blueprints_dir / filename
+
+    if file_path.exists():
+        try:
+            file_path.unlink()
+            return {"status": "success"}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to delete blueprint: {str(e)}")
+    else:
+        raise HTTPException(status_code=404, detail="Blueprint not found")
+
+
+@router.post("/workspace/blueprints/open-explorer")
+async def open_blueprints_explorer():
+    """Opens the blueprints directory in the system's file explorer."""
+    ws_path = get_workspace_path()
+    blueprints_dir = ws_path / "blueprints"
+    blueprints_dir.mkdir(parents=True, exist_ok=True)
+    
+    try:
+        if platform.system() == "Windows":
+            os.startfile(str(blueprints_dir))
+        elif platform.system() == "Darwin":
+            subprocess.Popen(["open", str(blueprints_dir)])
+        else:
+            subprocess.Popen(["xdg-open", str(blueprints_dir)])
+        return {"status": "success"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to open explorer: {str(e)}")
 
 
 @router.get("/workspace/blueprints/{filename:path}")

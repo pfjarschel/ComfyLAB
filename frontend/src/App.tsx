@@ -2716,6 +2716,27 @@ return {
     }
   };
 
+  const handleDeleteBlueprint = async (filename: string, isPackage?: boolean) => {
+    try {
+      if (isPackage) {
+        await axios.delete(`${BACKEND_URL}/workspace/packages/${encodeURIComponent(filename)}`);
+      } else {
+        await axios.delete(`${BACKEND_URL}/workspace/blueprints/${encodeURIComponent(filename)}`);
+      }
+      await fetchWorkspaceBlueprints();
+    } catch (err: any) {
+      setErrorMessage(err.response?.data?.detail || 'Failed to delete blueprint/package.');
+    }
+  };
+
+  const handleOpenBlueprintsExplorer = async () => {
+    try {
+      await axios.post(`${BACKEND_URL}/workspace/blueprints/open-explorer`);
+    } catch (err: any) {
+      setErrorMessage(err.response?.data?.detail || 'Failed to open explorer.');
+    }
+  };
+
   const triggerSaveToWorkspace = () => {
     const curLevelIndex = currentLevelIndexRef.current;
     const rootNodes = curLevelIndex === 0 ? nodes : (canvasStackRef.current[0]?.savedNodes || []);
@@ -3959,6 +3980,8 @@ return {
           onClose={() => setLoadWorkspaceOpen(false)}
           onOpenPackage={handleOpenPackage}
           onLoadBlueprintByName={handleLoadBlueprintByName}
+          onDeleteBlueprint={handleDeleteBlueprint}
+          onOpenExplorer={handleOpenBlueprintsExplorer}
         />
 
         {/* --- TRUST WARNING MODAL --- */}
