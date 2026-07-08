@@ -307,6 +307,13 @@ class ExecutionEngine:
                 timeout = node.properties.get("timeout", None)
                 try:
                     async def execute_node():
+                        if node.properties.get("disabled", False):
+                            logger.info(f"Node '{node.id}' is disabled. Passing execution token ahead.")
+                            for name, pin in node.outputs.items():
+                                if isinstance(pin, ExecOut):
+                                    return name
+                            return None
+
                         is_persistent = node.properties.get("isPersistent", False)
                         if is_persistent and getattr(node, "_has_executed", False):
                             has_changes, current_inputs = await _detect_persistent_changes(node, context)
@@ -421,24 +428,54 @@ class ExecutionEngine:
                             await source_node.clear_data()
 
                 if not skip_pull:
-                    # Set source node context variables during pulling
-                    node_tokens = set_node_context(source_node)
-                    logger.debug(f"Pulling data from node '{source_node_id}' output pin '{source_pin_name}'")
-                    try:
-                        # Pull data with optional watchdog timeout
-                        timeout = source_node.properties.get("timeout", None)
-                        try:
-                            if timeout is not None:
-                                val = await asyncio.wait_for(
-                                    source_node.pull_data(context, source_pin_name), 
-                                    timeout=float(timeout)
-                                )
+                    is_disabled = source_node.properties.get("disabled", False)
+                    if is_disabled:
+                        logger.info(f"Node '{source_node_id}' is disabled. Attempting to pass-through data or return default.")
+                        out_pin = source_node.outputs.get(source_pin_name)
+                        in_pin = None
+                        if out_pin:
+                            for _, pin in source_node.inputs.items():
+                                if isinstance(pin, DataIn) and pin.type_hint == out_pin.type_hint:
+                                    in_pin = pin
+                                    break
+                        if in_pin:
+                            val = await context.pull(source_node.id, in_pin.name)
+                        else:
+                            if out_pin:
+                                th = out_pin.type_hint
+                                if th in (float, int, "number"):
+                                    val = 0
+                                elif th in (bool, "boolean", "bool"):
+                                    val = False
+                                elif th in (str, "string"):
+                                    val = ""
+                                elif th in (list, "list", "array"):
+                                    val = []
+                                elif th in (dict, "dict", "object"):
+                                    val = {}
+                                else:
+                                    val = None
                             else:
-                                val = await source_node.pull_data(context, source_pin_name)
-                        except asyncio.TimeoutError:
-                            raise TimeoutError(f"Node '{source_node_id}' exceeded pull_data timeout of {timeout}s.")
-                    finally:
-                        reset_node_context(node_tokens)
+                                val = None
+                    else:
+                        # Set source node context variables during pulling
+                        node_tokens = set_node_context(source_node)
+                        logger.debug(f"Pulling data from node '{source_node_id}' output pin '{source_pin_name}'")
+                        try:
+                            # Pull data with optional watchdog timeout
+                            timeout = source_node.properties.get("timeout", None)
+                            try:
+                                if timeout is not None:
+                                    val = await asyncio.wait_for(
+                                        source_node.pull_data(context, source_pin_name), 
+                                        timeout=float(timeout)
+                                    )
+                                else:
+                                    val = await source_node.pull_data(context, source_pin_name)
+                            except asyncio.TimeoutError:
+                                raise TimeoutError(f"Node '{source_node_id}' exceeded pull_data timeout of {timeout}s.")
+                        finally:
+                            reset_node_context(node_tokens)
 
                     # If persistent, cache current state
                     if is_persistent:

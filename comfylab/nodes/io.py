@@ -22,7 +22,7 @@ from comfylab.engine.registry import register_node
 from comfylab.nodes.base import BaseNode, ExecIn, ExecOut, DataIn, DataOut, ExecutionContext
 
 
-@register_node("files/path_generator")
+@register_node("File I\/O/path_generator")
 class FilePathGeneratorNode(BaseNode):
     """Generates file names dynamically using timestamps to prevent overwriting."""
     icon = "📂"
@@ -65,7 +65,7 @@ class FilePathGeneratorNode(BaseNode):
         return None
 
 
-@register_node("files/csv_logger")
+@register_node("File I\/O/csv_logger")
 class DataLoggerNode(BaseNode):
     """Logs experimental data (scalars, lists, or dictionaries) to a CSV file."""
     icon = "📝"
@@ -168,5 +168,187 @@ class DataLoggerNode(BaseNode):
                 if (open_mode == 'w' or file_empty) and headers:
                     f.write(",".join(str(h) for h in headers) + "\n")
                 writer.writerow(row)
+
+        return "Out"
+
+
+@register_node("File I\/O/parquet_logger")
+class ParquetLoggerNode(BaseNode):
+    """Logs experimental data (scalars, lists, or dictionaries) to a Parquet file."""
+    icon = "📝"
+    display_name = "Parquet Logger"
+    description = "Logs structured data rows to a Parquet file. Highly optimized for large matrices and columnar data. Appending is supported via fastparquet."
+
+    inputs_def = [
+        ExecIn("Write"),
+        DataIn("FilePath", type_hint=str, default="output.parquet", widget="text"),
+        DataIn("Data", type_hint=Any),
+        DataIn("Headers", type_hint=list, optional=True)
+    ]
+    outputs_def = [ExecOut("Out")]
+
+    async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
+        import pandas as pd
+        
+        filepath = await context.pull(self.id, "FilePath")
+        data = await context.pull(self.id, "Data")
+        headers = await context.pull(self.id, "Headers")
+
+        if not filepath or data is None:
+            return "Out"
+            
+        if isinstance(headers, str):
+            headers = [h.strip() for h in headers.split(',')]
+            
+        file_empty = not os.path.exists(filepath) or os.path.getsize(filepath) == 0
+
+        df = None
+
+        if isinstance(data, dict):
+            # Check if values are lists (writing columns) or scalars (writing a single row)
+            is_col_format = any(isinstance(v, list) for v in data.values())
+            
+            if is_col_format:
+                df = pd.DataFrame(data)
+            else:
+                df = pd.DataFrame([data])
+        
+        elif isinstance(data, list):
+            if len(data) > 0 and isinstance(data[0], list):
+                # 2D array (list of columns)
+                df = pd.DataFrame(data).T
+                if headers:
+                    df.columns = headers
+            else:
+                # 1D array (single column)
+                df = pd.DataFrame(data)
+                if headers:
+                    df.columns = headers
+        else:
+            # Scalar
+            df = pd.DataFrame([data])
+            if headers:
+                df.columns = headers
+
+        if df is not None:
+            # Parquet requires all column names to be strings
+            df.columns = df.columns.astype(str)
+            
+            if not file_empty:
+                df.to_parquet(filepath, engine='fastparquet', append=True)
+            else:
+                df.to_parquet(filepath, engine='fastparquet')
+
+        return "Out"
+
+
+@register_node("File I\/O/csv_loader")
+class CSVLoaderNode(BaseNode):
+    """Reads a CSV file into data arrays."""
+    icon = "📂"
+    display_name = "CSV Loader"
+    description = "Reads a CSV file and outputs its contents as Columns (2D array), Headers, and a Dictionary mapping names to arrays."
+
+    inputs_def = [
+        ExecIn("Read"),
+        DataIn("FilePath", type_hint=str, default="data.csv", widget="text"),
+        DataIn("SkipLines", type_hint=int, default=0, widget="number")
+    ]
+    outputs_def = [
+        ExecOut("Out"),
+        DataOut("Columns", type_hint=list),
+        DataOut("Headers", type_hint=list)
+    ]
+
+    def __init__(self, node_id: str, properties: Optional[Dict[str, Any]] = None):
+        super().__init__(node_id, properties)
+        self._loaded_columns: List[List[Any]] = []
+        self._loaded_headers: List[str] = []
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Columns":
+            return self._loaded_columns
+        elif pin_name == "Headers":
+            return self._loaded_headers
+        return None
+
+    async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
+        import pandas as pd
+        
+        filepath = await context.pull(self.id, "FilePath")
+        skip_lines = await context.pull(self.id, "SkipLines")
+        if skip_lines is None:
+            skip_lines = 0
+
+        if not filepath or not os.path.exists(filepath):
+            self._loaded_columns = []
+            self._loaded_headers = []
+            return "Out"
+
+        try:
+            df = pd.read_csv(filepath, skiprows=int(skip_lines))
+            self._loaded_columns = df.values.T.tolist()
+            self._loaded_headers = df.columns.astype(str).tolist()
+        except Exception:
+            self._loaded_columns = []
+            self._loaded_headers = []
+
+        return "Out"
+
+
+@register_node("File I\/O/parquet_loader")
+class ParquetLoaderNode(BaseNode):
+    """Reads a Parquet file into data arrays."""
+    icon = "📂"
+    display_name = "Parquet Loader"
+    description = "Reads a Parquet file and outputs Columns, Headers, and a Dictionary."
+
+    inputs_def = [
+        ExecIn("Read"),
+        DataIn("FilePath", type_hint=str, default="data.parquet", widget="text"),
+        DataIn("ColumnsToLoad", type_hint=str, default="", widget="text", optional=True)
+    ]
+    outputs_def = [
+        ExecOut("Out"),
+        DataOut("Columns", type_hint=list),
+        DataOut("Headers", type_hint=list)
+    ]
+
+    def __init__(self, node_id: str, properties: Optional[Dict[str, Any]] = None):
+        super().__init__(node_id, properties)
+        self._loaded_columns: List[List[Any]] = []
+        self._loaded_headers: List[str] = []
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Columns":
+            return self._loaded_columns
+        elif pin_name == "Headers":
+            return self._loaded_headers
+        return None
+
+    async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
+        import pandas as pd
+        
+        filepath = await context.pull(self.id, "FilePath")
+        columns_str = await context.pull(self.id, "ColumnsToLoad")
+
+        if not filepath or not os.path.exists(filepath):
+            self._loaded_columns = []
+            self._loaded_headers = []
+            return "Out"
+
+        cols = None
+        if columns_str and isinstance(columns_str, str):
+            cols = [c.strip() for c in columns_str.split(',') if c.strip()]
+        elif isinstance(columns_str, list) and len(columns_str) > 0:
+            cols = [str(c).strip() for c in columns_str if str(c).strip()]
+
+        try:
+            df = pd.read_parquet(filepath, engine='fastparquet', columns=cols if cols else None)
+            self._loaded_columns = df.values.T.tolist()
+            self._loaded_headers = df.columns.astype(str).tolist()
+        except Exception:
+            self._loaded_columns = []
+            self._loaded_headers = []
 
         return "Out"

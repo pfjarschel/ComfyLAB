@@ -39,13 +39,17 @@ class FFTNode(BaseNode):
     outputs_def = [
         ExecOut("Out"),
         DataOut("Spectrum", type_hint=list),
-        DataOut("Frequencies", type_hint=list)
+        DataOut("Phase", type_hint=list),
+        DataOut("Frequencies", type_hint=list),
+        DataOut("Length", type_hint=int)
     ]
 
     def __init__(self, node_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(node_id, properties)
         self._last_spectrum: List[float] = []
+        self._last_phase: List[float] = []
         self._last_freqs: Optional[List[float]] = None
+        self._last_length: int = 0
 
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
         signal_input = await context.pull(self.id, "Signal")
@@ -53,19 +57,28 @@ class FFTNode(BaseNode):
 
         if signal_input is None or not isinstance(signal_input, list) or len(signal_input) == 0:
             self._last_spectrum = []
+            self._last_phase = []
             self._last_freqs = None
+            self._last_length = 0
             return "Out"
 
         try:
             sig = np.asarray(signal_input, dtype=float)
         except (ValueError, TypeError):
             self._last_spectrum = []
+            self._last_phase = []
             self._last_freqs = None
+            self._last_length = 0
             return "Out"
 
         N = len(sig)
-        magnitude = np.abs(np.fft.rfft(sig)) / N
+        fft_result = np.fft.rfft(sig)
+        magnitude = np.abs(fft_result) / N
+        phase = np.angle(fft_result)
+        
         self._last_spectrum = magnitude.tolist()
+        self._last_phase = phase.tolist()
+        self._last_length = N
 
         if x_input is not None and isinstance(x_input, list) and len(x_input) == N and N >= 2:
             try:
@@ -82,13 +95,81 @@ class FFTNode(BaseNode):
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Spectrum":
             return self._last_spectrum
+        if pin_name == "Phase":
+            return self._last_phase
         if pin_name == "Frequencies":
             return self._last_freqs
+        if pin_name == "Length":
+            return self._last_length
         return None
 
     async def clear_data(self) -> None:
         self._last_spectrum = []
+        self._last_phase = []
         self._last_freqs = None
+        self._last_length = 0
+
+
+@register_node("math/signal_processing/ifft")
+class IFFTNode(BaseNode):
+    """Computes an Inverse Discrete Fourier Transform to reconstruct a time-domain signal."""
+    icon = "📉"
+    display_name = "Inverse FFT"
+    description = "Reconstructs a time-domain signal from Magnitude (Spectrum) and Phase arrays."
+
+    inputs_def = [
+        ExecIn("Reconstruct"),
+        DataIn("Spectrum", type_hint=list),
+        DataIn("Phase", type_hint=list, optional=True),
+        DataIn("Length", type_hint=int, optional=True)
+    ]
+    outputs_def = [
+        ExecOut("Out"),
+        DataOut("Signal", type_hint=list)
+    ]
+
+    def __init__(self, node_id: str, properties: Optional[Dict[str, Any]] = None):
+        super().__init__(node_id, properties)
+        self._last_signal: List[float] = []
+
+    async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
+        mag_input = await context.pull(self.id, "Spectrum")
+        phase_input = await context.pull(self.id, "Phase")
+        length_input = await context.pull(self.id, "Length")
+
+        if mag_input is None or not isinstance(mag_input, list) or len(mag_input) == 0:
+            self._last_signal = []
+            return "Out"
+
+        try:
+            mag = np.asarray(mag_input, dtype=float)
+            
+            if phase_input is not None and isinstance(phase_input, list) and len(phase_input) == len(mag):
+                phase = np.asarray(phase_input, dtype=float)
+            else:
+                phase = np.zeros_like(mag)
+                
+            n_recon = int(length_input) if length_input is not None else 2 * (len(mag) - 1)
+            
+            # The FFTNode scales magnitude by dividing by N. We must multiply it back.
+            mag_scaled = mag * n_recon
+            complex_spectrum = mag_scaled * np.exp(1j * phase)
+            
+            sig = np.fft.irfft(complex_spectrum, n=n_recon)
+            self._last_signal = sig.tolist()
+        except (ValueError, TypeError, Exception) as e:
+            logger.error(f"Error in IFFTNode '{self.id}': {e}")
+            self._last_signal = []
+
+        return "Out"
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Signal":
+            return self._last_signal
+        return None
+
+    async def clear_data(self) -> None:
+        self._last_signal = []
 
 
 @register_node("math/signal_processing/filter")

@@ -256,15 +256,7 @@ export const TopBar = ({
           </button>
         )}
 
-        {!isRunning && selectedNodesCount > 0 && (
-          <button 
-            className="button-primary run-btn macro-group-btn" 
-            onClick={onGroupMacro}
-            style={{ height: '38px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)', borderColor: '#8b5cf6' }}
-          >
-            📦 Group into Macro ({selectedNodesCount})
-          </button>
-        )}
+
       </div>
 
       {/* Right section: Theme and Title */}

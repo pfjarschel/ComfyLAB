@@ -301,6 +301,17 @@ function detectBoundaryPins(
 }
 
 function Flow() {
+  const [quickConnectMenu, setQuickConnectMenu] = useState<{
+    show: boolean;
+    clientX: number;
+    clientY: number;
+    offsetX: number;
+    offsetY: number;
+    sourceNodeId: string;
+    sourceHandleId: string;
+    sourceHandleType: string;
+  } | null>(null);
+
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [nodes, setNodes, reactFlowOnNodesChange] = useNodesState<any>([]);
   const [edges, setEdges, reactFlowOnEdgesChange] = useEdgesState<any>([]);
@@ -1119,8 +1130,9 @@ function Flow() {
 
   // Context Menu handlers
   const closeContextMenu = useCallback(() => {
-    setContextMenu(null);
+    setContextMenu({ show: false, x: 0, y: 0, clientX: 0, clientY: 0, type: 'pane' });
     setContextMenuSearch('');
+    setQuickConnectMenu(null);
   }, []);
 
   const handleClearNodeData = useCallback(async (nodeId: string) => {
@@ -1540,8 +1552,8 @@ return {
 
     const isAlreadyConnected = (sourceId: string, sourceHandle: string, targetId: string, targetHandle: string) => {
       return currentEdges.some((e: any) =>
-        e.source === sourceId && e.sourceHandle === sourceHandle &&
-        e.target === targetId && e.targetHandle === targetHandle
+        (e.source === sourceId && e.sourceHandle === sourceHandle) ||
+        (e.target === targetId && e.targetHandle === targetHandle)
       );
     };
 
@@ -1959,13 +1971,71 @@ return {
     [setEdges, pushStateToHistory]
   );
 
+  const quickConnectStartRef = useRef<{ nodeId: string, handleId: string, handleType: string } | null>(null);
+
+  const onConnectStart = useCallback((_event: any, params: any) => {
+    quickConnectStartRef.current = params;
+  }, []);
+
+  const onConnectEnd = useCallback((event: any) => {
+    if (isLocked) return;
+    const targetIsPane = event.target && event.target.classList && event.target.classList.contains('react-flow__pane');
+    if (targetIsPane && quickConnectStartRef.current) {
+       const { nodeId, handleId, handleType } = quickConnectStartRef.current;
+       
+       const sourceNode = nodesRef.current.find((n: any) => n.id === nodeId);
+       const layout = registryRef.current?.[sourceNode?.data?.action];
+       let isExec = false;
+       if (layout) {
+         if (handleType === 'source') {
+           if (['Out', 'Then', 'Else'].includes(handleId)) isExec = true;
+           const pin = layout.dataOuts?.find((p: any) => p.name === handleId);
+           if (pin?.type === 'exec') isExec = true;
+         } else {
+           if (['In'].includes(handleId)) isExec = true;
+           const pin = layout.dataIns?.find((p: any) => p.name === handleId);
+           if (pin?.type === 'exec') isExec = true;
+         }
+       }
+       
+       if (isExec) {
+          quickConnectStartRef.current = null;
+          return;
+       }
+
+       const clientX = 'clientX' in event ? event.clientX : (event.changedTouches ? event.changedTouches[0].clientX : 0);
+       const clientY = 'clientY' in event ? event.clientY : (event.changedTouches ? event.changedTouches[0].clientY : 0);
+       
+       let offsetX = clientX;
+       let offsetY = clientY;
+       if (reactFlowWrapper.current) {
+          const rect = reactFlowWrapper.current.getBoundingClientRect();
+          offsetX = clientX - rect.left;
+          offsetY = clientY - rect.top;
+       }
+
+       setQuickConnectMenu({
+         show: true,
+         clientX,
+         clientY,
+         offsetX,
+         offsetY,
+         sourceNodeId: nodeId,
+         sourceHandleId: handleId,
+         sourceHandleType: handleType
+       });
+    }
+    quickConnectStartRef.current = null;
+  }, [isLocked]);
+
+
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
   }, []);
 
   const addNodeAtClientPosition = useCallback((type: string, clientX: number, clientY: number) => {
-    if (!reactFlowInstance) return;
+    if (!reactFlowInstance) return null;
 
     pushStateToHistory();
     setIsDirty(true);
@@ -2034,8 +2104,9 @@ return {
     }
 
 
+    const newNodeId = getId();
     const newNode: Node = {
-      id: getId(),
+      id: newNodeId,
       type: 'actionNode',
       position,
       data: getBaseNodeData({
@@ -2051,7 +2122,50 @@ return {
     };
 
     setNodes((nds) => nds.concat(newNode));
+    return newNodeId;
   }, [reactFlowInstance, nodeRegistry, pushStateToHistory, getBaseNodeData, snapToGrid, setNodes, isLocked]);
+
+  const handleQuickConnect = useCallback((menu: any, createType: string) => {
+    setQuickConnectMenu(null);
+    const { clientX, clientY, sourceNodeId, sourceHandleId, sourceHandleType } = menu;
+
+    const sourceNode = nodesRef.current.find((n: any) => n.id === sourceNodeId);
+    if (!sourceNode) return;
+    const layout = nodeRegistry?.[sourceNode.data.action];
+    if (!layout) return;
+
+    let dataType = 'any';
+    if (sourceHandleType === 'source') {
+      const pin = layout.dataOuts?.find((p: any) => p.name === sourceHandleId);
+      if (pin) dataType = pin.type || 'any';
+    } else {
+      const pin = layout.dataIns?.find((p: any) => p.name === sourceHandleId);
+      if (pin) dataType = pin.type || 'any';
+    }
+
+    const newNodeId = addNodeAtClientPosition(createType, clientX, clientY);
+    if (newNodeId) {
+      setTimeout(() => {
+        const newLayout = registryRef.current?.[createType];
+        if (!newLayout) return;
+
+        const edgeColor = getPinColor(dataType);
+
+        const newEdge = {
+          id: `edge_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+          source: sourceHandleType === 'source' ? sourceNodeId : newNodeId,
+          sourceHandle: sourceHandleType === 'source' ? sourceHandleId : newLayout.dataOuts?.[0]?.name,
+          target: sourceHandleType === 'source' ? newNodeId : sourceNodeId,
+          targetHandle: sourceHandleType === 'source' ? newLayout.dataIns?.[0]?.name : sourceHandleId,
+          style: { stroke: edgeColor, strokeWidth: 1.5, animated: false },
+          markerEnd: { type: MarkerType.ArrowClosed, color: edgeColor },
+          type: 'default',
+        };
+
+        setEdges((eds: any) => [...eds, newEdge]);
+      }, 100);
+    }
+  }, [nodeRegistry, setEdges, addNodeAtClientPosition]);
 
   const onDrop = useCallback(
     (event: React.DragEvent) => {
@@ -2174,6 +2288,25 @@ return {
       });
     },
     [setNodes]
+  );
+
+  const onSelectionContextMenu = useCallback(
+    (event: any, nodes: any) => {
+      event.preventDefault();
+      if (!reactFlowWrapper.current) return;
+      const rect = reactFlowWrapper.current.getBoundingClientRect();
+
+      setContextMenu({
+        show: true,
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top,
+        clientX: event.clientX,
+        clientY: event.clientY,
+        type: 'selection',
+        targetId: null,
+      });
+    },
+    []
   );
 
   const onEdgeContextMenu = useCallback(
@@ -3335,6 +3468,8 @@ return {
               onNodesChange={onNodesChange}
               onEdgesChange={onEdgesChange}
               onConnect={onConnect}
+              onConnectStart={onConnectStart}
+              onConnectEnd={onConnectEnd}
               onInit={setReactFlowInstance}
               onDrop={onDrop}
               onDragOver={onDragOver}
@@ -3362,6 +3497,7 @@ return {
               elementsSelectable={!isLocked}
               onPaneContextMenu={onPaneContextMenu}
               onNodeContextMenu={onNodeContextMenu}
+              onSelectionContextMenu={onSelectionContextMenu}
               onEdgeContextMenu={onEdgeContextMenu}
               onPaneClick={closeContextMenu}
               onNodeClick={closeContextMenu}
@@ -3582,6 +3718,78 @@ return {
               onReplaceNode={handleReplaceNode}
               onNodeDataChange={onNodeDataChange}
             />
+
+          {quickConnectMenu?.show && (
+            <div
+              className="quick-connect-menu glass-panel"
+              onPointerDown={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                position: 'absolute',
+                left: quickConnectMenu.offsetX,
+                top: quickConnectMenu.offsetY,
+                zIndex: 2000,
+                padding: '12px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px',
+                boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+                borderRadius: '8px',
+              }}
+            >
+              <div style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                Quick Connect
+              </div>
+              <button 
+                className="button-primary" 
+                style={{ justifyContent: 'center', padding: '6px 16px' }}
+                onClick={() => {
+                  const menu = quickConnectMenu;
+                  const sourceNode = nodesRef.current.find((n: any) => n.id === menu.sourceNodeId);
+                  const layout = registryRef.current?.[sourceNode?.data?.action];
+                  let dataType = 'any';
+                  if (menu.sourceHandleType === 'source') {
+                    const pin = layout?.dataOuts?.find((p: any) => p.name === menu.sourceHandleId);
+                    if (pin) dataType = pin.type || 'any';
+                  } else {
+                    const pin = layout?.dataIns?.find((p: any) => p.name === menu.sourceHandleId);
+                    if (pin) dataType = pin.type || 'any';
+                  }
+                  
+                  let createType = 'constants/number';
+                  if (menu.sourceHandleType === 'source') {
+                    createType = 'outputs/basic/display';
+                  } else {
+                    switch (dataType) {
+                      case 'number':
+                      case 'int':
+                      case 'float':
+                        createType = 'constants/number'; break;
+                      case 'string':
+                      case 'text':
+                        createType = 'constants/string'; break;
+                      case 'boolean':
+                      case 'bool':
+                        createType = 'constants/boolean'; break;
+                      case 'array':
+                      case 'list':
+                        createType = 'arrays/manipulation/create';
+                        if (!registryRef.current?.[createType]) {
+                            createType = 'arrays/manipulation/accumulate';
+                        }
+                        break;
+                      default:
+                        createType = 'constants/number';
+                    }
+                  }
+                  handleQuickConnect(menu, createType);
+                }}
+              >
+                Create Default Node
+              </button>
+            </div>
+          )}
             </div>
 
             {/* Drawing Sidebar Pane */}

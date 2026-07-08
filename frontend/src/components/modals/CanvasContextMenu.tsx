@@ -20,8 +20,8 @@ interface CanvasContextMenuProps {
     y: number;
     clientX: number;
     clientY: number;
-    type: 'pane' | 'node' | 'edge';
-    targetId?: string;
+    type: 'pane' | 'node' | 'edge' | 'selection';
+    targetId?: string | null;
   } | null;
   contextMenuSearch: string;
   setContextMenuSearch: (value: string) => void;
@@ -258,6 +258,18 @@ export const CanvasContextMenu = ({
         <>
           <button className="context-menu-item" onClick={() => { onInspectNode(contextMenu.targetId!); onClose(); }}>
             <span>ℹ️</span> Inspect Node
+          </button>
+          <button
+            className="context-menu-item"
+            onClick={() => {
+              const node = nodes.find(n => n.id === contextMenu.targetId);
+              const isDisabled = !node?.data?.disabled;
+              onNodeDataChange(contextMenu.targetId!, 'disabled', isDisabled);
+              onClose();
+            }}
+          >
+            <span>{nodes.find(n => n.id === contextMenu.targetId)?.data?.disabled ? '✅' : '🚫'}</span>{' '}
+            {nodes.find(n => n.id === contextMenu.targetId)?.data?.disabled ? 'Enable Node' : 'Disable Node'}
           </button>
           <button 
             className="context-menu-item" 
@@ -519,6 +531,57 @@ export const CanvasContextMenu = ({
               </>
             );
           })()}
+        </>
+      )}
+
+      {contextMenu.type === 'selection' && (
+        <>
+          <button className="context-menu-item" onClick={() => { onCopyNode(); onClose(); }}>
+            <span>📄</span> Copy Nodes
+          </button>
+          <button className="context-menu-item" onClick={() => { onDuplicateNode(); onClose(); }}>
+            <span>👯</span> Duplicate Nodes
+          </button>
+          <button
+            className="context-menu-item"
+            onClick={() => {
+              selectedNodeIds.forEach(id => {
+                onNodeDataChange(id, 'disabled', true);
+              });
+              onClose();
+            }}
+          >
+            <span>🚫</span> Disable Nodes
+          </button>
+          <button
+            className="context-menu-item"
+            onClick={() => {
+              selectedNodeIds.forEach(id => {
+                onNodeDataChange(id, 'disabled', false);
+              });
+              onClose();
+            }}
+          >
+            <span>✅</span> Enable Nodes
+          </button>
+          <button
+            className="context-menu-item danger"
+            onClick={() => {
+              // Delete all selected nodes
+              onDeleteNode('');
+              onClose();
+            }}
+          >
+            <span>🗑️</span> Delete Nodes
+          </button>
+          {selectedNodeIds.size >= 2 && (
+            <>
+              <div className="context-menu-divider" />
+              <button className="context-menu-item" onClick={() => { onGroupIntoMacro(); onClose(); }}>
+                <span>📦</span> Group into Macro
+              </button>
+            </>
+          )}
         </>
       )}
 

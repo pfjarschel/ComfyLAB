@@ -65,18 +65,29 @@ class PlotNode(BaseNode):
     description = "Receives data values and streams them to the UI for live graphing."
     default_width = 210
     default_height = 220
-    ui_behavior = {"accumulate_history": True, "custom_widget": "time_plot"}
+    ui_behavior = {"accumulate_history": True, "custom_widget": "time_plot", "render_standard_inputs": True}
     
     inputs_def = [
         ExecIn("Plot"),
-        DataIn("InputData")
+        DataIn("InputData"),
+        DataIn("MaxHistory", type_hint=int, default=0, widget="number")
     ]
     outputs_def = [ExecOut("Out")]
 
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
         val = await context.pull(self.id, "InputData")
+        max_history = await context.pull(self.id, "MaxHistory")
+        
+        try:
+            max_history = int(max_history) if max_history is not None else 0
+        except Exception:
+            max_history = 0
+
         # Send numerical or array telemetry package
-        await context.send_telemetry(self.id, {"value": val})
+        await context.send_telemetry(self.id, {
+            "value": val,
+            "max_history": max_history
+        })
         return "Out"
 
 

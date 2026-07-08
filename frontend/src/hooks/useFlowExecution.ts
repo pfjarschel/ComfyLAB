@@ -119,7 +119,19 @@ export function useFlowExecution({
                if (uiBehavior.accumulate_history) {
                   const val = parseFloat(update.value);
                   const oldHistory = existingNode.data.results.history || [];
-                  existingNode.data.results.history = [...oldHistory, val].slice(-50);
+                  
+                  let maxHistory = 0;
+                  if (update.results?.max_history !== undefined) {
+                     maxHistory = Number(update.results.max_history);
+                  } else if (existingNode.data.results?.max_history !== undefined) {
+                     maxHistory = Number(existingNode.data.results.max_history);
+                  }
+                  
+                  if (maxHistory > 0) {
+                     existingNode.data.results.history = [...oldHistory, val].slice(-maxHistory);
+                  } else {
+                     existingNode.data.results.history = [...oldHistory, val];
+                  }
                } else {
                   existingNode.data.results.displayValue = update.value;
                }

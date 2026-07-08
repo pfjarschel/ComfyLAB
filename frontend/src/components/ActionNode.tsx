@@ -808,7 +808,7 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
   return (
     <div
       id={`node-container-${id}`}
-      className={`glass-panel action-node ${data.status || 'idle'} ${isMacro ? 'macro-node' : ''} ${data.pinned ? 'pinned-node' : ''} ${data.isPersistent ? 'persistent-node' : ''} ${selected ? 'selected' : ''}`}
+      className={`glass-panel action-node ${data.status || 'idle'} ${isMacro ? 'macro-node' : ''} ${data.pinned ? 'pinned-node' : ''} ${data.isPersistent ? 'persistent-node' : ''} ${data.disabled ? 'disabled-node' : ''} ${selected ? 'selected' : ''}`}
       onDoubleClick={(e) => {
         // Do not open inspector when double-clicking interactive elements
         const target = e.target as HTMLElement;
@@ -922,6 +922,27 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '120px' }}>
               {data.customName || layout.name}
             </span>
+            {data.disabled && (
+              <span
+                className="node-disabled-badge"
+                title="Node is disabled (execution bypassed, outputs default to empty)"
+                style={{
+                  fontSize: '0.75rem',
+                  marginLeft: '4px',
+                  opacity: 0.9,
+                  cursor: 'pointer',
+                  userSelect: 'none'
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (data.onChange) {
+                    data.onChange(id, 'disabled', false);
+                  }
+                }}
+              >
+                🚫
+              </span>
+            )}
             {data.isPersistent && (
               <span 
                 className="node-persistence-lock" 
