@@ -67,13 +67,15 @@ async def test_filter_node():
     context = ExecutionContext(engine, "test_run", engine.lock_manager)
 
     # Test signal: sine wave + high-frequency noise
-    t = [i * 0.05 for i in range(100)]
-    signal_noise = [math.sin(x) + 0.5 * math.sin(20 * x) for x in t]
+    import numpy as np
+    t = np.array([i * 0.05 for i in range(100)])
+    signal_noise = np.array([math.sin(x) + 0.5 * math.sin(20 * x) for x in t])
 
     # 1. Moving average
     engine.nodes["filter_ma"].properties["Signal"] = signal_noise
     await engine.nodes["filter_ma"].execute(context, "Filter")
     res_ma = await engine.nodes["filter_ma"].pull_data(context, "Filtered")
+    assert isinstance(res_ma, np.ndarray)
     assert len(res_ma) == len(signal_noise)
     assert res_ma[0] != signal_noise[0]  # Smoothed
 
@@ -81,12 +83,14 @@ async def test_filter_node():
     engine.nodes["filter_lp"].properties["Signal"] = signal_noise
     await engine.nodes["filter_lp"].execute(context, "Filter")
     res_lp = await engine.nodes["filter_lp"].pull_data(context, "Filtered")
+    assert isinstance(res_lp, np.ndarray)
     assert len(res_lp) == len(signal_noise)
 
     # 3. Band pass
     engine.nodes["filter_bp"].properties["Signal"] = signal_noise
     await engine.nodes["filter_bp"].execute(context, "Filter")
     res_bp = await engine.nodes["filter_bp"].pull_data(context, "Filtered")
+    assert isinstance(res_bp, np.ndarray)
     assert len(res_bp) == len(signal_noise)
 
 
@@ -175,7 +179,7 @@ async def test_linear_scale_node():
 async def test_ramp_generator_node():
     blueprint = {
         "nodes": [
-            {"id": "ramp", "type": "arrays/manipulation/ramp_generator", "properties": {"Start": 1.0, "Stop": 5.0, "Steps": 5}}
+            {"id": "ramp", "type": "Numeric Arrays/manipulation/ramp_generator", "properties": {"Start": 1.0, "Stop": 5.0, "Steps": 5}}
         ],
         "links": []
     }
@@ -184,7 +188,9 @@ async def test_ramp_generator_node():
     context = ExecutionContext(engine, "test_run", engine.lock_manager)
 
     arr = await engine.nodes["ramp"].pull_data(context, "Array")
-    assert arr == [1.0, 2.0, 3.0, 4.0, 5.0]
+    import numpy as np
+    assert isinstance(arr, np.ndarray)
+    assert list(arr) == [1.0, 2.0, 3.0, 4.0, 5.0]
 
 
 @pytest.mark.asyncio
@@ -246,7 +252,7 @@ async def test_file_path_generator_and_logger():
     # Test path generation
     blueprint_gen = {
         "nodes": [
-            {"id": "gen", "type": "files/path_generator", "properties": {
+            {"id": "gen", "type": "File I\\/O/path_generator", "properties": {
                 "Prefix": "test_log", "Extension": "csv", "Subfolder": "test_outputs"
             }}
         ],
@@ -269,7 +275,7 @@ async def test_file_path_generator_and_logger():
     # Test logger
     blueprint_log = {
         "nodes": [
-            {"id": "logger", "type": "files/csv_logger", "properties": {
+            {"id": "logger", "type": "File I\\/O/csv_logger", "properties": {
                 "FilePath": test_filepath,
                 "Data": {"time": [0, 1], "voltage": [2.5, 3.1]},
                 "mode": "overwrite"

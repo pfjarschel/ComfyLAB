@@ -22,8 +22,9 @@ async def test_fft_node():
     N = 64
     dx = 10.0 / N
     freq_true = 2.0
-    t = [i * dx for i in range(N)]
-    signal = [math.sin(2 * math.pi * freq_true * x) for x in t]
+    import numpy as np
+    t = np.array([i * dx for i in range(N)])
+    signal = np.array([math.sin(2 * math.pi * freq_true * x) for x in t])
 
     fft_node.properties["Signal"] = signal
     fft_node.properties["X"] = t
@@ -33,8 +34,10 @@ async def test_fft_node():
     freqs = await fft_node.pull_data(context, "Frequencies")
 
     assert spectrum is not None
+    assert isinstance(spectrum, np.ndarray)
     assert len(spectrum) == N // 2 + 1
     assert freqs is not None
+    assert isinstance(freqs, np.ndarray)
     assert len(freqs) == len(spectrum)
     # Spectral resolution bin = 1 / (N*dx) = 1 / 10 = 0.1 Hz
     assert abs(freqs[1] - freqs[0] - 0.1) < 1e-6
@@ -42,21 +45,21 @@ async def test_fft_node():
     peak_bin = max(range(len(spectrum)), key=lambda i: spectrum[i])
     assert abs(freqs[peak_bin] - freq_true) < 0.2
 
-    # 2) Without X -> Frequencies is None
+    # 2) Without X -> Frequencies is empty array
     del fft_node.properties["X"]
     await fft_node.execute(context, "Analyze")
     spectrum2 = await fft_node.pull_data(context, "Spectrum")
     freqs2 = await fft_node.pull_data(context, "Frequencies")
     assert spectrum2 is not None
-    assert freqs2 is None
+    assert isinstance(freqs2, np.ndarray) and len(freqs2) == 0
 
-    # 3) Empty signal -> empty spectrum, None frequencies
-    fft_node.properties["Signal"] = []
+    # 3) Empty signal -> empty spectrum, empty frequencies
+    fft_node.properties["Signal"] = np.array([])
     await fft_node.execute(context, "Analyze")
     spectrum3 = await fft_node.pull_data(context, "Spectrum")
     freqs3 = await fft_node.pull_data(context, "Frequencies")
-    assert spectrum3 == []
-    assert freqs3 is None
+    assert len(spectrum3) == 0
+    assert len(freqs3) == 0
 
 
 @pytest.mark.asyncio
@@ -134,25 +137,25 @@ async def test_random_node():
 
 
 @pytest.mark.asyncio
-async def test_array_nodes():
+async def test_list_nodes():
     blueprint = {
         "nodes": [
-            {"id": "arr_create", "type": "arrays/manipulation/create", "properties": {"CSVString": "10, 20, 30, test", "ParseNumbers": True}},
-            {"id": "arr_len", "type": "arrays/operations/length", "properties": {}},
-            {"id": "arr_get", "type": "arrays/operations/get", "properties": {"Index": 2}},
-            {"id": "arr_concat", "type": "arrays/manipulation/concat", "properties": {"ArrayB": [40, 50]}}
+            {"id": "arr_create", "type": "Lists/manipulation/create", "properties": {"CSVString": "10, 20, 30, test", "ParseNumbers": True}},
+            {"id": "arr_len", "type": "Lists/operations/length", "properties": {}},
+            {"id": "arr_get", "type": "Lists/operations/get", "properties": {"Index": 2}},
+            {"id": "arr_concat", "type": "Lists/manipulation/concat", "properties": {"ListB": [40, 50]}}
         ],
         "links": [
-            {"id": "l1", "type": "data", "source_node": "arr_create", "source_pin": "Array", "target_node": "arr_len", "target_pin": "Array"},
-            {"id": "l2", "type": "data", "source_node": "arr_create", "source_pin": "Array", "target_node": "arr_get", "target_pin": "Array"},
-            {"id": "l3", "type": "data", "source_node": "arr_create", "source_pin": "Array", "target_node": "arr_concat", "target_pin": "ArrayA"}
+            {"id": "l1", "type": "data", "source_node": "arr_create", "source_pin": "List", "target_node": "arr_len", "target_pin": "List"},
+            {"id": "l2", "type": "data", "source_node": "arr_create", "source_pin": "List", "target_node": "arr_get", "target_pin": "List"},
+            {"id": "l3", "type": "data", "source_node": "arr_create", "source_pin": "List", "target_node": "arr_concat", "target_pin": "ListA"}
         ]
     }
     engine = ExecutionEngine()
     engine.load_blueprint(blueprint)
     context = ExecutionContext(engine, "test_run", engine.lock_manager)
     
-    arr = await engine.nodes["arr_create"].pull_data(context, "Array")
+    arr = await engine.nodes["arr_create"].pull_data(context, "List")
     assert arr == [10, 20, 30, "test"]
     
     length = await engine.nodes["arr_len"].pull_data(context, "Length")
@@ -163,6 +166,47 @@ async def test_array_nodes():
 
     concat_res = await engine.nodes["arr_concat"].pull_data(context, "Result")
     assert concat_res == [10, 20, 30, "test", 40, 50]
+
+
+@pytest.mark.asyncio
+async def test_ndarray_nodes():
+    import numpy as np
+    blueprint = {
+        "nodes": [
+            {"id": "arr_create", "type": "Numeric Arrays/manipulation/create", "properties": {"CSVString": "10, 20, 30"}},
+            {"id": "arr_len", "type": "Numeric Arrays/operations/length", "properties": {}},
+            {"id": "arr_get", "type": "Numeric Arrays/operations/get", "properties": {"Index": 2}},
+            {"id": "arr_concat", "type": "Numeric Arrays/manipulation/concat", "properties": {"ArrayB": np.array([40, 50])}},
+            {"id": "arr_add", "type": "Numeric Arrays/operations/add_subtract", "properties": {"Operand": 5.0, "Operation": "add"}}
+        ],
+        "links": [
+            {"id": "l1", "type": "data", "source_node": "arr_create", "source_pin": "Array", "target_node": "arr_len", "target_pin": "Array"},
+            {"id": "l2", "type": "data", "source_node": "arr_create", "source_pin": "Array", "target_node": "arr_get", "target_pin": "Array"},
+            {"id": "l3", "type": "data", "source_node": "arr_create", "source_pin": "Array", "target_node": "arr_concat", "target_pin": "ArrayA"},
+            {"id": "l4", "type": "data", "source_node": "arr_create", "source_pin": "Array", "target_node": "arr_add", "target_pin": "Array"}
+        ]
+    }
+    engine = ExecutionEngine()
+    engine.load_blueprint(blueprint)
+    context = ExecutionContext(engine, "test_run", engine.lock_manager)
+    
+    arr = await engine.nodes["arr_create"].pull_data(context, "Array")
+    assert isinstance(arr, np.ndarray)
+    assert np.allclose(arr, [10.0, 20.0, 30.0])
+    
+    length = await engine.nodes["arr_len"].pull_data(context, "Length")
+    assert length == 3
+
+    item = await engine.nodes["arr_get"].pull_data(context, "Item")
+    assert item == 30.0
+
+    concat_res = await engine.nodes["arr_concat"].pull_data(context, "Result")
+    assert isinstance(concat_res, np.ndarray)
+    assert np.allclose(concat_res, [10.0, 20.0, 30.0, 40.0, 50.0])
+
+    add_res = await engine.nodes["arr_add"].pull_data(context, "Result")
+    assert isinstance(add_res, np.ndarray)
+    assert np.allclose(add_res, [15.0, 25.0, 35.0])
 
 
 @pytest.mark.asyncio

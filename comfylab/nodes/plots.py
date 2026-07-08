@@ -33,8 +33,8 @@ class XYPlotNode(BaseNode):
 
     inputs_def = [
         ExecIn("Plot"),
-        DataIn("X", type_hint=list),
-        DataIn("Y", type_hint=list),
+        DataIn("X", type_hint=np.ndarray),
+        DataIn("Y", type_hint=np.ndarray),
         DataIn("XLabel", type_hint=str, default="X", optional=True),
         DataIn("YLabel", type_hint=str, default="Y", optional=True)
     ]
@@ -46,10 +46,14 @@ class XYPlotNode(BaseNode):
         x_label = await context.pull(self.id, "XLabel")
         y_label = await context.pull(self.id, "YLabel")
 
+        # Convert to list for JSON serialization
+        x_list = x.tolist() if isinstance(x, np.ndarray) else (x if isinstance(x, list) else [])
+        y_list = y.tolist() if isinstance(y, np.ndarray) else (y if isinstance(y, list) else [])
+
         # Send telemetry payload
         payload = {
-            "x": x if isinstance(x, list) else [],
-            "y": y if isinstance(y, list) else [],
+            "x": x_list,
+            "y": y_list,
             "x_label": str(x_label) if x_label else "X",
             "y_label": str(y_label) if y_label else "Y"
         }
@@ -83,9 +87,12 @@ class PlotNode(BaseNode):
         except Exception:
             max_history = 0
 
+        # Convert np.ndarray to list for JSON telemetry serialization
+        val_serialized = val.tolist() if isinstance(val, np.ndarray) else val
+
         # Send numerical or array telemetry package
         await context.send_telemetry(self.id, {
-            "value": val,
+            "value": val_serialized,
             "max_history": max_history
         })
         return "Out"
@@ -103,9 +110,9 @@ class HeatmapPlotNode(BaseNode):
 
     inputs_def = [
         ExecIn("Plot"),
-        DataIn("Z", type_hint=list),
-        DataIn("X", type_hint=list, optional=True),
-        DataIn("Y", type_hint=list, optional=True),
+        DataIn("Z", type_hint=np.ndarray),
+        DataIn("X", type_hint=np.ndarray, optional=True),
+        DataIn("Y", type_hint=np.ndarray, optional=True),
         DataIn("XLabel", type_hint=str, default="X", optional=True),
         DataIn("YLabel", type_hint=str, default="Y", optional=True),
         DataIn("PlotType", type_hint=str, default="Heatmap", widget="dropdown",
@@ -127,9 +134,9 @@ class HeatmapPlotNode(BaseNode):
         interpolation = await context.pull(self.id, "Interpolation")
         plot_type = await context.pull(self.id, "PlotType")
 
-        z_out = z if isinstance(z, list) else []
-        x_out = x if isinstance(x, list) else None
-        y_out = y if isinstance(y, list) else None
+        z_out = z.tolist() if isinstance(z, np.ndarray) else (z if isinstance(z, list) else [])
+        x_out = x.tolist() if isinstance(x, np.ndarray) else (x if isinstance(x, list) else None)
+        y_out = y.tolist() if isinstance(y, np.ndarray) else (y if isinstance(y, list) else None)
 
         interp_str = str(interpolation) if interpolation else "None"
 

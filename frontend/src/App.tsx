@@ -2073,7 +2073,7 @@ return {
     if (type === 'constants/boolean') initialProps.value = false;
     if (type === 'control_flow/loops/while_loop') initialProps.Condition = false;
     if (type === 'outputs/basic/display' || type === 'control_flow/timing/measure_time') initialProps.results = { displayValue: '---' };
-    if (type === 'arrays/manipulation/accumulate') initialProps.results = { displayValue: '[]' };
+    if (type === 'Lists/manipulation/accumulate' || type === 'Numeric Arrays/manipulation/accumulate') initialProps.results = { displayValue: '[]' };
     if (type && type.startsWith('script/')) {
       const getLangCode = (t: string) => {
         switch (t) {
@@ -3772,11 +3772,17 @@ return {
                       case 'boolean':
                       case 'bool':
                         createType = 'constants/boolean'; break;
+                      case 'ndarray':
                       case 'array':
-                      case 'list':
-                        createType = 'arrays/manipulation/create';
+                        createType = 'Numeric Arrays/manipulation/create';
                         if (!registryRef.current?.[createType]) {
-                            createType = 'arrays/manipulation/accumulate';
+                            createType = 'Numeric Arrays/manipulation/accumulate';
+                        }
+                        break;
+                      case 'list':
+                        createType = 'Lists/manipulation/create';
+                        if (!registryRef.current?.[createType]) {
+                            createType = 'Lists/manipulation/accumulate';
                         }
                         break;
                       default:

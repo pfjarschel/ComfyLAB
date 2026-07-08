@@ -85,9 +85,10 @@ class BaseScriptNode(BaseNode):
         self._sync_dynamic_pins()
 
     def _sync_dynamic_pins(self):
+        import numpy as np
         type_map = {
             'number': float, 'boolean': bool, 'text': str,
-            'string': str, 'list': list, 'any': None
+            'string': str, 'list': list, 'ndarray': np.ndarray, 'any': None
         }
         for inp in self._parsed_inputs:
             name = inp['name']
@@ -105,7 +106,12 @@ class BaseScriptNode(BaseNode):
             self.inputs[name] = pin
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
-        return self._computed_outputs.get(pin_name)
+        val = self._computed_outputs.get(pin_name)
+        out_info = next((o for o in self._parsed_outputs if o.get('name') == pin_name), None)
+        if out_info and out_info.get('type') == 'ndarray' and isinstance(val, list):
+            import numpy as np
+            return np.array(val)
+        return val
 
 
 class BaseSubprocessScriptNode(BaseScriptNode):
@@ -125,6 +131,9 @@ class BaseSubprocessScriptNode(BaseScriptNode):
         for inp in self._parsed_inputs:
             name = inp['name']
             val = await context.pull(self.id, name)
+            import numpy as np
+            if isinstance(val, np.ndarray):
+                val = val.tolist()
             inputs[name] = val
 
         timeout = float(self.properties.get("timeout", 30.0))

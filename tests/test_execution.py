@@ -292,7 +292,7 @@ async def test_array_stats_node_execution():
     """Test the renamed ArrayStatsNode example."""
     blueprint = {
         "nodes": [
-            {"id": "stats", "type": "arrays/operations/stats", "properties": {}},
+            {"id": "stats", "type": "Numeric Arrays/operations/stats", "properties": {}},
             {"id": "print_min", "type": "outputs/basic/print", "properties": {}},
             {"id": "print_max", "type": "outputs/basic/print", "properties": {}},
             {"id": "print_mean", "type": "outputs/basic/print", "properties": {}}
@@ -311,7 +311,8 @@ async def test_array_stats_node_execution():
     engine.load_blueprint(blueprint)
     
     # Manually set the array data on the stats node's properties before execution
-    engine.nodes["stats"].properties["Array"] = [1.0, 5.0, 10.0, 3.0, 8.5]
+    import numpy as np
+    engine.nodes["stats"].properties["Array"] = np.array([1.0, 5.0, 10.0, 3.0, 8.5])
 
     await engine.run(start_node_id="stats", start_pin_name="Compute")
     
@@ -563,14 +564,14 @@ async def test_accumulator_node_execution():
     blueprint = {
         "nodes": [
             {"id": "num", "type": "constants/number", "properties": {"value": 5.0}},
-            {"id": "accum", "type": "arrays/manipulation/accumulate", "properties": {}},
+            {"id": "accum", "type": "Lists/manipulation/accumulate", "properties": {}},
             {"id": "print", "type": "outputs/basic/print", "properties": {}}
         ],
         "links": [
             # num.Value -> accum.Value
             {"id": "l1", "type": "data", "source_node": "num", "source_pin": "Value", "target_node": "accum", "target_pin": "Value"},
-            # accum.Array -> print.Value
-            {"id": "l2", "type": "data", "source_node": "accum", "source_pin": "Array", "target_node": "print", "target_pin": "Value"}
+            # accum.List -> print.Value
+            {"id": "l2", "type": "data", "source_node": "accum", "source_pin": "List", "target_node": "print", "target_pin": "Value"}
         ]
     }
 
@@ -579,13 +580,13 @@ async def test_accumulator_node_execution():
 
     # 1. Trigger Append
     await engine.run(start_node_id="accum", start_pin_name="Append")
-    assert engine.nodes["accum"]._array == [5.0]
+    assert engine.nodes["accum"]._list == [5.0]
 
     # 2. Trigger Append again (change constant first to see difference)
     engine.nodes["num"].properties["value"] = 12.0
     # Run cache clear to simulate next step pulling fresh data
     await engine.run(start_node_id="accum", start_pin_name="Append")
-    assert engine.nodes["accum"]._array == [5.0, 12.0]
+    assert engine.nodes["accum"]._list == [5.0, 12.0]
 
     # 3. Pull accumulated array
     await engine.run(start_node_id="print", start_pin_name="In")
@@ -593,7 +594,7 @@ async def test_accumulator_node_execution():
 
     # 4. Trigger Reset
     await engine.run(start_node_id="accum", start_pin_name="Reset")
-    assert engine.nodes["accum"]._array == []
+    assert engine.nodes["accum"]._list == []
 
 
 

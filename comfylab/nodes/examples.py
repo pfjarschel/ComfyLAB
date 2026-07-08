@@ -29,6 +29,7 @@ import csv
 import os
 import logging
 from typing import Any, Optional, Dict, List
+import numpy as np
 
 logger = logging.getLogger("comfylab.nodes.examples")
 
@@ -92,10 +93,10 @@ class RangeCheckNode(BaseNode):
 
 
 
-@register_node("arrays/operations/stats")
+@register_node("Numeric Arrays/operations/stats")
 class ArrayStatsNode(BaseNode):
     """
-    Computes statistics (min, max, mean) from an array of values.
+    Computes statistics (min, max, mean) from an ndarray of values.
     
     This example demonstrates:
     - Processing array/list inputs
@@ -105,11 +106,11 @@ class ArrayStatsNode(BaseNode):
     """
     icon = "📊"
     display_name = "Array Stats"
-    description = "Computes min, max, and mean from an array."
+    description = "Computes min, max, and mean from an ndarray."
     
     inputs_def = [
         ExecIn("Compute"),
-        DataIn("Array", type_hint=list)
+        DataIn("Array", type_hint=np.ndarray)
     ]
     outputs_def = [
         ExecOut("Out"),
@@ -131,18 +132,22 @@ class ArrayStatsNode(BaseNode):
         array = await context.pull(self.id, "Array")
         
         # Handle edge cases
-        if not array or not isinstance(array, list) or len(array) == 0:
+        if array is None or not isinstance(array, np.ndarray) or len(array) == 0:
             self._min = 0.0
             self._max = 0.0
             self._mean = 0.0
             self._count = 0
         else:
-            # Convert to floats and compute statistics
-            values = [float(v) for v in array]
-            self._min = min(values)
-            self._max = max(values)
-            self._mean = sum(values) / len(values)
-            self._count = len(values)
+            try:
+                self._min = float(np.min(array))
+                self._max = float(np.max(array))
+                self._mean = float(np.mean(array))
+                self._count = int(len(array))
+            except Exception:
+                self._min = 0.0
+                self._max = 0.0
+                self._mean = 0.0
+                self._count = 0
         
         return "Out"
 

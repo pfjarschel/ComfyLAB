@@ -16,6 +16,7 @@ import random
 import logging
 import time
 from typing import Any, Optional, Dict, List
+import numpy as np
 
 logger = logging.getLogger("comfylab.nodes.standard")
 
@@ -423,12 +424,12 @@ class RandomNode(BaseNode):
         return None
 
 
-@register_node("arrays/manipulation/accumulate")
-class AccumulateArrayNode(BaseNode):
-    """Accumulates input values into an array over multiple execution steps."""
+@register_node("Lists/manipulation/accumulate")
+class AccumulateListNode(BaseNode):
+    """Accumulates input values into a standard list over multiple execution steps."""
     icon = "📥"
-    display_name = "Accumulate"
-    description = "Accumulates input values into an array. Has an Append pin to add items and a Reset pin to clear them."
+    display_name = "Accumulate List"
+    description = "Accumulates input values into a list. Has an Append pin to add items and a Reset pin to clear them."
     ui_behavior = {"custom_widget": "display_area"}
 
     inputs_def = [
@@ -439,51 +440,51 @@ class AccumulateArrayNode(BaseNode):
     outputs_def = [
         ExecOut("Out"),
         ExecOut("Skipped"),
-        DataOut("Array", type_hint=list)
+        DataOut("List", type_hint=list)
     ]
 
     def __init__(self, node_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(node_id, properties)
-        self._array: List[Any] = []
+        self._list: List[Any] = []
+
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
         output_pin = "Out"
         if trigger_pin == "Reset":
-            self._array = []
+            self._list = []
             output_pin = "Skipped"
         elif trigger_pin == "Append":
             val = await context.pull(self.id, "Value")
             if val is not None:
-                self._array.append(val)
+                self._list.append(val)
         
-        # Send the list count or contents to telemetry to display on the node
-        display_str = f"[{', '.join(str(x) for x in self._array)}]" if len(self._array) <= 3 else f"Array ({len(self._array)} items)"
+        display_str = f"[{', '.join(str(x) for x in self._list)}]" if len(self._list) <= 3 else f"List ({len(self._list)} items)"
         await context.send_telemetry(self.id, {"value": display_str})
         return output_pin
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
-        if pin_name == "Array":
-            return self._array
+        if pin_name == "List":
+            return self._list
         return None
 
     async def clear_data(self) -> None:
-        self._array = []
+        self._list = []
 
 
-@register_node("arrays/manipulation/create")
-class CreateArrayNode(BaseNode):
+@register_node("Lists/manipulation/create")
+class CreateListNode(BaseNode):
     """Creates a list from a comma-separated string."""
     icon = "📥"
-    display_name = "Create Array"
-    description = "Creates an array from a comma-separated string of numbers or texts."
+    display_name = "Create List"
+    description = "Creates a list from a comma-separated string of numbers or texts."
     
     inputs_def = [
         DataIn("CSVString", type_hint=str, default="1, 2, 3, 4, 5", widget="text"),
         DataIn("ParseNumbers", type_hint=bool, default=True, widget="checkbox")
     ]
-    outputs_def = [DataOut("Array", type_hint=list)]
+    outputs_def = [DataOut("List", type_hint=list)]
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
-        if pin_name == "Array":
+        if pin_name == "List":
             csv_str = await context.pull(self.id, "CSVString")
             parse_num = bool(await context.pull(self.id, "ParseNumbers"))
             
@@ -506,22 +507,22 @@ class CreateArrayNode(BaseNode):
         return None
 
 
-@register_node("arrays/operations/get")
-class GetArrayItemNode(BaseNode):
-    """Retrieves an item at a specific index from an array."""
+@register_node("Lists/operations/get")
+class GetListItemNode(BaseNode):
+    """Retrieves a list item at a specific index."""
     icon = "🔍"
-    display_name = "Get Item"
-    description = "Retrieves an item at a specific index from an array."
+    display_name = "Get List Item"
+    description = "Retrieves a list item at a specific index."
     
     inputs_def = [
-        DataIn("Array", type_hint=list),
+        DataIn("List", type_hint=list),
         DataIn("Index", type_hint=int, default=0, widget="number")
     ]
     outputs_def = [DataOut("Item", type_hint=Any)]
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Item":
-            arr = await context.pull(self.id, "Array")
+            arr = await context.pull(self.id, "List")
             idx = int(await context.pull(self.id, "Index"))
             
             if not arr or not isinstance(arr, list):
@@ -535,44 +536,44 @@ class GetArrayItemNode(BaseNode):
         return None
 
 
-@register_node("arrays/operations/length")
-class ArrayLengthNode(BaseNode):
-    """Returns the size of the array."""
+@register_node("Lists/operations/length")
+class ListLengthNode(BaseNode):
+    """Returns the size of a list."""
     icon = "📏"
-    display_name = "Array Length"
-    description = "Returns the size of the array."
+    display_name = "List Length"
+    description = "Returns the size of the list."
     
     inputs_def = [
-        DataIn("Array", type_hint=list)
+        DataIn("List", type_hint=list)
     ]
     outputs_def = [DataOut("Length", type_hint=int)]
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Length":
-            arr = await context.pull(self.id, "Array")
+            arr = await context.pull(self.id, "List")
             if not arr or not isinstance(arr, list):
                 return 0
             return len(arr)
         return None
 
 
-@register_node("arrays/manipulation/concat")
-class ConcatArraysNode(BaseNode):
-    """Concatenates two arrays."""
+@register_node("Lists/manipulation/concat")
+class ConcatListsNode(BaseNode):
+    """Concatenates two lists."""
     icon = "🔗"
-    display_name = "Concatenate Arrays"
-    description = "Concatenates two arrays."
+    display_name = "Concatenate Lists"
+    description = "Concatenates list A and list B."
     
     inputs_def = [
-        DataIn("ArrayA", type_hint=list),
-        DataIn("ArrayB", type_hint=list)
+        DataIn("ListA", type_hint=list),
+        DataIn("ListB", type_hint=list)
     ]
     outputs_def = [DataOut("Result", type_hint=list)]
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
-            a = await context.pull(self.id, "ArrayA")
-            b = await context.pull(self.id, "ArrayB")
+            a = await context.pull(self.id, "ListA")
+            b = await context.pull(self.id, "ListB")
             
             arr_a = a if isinstance(a, list) else ([a] if a is not None else [])
             arr_b = b if isinstance(b, list) else ([b] if b is not None else [])
@@ -581,31 +582,594 @@ class ConcatArraysNode(BaseNode):
         return None
 
 
-@register_node("arrays/manipulation/transpose")
-class TransposeArrayNode(BaseNode):
-    """Transposes a 1D or 2D array."""
+@register_node("Lists/manipulation/transpose")
+class TransposeListNode(BaseNode):
+    """Transposes a 1D or 2D nested list."""
     icon = "🔄"
-    display_name = "Transpose Array"
-    description = "Transposes a list or 2D array (list of lists)."
+    display_name = "Transpose List"
+    description = "Transposes a list or 2D nested list (list of lists)."
     
     inputs_def = [
-        DataIn("Array", type_hint=list)
+        DataIn("List", type_hint=list)
     ]
     outputs_def = [DataOut("Transposed", type_hint=list)]
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Transposed":
-            arr = await context.pull(self.id, "Array")
+            arr = await context.pull(self.id, "List")
             if not isinstance(arr, list):
                 return arr
             
             if len(arr) > 0 and isinstance(arr[0], list):
-                # 2D array transpose
                 return list(map(list, zip(*arr)))
             else:
-                # 1D array transpose to column
                 return [[x] for x in arr]
+        return None
+
+
+@register_node("Lists/manipulation/append")
+class AppendListNode(BaseNode):
+    """Appends a value to a list and outputs the new list."""
+    icon = "➕"
+    display_name = "Append List"
+    description = "Appends a value to a list and returns the new list."
+
+    inputs_def = [
+        DataIn("List", type_hint=list),
+        DataIn("Value", type_hint=Any)
+    ]
+    outputs_def = [DataOut("Result", type_hint=list)]
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Result":
+            lst = await context.pull(self.id, "List")
+            val = await context.pull(self.id, "Value")
+            if not isinstance(lst, list):
+                lst = [lst] if lst is not None else []
+            return lst + [val]
+        return None
+
+
+@register_node("Lists/operations/sort")
+class SortListNode(BaseNode):
+    """Sorts a list."""
+    icon = "🔀"
+    display_name = "Sort List"
+    description = "Sorts a list in ascending or descending order."
+
+    inputs_def = [
+        DataIn("List", type_hint=list),
+        DataIn("Reverse", type_hint=bool, default=False, widget="checkbox")
+    ]
+    outputs_def = [DataOut("Sorted", type_hint=list)]
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Sorted":
+            lst = await context.pull(self.id, "List")
+            rev = bool(await context.pull(self.id, "Reverse"))
+            if not isinstance(lst, list):
+                return []
+            try:
+                return sorted(lst, reverse=rev)
+            except Exception:
+                return lst
+        return None
+
+
+@register_node("Lists/operations/slice")
+class SliceListNode(BaseNode):
+    """Returns a range slice of a list."""
+    icon = "✂️"
+    display_name = "Slice List"
+    description = "Slices a list from Start to Stop with a Step."
+
+    inputs_def = [
+        DataIn("List", type_hint=list),
+        DataIn("Start", type_hint=int, default=0, optional=True, widget="number"),
+        DataIn("Stop", type_hint=int, default=None, optional=True, widget="number"),
+        DataIn("Step", type_hint=int, default=1, widget="number")
+    ]
+    outputs_def = [DataOut("Sliced", type_hint=list)]
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Sliced":
+            lst = await context.pull(self.id, "List")
+            start = await context.pull(self.id, "Start")
+            stop = await context.pull(self.id, "Stop")
+            step = await context.pull(self.id, "Step")
+
+            if not isinstance(lst, list):
+                return []
+
+            start_val = int(start) if start is not None else 0
+            stop_val = int(stop) if stop is not None else len(lst)
+            step_val = int(step) if step is not None else 1
+
+            return lst[start_val:stop_val:step_val]
+        return None
+
+
+@register_node("Lists/operations/take")
+class TakeListNode(BaseNode):
+    """Takes specific elements from a list given indices."""
+    icon = "👈"
+    display_name = "Take List Items"
+    description = "Extracts elements from a list based on an list of indices (useful for reordering)."
+
+    inputs_def = [
+        DataIn("List", type_hint=list),
+        DataIn("Indices", type_hint=list)
+    ]
+    outputs_def = [DataOut("Result", type_hint=list)]
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Result":
+            lst = await context.pull(self.id, "List")
+            indices = await context.pull(self.id, "Indices")
+
+            if not isinstance(lst, list) or not isinstance(indices, list):
+                return []
+
+            result = []
+            for idx in indices:
+                try:
+                    idx_val = int(idx)
+                    if 0 <= idx_val < len(lst) or -len(lst) <= idx_val < 0:
+                        result.append(lst[idx_val])
+                except (ValueError, TypeError):
+                    pass
+            return result
+        return None
+
+
+@register_node("Numeric Arrays/manipulation/create")
+class CreateNdarrayNode(BaseNode):
+    """Creates a NumPy array from a comma-separated string."""
+    icon = "📥"
+    display_name = "Create NDArray"
+    description = "Creates a NumPy numeric array from a comma-separated string of numbers."
+    
+    inputs_def = [
+        DataIn("CSVString", type_hint=str, default="1, 2, 3, 4, 5", widget="text")
+    ]
+    outputs_def = [DataOut("Array", type_hint=np.ndarray)]
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Array":
+            csv_str = await context.pull(self.id, "CSVString")
+            
+            if not csv_str:
+                return np.array([], dtype=float)
                 
+            items = [item.strip() for item in csv_str.split(",")]
+            parsed = []
+            for item in items:
+                try:
+                    val = float(item)
+                    parsed.append(val)
+                except ValueError:
+                    parsed.append(np.nan)
+            return np.array(parsed, dtype=float)
+        return None
+
+
+@register_node("Numeric Arrays/manipulation/accumulate")
+class AccumulateNdarrayNode(BaseNode):
+    """Accumulates values into a NumPy array over multiple execution steps."""
+    icon = "📥"
+    display_name = "Accumulate NDArray"
+    description = "Accumulates values into a NumPy array. Has Append and Reset pins."
+    ui_behavior = {"custom_widget": "display_area"}
+
+    inputs_def = [
+        ExecIn("Append"),
+        ExecIn("Reset"),
+        DataIn("Value", type_hint=Any)
+    ]
+    outputs_def = [
+        ExecOut("Out"),
+        ExecOut("Skipped"),
+        DataOut("Array", type_hint=np.ndarray)
+    ]
+
+    def __init__(self, node_id: str, properties: Optional[Dict[str, Any]] = None):
+        super().__init__(node_id, properties)
+        self._list: List[float] = []
+
+    async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
+        output_pin = "Out"
+        if trigger_pin == "Reset":
+            self._list = []
+            output_pin = "Skipped"
+        elif trigger_pin == "Append":
+            val = await context.pull(self.id, "Value")
+            if val is not None:
+                try:
+                    self._list.append(float(val))
+                except (ValueError, TypeError):
+                    pass
+        
+        display_str = f"NDArray([{', '.join(str(x) for x in self._list)}])" if len(self._list) <= 3 else f"NDArray ({len(self._list)} items)"
+        await context.send_telemetry(self.id, {"value": display_str})
+        return output_pin
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Array":
+            return np.array(self._list, dtype=float)
+        return None
+
+    async def clear_data(self) -> None:
+        self._list = []
+
+
+@register_node("Numeric Arrays/manipulation/concat")
+class ConcatNdarraysNode(BaseNode):
+    """Concatenates two NumPy arrays."""
+    icon = "🔗"
+    display_name = "Concatenate NDArrays"
+    description = "Concatenates two NumPy arrays."
+    
+    inputs_def = [
+        DataIn("ArrayA", type_hint=np.ndarray),
+        DataIn("ArrayB", type_hint=np.ndarray)
+    ]
+    outputs_def = [DataOut("Result", type_hint=np.ndarray)]
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Result":
+            a = await context.pull(self.id, "ArrayA")
+            b = await context.pull(self.id, "ArrayB")
+            
+            if a is None:
+                return b if isinstance(b, np.ndarray) else np.array([])
+            if b is None:
+                return a if isinstance(a, np.ndarray) else np.array([])
+                
+            arr_a = a if isinstance(a, np.ndarray) else np.array(a if isinstance(a, list) else [a])
+            arr_b = b if isinstance(b, np.ndarray) else np.array(b if isinstance(b, list) else [b])
+            
+            try:
+                return np.concatenate((arr_a, arr_b))
+            except Exception:
+                return arr_a
+        return None
+
+
+@register_node("Numeric Arrays/manipulation/transpose")
+class TransposeNdarrayNode(BaseNode):
+    """Transposes a NumPy array."""
+    icon = "🔄"
+    display_name = "Transpose NDArray"
+    description = "Transposes a 1D or 2D NumPy array."
+    
+    inputs_def = [
+        DataIn("Array", type_hint=np.ndarray)
+    ]
+    outputs_def = [DataOut("Transposed", type_hint=np.ndarray)]
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Transposed":
+            arr = await context.pull(self.id, "Array")
+            if not isinstance(arr, np.ndarray):
+                return np.array([])
+            return arr.T
+        return None
+
+
+@register_node("Numeric Arrays/manipulation/append")
+class AppendNdarrayNode(BaseNode):
+    """Appends a value to a NumPy array."""
+    icon = "➕"
+    display_name = "Append NDArray"
+    description = "Appends a value to a NumPy array."
+
+    inputs_def = [
+        DataIn("Array", type_hint=np.ndarray),
+        DataIn("Value", type_hint=Any)
+    ]
+    outputs_def = [DataOut("Result", type_hint=np.ndarray)]
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Result":
+            arr = await context.pull(self.id, "Array")
+            val = await context.pull(self.id, "Value")
+            if not isinstance(arr, np.ndarray):
+                arr = np.array([])
+            try:
+                return np.append(arr, val)
+            except Exception:
+                return arr
+        return None
+
+
+@register_node("Numeric Arrays/operations/get")
+class GetNdarrayItemNode(BaseNode):
+    """Retrieves a NumPy array item at a specific index."""
+    icon = "🔍"
+    display_name = "Get NDArray Item"
+    description = "Retrieves an item at a specific index from a NumPy array."
+    
+    inputs_def = [
+        DataIn("Array", type_hint=np.ndarray),
+        DataIn("Index", type_hint=int, default=0, widget="number")
+    ]
+    outputs_def = [DataOut("Item", type_hint=Any)]
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Item":
+            arr = await context.pull(self.id, "Array")
+            idx = int(await context.pull(self.id, "Index"))
+            
+            if not isinstance(arr, np.ndarray):
+                return None
+                
+            try:
+                val = arr[idx]
+                if hasattr(val, "item"):
+                    return val.item()
+                return val
+            except Exception:
+                return None
+        return None
+
+
+@register_node("Numeric Arrays/operations/length")
+class NdarrayLengthNode(BaseNode):
+    """Returns the size of a NumPy array."""
+    icon = "📏"
+    display_name = "NDArray Length"
+    description = "Returns the size/length of a NumPy array."
+    
+    inputs_def = [
+        DataIn("Array", type_hint=np.ndarray)
+    ]
+    outputs_def = [DataOut("Length", type_hint=int)]
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Length":
+            arr = await context.pull(self.id, "Array")
+            if not isinstance(arr, np.ndarray):
+                return 0
+            return len(arr)
+        return None
+
+
+@register_node("Numeric Arrays/operations/sort")
+class SortNdarrayNode(BaseNode):
+    """Sorts a NumPy array."""
+    icon = "🔀"
+    display_name = "Sort NDArray"
+    description = "Sorts a NumPy array in ascending order."
+
+    inputs_def = [
+        DataIn("Array", type_hint=np.ndarray)
+    ]
+    outputs_def = [DataOut("Sorted", type_hint=np.ndarray)]
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Sorted":
+            arr = await context.pull(self.id, "Array")
+            if not isinstance(arr, np.ndarray):
+                return np.array([])
+            return np.sort(arr)
+        return None
+
+
+@register_node("Numeric Arrays/operations/slice")
+class SliceNdarrayNode(BaseNode):
+    """Returns a slice of a NumPy array."""
+    icon = "✂️"
+    display_name = "Slice NDArray"
+    description = "Slices a NumPy array from Start to Stop with a Step."
+
+    inputs_def = [
+        DataIn("Array", type_hint=np.ndarray),
+        DataIn("Start", type_hint=int, default=0, optional=True, widget="number"),
+        DataIn("Stop", type_hint=int, default=None, optional=True, widget="number"),
+        DataIn("Step", type_hint=int, default=1, widget="number")
+    ]
+    outputs_def = [DataOut("Sliced", type_hint=np.ndarray)]
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Sliced":
+            arr = await context.pull(self.id, "Array")
+            start = await context.pull(self.id, "Start")
+            stop = await context.pull(self.id, "Stop")
+            step = await context.pull(self.id, "Step")
+
+            if not isinstance(arr, np.ndarray):
+                return np.array([])
+
+            start_val = int(start) if start is not None else 0
+            stop_val = int(stop) if stop is not None else len(arr)
+            step_val = int(step) if step is not None else 1
+
+            return arr[start_val:stop_val:step_val]
+        return None
+
+
+@register_node("Numeric Arrays/operations/take")
+class TakeNdarrayNode(BaseNode):
+    """Selects specific elements from a NumPy array given indices."""
+    icon = "👈"
+    display_name = "Take NDArray Items"
+    description = "Extracts elements from an array based on an array/list of indices (useful for reordering)."
+
+    inputs_def = [
+        DataIn("Array", type_hint=np.ndarray),
+        DataIn("Indices", type_hint=list)
+    ]
+    outputs_def = [DataOut("Result", type_hint=np.ndarray)]
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Result":
+            arr = await context.pull(self.id, "Array")
+            indices = await context.pull(self.id, "Indices")
+
+            if not isinstance(arr, np.ndarray):
+                return np.array([])
+
+            try:
+                # Support list of ints or np.ndarray of ints
+                idx_arr = np.array(indices, dtype=int)
+                return arr[idx_arr]
+            except Exception:
+                return arr
+        return None
+
+
+@register_node("Numeric Arrays/operations/add_subtract")
+class AddSubtractNdarrayNode(BaseNode):
+    """Element-wise or constant addition/subtraction on an ndarray."""
+    icon = "➕"
+    display_name = "NDArray Add/Sub"
+    description = "Adds or subtracts a constant or another array to/from an ndarray."
+
+    inputs_def = [
+        DataIn("Array", type_hint=np.ndarray),
+        DataIn("Operand", type_hint=Any, default=1.0),
+        DataIn("Operation", type_hint=str, default="add", widget="dropdown", options=["add", "subtract"])
+    ]
+    outputs_def = [DataOut("Result", type_hint=np.ndarray)]
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Result":
+            arr = await context.pull(self.id, "Array")
+            operand = await context.pull(self.id, "Operand")
+            op = await context.pull(self.id, "Operation")
+
+            if not isinstance(arr, np.ndarray):
+                return np.array([])
+
+            try:
+                # check if operand is array-like or number
+                if isinstance(operand, (list, np.ndarray)):
+                    operand = np.array(operand, dtype=float)
+                else:
+                    operand = float(operand)
+
+                if op == "subtract":
+                    return arr - operand
+                return arr + operand
+            except Exception:
+                return arr
+        return None
+
+
+@register_node("Numeric Arrays/operations/multiply_divide")
+class MultiplyDivideNdarrayNode(BaseNode):
+    """Element-wise or constant multiplication/division on an ndarray."""
+    icon = "✖️"
+    display_name = "NDArray Mul/Div"
+    description = "Multiplies or divides an ndarray by a constant or another array."
+
+    inputs_def = [
+        DataIn("Array", type_hint=np.ndarray),
+        DataIn("Operand", type_hint=Any, default=2.0),
+        DataIn("Operation", type_hint=str, default="multiply", widget="dropdown", options=["multiply", "divide"])
+    ]
+    outputs_def = [DataOut("Result", type_hint=np.ndarray)]
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Result":
+            arr = await context.pull(self.id, "Array")
+            operand = await context.pull(self.id, "Operand")
+            op = await context.pull(self.id, "Operation")
+
+            if not isinstance(arr, np.ndarray):
+                return np.array([])
+
+            try:
+                if isinstance(operand, (list, np.ndarray)):
+                    operand = np.array(operand, dtype=float)
+                else:
+                    operand = float(operand)
+
+                if op == "divide":
+                    return arr / operand
+                return arr * operand
+            except Exception:
+                return arr
+        return None
+
+
+@register_node("Numeric Arrays/operations/inner_product")
+class InnerProductNdarrayNode(BaseNode):
+    """Computes the inner (dot) product of two arrays."""
+    icon = "⚫"
+    display_name = "Inner Product"
+    description = "Computes the inner (dot) product of two numeric arrays."
+
+    inputs_def = [
+        DataIn("ArrayA", type_hint=np.ndarray),
+        DataIn("ArrayB", type_hint=np.ndarray)
+    ]
+    outputs_def = [DataOut("Product", type_hint=float)]
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Product":
+            a = await context.pull(self.id, "ArrayA")
+            b = await context.pull(self.id, "ArrayB")
+
+            if not isinstance(a, np.ndarray) or not isinstance(b, np.ndarray):
+                return 0.0
+
+            try:
+                res = np.inner(a, b)
+                if hasattr(res, "item"):
+                    return res.item()
+                return float(res)
+            except Exception:
+                return 0.0
+        return None
+
+
+@register_node("Numeric Arrays/operations/outer_product")
+class OuterProductNdarrayNode(BaseNode):
+    """Computes the outer product of two arrays."""
+    icon = "⚪"
+    display_name = "Outer Product"
+    description = "Computes the outer product of two numeric arrays."
+
+    inputs_def = [
+        DataIn("ArrayA", type_hint=np.ndarray),
+        DataIn("ArrayB", type_hint=np.ndarray)
+    ]
+    outputs_def = [DataOut("Product", type_hint=np.ndarray)]
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Product":
+            a = await context.pull(self.id, "ArrayA")
+            b = await context.pull(self.id, "ArrayB")
+
+            if not isinstance(a, np.ndarray) or not isinstance(b, np.ndarray):
+                return np.array([])
+
+            try:
+                return np.outer(a, b)
+            except Exception:
+                return np.array([])
+        return None
+
+
+@register_node("Numeric Arrays/operations/shape")
+class ShapeNdarrayNode(BaseNode):
+    """Returns the dimensions (shape) of an array."""
+    icon = "📐"
+    display_name = "NDArray Shape"
+    description = "Returns the shape of a NumPy array as a list of dimensions."
+
+    inputs_def = [
+        DataIn("Array", type_hint=np.ndarray)
+    ]
+    outputs_def = [DataOut("Shape", type_hint=list)]
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Shape":
+            arr = await context.pull(self.id, "Array")
+            if not isinstance(arr, np.ndarray):
+                return []
+            return list(arr.shape)
         return None
 
 
@@ -923,7 +1487,9 @@ class LinearScaleNode(BaseNode):
             if x is None:
                 return None
 
-            if isinstance(x, list):
+            if isinstance(x, np.ndarray):
+                return x * a + b
+            elif isinstance(x, list):
                 try:
                     return [float(item) * a + b for item in x]
                 except (ValueError, TypeError):
@@ -935,12 +1501,12 @@ class LinearScaleNode(BaseNode):
         return None
 
 
-@register_node("arrays/manipulation/ramp_generator")
+@register_node("Numeric Arrays/manipulation/ramp_generator")
 class RampGeneratorNode(BaseNode):
     """Generates a linear ramp of values, equivalent to numpy.linspace."""
     icon = "📈"
     display_name = "Ramp Generator"
-    description = "Generates a list of evenly spaced numbers over a specified interval."
+    description = "Generates an ndarray of evenly spaced numbers over a specified interval."
 
     inputs_def = [
         DataIn("Start", type_hint=float, default=0.0, widget="number"),
@@ -948,7 +1514,7 @@ class RampGeneratorNode(BaseNode):
         DataIn("Steps", type_hint=int, default=11, widget="number", min_val=1)
     ]
     outputs_def = [
-        DataOut("Array", type_hint=list)
+        DataOut("Array", type_hint=np.ndarray)
     ]
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
@@ -959,10 +1525,10 @@ class RampGeneratorNode(BaseNode):
 
             steps = max(1, steps)
             if steps == 1:
-                return [start]
+                return np.array([start], dtype=float)
 
             import numpy as np
-            return np.linspace(start, stop, steps).tolist()
+            return np.linspace(start, stop, steps)
         return None
 
 

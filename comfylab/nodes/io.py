@@ -15,6 +15,7 @@ import csv
 from datetime import datetime
 import logging
 from typing import Any, Optional, Dict, List
+import numpy as np
 
 logger = logging.getLogger("comfylab.nodes.io")
 
@@ -87,6 +88,11 @@ class DataLoggerNode(BaseNode):
         headers = await context.pull(self.id, "Headers")
         transpose = await context.pull(self.id, "Transpose")
         mode_prop = self.properties.get("mode", "append").lower()
+
+        if isinstance(data, np.ndarray):
+            data = data.tolist()
+        if isinstance(headers, np.ndarray):
+            headers = headers.tolist()
 
         if isinstance(headers, str):
             # If the user passed a single string like "Time, Voltage", split it
@@ -194,6 +200,11 @@ class ParquetLoggerNode(BaseNode):
         data = await context.pull(self.id, "Data")
         headers = await context.pull(self.id, "Headers")
 
+        if isinstance(data, np.ndarray):
+            data = data.tolist()
+        if isinstance(headers, np.ndarray):
+            headers = headers.tolist()
+
         if not filepath or data is None:
             return "Out"
             
@@ -256,13 +267,13 @@ class CSVLoaderNode(BaseNode):
     ]
     outputs_def = [
         ExecOut("Out"),
-        DataOut("Columns", type_hint=list),
+        DataOut("Columns", type_hint=np.ndarray),
         DataOut("Headers", type_hint=list)
     ]
 
     def __init__(self, node_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(node_id, properties)
-        self._loaded_columns: List[List[Any]] = []
+        self._loaded_columns: np.ndarray = np.array([])
         self._loaded_headers: List[str] = []
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
@@ -287,10 +298,10 @@ class CSVLoaderNode(BaseNode):
 
         try:
             df = pd.read_csv(filepath, skiprows=int(skip_lines))
-            self._loaded_columns = df.values.T.tolist()
+            self._loaded_columns = df.values.T
             self._loaded_headers = df.columns.astype(str).tolist()
         except Exception:
-            self._loaded_columns = []
+            self._loaded_columns = np.array([])
             self._loaded_headers = []
 
         return "Out"
@@ -310,13 +321,13 @@ class ParquetLoaderNode(BaseNode):
     ]
     outputs_def = [
         ExecOut("Out"),
-        DataOut("Columns", type_hint=list),
+        DataOut("Columns", type_hint=np.ndarray),
         DataOut("Headers", type_hint=list)
     ]
 
     def __init__(self, node_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(node_id, properties)
-        self._loaded_columns: List[List[Any]] = []
+        self._loaded_columns: np.ndarray = np.array([])
         self._loaded_headers: List[str] = []
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
@@ -345,10 +356,10 @@ class ParquetLoaderNode(BaseNode):
 
         try:
             df = pd.read_parquet(filepath, engine='fastparquet', columns=cols if cols else None)
-            self._loaded_columns = df.values.T.tolist()
+            self._loaded_columns = df.values.T
             self._loaded_headers = df.columns.astype(str).tolist()
         except Exception:
-            self._loaded_columns = []
+            self._loaded_columns = np.array([])
             self._loaded_headers = []
 
         return "Out"

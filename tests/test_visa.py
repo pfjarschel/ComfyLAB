@@ -230,8 +230,8 @@ async def test_pfj_osc_nodes_execution():
 
         # Verify outputs from acquire node
         acquire_node = engine.nodes["acquire"]
-        assert acquire_node._last_time == [0.0, 0.1, 0.2]
-        assert acquire_node._last_waveform == [1.2, 1.5, 1.8]
+        assert list(acquire_node._last_time) == [0.0, 0.1, 0.2]
+        assert list(acquire_node._last_waveform) == [1.2, 1.5, 1.8]
 
         # Verify telemetry binary payload was generated
         binary_payloads = [p for p in telemetry_payloads if isinstance(p, bytes)]
@@ -365,7 +365,7 @@ async def test_pfj_osc_connect_chains_with_other_pfj_nodes():
         assert "run" in write_calls
 
         acquire_node = engine.nodes["acquire"]
-        assert acquire_node._last_waveform == [1.0, 2.0, 3.0]
+        assert list(acquire_node._last_waveform) == [1.0, 2.0, 3.0]
 
         # Teardown should send 'stop' as safety command
         await engine._teardown_all()

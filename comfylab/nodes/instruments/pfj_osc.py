@@ -13,6 +13,7 @@
 import asyncio
 import struct
 from typing import Any, Dict, Optional, List
+import numpy as np
 
 from comfylab.engine.registry import register_node
 from comfylab.nodes.base import BaseNode, ExecIn, ExecOut, DataIn, DataOut, ExecutionContext
@@ -221,15 +222,15 @@ class PFJOscAcquireNode(BaseNode):
     ]
     outputs_def = [
         ExecOut("Out"),
-        DataOut("Waveform", type_hint=list),
-        DataOut("Time", type_hint=list),
+        DataOut("Waveform", type_hint=np.ndarray),
+        DataOut("Time", type_hint=np.ndarray),
         DataOut("Device", type_hint=Any)
     ]
 
     def __init__(self, node_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(node_id, properties)
-        self._last_waveform: List[float] = []
-        self._last_time: List[float] = []
+        self._last_waveform: np.ndarray = np.array([])
+        self._last_time: np.ndarray = np.array([])
 
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
         device = await context.pull(self.id, "Device")
@@ -248,11 +249,11 @@ class PFJOscAcquireNode(BaseNode):
             data_str = await asyncio.to_thread(device.query, f"c{channel}:data?")
 
             # Parse responses
-            self._last_time = [float(v) for v in time_str.split(",") if v.strip()]
-            self._last_waveform = [float(v) for v in data_str.split(",") if v.strip()]
+            self._last_time = np.array([float(v) for v in time_str.split(",") if v.strip()], dtype=float)
+            self._last_waveform = np.array([float(v) for v in data_str.split(",") if v.strip()], dtype=float)
 
             # Package and send visual telemetry packet
-            floats = [float(v) for v in self._last_waveform]
+            floats = self._last_waveform.tolist()
             point_count = len(floats)
             
             # Pack: 36-char node ID (padded), 4-byte unsigned int point count, and floats

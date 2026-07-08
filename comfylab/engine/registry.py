@@ -184,6 +184,7 @@ def get_node_class(type_name: str) -> Type[BaseNode]:
 
 def _map_type_hint_to_str(type_hint: Any) -> str:
     """Maps a Python type hint class to a frontend-compatible type string."""
+    import numpy as np
     if type_hint is float or type_hint is int:
         return "number"
     elif type_hint is bool:
@@ -192,6 +193,8 @@ def _map_type_hint_to_str(type_hint: Any) -> str:
         return "text"
     elif type_hint is list:
         return "list"
+    elif type_hint is np.ndarray:
+        return "ndarray"
     return "any"
 
 def _map_default_widget(type_str: str) -> str:
