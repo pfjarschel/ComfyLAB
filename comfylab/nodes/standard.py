@@ -424,6 +424,48 @@ class RandomNode(BaseNode):
         return None
 
 
+@register_node("math/random/random_array")
+class RandomArrayNode(BaseNode):
+    """Outputs a random numeric array (NDArray) in the range [Min, Max] with a given shape."""
+    icon = "🎲"
+    display_name = "Random Array"
+    description = "Outputs a random NDArray in the range [Min, Max]."
+    
+    inputs_def = [
+        DataIn("Shape", type_hint=Any, default="100", widget="text"),
+        DataIn("Min", type_hint=float, default=0.0, widget="number"),
+        DataIn("Max", type_hint=float, default=1.0, widget="number"),
+        DataIn("IntegerMode", type_hint=bool, default=False, widget="checkbox")
+    ]
+    outputs_def = [DataOut("Array", type_hint=np.ndarray)]
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Array":
+            shape_raw = await context.pull(self.id, "Shape")
+            min_val = float(await context.pull(self.id, "Min"))
+            max_val = float(await context.pull(self.id, "Max"))
+            int_mode = bool(await context.pull(self.id, "IntegerMode"))
+            
+            shape = []
+            if isinstance(shape_raw, str):
+                try:
+                    shape = [int(x.strip()) for x in shape_raw.split(',') if x.strip()]
+                except Exception:
+                    shape = [100]
+            elif isinstance(shape_raw, (list, tuple, np.ndarray)):
+                shape = [int(x) for x in shape_raw]
+            elif isinstance(shape_raw, (int, float)):
+                shape = [int(shape_raw)]
+            
+            if not shape:
+                shape = [100]
+                
+            if int_mode:
+                return np.random.randint(int(min_val), int(max_val) + 1, size=shape)
+            return np.random.uniform(min_val, max_val, size=shape)
+        return None
+
+
 @register_node("Lists/manipulation/accumulate")
 class AccumulateListNode(BaseNode):
     """Accumulates input values into a standard list over multiple execution steps."""
