@@ -43,6 +43,7 @@ interface TopBarProps {
   onClearPersistentStates: () => void;
   onDownloadBlueprint: () => void;
   onUploadBlueprintClick: () => void;
+  onUploadFileClick: () => void;
   onOpenSettings: () => void;
   onGroupMacro: () => void;
   onRun: () => void;
@@ -80,6 +81,7 @@ export const TopBar = ({
   onClearPersistentStates,
   onDownloadBlueprint,
   onUploadBlueprintClick,
+  onUploadFileClick,
   onOpenSettings,
   onGroupMacro,
   onRun,
@@ -136,6 +138,9 @@ export const TopBar = ({
               </button>
               <button onClick={onUploadBlueprintClick}>
                 <span>📤</span> Upload Blueprint
+              </button>
+              <button onClick={onUploadFileClick}>
+                <span>📁</span> Upload File
               </button>
             </div>
           )}

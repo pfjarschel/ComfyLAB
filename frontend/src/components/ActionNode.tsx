@@ -24,6 +24,7 @@ import { XYPlotWidget } from './widgets/XYPlotWidget';
 import { HeatmapPlotWidget } from './widgets/HeatmapPlotWidget';
 import { DisplayScreenWidget } from './widgets/DisplayScreenWidget';
 import { RFGeneratorWidget } from './widgets/RFGeneratorWidget';
+import { ImageDisplayWidget } from './widgets/ImageDisplayWidget';
 
 // Re-export pin color resolver for compatibility with App.tsx and NodeInspectorPanel.tsx
 export { getPinColor };
@@ -298,7 +299,7 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
       bodyHeight += 138;
     } else if (registryLayout?.ui_behavior?.custom_widget === 'display_area') {
       bodyHeight += 96;
-    } else if (registryLayout?.ui_behavior?.custom_widget === 'time_plot' || registryLayout?.ui_behavior?.custom_widget === 'xy_plot' || registryLayout?.ui_behavior?.custom_widget === 'heatmap_plot') {
+    } else if (registryLayout?.ui_behavior?.custom_widget === 'time_plot' || registryLayout?.ui_behavior?.custom_widget === 'xy_plot' || registryLayout?.ui_behavior?.custom_widget === 'heatmap_plot' || registryLayout?.ui_behavior?.custom_widget === 'image_display') {
       bodyHeight += 152;
     }
 
@@ -324,7 +325,7 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
     }
 
     // Visual Override connection label rows (checks both showOptional and connected optional pins)
-    if (!registryLayout?.ui_behavior?.render_standard_inputs && (registryLayout?.ui_behavior?.custom_widget === 'display_area' || registryLayout?.ui_behavior?.custom_widget === 'time_plot' || registryLayout?.ui_behavior?.custom_widget === 'xy_plot' || registryLayout?.ui_behavior?.custom_widget === 'heatmap_plot')) {
+    if (!registryLayout?.ui_behavior?.render_standard_inputs && (registryLayout?.ui_behavior?.custom_widget === 'display_area' || registryLayout?.ui_behavior?.custom_widget === 'time_plot' || registryLayout?.ui_behavior?.custom_widget === 'xy_plot' || registryLayout?.ui_behavior?.custom_widget === 'heatmap_plot' || registryLayout?.ui_behavior?.custom_widget === 'image_display')) {
       const visiblePins = (layout.dataIns || []).filter((pin: any) => !pin.optional || showOptional || edges.some(e => e.target === id && e.targetHandle === pin.name));
       bodyHeight += visiblePins.length * 32;
     }
@@ -1042,6 +1043,7 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
           </button>
         )}
 
+
         {registryLayout?.ui_behavior?.custom_widget === 'calculator' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%', padding: '4px' }}>
             {/* Expression Input */}
@@ -1336,6 +1338,12 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
             nodeId={id}
             xLabel={data.results?.x_label}
             yLabel={data.results?.y_label}
+          />
+        )}
+
+        {registryLayout?.ui_behavior?.custom_widget === 'image_display' && (
+          <ImageDisplayWidget 
+            nodeId={id} 
           />
         )}
 

@@ -66,6 +66,33 @@ class FilePathGeneratorNode(BaseNode):
         return None
 
 
+@register_node("outputs/image_display")
+class ImageDisplayNode(BaseNode):
+    """Loads an image from the workspace and displays it in the UI."""
+    icon = "🖼️"
+    display_name = "Image Display"
+    description = "Loads an image from the workspace (relative path) and displays it."
+    default_width = 300
+    default_height = 300
+    ui_behavior = {"custom_widget": "image_display", "render_standard_inputs": True}
+
+    inputs_def = [
+        ExecIn("Display"),
+        DataIn("FilePath", type_hint=str, default="uploads/image.png", widget="text"),
+    ]
+    outputs_def = [ExecOut("Out")]
+
+    async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
+        filepath = await context.pull(self.id, "FilePath")
+        
+        # Send telemetry payload with the filepath
+        payload = {
+            "filepath": str(filepath) if filepath else ""
+        }
+        await context.send_telemetry(self.id, payload)
+        return "Out"
+
+
 @register_node("File I\/O/csv_logger")
 class DataLoggerNode(BaseNode):
     """Logs experimental data (scalars, lists, or dictionaries) to a CSV file."""

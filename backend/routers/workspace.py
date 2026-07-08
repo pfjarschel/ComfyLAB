@@ -16,7 +16,8 @@ import platform
 import subprocess
 from pathlib import Path
 from typing import Dict, Any, List
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from backend.workspace import get_workspace_path, set_workspace_path
@@ -147,6 +148,78 @@ async def open_blueprints_explorer():
         return {"status": "success"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to open explorer: {str(e)}")
+
+
+import shutil
+
+@router.post("/workspace/uploads")
+async def upload_file(
+    file: UploadFile = File(...),
+    subdir: str = Form(""),
+    filename: str = Form("")
+):
+    ws_path = get_workspace_path()
+    uploads_dir = ws_path / "uploads"
+    
+    # Clean subdir path
+    subdir = subdir.strip("/")
+    if subdir:
+        target_dir = (uploads_dir / subdir).resolve()
+        if not target_dir.is_relative_to(uploads_dir):
+            raise HTTPException(status_code=400, detail="Invalid sub-directory path.")
+    else:
+        target_dir = uploads_dir
+        
+    target_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Determine filename
+    final_filename = filename.strip() if filename.strip() else file.filename
+    if not final_filename:
+        final_filename = "unnamed_file"
+        
+    # Prevent path traversal in filename
+    if "/" in final_filename or "\\" in final_filename:
+        raise HTTPException(status_code=400, detail="Filename cannot contain path separators.")
+        
+    target_path = target_dir / final_filename
+    
+    # Handle duplicates by appending (x)
+    if target_path.exists():
+        base_name = target_path.stem
+        ext = target_path.suffix
+        counter = 1
+        while True:
+            new_name = f"{base_name}({counter}){ext}"
+            new_path = target_dir / new_name
+            if not new_path.exists():
+                target_path = new_path
+                final_filename = new_name
+                break
+            counter += 1
+            
+    try:
+        with open(target_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        # Calculate relative path from workspace root
+        rel_path = target_path.relative_to(ws_path)
+        return {"status": "success", "filepath": str(rel_path).replace("\\", "/"), "filename": final_filename}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save file: {str(e)}")
+
+
+@router.get("/workspace/files/{filepath:path}")
+async def get_workspace_file(filepath: str):
+    ws_path = get_workspace_path()
+    target_path = (ws_path / filepath).resolve()
+    
+    if not target_path.is_relative_to(ws_path):
+        raise HTTPException(status_code=403, detail="Access denied.")
+        
+    if not target_path.exists() or not target_path.is_file():
+        raise HTTPException(status_code=404, detail="File not found.")
+        
+    return FileResponse(str(target_path))
 
 
 @router.get("/workspace/blueprints/{filename:path}")

@@ -51,6 +51,7 @@ import { LoadWorkspaceModal } from './components/modals/LoadWorkspaceModal';
 import { TrustWarningModal } from './components/modals/TrustWarningModal';
 import { PackageImportModal } from './components/modals/PackageImportModal';
 import { CanvasContextMenu } from './components/modals/CanvasContextMenu';
+import { UploadFileModal } from './components/modals/UploadFileModal';
 import { WhiteboardOverlay } from './components/widgets/WhiteboardOverlay';
 import { WhiteboardSidebar } from './components/widgets/WhiteboardSidebar';
 import { useWorkspaceHistory } from './hooks/useWorkspaceHistory';
@@ -93,7 +94,7 @@ const lineSegmentsIntersect = (
   return ccw(p1, p3, p4) !== ccw(p2, p3, p4) && ccw(p1, p2, p3) !== ccw(p1, p2, p4);
 };
 
-const getBackendUrls = () => {
+export const getBackendUrls = () => {
   const hostname = window.location.hostname;
   let port = window.location.port;
   
@@ -576,6 +577,7 @@ function Flow() {
   const [packageImportOpen, setPackageImportOpen] = useState(false);
   const [packageFilename, setPackageFilename] = useState('');
   const [packagePreviewData, setPackagePreviewData] = useState<any>(null);
+  const [uploadFileOpen, setUploadFileOpen] = useState(false);
   const [importDestination, setImportDestination] = useState<'workspace' | 'user'>('workspace');
   const [trustAndSign, setTrustAndSign] = useState(true);
   const [deletePackageAfterImport, setDeletePackageAfterImport] = useState(true);
@@ -3344,9 +3346,19 @@ return {
             handleSaveBlueprint();
           }}
           onUploadBlueprintClick={() => {
-            setMenuOpen(false);
-            document.getElementById('blueprint-file-input')?.click();
-          }}
+          const input = document.createElement('input');
+          input.type = 'file';
+          input.accept = '.json';
+          input.onchange = (e: any) => {
+            const file = e.target.files[0];
+            if (file) handleBlueprintUpload(file);
+          };
+          input.click();
+        }}
+        onUploadFileClick={() => {
+          setMenuOpen(false);
+          setUploadFileOpen(true);
+        }}
           onOpenSettings={() => setSettingsOpen(true)}
           onGroupMacro={handleGroupIntoMacro}
           onRun={handleRun}
@@ -4034,6 +4046,13 @@ return {
           setTrustAndSign={setTrustAndSign}
           setDeletePackageAfterImport={setDeletePackageAfterImport}
           onImport={handleImportPackage}
+        />
+
+        {/* --- UPLOAD FILE MODAL --- */}
+        <UploadFileModal
+          isOpen={uploadFileOpen}
+          onClose={() => setUploadFileOpen(false)}
+          BACKEND_URL={BACKEND_URL}
         />
       </div>
     </RegistryContext.Provider>
