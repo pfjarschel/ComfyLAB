@@ -158,6 +158,7 @@ const PlotlyHeatmapRenderer = ({ nodeId, initialXLabel, initialYLabel, width, he
           margin: { l: 55, r: 15, t: 15, b: 40 },
           paper_bgcolor: 'transparent',
           plot_bgcolor: 'transparent',
+          uirevision: true,
           xaxis: {
             title: labels.x,
             titlefont: { size: 14, color: textColor },

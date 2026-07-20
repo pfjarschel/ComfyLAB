@@ -1979,10 +1979,11 @@ return {
     quickConnectStartRef.current = params;
   }, []);
 
-  const onConnectEnd = useCallback((event: any) => {
+  const onConnectEnd = useCallback((event: any, connectionState: any) => {
     if (isLocked) return;
+    const isValid = connectionState && connectionState.isValid;
     const targetIsPane = event.target && event.target.classList && event.target.classList.contains('react-flow__pane');
-    if (targetIsPane && quickConnectStartRef.current) {
+    if (!isValid && targetIsPane && quickConnectStartRef.current) {
        const { nodeId, handleId, handleType } = quickConnectStartRef.current;
        
        const sourceNode = nodesRef.current.find((n: any) => n.id === nodeId);

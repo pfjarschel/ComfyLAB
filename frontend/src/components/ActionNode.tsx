@@ -257,8 +257,8 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
   };
 
   const calculateMinHeight = () => {
-    // 1. Base padding & header height (52px) + status bar which is always rendered
-    let height = 52 + measuredStatusHeight;
+    // 1. Base padding & header height (68px) + status bar which is always rendered
+    let height = 68 + measuredStatusHeight;
 
     if (!layout) {
       if (isMissing) {
@@ -298,9 +298,11 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
     } else if (registryLayout?.ui_behavior?.custom_widget === 'rf_generator') {
       bodyHeight += 138;
     } else if (registryLayout?.ui_behavior?.custom_widget === 'display_area') {
-      bodyHeight += 96;
+      bodyHeight += 104;
     } else if (registryLayout?.ui_behavior?.custom_widget === 'time_plot' || registryLayout?.ui_behavior?.custom_widget === 'xy_plot' || registryLayout?.ui_behavior?.custom_widget === 'heatmap_plot' || registryLayout?.ui_behavior?.custom_widget === 'image_display') {
-      bodyHeight += 152;
+      bodyHeight += 164;
+    } else if (registryLayout?.ui_behavior?.custom_widget === 'calculator') {
+      bodyHeight += 130;
     }
 
     // Dynamic inputs (checks both showOptional and connected optional pins)
@@ -325,7 +327,7 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
     }
 
     // Visual Override connection label rows (checks both showOptional and connected optional pins)
-    if (!registryLayout?.ui_behavior?.render_standard_inputs && (registryLayout?.ui_behavior?.custom_widget === 'display_area' || registryLayout?.ui_behavior?.custom_widget === 'time_plot' || registryLayout?.ui_behavior?.custom_widget === 'xy_plot' || registryLayout?.ui_behavior?.custom_widget === 'heatmap_plot' || registryLayout?.ui_behavior?.custom_widget === 'image_display')) {
+    if (!registryLayout?.ui_behavior?.render_standard_inputs && (registryLayout?.ui_behavior?.custom_widget === 'display_area' || registryLayout?.ui_behavior?.custom_widget === 'time_plot' || registryLayout?.ui_behavior?.custom_widget === 'xy_plot' || registryLayout?.ui_behavior?.custom_widget === 'heatmap_plot' || registryLayout?.ui_behavior?.custom_widget === 'image_display' || registryLayout?.ui_behavior?.custom_widget === 'calculator')) {
       const visiblePins = (layout.dataIns || []).filter((pin: any) => !pin.optional || showOptional || edges.some(e => e.target === id && e.targetHandle === pin.name));
       bodyHeight += visiblePins.length * 32;
     }
@@ -337,7 +339,7 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
 
     // Optional settings toggle button
     if (hasOptionalInputs) {
-      bodyHeight += measuredOptionalHeight;
+      bodyHeight += measuredOptionalHeight + 16; // Include margins and gap
     }
 
     return Math.max(execMinHeight, height + bodyHeight);

@@ -107,6 +107,7 @@ const PlotlyTimeRenderer = ({ nodeId, strokeColor, dataKey, width, height }: Plo
           margin: { l: 55, r: 15, t: 15, b: 40 },
           paper_bgcolor: 'transparent',
           plot_bgcolor: 'transparent',
+          uirevision: true,
           xaxis: {
             title: 'Time Index',
             titlefont: { size: 14, color: textColor },

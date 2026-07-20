@@ -521,7 +521,7 @@ class CreateListNode(BaseNode):
     
     inputs_def = [
         DataIn("CSVString", type_hint=str, default="1, 2, 3, 4, 5", widget="text"),
-        DataIn("ParseNumbers", type_hint=bool, default=True, widget="checkbox")
+        DataIn("ParseNumbers", type_hint=bool, default=False, widget="checkbox")
     ]
     outputs_def = [DataOut("List", type_hint=list)]
 

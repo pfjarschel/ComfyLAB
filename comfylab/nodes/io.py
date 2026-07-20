@@ -66,7 +66,7 @@ class FilePathGeneratorNode(BaseNode):
         return None
 
 
-@register_node("outputs/image_display")
+@register_node("outputs/basic/image_display")
 class ImageDisplayNode(BaseNode):
     """Loads an image from the workspace and displays it in the UI."""
     icon = "🖼️"
