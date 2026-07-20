@@ -52,6 +52,7 @@ import { TrustWarningModal } from './components/modals/TrustWarningModal';
 import { PackageImportModal } from './components/modals/PackageImportModal';
 import { CanvasContextMenu } from './components/modals/CanvasContextMenu';
 import { UploadFileModal } from './components/modals/UploadFileModal';
+import { ConfirmModal } from './components/modals/ConfirmModal';
 import { WhiteboardOverlay } from './components/widgets/WhiteboardOverlay';
 import { WhiteboardSidebar } from './components/widgets/WhiteboardSidebar';
 import { useWorkspaceHistory } from './hooks/useWorkspaceHistory';
@@ -578,6 +579,29 @@ function Flow() {
   const [packageFilename, setPackageFilename] = useState('');
   const [packagePreviewData, setPackagePreviewData] = useState<any>(null);
   const [uploadFileOpen, setUploadFileOpen] = useState(false);
+
+  // Custom Confirm Modal State
+  const [confirmDialog, setConfirmDialog] = useState<{
+    message: string;
+    onConfirm: () => void;
+    onCancel: () => void;
+  } | null>(null);
+
+  const confirmAsync = useCallback((message: string): Promise<boolean> => {
+    return new Promise((resolve) => {
+      setConfirmDialog({
+        message,
+        onConfirm: () => {
+          setConfirmDialog(null);
+          resolve(true);
+        },
+        onCancel: () => {
+          setConfirmDialog(null);
+          resolve(false);
+        }
+      });
+    });
+  }, []);
   const [importDestination, setImportDestination] = useState<'workspace' | 'user'>('workspace');
   const [trustAndSign, setTrustAndSign] = useState(true);
   const [deletePackageAfterImport, setDeletePackageAfterImport] = useState(true);
@@ -2927,7 +2951,7 @@ return {
     setCurrentLevelIndex(0);
   }, [activeTabId, currentBlueprintName, isDirty, annotations, setAnnotations]);
 
-  const closeTab = useCallback((tabIdToClose: string, event?: React.MouseEvent) => {
+  const closeTab = useCallback(async (tabIdToClose: string, event?: React.MouseEvent) => {
     if (event) {
       event.stopPropagation(); // Prevent tab switching when clicking close button
     }
@@ -2939,7 +2963,7 @@ return {
     // Check if it's dirty
     const isTabDirty = tabIdToClose === activeTabId ? isDirty : tabToClose.isDirty;
     if (isTabDirty) {
-      const confirmClose = window.confirm(
+      const confirmClose = await confirmAsync(
         `Are you sure you want to close this tab? Unsaved changes in "${tabToClose.name}" will be lost.`
       );
       if (!confirmClose) return;
@@ -2947,7 +2971,7 @@ return {
 
     // If it's the running tab, warn or handle
     if (tabIdToClose === runningTabId) {
-      const confirmRunning = window.confirm(
+      const confirmRunning = await confirmAsync(
         `This blueprint is currently executing. Closing the tab will stop the execution. Continue?`
       );
       if (!confirmRunning) return;
@@ -3238,9 +3262,9 @@ return {
           theme={theme}
           setTheme={setTheme}
           menuContainerRef={menuContainerRef}
-          onNewBlueprint={() => {
+          onNewBlueprint={async () => {
             setMenuOpen(false);
-            if (window.confirm('Are you sure you want to clear the canvas and start a new blueprint?')) {
+            if (await confirmAsync('Are you sure you want to clear the canvas and start a new blueprint?')) {
               setNodes([]);
               setEdges([]);
               setCurrentBlueprintName('');
@@ -3266,7 +3290,7 @@ return {
           }}
           onClearTemporaryFiles={async () => {
             setMenuOpen(false);
-            if (window.confirm('Are you sure you want to delete all temporary package files, runtime temp files, and reload the registry? This will also close all open tabs running temporary package blueprints.')) {
+            if (await confirmAsync('Are you sure you want to delete all temporary package files, runtime temp files, and reload the registry? This will also close all open tabs running temporary package blueprints.')) {
               try {
                 await axios.post(`${BACKEND_URL}/workspace/packages/clear_temp`);
                 await fetchRegistry();
@@ -3333,7 +3357,7 @@ return {
           }}
           onClearPersistentStates={async () => {
             setMenuOpen(false);
-            if (window.confirm('Are you sure you want to clear all persistent node states and release their open handles/memory?')) {
+            if (await confirmAsync('Are you sure you want to clear all persistent node states and release their open handles/memory?')) {
               try {
                 await axios.post(`${BACKEND_URL}/nodes/clear_persistent`);
               } catch (err) {
@@ -3731,8 +3755,8 @@ return {
               onToggleLocked={() => setIsLocked(prev => !prev)}
               onToggleSnap={() => setSnapToGrid(prev => !prev)}
               onToggleAnnotations={() => setShowAnnotations(prev => !prev)}
-              onClearCanvas={() => {
-                if (window.confirm('Clear canvas?')) {
+              onClearCanvas={async () => {
+                if (await confirmAsync('Clear canvas?')) {
                   setNodes([]);
                   setEdges([]);
                 }
@@ -3854,8 +3878,8 @@ return {
               drawFillOpacity={drawFillOpacity}
               setDrawFillOpacity={setDrawFillOpacity}
               setEditingTextId={setEditingTextId}
-              onClearAll={() => {
-                if (window.confirm("Are you sure you want to clear all annotations from this level?")) {
+              onClearAll={async () => {
+                if (await confirmAsync("Are you sure you want to clear all annotations from this level?")) {
                   pushStateToHistory(nodesRef.current, edgesRef.current, annotationsRef.current);
                   setAnnotations([]);
                 }
@@ -3995,6 +4019,7 @@ return {
           onLoadBlueprintByName={handleLoadBlueprintByName}
           onDeleteBlueprint={handleDeleteBlueprint}
           onOpenExplorer={handleOpenBlueprintsExplorer}
+          confirmAsync={confirmAsync}
         />
 
         {/* --- TRUST WARNING MODAL --- */}
@@ -4055,6 +4080,15 @@ return {
           onClose={() => setUploadFileOpen(false)}
           BACKEND_URL={BACKEND_URL}
         />
+
+        {/* --- CONFIRM MODAL --- */}
+        {confirmDialog && (
+          <ConfirmModal
+            message={confirmDialog.message}
+            onConfirm={confirmDialog.onConfirm}
+            onCancel={confirmDialog.onCancel}
+          />
+        )}
       </div>
     </RegistryContext.Provider>
   );

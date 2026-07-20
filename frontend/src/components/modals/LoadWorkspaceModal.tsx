@@ -21,6 +21,7 @@ interface LoadWorkspaceModalProps {
   onLoadBlueprintByName: (filename: string) => void;
   onDeleteBlueprint: (filename: string, isPackage?: boolean) => void;
   onOpenExplorer: () => void;
+  confirmAsync: (message: string) => Promise<boolean>;
 }
 
 export const LoadWorkspaceModal = ({
@@ -31,6 +32,7 @@ export const LoadWorkspaceModal = ({
   onLoadBlueprintByName,
   onDeleteBlueprint,
   onOpenExplorer,
+  confirmAsync,
 }: LoadWorkspaceModalProps) => {
   if (!isOpen) return null;
 
@@ -111,10 +113,10 @@ export const LoadWorkspaceModal = ({
                     onMouseLeave={(e) => {
                       e.currentTarget.style.transform = 'scale(1)';
                     }}
-                    onClick={(e) => {
+                    onClick={async (e) => {
                       e.stopPropagation();
                       const type = bp.isPackage ? "package" : "blueprint";
-                      if (confirm(`Are you sure you want to delete ${type} ${bp.filename}?`)) {
+                      if (await confirmAsync(`Are you sure you want to delete ${type} ${bp.filename}?`)) {
                         onDeleteBlueprint(bp.filename, bp.isPackage);
                       }
                     }}
