@@ -25,7 +25,7 @@ from comfylab.engine.config import get_config
 logger = logging.getLogger("backend.routers.execution")
 
 from comfylab.engine.executor import ExecutionEngine
-from comfylab.engine.registry import get_all_nodes_schema
+
 from comfylab.nodes.script import parse_script_decorators, validate_code as validate_python
 from comfylab.nodes.script_lua import parse_lua_decorators, validate_code as validate_lua
 from comfylab.nodes.script_js import parse_js_decorators, validate_code as validate_js
@@ -155,30 +155,6 @@ async def get_status():
         res["raw_canvas"] = getattr(engine, "current_raw_canvas", None)
     return res
 
-
-@router.get("/nodes")
-async def get_node_templates():
-    """
-    Returns the complete serialized metadata schema of all registered ComfyLAB nodes.
-    Used by the frontend to dynamically build sidebar nodes and parameter widgets.
-    """
-    return get_all_nodes_schema()
-
-
-@router.post("/nodes/reload")
-async def reload_node_registry():
-    """
-    Rescans the filesystem for nodes and returns the updated schema.
-    """
-    from comfylab.nodes.loader import load_all_nodes
-    from comfylab.engine.registry import NODE_REGISTRY, load_all_clusters_deferred, invalidate_schema_cache
-    from comfylab.engine.security import clear_signature_cache
-    NODE_REGISTRY.clear()
-    invalidate_schema_cache()
-    clear_signature_cache()
-    load_all_nodes()
-    load_all_clusters_deferred(force=True)
-    return get_all_nodes_schema()
 
 
 @router.post("/nodes/{node_id}/clear")

@@ -102,7 +102,7 @@ class CompareNode(BaseNode):
 @register_node("outputs/basic/print")
 class PrintNode(BaseNode):
     """Prints a pulled value to standard output and continues execution."""
-    icon = "🖨️"
+    icon = " >_ "
     display_name = "Print Node"
     description = "Prints a pulled value to standard output and continues execution."
     

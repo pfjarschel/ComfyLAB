@@ -68,7 +68,7 @@ export const TopBar = ({
   isPaused,
   runningTabName,
   nodesCount,
-  selectedNodesCount,
+   
   theme,
   setTheme,
   menuContainerRef,
@@ -83,7 +83,7 @@ export const TopBar = ({
   onUploadBlueprintClick,
   onUploadFileClick,
   onOpenSettings,
-  onGroupCluster,
+   
   onRun,
   onPause,
   onResume,

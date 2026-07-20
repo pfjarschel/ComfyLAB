@@ -399,8 +399,8 @@ function Flow() {
     y: number;
     clientX: number;
     clientY: number;
-    type: 'pane' | 'node' | 'edge';
-    targetId?: string;
+    type: 'pane' | 'node' | 'edge' | 'selection';
+    targetId?: string | null;
   } | null>(null);
   const [contextMenuSearch, setContextMenuSearch] = useState('');
 
@@ -2320,7 +2320,7 @@ return {
   );
 
   const onSelectionContextMenu = useCallback(
-    (event: any, nodes: any) => {
+    (event: any, _nodes: any) => {
       event.preventDefault();
       if (!reactFlowWrapper.current) return;
       const rect = reactFlowWrapper.current.getBoundingClientRect();
@@ -2491,9 +2491,19 @@ return {
     selNodes.forEach((n: any) => {
       minX = Math.min(minX, n.position.x);
       minY = Math.min(minY, n.position.y);
-      maxX = Math.max(maxX, n.position.x + (n.style?.width || 210));
-      maxY = Math.max(maxY, n.position.y + (n.style?.minHeight || 160));
+      let w = typeof n.width === 'number' ? n.width : parseFloat(n.style?.width);
+      if (isNaN(w)) w = 210;
+      let h = typeof n.height === 'number' ? n.height : parseFloat(n.style?.minHeight || n.style?.height);
+      if (isNaN(h)) h = 160;
+      maxX = Math.max(maxX, n.position.x + w);
+      maxY = Math.max(maxY, n.position.y + h);
     });
+    
+    if (!isFinite(minX)) minX = 0;
+    if (!isFinite(minY)) minY = 0;
+    if (!isFinite(maxX)) maxX = 210;
+    if (!isFinite(maxY)) maxY = 160;
+
     const centerX = (minX + maxX) / 2;
     const centerY = (minY + maxY) / 2;
 
@@ -2636,9 +2646,7 @@ return {
     fetchRegistry();
   };
 
-  const handleLoadBlueprint = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const handleBlueprintUpload = (file: File) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
@@ -2657,22 +2665,28 @@ return {
               : `This blueprint was created by a developer/source with identity: ${originUuid}. It may contain custom scripts. Do you trust this developer and want to load it?`;
             setTrustWarningMessage(warningMsg);
             setPendingBlueprint({ ...payload, origin_uuid: originUuid });
-            setPendingFilename(file.name);
+            setPendingFilename(file.name.replace(/\.json$/, ''));
             setTrustWarningOpen(true);
             return;
           }
-          loadBlueprintData(payload, file.name);
+          
+          loadBlueprintData(payload, file.name.replace(/\.json$/, ''));
         } else {
-          alert("Invalid blueprint file format.");
+          alert('Invalid blueprint format.');
         }
-      } catch {
-        alert("Failed to parse blueprint file.");
+      } catch (err) {
+        alert('Failed to parse blueprint JSON.');
       }
     };
     reader.readAsText(file);
-    event.target.value = '';
   };
 
+  const handleLoadBlueprint = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    handleBlueprintUpload(file);
+    event.target.value = '';
+  };
 
 
   const handleOpenPackage = async (filename: string) => {
@@ -3241,6 +3255,15 @@ return {
     );
   }
 
+  const handleReloadRegistry = async () => {
+    try {
+      const res = await axios.post(`${BACKEND_URL}/nodes/reload`);
+      setNodeRegistry(res.data);
+    } catch (err) {
+      console.error('Failed to reload node registry:', err);
+    }
+  };
+
   return (
     <RegistryContext.Provider value={nodeRegistry}>
       <div className="app-container">
@@ -3455,14 +3478,7 @@ return {
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
             filteredGrouped={filteredGrouped}
-            onReloadRegistry={async () => {
-              try {
-                const res = await axios.post(`${BACKEND_URL}/nodes/reload`);
-                setNodeRegistry(res.data);
-              } catch (err) {
-                console.error('Failed to reload node registry:', err);
-              }
-            }}
+            onReloadRegistry={handleReloadRegistry}
           />
 
           {/* --- CANVAS WRAPPER --- */}
@@ -3901,6 +3917,7 @@ return {
                   setInspectedNodeId(null);
                 }}
                 onNodeDataChange={onNodeDataChange}
+                onReloadRegistry={handleReloadRegistry}
               />
             )}
         </div>

@@ -23,6 +23,7 @@ from backend.routers.settings import router as settings_router
 from backend.routers.diagnostics import router as diagnostics_router
 from backend.routers.workspace import router as workspace_router
 from backend.routers.packages import router as packages_router
+from backend.routers.nodes import router as nodes_router
 import comfylab.engine.config as config_module
 from comfylab.engine.config import get_config
 from backend.workspace import set_workspace_path
@@ -165,6 +166,7 @@ app.include_router(settings_router)
 app.include_router(diagnostics_router)
 app.include_router(workspace_router)
 app.include_router(packages_router)
+app.include_router(nodes_router)
 
 @app.on_event("startup")
 async def startup_event():

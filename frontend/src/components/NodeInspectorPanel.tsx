@@ -46,6 +46,7 @@ interface NodeInspectorPanelProps {
   edges: any[];
   onClose: () => void;
   onNodeDataChange: (id: string, key: string, value: any) => void;
+  onReloadRegistry?: () => void;
 }
 
 export const NodeInspectorPanel = ({
@@ -55,9 +56,16 @@ export const NodeInspectorPanel = ({
   edges,
   onClose,
   onNodeDataChange,
+  onReloadRegistry,
 }: NodeInspectorPanelProps) => {
   const nodeRegistry = useContext(RegistryContext) as Record<string, any> | null;
   const [isCopyingPath, setIsCopyingPath] = useState(false);
+
+  const [isEditingCluster, setIsEditingCluster] = useState(false);
+  const [editCategory, setEditCategory] = useState('');
+  const [editIcon, setEditIcon] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editError, setEditError] = useState<string | null>(null);
 
   // Close with Escape key
   useEffect(() => {
@@ -167,6 +175,34 @@ export const NodeInspectorPanel = ({
     return targetNode.data?.customName || targetLayout?.name || targetAction || id;
   };
 
+  const handleSaveClusterMetadata = async () => {
+    if (!action) return;
+    setEditError(null);
+    try {
+      const BACKEND_URL = 'http://localhost:8000';
+      // Ensure axios is available or use fetch
+      const res = await fetch(`${BACKEND_URL}/nodes/update_cluster/${encodeURIComponent(action)}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          category: editCategory.trim() || 'User/Clusters',
+          icon: editIcon.trim() || '📦',
+          description: editDescription.trim()
+        })
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.detail || 'Failed to update cluster');
+      }
+      setIsEditingCluster(false);
+      if (onReloadRegistry) {
+        onReloadRegistry();
+      }
+    } catch (err: any) {
+      setEditError(err.message);
+    }
+  };
+
   return (
     <div
       className="sidebar-container right-sidebar glass-panel nodrag nowheel animate-slide-in-right"
@@ -258,24 +294,89 @@ export const NodeInspectorPanel = ({
             <span className="sidebar-label" style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-muted)' }}>
               Node Details
             </span>
-            <span
-              style={{
-                fontSize: '0.65rem',
-                padding: '2px 6px',
-                borderRadius: '4px',
-                background: 'rgba(59, 130, 246, 0.15)',
-                color: '#60a5fa',
-                fontWeight: 600,
-                border: '1px solid rgba(59, 130, 246, 0.25)',
-              }}
-            >
-              {category}
-            </span>
+            {!isEditingCluster && (
+              <span
+                style={{
+                  fontSize: '0.65rem',
+                  padding: '2px 6px',
+                  borderRadius: '4px',
+                  background: 'rgba(59, 130, 246, 0.15)',
+                  color: '#60a5fa',
+                  fontWeight: 600,
+                  border: '1px solid rgba(59, 130, 246, 0.25)',
+                }}
+              >
+                {category}
+              </span>
+            )}
           </div>
-          {description && (
+          
+          {!isEditingCluster && description && (
             <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-color)', lineHeight: '1.4', background: 'var(--input-bg)', padding: '10px', borderRadius: '6px', border: '1px solid var(--node-border)' }}>
               {description}
             </p>
+          )}
+
+          {isCluster && !isEditingCluster && (
+            <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+              <button
+                className="button-secondary"
+                style={{ padding: '4px 12px', fontSize: '0.75rem' }}
+                onClick={() => {
+                  setEditCategory(category);
+                  setEditIcon(icon);
+                  setEditDescription(description || '');
+                  setIsEditingCluster(true);
+                }}
+              >
+                Edit Cluster Definition
+              </button>
+            </div>
+          )}
+
+          {isEditingCluster && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: 'rgba(255,255,255,0.03)', padding: '12px', borderRadius: '8px', border: '1px solid var(--node-border)' }}>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Icon</label>
+                  <input
+                    type="text"
+                    value={editIcon}
+                    onChange={(e) => setEditIcon(e.target.value)}
+                    style={{ background: 'var(--input-bg)', border: '1px solid var(--node-border)', color: 'var(--text-color)', padding: '6px', borderRadius: '4px', width: '100%', fontSize: '0.8rem' }}
+                  />
+                </div>
+                <div style={{ flex: 3 }}>
+                  <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Category</label>
+                  <input
+                    type="text"
+                    value={editCategory}
+                    onChange={(e) => setEditCategory(e.target.value)}
+                    style={{ background: 'var(--input-bg)', border: '1px solid var(--node-border)', color: 'var(--text-color)', padding: '6px', borderRadius: '4px', width: '100%', fontSize: '0.8rem' }}
+                  />
+                </div>
+              </div>
+              <div>
+                <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Description</label>
+                <textarea
+                  value={editDescription}
+                  onChange={(e) => setEditDescription(e.target.value)}
+                  rows={2}
+                  style={{ background: 'var(--input-bg)', border: '1px solid var(--node-border)', color: 'var(--text-color)', padding: '6px', borderRadius: '4px', width: '100%', fontSize: '0.8rem', resize: 'vertical' }}
+                />
+              </div>
+              {editError && (
+                <div style={{ color: '#ef4444', fontSize: '0.75rem' }}>{editError}</div>
+              )}
+              <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                <button className="button-primary" style={{ flex: 1, padding: '6px', fontSize: '0.75rem' }} onClick={handleSaveClusterMetadata}>
+                  Save Definition
+                </button>
+                <button className="button-secondary" style={{ flex: 1, padding: '6px', fontSize: '0.75rem' }} onClick={() => setIsEditingCluster(false)}>
+                  Cancel
+                </button>
+              </div>
+            </div>
           )}
 
           {author && (
