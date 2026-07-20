@@ -95,6 +95,7 @@ export const CanvasContextMenu = ({
   const menuRef = useRef<HTMLDivElement>(null);
   const hasClamped = useRef(false);
   const [pos, setPos] = useState({ x: contextMenu?.x ?? 0, y: contextMenu?.y ?? 0 });
+  const [submenuDirs, setSubmenuDirs] = useState({ left: false, addTop: false, replaceTop: false });
 
   // Reset clamp flag and initial position whenever the menu context changes
   useEffect(() => {
@@ -128,6 +129,21 @@ export const CanvasContextMenu = ({
     if (x < minX) x = minX;
 
     setPos({ x, y });
+
+    // Calculate smart submenu directions
+    const finalScreenY = contextMenu.clientY + (y - contextMenu.y);
+    const finalScreenX = contextMenu.clientX + (x - contextMenu.x);
+
+    // Estimate button screen Y positions (Add is top, Replace is bottom)
+    const addMenuTopScreenY = finalScreenY;
+    const replaceMenuTopScreenY = finalScreenY + rect.height - 40;
+
+    // Submenu max height ~350px, width ~300px
+    const addTop = addMenuTopScreenY + 350 > window.innerHeight;
+    const replaceTop = replaceMenuTopScreenY + 350 > window.innerHeight;
+    const left = finalScreenX + rect.width + 300 > window.innerWidth;
+
+    setSubmenuDirs({ left, addTop, replaceTop });
   });
 
   if (!contextMenu || !contextMenu.show) return null;
@@ -166,7 +182,7 @@ export const CanvasContextMenu = ({
             <button className="context-menu-item">
               <span>➕</span> Add Node <span className="submenu-arrow">▶</span>
             </button>
-            <div className={`context-menu-submenu glass-panel ${contextMenu.clientX > window.innerWidth - 450 ? 'submenu-left' : ''}`}>
+            <div className={`context-menu-submenu glass-panel ${submenuDirs.left ? 'submenu-left' : ''} ${submenuDirs.addTop ? 'submenu-top' : ''}`}>
               <input
                 type="text"
                 placeholder="Search nodes..."
@@ -441,11 +457,7 @@ export const CanvasContextMenu = ({
                   <button className="context-menu-item">
                     <span>🔄</span> Replace Node <span className="submenu-arrow">▶</span>
                   </button>
-                  <div className={`context-menu-submenu glass-panel ${
-                    contextMenu.clientX > window.innerWidth - 450 ? 'submenu-left' : ''
-                  } ${
-                    contextMenu.clientY > window.innerHeight * 2 / 3 ? 'submenu-top' : ''
-                  }`}>
+                  <div className={`context-menu-submenu glass-panel ${submenuDirs.left ? 'submenu-left' : ''} ${submenuDirs.replaceTop ? 'submenu-top' : ''}`}>
                     <input
                       type="text"
                       placeholder="Search replacement..."

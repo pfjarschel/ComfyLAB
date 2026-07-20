@@ -444,3 +444,105 @@ class LoadParquetNode(BaseNode):
             self._loaded_headers = []
 
         return "Out"
+
+
+def _make_serializable(obj: Any) -> Any:
+    if isinstance(obj, dict):
+        return {k: _make_serializable(v) for k, v in obj.items()}
+    elif isinstance(obj, list) or isinstance(obj, tuple):
+        return [_make_serializable(v) for v in obj]
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, np.generic):
+        return obj.item()
+    return obj
+
+
+@register_node("File I\/O/save_json")
+class SaveJSONNode(BaseNode):
+    """Saves structured data (dictionaries, lists) to a JSON file."""
+    icon = "📝"
+    display_name = "Save JSON"
+    description = "Saves data as a JSON file. Automatically converts NumPy arrays to lists."
+
+    inputs_def = [
+        ExecIn("Write"),
+        DataIn("FilePath", type_hint=str, default="data.json", widget="text"),
+        DataIn("Data", type_hint=Any)
+    ]
+    outputs_def = [ExecOut("Out")]
+
+    async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
+        filepath = await context.pull(self.id, "FilePath")
+        data = await context.pull(self.id, "Data")
+        
+        if not filepath:
+            logger.error("SaveJSONNode: FilePath cannot be empty.")
+            return None
+            
+        from backend.workspace import get_workspace_path
+        import os, json
+        
+        ws_path = get_workspace_path()
+        full_path = os.path.join(ws_path, filepath) if ws_path else filepath
+        
+        dir_name = os.path.dirname(full_path)
+        if dir_name:
+            os.makedirs(dir_name, exist_ok=True)
+            
+        try:
+            serializable_data = _make_serializable(data)
+            with open(full_path, 'w', encoding='utf-8') as f:
+                json.dump(serializable_data, f, indent=4)
+        except Exception as e:
+            logger.error(f"Error saving JSON {full_path}: {e}")
+            
+        return "Out"
+
+
+@register_node("File I\/O/load_json")
+class LoadJSONNode(BaseNode):
+    """Reads a JSON file into structured data."""
+    icon = "📂"
+    display_name = "Load JSON"
+    description = "Reads a JSON file and outputs its contents as data (usually a dictionary or list)."
+
+    inputs_def = [
+        ExecIn("Read"),
+        DataIn("FilePath", type_hint=str, default="data.json", widget="text")
+    ]
+    outputs_def = [
+        ExecOut("Out"),
+        DataOut("Data", type_hint=Any)
+    ]
+
+    def __init__(self, node_id: str, properties: Optional[Dict[str, Any]] = None):
+        super().__init__(node_id, properties)
+        self._loaded_data: Any = None
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Data":
+            return self._loaded_data
+        return None
+
+    async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
+        filepath = await context.pull(self.id, "FilePath")
+        
+        if not filepath:
+            logger.error("LoadJSONNode: FilePath cannot be empty.")
+            return None
+            
+        from backend.workspace import get_workspace_path
+        import os, json
+        
+        ws_path = get_workspace_path()
+        full_path = os.path.join(ws_path, filepath) if ws_path else filepath
+        
+        try:
+            with open(full_path, 'r', encoding='utf-8') as f:
+                self._loaded_data = json.load(f)
+        except Exception as e:
+            logger.error(f"Error loading JSON {full_path}: {e}")
+            self._loaded_data = None
+            
+        return "Out"

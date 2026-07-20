@@ -2219,14 +2219,16 @@ return {
     setNodes((nds) =>
       nds.map((n) => {
         if (n.id === nodeId) {
-          const customName = n.data?.customName === (n.data?.action || 'Missing Node') ? schema.name : n.data?.customName;
+          const oldSchema = nodeRegistry?.[n.data?.action];
+          const isDefaultName = !n.data?.customName || n.data.customName === oldSchema?.name || n.data.customName === n.data?.action;
+          const customName = isDefaultName ? schema.name : n.data?.customName;
           return {
             ...n,
             data: {
               ...n.data,
               ...newBaseData,
               action: replacementAction,
-              customName: customName || schema.name,
+              customName: customName,
             },
           };
         }

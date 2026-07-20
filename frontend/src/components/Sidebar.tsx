@@ -105,7 +105,9 @@ export const Sidebar = ({
             No nodes match your search.
           </div>
         )}
-        {Object.entries(filteredGrouped).map(([mainCat, catData]) => {
+        {Object.entries(filteredGrouped)
+          .sort((a, b) => a[0].localeCompare(b[0]))
+          .map(([mainCat, catData]) => {
           const isCatExpanded = searchQuery.trim() !== '' || expandedCats[mainCat];
           return (
             <div key={mainCat} className="sidebar-category-group">
@@ -120,7 +122,9 @@ export const Sidebar = ({
               {isCatExpanded && (
                 <div className="sidebar-category-content">
                   {/* Direct Nodes */}
-                  {catData.directNodes.map((node) => (
+                  {[...catData.directNodes]
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map((node) => (
                     <div 
                       key={node.type} 
                       className="dndnode" 
@@ -134,7 +138,9 @@ export const Sidebar = ({
                   ))}
 
                   {/* Subcategories */}
-                  {Object.entries(catData.subcategories).map(([subCat, subNodes]) => {
+                  {Object.entries(catData.subcategories)
+                    .sort((a, b) => a[0].localeCompare(b[0]))
+                    .map(([subCat, subNodes]) => {
                     const subcatKey = `${mainCat}/${subCat}`;
                     const isSubExpanded = searchQuery.trim() !== '' || expandedSubcats[subcatKey];
                     return (
@@ -149,7 +155,9 @@ export const Sidebar = ({
 
                         {isSubExpanded && (
                           <div className="sidebar-subcategory-content">
-                            {subNodes.map((node) => (
+                            {[...subNodes]
+                              .sort((a, b) => a.name.localeCompare(b.name))
+                              .map((node) => (
                               <div 
                                 key={node.type} 
                                 className="dndnode" 

@@ -195,6 +195,8 @@ def _map_type_hint_to_str(type_hint: Any) -> str:
         return "list"
     elif type_hint is np.ndarray:
         return "ndarray"
+    elif type_hint is dict:
+        return "dictionary"
     return "any"
 
 def _map_default_widget(type_str: str) -> str:

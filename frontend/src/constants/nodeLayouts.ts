@@ -50,9 +50,11 @@ export const getPinColor = (type: string | undefined): string => {
       return '#e5a50a'; // Yellow (LabVIEW arrays/waveform)
     case 'list':
       return '#06b6d4'; // Cyan for standard Lists
+    case 'dict':
+    case 'dictionary':
+      return '#795548'; // Brown for Dictionaries
     case 'any':
     default:
       return '#64748b'; // Neutral slate gray for generic/unspecified types
   }
 };
-
