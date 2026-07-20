@@ -106,11 +106,17 @@ export const Sidebar = ({
           </div>
         )}
         {Object.entries(filteredGrouped)
-          .sort((a, b) => a[0].localeCompare(b[0]))
+          .sort((a, b) => {
+            if (a[0].toLowerCase() === 'user') return 1;
+            if (b[0].toLowerCase() === 'user') return -1;
+            return a[0].localeCompare(b[0]);
+          })
           .map(([mainCat, catData]) => {
           const isCatExpanded = searchQuery.trim() !== '' || expandedCats[mainCat];
           return (
-            <div key={mainCat} className="sidebar-category-group">
+            <div key={mainCat}>
+              {mainCat.toLowerCase() === 'user' && <div className="sidebar-category-separator" />}
+              <div className="sidebar-category-group">
               <div 
                 className="sidebar-category-header"
                 onClick={() => toggleCat(mainCat)}
@@ -176,6 +182,7 @@ export const Sidebar = ({
                   })}
                 </div>
               )}
+            </div>
             </div>
           );
         })}
