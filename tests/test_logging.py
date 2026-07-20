@@ -145,8 +145,8 @@ class MockNode:
         self.id = node_id
         self.display_name = display_name
 
-class MockMacroNode(MockNode):
-    _macro_file_path = "workspace/macros/test_macro.json"
+class MockClusterNode(MockNode):
+    _cluster_file_path = "workspace/clusters/test_cluster.json"
 
 def test_set_node_context_helper():
     from comfylab.engine.logging import set_node_context, reset_node_context, node_id_var, node_name_var, node_file_var
@@ -164,12 +164,12 @@ def test_set_node_context_helper():
     assert node_name_var.get() == ""
     assert node_file_var.get() == ""
     
-    # Test macro node custom path
-    macro_node = MockMacroNode("macro_1", "My Macro")
-    tokens = set_node_context(macro_node)
+    # Test cluster node custom path
+    cluster_node = MockClusterNode("cluster_1", "My Cluster")
+    tokens = set_node_context(cluster_node)
     try:
-        assert node_id_var.get() == "macro_1"
-        assert node_name_var.get() == "My Macro"
-        assert node_file_var.get() == "workspace/macros/test_macro.json"
+        assert node_id_var.get() == "cluster_1"
+        assert node_name_var.get() == "My Cluster"
+        assert node_file_var.get() == "workspace/clusters/test_cluster.json"
     finally:
         reset_node_context(tokens)

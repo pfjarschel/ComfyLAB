@@ -68,7 +68,7 @@ async def test_subtraction_node():
         "nodes": [
             {"id": "num1", "type": "constants/number", "properties": {"value": 15.5}},
             {"id": "num2", "type": "constants/number", "properties": {"value": 5.2}},
-            {"id": "sub", "type": "math/arithmetic/subtract", "properties": {}},
+            {"id": "sub", "type": "math/basic/subtract", "properties": {}},
             {"id": "print", "type": "outputs/basic/print", "properties": {}}
         ],
         "links": [
@@ -87,11 +87,11 @@ async def test_subtraction_node():
 async def test_multiply_divide_power_trig_nodes():
     blueprint = {
         "nodes": [
-            {"id": "mult", "type": "math/arithmetic/multiply", "properties": {"A": 3.0, "B": 4.0}},
-            {"id": "div", "type": "math/arithmetic/divide", "properties": {"A": 12.0, "B": 3.0}},
-            {"id": "pow", "type": "math/arithmetic/power", "properties": {"Base": 2.0, "Exponent": 4.0}},
-            {"id": "trig_sin", "type": "math/trigonometry/trig", "properties": {"Value": 90.0, "Function": "sin", "UseDegrees": True}},
-            {"id": "trig_cos", "type": "math/trigonometry/trig", "properties": {"Value": math.pi, "Function": "cos", "UseDegrees": False}}
+            {"id": "mult", "type": "math/basic/multiply", "properties": {"A": 3.0, "B": 4.0}},
+            {"id": "div", "type": "math/basic/divide", "properties": {"A": 12.0, "B": 3.0}},
+            {"id": "pow", "type": "math/basic/power", "properties": {"Base": 2.0, "Exponent": 4.0}},
+            {"id": "trig_sin", "type": "math/basic/trig", "properties": {"Value": 90.0, "Function": "sin", "UseDegrees": True}},
+            {"id": "trig_cos", "type": "math/basic/trig", "properties": {"Value": math.pi, "Function": "cos", "UseDegrees": False}}
         ],
         "links": []
     }
@@ -140,7 +140,7 @@ async def test_random_node():
 async def test_list_nodes():
     blueprint = {
         "nodes": [
-            {"id": "arr_create", "type": "Lists/manipulation/create", "properties": {"CSVString": "10, 20, 30, test", "ParseNumbers": True}},
+            {"id": "arr_create", "type": "Lists/manipulation/create", "properties": {"itemCount": 1, "Row 0": "10, 20, 30, test", "ParseNumbers": True}},
             {"id": "arr_len", "type": "Lists/operations/length", "properties": {}},
             {"id": "arr_get", "type": "Lists/operations/get", "properties": {"Index": 2}},
             {"id": "arr_concat", "type": "Lists/manipulation/concat", "properties": {"ListB": [40, 50]}}
@@ -173,7 +173,7 @@ async def test_ndarray_nodes():
     import numpy as np
     blueprint = {
         "nodes": [
-            {"id": "arr_create", "type": "Numeric Arrays/manipulation/create", "properties": {"CSVString": "10, 20, 30"}},
+            {"id": "arr_create", "type": "Numeric Arrays/manipulation/create", "properties": {"itemCount": 1, "Row 0": "10, 20, 30"}},
             {"id": "arr_len", "type": "Numeric Arrays/operations/length", "properties": {}},
             {"id": "arr_get", "type": "Numeric Arrays/operations/get", "properties": {"Index": 2}},
             {"id": "arr_concat", "type": "Numeric Arrays/manipulation/concat", "properties": {"ArrayB": np.array([40, 50])}},
@@ -213,9 +213,9 @@ async def test_ndarray_nodes():
 async def test_string_nodes():
     blueprint = {
         "nodes": [
-            {"id": "str_concat", "type": "string/concat", "properties": {"A": "Hello", "B": "World", "Separator": " "}},
+            {"id": "str_concat", "type": "string/concat", "properties": {"String A": "Hello ", "String B": "World"}},
             {"id": "str_format", "type": "string/format", "properties": {"Template": "{0} equals {1}", "Arg0": "pi", "Arg1": 3.1415}},
-            {"id": "str_case", "type": "string/case", "properties": {"InputString": "CoMfYlAb", "ToUppercase": False}}
+            {"id": "str_case", "type": "string/case", "properties": {"Text": "CoMfYlAb", "Mode": "Lower"}}
         ],
         "links": []
     }

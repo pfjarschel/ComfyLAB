@@ -45,7 +45,7 @@ interface TopBarProps {
   onUploadBlueprintClick: () => void;
   onUploadFileClick: () => void;
   onOpenSettings: () => void;
-  onGroupMacro: () => void;
+  onGroupCluster: () => void;
   onRun: () => void;
   onPause: () => void;
   onResume: () => void;
@@ -83,7 +83,7 @@ export const TopBar = ({
   onUploadBlueprintClick,
   onUploadFileClick,
   onOpenSettings,
-  onGroupMacro,
+  onGroupCluster,
   onRun,
   onPause,
   onResume,
@@ -209,7 +209,7 @@ export const TopBar = ({
         </div>
       </div>
 
-      {/* Middle section: Run/Abort + Group into Macro */}
+      {/* Middle section: Run/Abort + Group into Cluster */}
       <div className="top-bar-middle" style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
         {isRunning ? (
           <>

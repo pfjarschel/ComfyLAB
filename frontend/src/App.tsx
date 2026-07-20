@@ -34,7 +34,7 @@ import { getPinColor } from './constants/nodeLayouts';
 import { TooltipEdge } from './components/common/TooltipEdge';
 import { ScriptEditorPanel } from './components/ScriptEditorPanel';
 import { LibrarySignatureEditorPanel } from './components/LibrarySignatureEditorPanel';
-import { CreateMacroModal } from './components/CreateMacroModal';
+import { CreateClusterModal } from './components/CreateClusterModal';
 import { BreadcrumbBar } from './components/BreadcrumbBar';
 import { NodeInspectorPanel } from './components/NodeInspectorPanel';
 import { TopBar } from './components/TopBar';
@@ -207,7 +207,7 @@ const getResolvedEdgeColor = (
     return '#64748b';
   }
 
-  if (action === 'macro/boundary/input') {
+  if (action === 'cluster/boundary/input') {
     const dataType = sourceNode.data?.DataType || 'any';
     return getPinColor(dataType);
   }
@@ -353,10 +353,10 @@ function Flow() {
   });
   const [isLocked, setIsLocked] = useState(false);
 
-  // Macro state
-  const [createMacroOpen, setCreateMacroOpen] = useState(false);
+  // Cluster state
+  const [createClusterOpen, setCreateClusterOpen] = useState(false);
   const [detectedBoundary, setDetectedBoundary] = useState<any>(null);
-  const [selectedForMacro, setSelectedForMacro] = useState<string[]>([]);
+  const [selectedForCluster, setSelectedForCluster] = useState<string[]>([]);
   const [selectedNodeIds, setSelectedNodeIds] = useState<Set<string>>(new Set());
 
   // Save/Load names
@@ -848,7 +848,7 @@ function Flow() {
     }
   }, [nodes, inspectorOpen, inspectedNodeId]);
 
-  // Trigger fit view after navigating into a macro
+  // Trigger fit view after navigating into a cluster
   useEffect(() => {
     if (shouldFitView && reactFlowInstance) {
       const timer = setTimeout(() => {
@@ -995,20 +995,20 @@ function Flow() {
     onNodeDataChange(nodeId, 'code', code);
   }, [onNodeDataChange]);
 
-  const navigateToMacro = useCallback(async (nodeId: string, actionType: string) => {
+  const navigateToCluster = useCallback(async (nodeId: string, actionType: string) => {
     const currentNodes = nodesRef.current;
     const currentEdges = edgesRef.current;
-    const macroNode = currentNodes.find((n: any) => n.id === nodeId);
-    if (!macroNode) {
-      setErrorMessage(`Macro node '${nodeId}' not found. Try closing and reopening.`);
+    const clusterNode = currentNodes.find((n: any) => n.id === nodeId);
+    if (!clusterNode) {
+      setErrorMessage(`Cluster node '${nodeId}' not found. Try closing and reopening.`);
       return;
     }
-    if (!actionType.startsWith('user/macro/') && !actionType.startsWith('workspace/macro/')) return;
+    if (!actionType.startsWith('user/cluster/') && !actionType.startsWith('workspace/cluster/')) return;
 
     try {
-      const url = `${BACKEND_URL}/macro/${encodeURIComponent(actionType)}`;
+      const url = `${BACKEND_URL}/cluster/${encodeURIComponent(actionType)}`;
       const defRes = await axios.get(url);
-      const macroDef = defRes.data;
+      const clusterDef = defRes.data;
 
       const levelIndex = currentLevelIndexRef.current;
       const stack = canvasStackRef.current;
@@ -1020,8 +1020,8 @@ function Flow() {
         savedEdges: currentEdges.map((e: any) => ({ ...e })),
       };
 
-      // Build internal nodes for ReactFlow from the macro's internal_blueprint
-      const internalNodes = (macroDef.internal_blueprint?.nodes || []).map((bn: any) => ({
+      // Build internal nodes for ReactFlow from the cluster's internal_blueprint
+      const internalNodes = (clusterDef.internal_blueprint?.nodes || []).map((bn: any) => ({
         id: bn.id,
         type: 'actionNode',
         position: bn.position || { x: Math.random() * 200 + 50, y: Math.random() * 200 + 50 },
@@ -1032,7 +1032,7 @@ function Flow() {
           onChange: onNodeDataChange,
           onEditScript: onEditScript,
           onEditLibrarySignature: onEditLibrarySignature,
-          onNavigateInto: (nid: string, atype: string) => navigateToMacro(nid, atype),
+          onNavigateInto: (nid: string, atype: string) => navigateToCluster(nid, atype),
           onInspect: handleInspectNode,
           onResizeStart: () => pushStateToHistoryRef.current(),
           onResizeEnd: () => setIsDirty(true),
@@ -1045,8 +1045,8 @@ function Flow() {
         height: bn.height,
       }));
 
-      const internalEdges = (macroDef.internal_blueprint?.links || []).map((bl: any) => {
-        const srcNode = (macroDef.internal_blueprint?.nodes || []).find((n: any) => n.id === bl.source_node);
+      const internalEdges = (clusterDef.internal_blueprint?.links || []).map((bl: any) => {
+        const srcNode = (clusterDef.internal_blueprint?.nodes || []).find((n: any) => n.id === bl.source_node);
         const srcActionType = srcNode?.type;
         const sourceData = srcNode?.properties || {};
 
@@ -1056,7 +1056,7 @@ function Flow() {
         if (isExec) {
           pinColor = '#a78bfa';
         } else if (srcActionType) {
-          if (srcActionType === 'macro/boundary/input') {
+          if (srcActionType === 'cluster/boundary/input') {
             const dataType = sourceData.DataType || 'any';
             pinColor = getPinColor(dataType);
           } else if (srcActionType && srcActionType.startsWith('script/')) {
@@ -1086,10 +1086,10 @@ function Flow() {
       });
 
       const layout = nodeRegistry?.[actionType];
-      const macroName = layout?.name || actionType.split('/').pop() || 'Macro';
+      const clusterName = layout?.name || actionType.split('/').pop() || 'Cluster';
 
       const newLevel = {
-        breadcrumbLabel: macroName,
+        breadcrumbLabel: clusterName,
         type: actionType,
       };
       updatedStack.push(newLevel);
@@ -1100,8 +1100,8 @@ function Flow() {
       setErrorMessage(null);
       setShouldFitView(true);
     } catch (err: any) {
-      console.error('Failed to navigate into macro:', err);
-      setErrorMessage(`Failed to open macro: ${err.response?.data?.detail || err.message}`);
+      console.error('Failed to navigate into cluster:', err);
+      setErrorMessage(`Failed to open cluster: ${err.response?.data?.detail || err.message}`);
     }
   }, [nodeRegistry, onNodeDataChange, onEditScript, onEditLibrarySignature, setNodes, setEdges, setIsDirty]);
 
@@ -1121,11 +1121,11 @@ function Flow() {
     onChange: onNodeDataChange,
     onEditScript: onEditScript,
     onEditLibrarySignature: onEditLibrarySignature,
-    onNavigateInto: navigateToMacro,
+    onNavigateInto: navigateToCluster,
     onInspect: handleInspectNode,
     onResizeStart: () => pushStateToHistoryRef.current(),
     onResizeEnd: () => setIsDirty(true),
-  }), [onNodeDataChange, onEditScript, onEditLibrarySignature, navigateToMacro, handleInspectNode, setIsDirty]);
+  }), [onNodeDataChange, onEditScript, onEditLibrarySignature, navigateToCluster, handleInspectNode, setIsDirty]);
 
   const {
     pushStateToHistory,
@@ -1420,7 +1420,7 @@ return {
       const pin = (node.data?.customOutputs || []).find((p: any) => p.name === pinName);
       return pin?.type || 'any';
     }
-    if (action === 'macro/boundary/input') return node.data?.DataType || 'any';
+    if (action === 'cluster/boundary/input') return node.data?.DataType || 'any';
     const layout = registryRef.current?.[action];
     if (layout) {
       if (layout.execOuts?.includes(pinName)) return 'exec';
@@ -1795,12 +1795,12 @@ return {
   }, []);
 
 
-  // Save active macro edits to the backend
-  const saveCurrentMacroEdits = useCallback(async () => {
+  // Save active cluster edits to the backend
+  const saveCurrentClusterEdits = useCallback(async () => {
     const curLevelIndex = currentLevelIndexRef.current;
     if (curLevelIndex === 0) return;
     const currentLevel = canvasStackRef.current[curLevelIndex];
-    if (currentLevel && (currentLevel.type.startsWith('user/macro/') || currentLevel.type.startsWith('workspace/macro/'))) {
+    if (currentLevel && (currentLevel.type.startsWith('user/cluster/') || currentLevel.type.startsWith('workspace/cluster/'))) {
       try {
         const exclude = ['action', 'status', 'resultMessage', 'onChange', 'results', 'onEditScript', 'onEditFFISignature', 'onEditLibrarySignature', 'onNavigateInto', 'onInspect'];
 
@@ -1822,12 +1822,12 @@ return {
           target_pin: e.targetHandle || '',
         }));
 
-        const defRes = await axios.get(`${BACKEND_URL}/macro/${encodeURIComponent(currentLevel.type)}`);
+        const defRes = await axios.get(`${BACKEND_URL}/cluster/${encodeURIComponent(currentLevel.type)}`);
         const existingDef = defRes.data;
 
-        await axios.post(`${BACKEND_URL}/nodes/publish_macro`, {
+        await axios.post(`${BACKEND_URL}/nodes/publish_cluster`, {
           display_name: existingDef.display_name || existingDef.name || currentLevel.type,
-          category: existingDef.category || 'User/Macros',
+          category: existingDef.category || 'User/Clusters',
           icon: existingDef.icon || '📦',
           description: existingDef.description || '',
           internal_blueprint: { nodes: blueprintNodes, links: blueprintLinks },
@@ -1837,7 +1837,7 @@ return {
         });
         await fetchRegistry();
       } catch (err) {
-        console.error('Failed to save macro edits:', err);
+        console.error('Failed to save cluster edits:', err);
       }
     }
   }, [nodeRegistry, fetchRegistry]);
@@ -1877,12 +1877,12 @@ return {
       savedAnnotations: annotationsRef.current,
     };
 
-    // If navigating out of a macro level, persist changes to the macro definition
-    await saveCurrentMacroEdits();
+    // If navigating out of a cluster level, persist changes to the cluster definition
+    await saveCurrentClusterEdits();
 
     const targetLevel = updatedStack[index];
     // Recreate node and data object references to force React Flow to rebuild the components
-    // and visually pick up the updated macro inputs/outputs registry schema immediately.
+    // and visually pick up the updated cluster inputs/outputs registry schema immediately.
     const restoredNodes = (targetLevel.savedNodes || []).map((node: any) => ({
       ...node,
       data: getBaseNodeData(node.data)
@@ -1895,7 +1895,7 @@ return {
     updatedStack.length = index + 1;
     setCanvasStack(updatedStack);
     setCurrentLevelIndex(index);
-  }, [saveCurrentMacroEdits, setNodes, setEdges, setAnnotations, getBaseNodeData]);
+  }, [saveCurrentClusterEdits, setNodes, setEdges, setAnnotations, getBaseNodeData]);
 
 
 
@@ -1964,7 +1964,7 @@ return {
           isExec = true;
           pinColor = '#a78bfa';
         } else {
-          if (sourceNode?.data?.action === 'macro/boundary/input') {
+          if (sourceNode?.data?.action === 'cluster/boundary/input') {
             const dataType = sourceNode.data.DataType || 'any';
             pinColor = getPinColor(dataType);
           } else if (sourceNode?.data?.action && sourceNode.data.action.startsWith('script/')) {
@@ -2463,21 +2463,21 @@ return {
 
 
 
-  // Group selected nodes into a macro
-  const handleGroupIntoMacro = useCallback(() => {
+  // Group selected nodes into a cluster
+  const handleGroupIntoCluster = useCallback(() => {
     if (selectedNodeIds.size < 2) {
-      alert('Select at least 2 nodes on the canvas to group into a macro.\n\nClick nodes while holding Shift, or drag a selection box.');
+      alert('Select at least 2 nodes on the canvas to group into a cluster.\n\nClick nodes while holding Shift, or drag a selection box.');
       return;
     }
 
     const boundary = detectBoundaryPins(selectedNodeIds, nodes, edges, nodeRegistry);
     setDetectedBoundary(boundary);
-    setSelectedForMacro(Array.from(selectedNodeIds));
-    setCreateMacroOpen(true);
+    setSelectedForCluster(Array.from(selectedNodeIds));
+    setCreateClusterOpen(true);
   }, [selectedNodeIds, nodes, edges, nodeRegistry]);
 
-  // Collapse selected nodes into a single macro node on the canvas
-  const collapseIntoMacroNode = useCallback((typeName: string, macroNodeData: any) => {
+  // Collapse selected nodes into a single cluster node on the canvas
+  const collapseIntoClusterNode = useCallback((typeName: string, clusterNodeData: any) => {
     if (selectedNodeIds.size === 0) return;
 
     pushStateToHistory();
@@ -2497,15 +2497,15 @@ return {
     const centerX = (minX + maxX) / 2;
     const centerY = (minY + maxY) / 2;
 
-    // Create macro node
-    const macroNodeId = getId();
-    const macroNode: any = {
-      id: macroNodeId,
+    // Create cluster node
+    const clusterNodeId = getId();
+    const clusterNode: any = {
+      id: clusterNodeId,
       type: 'actionNode',
       position: { x: centerX - 105, y: centerY - 80 },
       data: getBaseNodeData({
         action: typeName,
-        ...macroNodeData,
+        ...clusterNodeData,
       }),
       style: {
         width: 230,
@@ -2530,11 +2530,11 @@ return {
       const origEdge = edges.find((e: any) => e.target === pin.maps_to.node_id && e.targetHandle === pin.maps_to.pin);
       if (origEdge) {
         newEdges.push({
-          id: `macro_bdi_${origEdge.id}`,
+          id: `cluster_bdi_${origEdge.id}`,
           type: origEdge.type || 'default',
           source: origEdge.source,
           sourceHandle: origEdge.sourceHandle,
-          target: macroNodeId,
+          target: clusterNodeId,
           targetHandle: pin.name,
           style: origEdge.style,
           markerEnd: origEdge.markerEnd,
@@ -2546,11 +2546,11 @@ return {
       const origEdge = edges.find((e: any) => e.target === pin.maps_to.node_id && e.targetHandle === pin.maps_to.pin);
       if (origEdge) {
         newEdges.push({
-          id: `macro_ei_${origEdge.id}`,
+          id: `cluster_ei_${origEdge.id}`,
           type: origEdge.type || 'default',
           source: origEdge.source,
           sourceHandle: origEdge.sourceHandle,
-          target: macroNodeId,
+          target: clusterNodeId,
           targetHandle: pin.name,
           style: origEdge.style,
           markerEnd: origEdge.markerEnd,
@@ -2562,9 +2562,9 @@ return {
       const origEdge = edges.find((e: any) => e.source === pin.maps_from.node_id && e.sourceHandle === pin.maps_from.pin);
       if (origEdge) {
         newEdges.push({
-          id: `macro_bdo_${origEdge.id}`,
+          id: `cluster_bdo_${origEdge.id}`,
           type: origEdge.type || 'default',
-          source: macroNodeId,
+          source: clusterNodeId,
           sourceHandle: pin.name,
           target: origEdge.target,
           targetHandle: origEdge.targetHandle,
@@ -2578,9 +2578,9 @@ return {
       const origEdge = edges.find((e: any) => e.source === pin.maps_from.node_id && e.sourceHandle === pin.maps_from.pin);
       if (origEdge) {
         newEdges.push({
-          id: `macro_eo_${origEdge.id}`,
+          id: `cluster_eo_${origEdge.id}`,
           type: origEdge.type || 'default',
-          source: macroNodeId,
+          source: clusterNodeId,
           sourceHandle: pin.name,
           target: origEdge.target,
           targetHandle: origEdge.targetHandle,
@@ -2590,20 +2590,20 @@ return {
       }
     });
 
-    // Remove selected nodes and add macro node
+    // Remove selected nodes and add cluster node
     const remainingNodes = nodes.filter((n: any) => !selectedNodeIds.has(n.id));
-    remainingNodes.push(macroNode);
+    remainingNodes.push(clusterNode);
 
     setNodes(remainingNodes);
     setEdges(newEdges);
-    setCreateMacroOpen(false);
+    setCreateClusterOpen(false);
   }, [nodes, edges, nodeRegistry, selectedNodeIds, getBaseNodeData, setNodes, setEdges, pushStateToHistory]);
 
 
   const handleSaveBlueprint = useCallback(async () => {
     const curLevelIndex = currentLevelIndexRef.current;
     if (curLevelIndex > 0) {
-      await saveCurrentMacroEdits();
+      await saveCurrentClusterEdits();
     }
     const payload = getSavePayload();
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
@@ -2616,7 +2616,7 @@ return {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
     setIsDirty(false);
-  }, [currentBlueprintName, getSavePayload, saveCurrentMacroEdits]);
+  }, [currentBlueprintName, getSavePayload, saveCurrentClusterEdits]);
   const loadBlueprintData = (payload: any, filename: string) => {
     const restoredNodes = payload.nodes.map((node: any) => ({
       ...node,
@@ -2780,7 +2780,7 @@ return {
     if (!currentBlueprintName || rootNodes.length === 0) return;
 
     if (curLevelIndex > 0) {
-      await saveCurrentMacroEdits();
+      await saveCurrentClusterEdits();
     }
 
     const payload = getSavePayload();
@@ -2809,7 +2809,7 @@ return {
     }
 
     if (curLevelIndex > 0) {
-      await saveCurrentMacroEdits();
+      await saveCurrentClusterEdits();
     }
 
     const payload = getSavePayload();
@@ -3387,7 +3387,7 @@ return {
           setUploadFileOpen(true);
         }}
           onOpenSettings={() => setSettingsOpen(true)}
-          onGroupMacro={handleGroupIntoMacro}
+          onGroupCluster={handleGroupIntoCluster}
           onRun={handleRun}
           onPause={handlePause}
           onResume={handleResume}
@@ -3478,7 +3478,7 @@ return {
               <div className="canvas-error-alert glass-panel" style={{ border: '1px solid #f59e0b', background: 'rgba(245, 158, 11, 0.08)', display: 'flex', alignItems: 'center', gap: '10px', zIndex: 10 }}>
                 <span className="error-icon" style={{ color: '#f59e0b' }}>⚠️</span>
                 <span className="error-message" style={{ color: '#f59e0b', flex: 1, margin: 0 }}>
-                  You have {unauthorizedNodesCount} unauthorized custom node(s)/macro(s) in your workspace.
+                  You have {unauthorizedNodesCount} unauthorized custom node(s)/cluster(s) in your workspace.
                 </span>
                 <button 
                   className="button-primary" 
@@ -3513,12 +3513,12 @@ return {
               )}
               {selectedNodeIds.size >= 2 && (
                 <button
-                  className="button-primary macro-group-btn"
-                  onClick={handleGroupIntoMacro}
+                  className="button-primary cluster-group-btn"
+                  onClick={handleGroupIntoCluster}
                   disabled={isRunning}
-                  title={isRunning ? "Cannot group nodes while an execution is running" : "Group selected nodes into a macro"}
+                  title={isRunning ? "Cannot group nodes while an execution is running" : "Group selected nodes into a cluster"}
                 >
-                  📦 Group into Macro ({selectedNodeIds.size})
+                  📦 Group into Cluster ({selectedNodeIds.size})
                 </button>
               )}
             </div>
@@ -3772,7 +3772,7 @@ return {
               onDeleteNode={handleDeleteNodeFromMenu}
               onDeleteEdge={handleDeleteEdgeFromMenu}
               onEditScript={onEditScript}
-              onGroupIntoMacro={handleGroupIntoMacro}
+              onGroupIntoCluster={handleGroupIntoCluster}
               onClearNodeData={handleClearNodeData}
               onClearAllNodesData={handleClearAllNodesData}
               onReplaceNode={handleReplaceNode}
@@ -3943,15 +3943,15 @@ return {
           );
         })()}
 
-        {/* --- CREATE MACRO MODAL --- */}
-        {createMacroOpen && (
-          <CreateMacroModal
+        {/* --- CREATE CLUSTER MODAL --- */}
+        {createClusterOpen && (
+          <CreateClusterModal
             isOpen={true}
             detectedBoundary={detectedBoundary || { exec_ins: [], exec_outs: [], data_ins: [], data_outs: [] }}
-            selectedNodeIds={selectedForMacro}
+            selectedNodeIds={selectedForCluster}
             internalBlueprint={{
               nodes: nodes
-                .filter((n: any) => selectedForMacro.includes(n.id))
+                .filter((n: any) => selectedForCluster.includes(n.id))
                 .map((n: any) => ({ id: n.id, type: n.data.action, position: n.position, properties: (() => {
                   const props: any = {};
                   const exclude = ['action', 'status', 'resultMessage', 'onChange', 'results', 'onEditScript', 'onEditFFISignature', 'onEditLibrarySignature', 'onNavigateInto', 'onInspect'];
@@ -3959,7 +3959,7 @@ return {
                   return props;
                 })() })),
               links: edges
-                .filter((e: any) => selectedForMacro.includes(e.source) && selectedForMacro.includes(e.target))
+                .filter((e: any) => selectedForCluster.includes(e.source) && selectedForCluster.includes(e.target))
                 .map((e: any) => {
                   const sourceNode = nodes.find((n: any) => n.id === e.source);
                   const layout = nodeRegistry?.[sourceNode?.data?.action || ''];
@@ -3968,9 +3968,9 @@ return {
                 })
             }}
             hasActiveWorkspace={!!workspacePath}
-            onClose={() => setCreateMacroOpen(false)}
-            onCreated={(typeName, macroNodeData) => {
-              collapseIntoMacroNode(typeName, macroNodeData);
+            onClose={() => setCreateClusterOpen(false)}
+            onCreated={(typeName, clusterNodeData) => {
+              collapseIntoClusterNode(typeName, clusterNodeData);
               fetchRegistry();
             }}
           />

@@ -78,13 +78,13 @@ export const NodeInspectorPanel = ({
 
   const action = node.data?.action;
   const isScriptNode = action === 'script/python';
-  const isMacro = action && (action.startsWith('user/macro/') || action.startsWith('workspace/macro/'));
+  const isCluster = action && (action.startsWith('user/cluster/') || action.startsWith('workspace/cluster/'));
   const isLibraryCallNode = !!action && ['ffi/call', 'library/call', 'dll/so/call'].includes(action.toLowerCase().replace(/\\/g, ''));
 
   // Get layout details from registry
   const registryLayout = nodeRegistry?.[action] as NodeSchema | undefined;
   
-  // Construct dynamic layout for script nodes or macros if layout doesn't fully exist
+  // Construct dynamic layout for script nodes or clusters if layout doesn't fully exist
   let layout: NodeSchema | undefined = registryLayout;
   if (isScriptNode && registryLayout) {
     layout = {
@@ -140,9 +140,9 @@ export const NodeInspectorPanel = ({
   }
 
   const displayName = node.data?.customName || layout?.name || action || 'Unknown Node';
-  const category = layout?.category || (isMacro ? 'Macro' : 'General');
-  const icon = layout?.icon || (isMacro ? '📦' : '⚙️');
-  const description = layout?.description || (isMacro ? 'Custom grouped macro node containing sub-workflows.' : '');
+  const category = layout?.category || (isCluster ? 'Cluster' : 'General');
+  const icon = layout?.icon || (isCluster ? '📦' : '⚙️');
+  const description = layout?.description || (isCluster ? 'Custom grouped cluster node containing sub-workflows.' : '');
   const author = layout?.author || '';
   const filepath = layout?.filepath || '';
 
@@ -324,7 +324,7 @@ export const NodeInspectorPanel = ({
             </div>
           )}
 
-          {isMacro && node.data?.onNavigateInto && (
+          {isCluster && node.data?.onNavigateInto && (
             <button
               className="script-edit-button nodrag"
               style={{
@@ -335,7 +335,7 @@ export const NodeInspectorPanel = ({
               }}
               onClick={() => node.data.onNavigateInto(nodeId, action)}
             >
-              📦 Open Macro Blueprint
+              📦 Open Cluster Blueprint
             </button>
           )}
         </div>

@@ -171,13 +171,13 @@ async def reload_node_registry():
     Rescans the filesystem for nodes and returns the updated schema.
     """
     from comfylab.nodes.loader import load_all_nodes
-    from comfylab.engine.registry import NODE_REGISTRY, load_all_macros_deferred, invalidate_schema_cache
+    from comfylab.engine.registry import NODE_REGISTRY, load_all_clusters_deferred, invalidate_schema_cache
     from comfylab.engine.security import clear_signature_cache
     NODE_REGISTRY.clear()
     invalidate_schema_cache()
     clear_signature_cache()
     load_all_nodes()
-    load_all_macros_deferred(force=True)
+    load_all_clusters_deferred(force=True)
     return get_all_nodes_schema()
 
 

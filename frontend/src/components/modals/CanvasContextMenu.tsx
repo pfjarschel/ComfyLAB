@@ -49,7 +49,7 @@ interface CanvasContextMenuProps {
   onDeleteNode: (id: string) => void;
   onDeleteEdge: (id: string) => void;
   onEditScript: (id: string, code: string, action: string) => void;
-  onGroupIntoMacro: () => void;
+  onGroupIntoCluster: () => void;
   onClearNodeData: (id: string) => void;
   onClearAllNodesData: () => void;
   onReplaceNode: (nodeId: string, replacementAction: string) => void;
@@ -86,7 +86,7 @@ export const CanvasContextMenu = ({
   onDeleteNode,
   onDeleteEdge,
   onEditScript,
-  onGroupIntoMacro,
+  onGroupIntoCluster,
   onClearNodeData,
   onClearAllNodesData,
   onReplaceNode,
@@ -341,8 +341,8 @@ export const CanvasContextMenu = ({
           {selectedNodeIds.size >= 2 && (
             <>
               <div className="context-menu-divider" />
-              <button className="context-menu-item" onClick={() => { onGroupIntoMacro(); onClose(); }}>
-                <span>📦</span> Group into Macro
+              <button className="context-menu-item" onClick={() => { onGroupIntoCluster(); onClose(); }}>
+                <span>📦</span> Group into Cluster
               </button>
             </>
           )}
@@ -589,8 +589,8 @@ export const CanvasContextMenu = ({
           {selectedNodeIds.size >= 2 && (
             <>
               <div className="context-menu-divider" />
-              <button className="context-menu-item" onClick={() => { onGroupIntoMacro(); onClose(); }}>
-                <span>📦</span> Group into Macro
+              <button className="context-menu-item" onClick={() => { onGroupIntoCluster(); onClose(); }}>
+                <span>📦</span> Group into Cluster
               </button>
             </>
           )}

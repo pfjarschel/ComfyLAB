@@ -114,8 +114,8 @@ def register_node(type_name: str):
         # Prepend "Temporary/" to category if node is loaded from a temp directory
         try:
             from pathlib import Path
-            if hasattr(cls, "_macro_file_path") and cls._macro_file_path:
-                source_path = Path(cls._macro_file_path).resolve()
+            if hasattr(cls, "_cluster_file_path") and cls._cluster_file_path:
+                source_path = Path(cls._cluster_file_path).resolve()
             else:
                 import inspect
                 source_path = Path(inspect.getfile(cls)).resolve()
@@ -129,8 +129,8 @@ def register_node(type_name: str):
 
         existing = NODE_REGISTRY.get(type_name)
         if existing is not None and existing is not cls:
-            new_src = getattr(cls, "_macro_file_path", "") or _safe_getfile(cls)
-            old_src = getattr(existing, "_macro_file_path", "") or _safe_getfile(existing)
+            new_src = getattr(cls, "_cluster_file_path", "") or _safe_getfile(cls)
+            old_src = getattr(existing, "_cluster_file_path", "") or _safe_getfile(existing)
             logger.warning(
                 "Duplicate node type '%s' registered from '%s', overwriting previous registration from '%s'.",
                 type_name, new_src or "<unknown>", old_src or "<unknown>"
@@ -316,16 +316,16 @@ def get_all_nodes_schema() -> Dict[str, Any]:
 from comfylab.nodes.loader import load_all_nodes
 load_all_nodes()
 
-# Macro loading is deferred to avoid circular imports during module initialization.
+# Cluster loading is deferred to avoid circular imports during module initialization.
 # It is called explicitly from the FastAPI startup event and from the /nodes/reload endpoint.
-_macros_loaded = False
+_clusters_loaded = False
 
 
-def load_all_macros_deferred(force: bool = False):
-    global _macros_loaded
-    if _macros_loaded and not force:
+def load_all_clusters_deferred(force: bool = False):
+    global _clusters_loaded
+    if _clusters_loaded and not force:
         return
-    from comfylab.nodes.loader import load_all_macros
-    load_all_macros()
-    _macros_loaded = True
+    from comfylab.nodes.loader import load_all_clusters
+    load_all_clusters()
+    _clusters_loaded = True
 

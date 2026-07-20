@@ -5,7 +5,7 @@ import logging
 from pathlib import Path
 from comfylab.engine.registry import NODE_REGISTRY, register_node
 from comfylab.nodes.base import BaseNode, ExecIn, DataIn, DataOut
-from comfylab.engine.config import get_global_user_macros_dir, get_config
+from comfylab.engine.config import get_global_user_clusters_dir, get_config
 from backend.workspace import set_workspace_path
 
 
@@ -29,7 +29,7 @@ def isolated_config(tmp_path, monkeypatch):
     yield base_dir
 
 
-def _make_macro_json(type_name, inner_nodes, boundary_pins=None):
+def _make_cluster_json(type_name, inner_nodes, boundary_pins=None):
     if boundary_pins is None:
         boundary_pins = {"exec_ins": [], "exec_outs": [], "data_ins": [], "data_outs": []}
     return {
@@ -44,8 +44,8 @@ def _make_macro_json(type_name, inner_nodes, boundary_pins=None):
     }
 
 
-def test_broken_macro_does_not_shadow_working(tmp_path):
-    type_name = "user/macro/test_shadow"
+def test_broken_cluster_does_not_shadow_working(tmp_path):
+    type_name = "user/cluster/test_shadow"
 
     class DummyNode(BaseNode):
         inputs_def = []
@@ -53,21 +53,21 @@ def test_broken_macro_does_not_shadow_working(tmp_path):
 
     register_node("test/valid_dep")(DummyNode)
 
-    good_data = _make_macro_json(type_name, [{"id": "n1", "type": "test/valid_dep", "position": {}, "properties": {}}])
-    bad_data = _make_macro_json(type_name, [{"id": "n1", "type": "visa/pfj_osc/stale_type", "position": {}, "properties": {}}])
+    good_data = _make_cluster_json(type_name, [{"id": "n1", "type": "test/valid_dep", "position": {}, "properties": {}}])
+    bad_data = _make_cluster_json(type_name, [{"id": "n1", "type": "visa/pfj_osc/stale_type", "position": {}, "properties": {}}])
 
-    good_file = tmp_path / "good.macro.json"
-    bad_file = tmp_path / "bad.macro.json"
+    good_file = tmp_path / "good.cluster.json"
+    bad_file = tmp_path / "bad.cluster.json"
     good_file.write_text(json.dumps(good_data))
     bad_file.write_text(json.dumps(bad_data))
 
-    from comfylab.nodes.macro import load_macro_from_file
+    from comfylab.nodes.cluster import load_cluster_from_file
 
-    load_macro_from_file(str(good_file))
+    load_cluster_from_file(str(good_file))
     assert type_name in NODE_REGISTRY
     assert getattr(NODE_REGISTRY[type_name], "broken", False) is False
 
-    load_macro_from_file(str(bad_file))
+    load_cluster_from_file(str(bad_file))
     assert type_name in NODE_REGISTRY
     assert getattr(NODE_REGISTRY[type_name], "broken", False) is False
     assert "stale_type" not in getattr(NODE_REGISTRY[type_name], "broken_reason", "")
@@ -76,26 +76,26 @@ def test_broken_macro_does_not_shadow_working(tmp_path):
     NODE_REGISTRY.pop("test/valid_dep", None)
 
 
-def test_broken_macro_registered_when_no_good_copy(tmp_path, caplog):
-    type_name = "user/macro/test_broken_standalone"
-    bad_data = _make_macro_json(type_name, [
+def test_broken_cluster_registered_when_no_good_copy(tmp_path, caplog):
+    type_name = "user/cluster/test_broken_standalone"
+    bad_data = _make_cluster_json(type_name, [
         {"id": "n1", "type": "visa/pfj_stale/fake_node", "position": {}, "properties": {}},
-        {"id": "n2", "type": "math/arithmetic/multiply", "position": {}, "properties": {}},
+        {"id": "n2", "type": "math/basic/multiply", "position": {}, "properties": {}},
     ])
-    macro_file = tmp_path / "stale.macro.json"
-    macro_file.write_text(json.dumps(bad_data))
+    cluster_file = tmp_path / "stale.cluster.json"
+    cluster_file.write_text(json.dumps(bad_data))
 
-    from comfylab.nodes.macro import load_macro_from_file
+    from comfylab.nodes.cluster import load_cluster_from_file
 
     NODE_REGISTRY.pop(type_name, None)
-    with caplog.at_level(logging.ERROR, logger="comfylab.nodes.macro"):
-        load_macro_from_file(str(macro_file))
+    with caplog.at_level(logging.ERROR, logger="comfylab.nodes.cluster"):
+        load_cluster_from_file(str(cluster_file))
 
     assert type_name in NODE_REGISTRY
     cls = NODE_REGISTRY[type_name]
     assert getattr(cls, "broken", False) is True
     assert "visa/pfj_stale/fake_node" in getattr(cls, "broken_reason", "")
-    assert "math/arithmetic/multiply" not in getattr(cls, "broken_reason", "")
+    assert "math/basic/multiply" not in getattr(cls, "broken_reason", "")
     assert any("broken" in r.message.lower() or "missing" in r.message.lower() for r in caplog.records)
 
     NODE_REGISTRY.pop(type_name, None)
@@ -107,12 +107,12 @@ def test_register_node_conflict_warning(caplog):
     class NodeA(BaseNode):
         inputs_def = []
         outputs_def = []
-        _macro_file_path = "/fake/path_a.py"
+        _cluster_file_path = "/fake/path_a.py"
 
     class NodeB(BaseNode):
         inputs_def = []
         outputs_def = []
-        _macro_file_path = "/fake/path_b.py"
+        _cluster_file_path = "/fake/path_b.py"
 
     NODE_REGISTRY.pop(type_name, None)
 

@@ -37,7 +37,7 @@ class BlueprintModel(BaseModel):
     links: List[LinkModel]
 
 
-# --- Macro Definition Models ---
+# --- Cluster Definition Models ---
 
 class BoundaryMappingModel(BaseModel):
     """Maps a boundary pin to an internal node pin."""
@@ -81,11 +81,11 @@ class BoundaryPinsModel(BaseModel):
     data_outs: List[BoundaryDataOutModel] = Field(default_factory=list)
 
 
-class MacroDefinitionModel(BaseModel):
-    """Represents a macro (.macro.json) definition file."""
+class ClusterDefinitionModel(BaseModel):
+    """Represents a cluster (.cluster.json) definition file."""
     name: str
     type_name: str
-    category: str = "User/Macros"
+    category: str = "User/Clusters"
     icon: str = "📦"
     display_name: str
     description: str = ""

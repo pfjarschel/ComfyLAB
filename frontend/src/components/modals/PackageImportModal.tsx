@@ -48,7 +48,7 @@ export const PackageImportModal = ({
 
   const hasUntrusted = !packagePreviewData.blueprint_status?.is_trusted || 
                        packagePreviewData.nodes?.some((n: any) => !n.is_trusted) || 
-                       packagePreviewData.macros?.some((m: any) => !m.is_trusted);
+                       packagePreviewData.clusters?.some((m: any) => !m.is_trusted);
 
   return (
     <div className="modal-overlay" style={{ zIndex: 1001 }} onClick={onClose}>
@@ -100,16 +100,16 @@ export const PackageImportModal = ({
             </div>
           )}
 
-          {/* Macros List */}
-          {packagePreviewData.macros && packagePreviewData.macros.length > 0 && (
+          {/* Clusters List */}
+          {packagePreviewData.clusters && packagePreviewData.clusters.length > 0 && (
             <div style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px' }}>
-              <h4 style={{ margin: '0 0 6px 0', fontSize: '0.9rem', color: 'var(--text-color)' }}>Macros:</h4>
+              <h4 style={{ margin: '0 0 6px 0', fontSize: '0.9rem', color: 'var(--text-color)' }}>Clusters:</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                {packagePreviewData.macros.map((macro: any) => (
-                  <div key={macro.filename} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '6px 10px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{macro.filename}</span>
-                    <span style={{ fontSize: '0.8rem', color: macro.is_trusted ? '#10b981' : '#f59e0b' }}>
-                      {macro.is_trusted ? '🛡️ Trusted' : '⚠️ Untrusted'}
+                {packagePreviewData.clusters.map((cluster: any) => (
+                  <div key={cluster.filename} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '6px 10px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{cluster.filename}</span>
+                    <span style={{ fontSize: '0.8rem', color: cluster.is_trusted ? '#10b981' : '#f59e0b' }}>
+                      {cluster.is_trusted ? '🛡️ Trusted' : '⚠️ Untrusted'}
                     </span>
                   </div>
                 ))}

@@ -156,8 +156,8 @@ def set_node_context(node):
     
     # Resolve node python file path
     file_path = "Unknown"
-    if hasattr(node, "_macro_file_path") and node._macro_file_path:
-        file_path = node._macro_file_path
+    if hasattr(node, "_cluster_file_path") and node._cluster_file_path:
+        file_path = node._cluster_file_path
     else:
         try:
             file_path = inspect.getfile(node.__class__)

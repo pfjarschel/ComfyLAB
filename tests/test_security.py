@@ -80,7 +80,7 @@ def test_sign_verify_json():
     data = {
         "name": "Test Blueprint",
         "nodes": [
-            {"id": "1", "type": "math/arithmetic/add"}
+            {"id": "1", "type": "math/basic/add"}
         ],
         "links": []
     }

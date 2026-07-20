@@ -65,19 +65,19 @@ def extract_zip_safely(zip_path: Path, extract_dir: Path):
 
 def find_blueprint_dependencies(blueprint: dict) -> Tuple[List[Path], List[Path]]:
     """
-    Scans a blueprint dict for custom nodes and macros.
-    Returns (custom_node_files: List[Path], macro_files: List[Path]).
+    Scans a blueprint dict for custom nodes and clusters.
+    Returns (custom_node_files: List[Path], cluster_files: List[Path]).
     """
     from comfylab.engine.registry import NODE_REGISTRY
     
     core_dir = Path(comfylab.__file__).parent.resolve()
     
     custom_node_files = set()
-    macro_files = set()
+    cluster_files = set()
     
-    # We want to scan recursively if macros contain other custom nodes/macros
+    # We want to scan recursively if clusters contain other custom nodes/clusters
     blueprints_to_scan = [blueprint]
-    scanned_macros = set()
+    scanned_clusters = set()
     
     while blueprints_to_scan:
         current_bp = blueprints_to_scan.pop(0)
@@ -91,22 +91,22 @@ def find_blueprint_dependencies(blueprint: dict) -> Tuple[List[Path], List[Path]
                 
             cls = NODE_REGISTRY[node_type]
             
-            # Check if it is a macro
-            if hasattr(cls, "_macro_file_path") and cls._macro_file_path:
-                macro_path = Path(cls._macro_file_path).resolve()
-                if macro_path.exists() and macro_path not in macro_files:
-                    macro_files.add(macro_path)
+            # Check if it is a cluster
+            if hasattr(cls, "_cluster_file_path") and cls._cluster_file_path:
+                cluster_path = Path(cls._cluster_file_path).resolve()
+                if cluster_path.exists() and cluster_path not in cluster_files:
+                    cluster_files.add(cluster_path)
                     
-                    # Read the macro's internal blueprint and scan it too!
-                    if node_type not in scanned_macros:
-                        scanned_macros.add(node_type)
+                    # Read the cluster's internal blueprint and scan it too!
+                    if node_type not in scanned_clusters:
+                        scanned_clusters.add(node_type)
                         try:
-                            with open(macro_path, "r", encoding="utf-8") as f:
-                                macro_data = json.load(f)
-                            internal_bp = macro_data.get("internal_blueprint", {})
+                            with open(cluster_path, "r", encoding="utf-8") as f:
+                                cluster_data = json.load(f)
+                            internal_bp = cluster_data.get("internal_blueprint", {})
                             blueprints_to_scan.append(internal_bp)
                         except Exception as e:
-                            logger.error(f"Failed to parse macro internal blueprint for {node_type}: {e}")
+                            logger.error(f"Failed to parse cluster internal blueprint for {node_type}: {e}")
             else:
                 # Normal node: check if it's dynamic
                 try:
@@ -117,7 +117,7 @@ def find_blueprint_dependencies(blueprint: dict) -> Tuple[List[Path], List[Path]
                 except Exception:
                     pass
                     
-    return list(custom_node_files), list(macro_files)
+    return list(custom_node_files), list(cluster_files)
 
 
 @router.get("/workspace/packages")
@@ -161,7 +161,7 @@ async def delete_package(filename: str):
 
 @router.post("/workspace/packages")
 async def export_package(payload: PackageExportPayload):
-    """Bundles a blueprint and its custom node/macro dependencies into a .cfy package."""
+    """Bundles a blueprint and its custom node/cluster dependencies into a .cfy package."""
     ws_path = get_workspace_path()
     packages_dir = ws_path / "packages"
     packages_dir.mkdir(parents=True, exist_ok=True)
@@ -173,7 +173,7 @@ async def export_package(payload: PackageExportPayload):
     package_path = packages_dir / filename
     
     # 1. Scan for dependencies
-    custom_nodes, macros = find_blueprint_dependencies(payload.blueprint)
+    custom_nodes, clusters = find_blueprint_dependencies(payload.blueprint)
     
     # 2. Automatically sign them using local host key before bundling
     from comfylab.engine.security import sign_python_file, sign_json
@@ -194,16 +194,16 @@ async def export_package(payload: PackageExportPayload):
                 shutil.copy2(node_path, target_node_path)
                 sign_python_file(target_node_path)
                 
-        # Save signed macros
-        macros_temp_dir = temp_dir / "macros"
-        if macros:
-            macros_temp_dir.mkdir()
-            for macro_path in macros:
-                with open(macro_path, "r", encoding="utf-8") as f:
-                    macro_data = json.load(f)
-                signed_macro = sign_json(macro_data)
-                target_macro_path = macros_temp_dir / macro_path.name
-                target_macro_path.write_text(json.dumps(signed_macro, indent=2), encoding="utf-8")
+        # Save signed clusters
+        clusters_temp_dir = temp_dir / "clusters"
+        if clusters:
+            clusters_temp_dir.mkdir()
+            for cluster_path in clusters:
+                with open(cluster_path, "r", encoding="utf-8") as f:
+                    cluster_data = json.load(f)
+                signed_cluster = sign_json(cluster_data)
+                target_cluster_path = clusters_temp_dir / cluster_path.name
+                target_cluster_path.write_text(json.dumps(signed_cluster, indent=2), encoding="utf-8")
                 
         # 3. Create zip archive
         with zipfile.ZipFile(package_path, "w", zipfile.ZIP_DEFLATED) as zip_ref:
@@ -211,9 +211,9 @@ async def export_package(payload: PackageExportPayload):
             if custom_nodes:
                 for f in nodes_temp_dir.iterdir():
                     zip_ref.write(f, f"nodes/{f.name}")
-            if macros:
-                for f in macros_temp_dir.iterdir():
-                    zip_ref.write(f, f"macros/{f.name}")
+            if clusters:
+                for f in clusters_temp_dir.iterdir():
+                    zip_ref.write(f, f"clusters/{f.name}")
                     
         return {"path": str(package_path), "filename": filename}
     finally:
@@ -258,16 +258,16 @@ async def load_package_preview(payload: PackageLoadPayload):
                     "is_trusted": is_trusted
                 })
                 
-        # Verify macros signatures
-        macros_list = []
-        macros_dir = temp_dir / "macros"
-        if macros_dir.exists() and macros_dir.is_dir():
-            for f in macros_dir.glob("*.macro.json"):
+        # Verify clusters signatures
+        clusters_list = []
+        clusters_dir = temp_dir / "clusters"
+        if clusters_dir.exists() and clusters_dir.is_dir():
+            for f in clusters_dir.glob("*.cluster.json"):
                 with open(f, "r", encoding="utf-8") as file:
-                    macro_data = json.load(file)
-                creator, is_valid = verify_json(macro_data)
+                    cluster_data = json.load(file)
+                creator, is_valid = verify_json(cluster_data)
                 is_trusted = is_valid and (creator == local_identity or creator in trusted_origins)
-                macros_list.append({
+                clusters_list.append({
                     "filename": f.name,
                     "creator_identity": creator,
                     "is_valid": is_valid,
@@ -286,7 +286,7 @@ async def load_package_preview(payload: PackageLoadPayload):
                 "is_trusted": bp_trusted
             },
             "nodes": nodes_list,
-            "macros": macros_list
+            "clusters": clusters_list
         }
     finally:
         shutil.rmtree(temp_dir)
@@ -303,28 +303,28 @@ async def import_package(payload: PackageImportPayload):
     if not payload.import_permanent:
         target_bp_dir = ws_path / "blueprints" / ".temp"
         target_nodes_dir = ws_path / "nodes" / ".temp"
-        target_macros_dir = ws_path / "macros" / ".temp"
+        target_clusters_dir = ws_path / "clusters" / ".temp"
         
         # Clean up any previous temp extraction to avoid leftovers
-        for d in [target_bp_dir, target_nodes_dir, target_macros_dir]:
+        for d in [target_bp_dir, target_nodes_dir, target_clusters_dir]:
             if d.exists():
                 shutil.rmtree(d)
     else:
         if payload.destination == "workspace":
             target_bp_dir = ws_path / "blueprints"
             target_nodes_dir = ws_path / "nodes"
-            target_macros_dir = ws_path / "macros"
+            target_clusters_dir = ws_path / "clusters"
         elif payload.destination == "user":
-            from comfylab.engine.config import get_global_user_nodes_dir, get_global_user_macros_dir
+            from comfylab.engine.config import get_global_user_nodes_dir, get_global_user_clusters_dir
             target_bp_dir = ws_path / "blueprints"
             target_nodes_dir = get_global_user_nodes_dir()
-            target_macros_dir = get_global_user_macros_dir()
+            target_clusters_dir = get_global_user_clusters_dir()
         else:
             raise HTTPException(status_code=400, detail=f"Invalid destination: {payload.destination}")
         
     target_bp_dir.mkdir(parents=True, exist_ok=True)
     target_nodes_dir.mkdir(parents=True, exist_ok=True)
-    target_macros_dir.mkdir(parents=True, exist_ok=True)
+    target_clusters_dir.mkdir(parents=True, exist_ok=True)
     
     temp_dir = Path(tempfile.mkdtemp())
     try:
@@ -354,16 +354,16 @@ async def import_package(payload: PackageImportPayload):
                 if payload.trust_and_sign:
                     sign_python_file(dest_file)
                     
-        # 3. Macros
-        macros_dir = temp_dir / "macros"
-        if macros_dir.exists() and macros_dir.is_dir():
-            for f in macros_dir.glob("*.macro.json"):
-                dest_file = target_macros_dir / f.name
+        # 3. Clusters
+        clusters_dir = temp_dir / "clusters"
+        if clusters_dir.exists() and clusters_dir.is_dir():
+            for f in clusters_dir.glob("*.cluster.json"):
+                dest_file = target_clusters_dir / f.name
                 if payload.trust_and_sign:
                     with open(f, "r", encoding="utf-8") as file:
-                        macro_data = json.load(file)
-                    signed_macro = sign_json(macro_data)
-                    dest_file.write_text(json.dumps(signed_macro, indent=2), encoding="utf-8")
+                        cluster_data = json.load(file)
+                    signed_cluster = sign_json(cluster_data)
+                    dest_file.write_text(json.dumps(signed_cluster, indent=2), encoding="utf-8")
                 else:
                     shutil.copy2(f, dest_file)
                     
@@ -376,13 +376,13 @@ async def import_package(payload: PackageImportPayload):
                 
         # Trigger hot-reload
         from comfylab.nodes.loader import reload_registry, load_nodes_from_directory
-        from comfylab.nodes.macro import load_macros_from_directory
+        from comfylab.nodes.cluster import load_clusters_from_directory
         reload_registry()
         
         if not payload.import_permanent:
-            # Explicitly load temporary nodes and macros which are otherwise excluded!
+            # Explicitly load temporary nodes and clusters which are otherwise excluded!
             load_nodes_from_directory(str(target_nodes_dir))
-            load_macros_from_directory(str(target_macros_dir))
+            load_clusters_from_directory(str(target_clusters_dir))
         
         return {"success": True}
     finally:
@@ -391,10 +391,10 @@ async def import_package(payload: PackageImportPayload):
 
 @router.post("/workspace/packages/clear_temp")
 async def clear_temporary_package_files():
-    """Purges all .temp subdirectories under workspace blueprints, nodes, and macros and triggers a registry reload."""
+    """Purges all .temp subdirectories under workspace blueprints, nodes, and clusters and triggers a registry reload."""
     ws_path = get_workspace_path()
     try:
-        for subdir in ["blueprints", "nodes", "macros"]:
+        for subdir in ["blueprints", "nodes", "clusters"]:
             temp_dir = ws_path / subdir / ".temp"
             if temp_dir.exists():
                 shutil.rmtree(temp_dir)

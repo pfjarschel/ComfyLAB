@@ -12,7 +12,7 @@ ComfyLAB (Comfortable Lab Automation Blocks) is a visual, block-based software p
 - **Built-in Laboratory Safety**: If an automation run fails, is stopped, or encounters an error, ComfyLAB automatically triggers safety shutdown routines on instruments (e.g. turning off lasers or signal generator outputs) to protect your hardware.
 - **Real-Time Live Graphs**: Watch data stream in real time with live plotting widgets.
 - **Whiteboard Canvas overlay**: Draw diagrams, write notes, and add shapes directly on top of your workspace.
-- **Custom Macro Blocks**: Group a set of connected blocks into a single custom macro block to keep your workspace clean and organized.
+- **Custom Cluster Blocks**: Group a set of connected blocks into a single custom cluster block to keep your workspace clean and organized.
 - **Security Protections**: Prevents untrusted blueprints from executing malicious scripts on your computer. You will be warned and asked for approval before running code from unknown sources.
 - **Secure Remote Access**: Remotely access your lab setup PC running ComfyLAB, protected by a simple two-word token (user/password also available if needed)
 

@@ -5,7 +5,7 @@ from pathlib import Path
 from fastapi.testclient import TestClient
 from backend.main import app
 from comfylab.engine.registry import NODE_REGISTRY
-from comfylab.engine.config import get_global_user_macros_dir, get_config
+from comfylab.engine.config import get_global_user_clusters_dir, get_config
 from backend.workspace import set_workspace_path, get_workspace_path
 
 @pytest.fixture(autouse=True)
@@ -29,15 +29,15 @@ def isolated_config(tmp_path, monkeypatch):
     
     yield base_dir
 
-def test_macro_publish_authorize_reload_flow():
+def test_cluster_publish_authorize_reload_flow():
     client = TestClient(app)
     
-    # 1. Publish macro (should automatically sign and authorize)
+    # 1. Publish cluster (should automatically sign and authorize)
     payload = {
-        "display_name": "Test Macro Node",
+        "display_name": "Test Cluster Node",
         "category": "Test",
         "icon": "📦",
-        "description": "A test macro",
+        "description": "A test cluster",
         "internal_blueprint": {
             "nodes": [],
             "links": []
@@ -51,12 +51,12 @@ def test_macro_publish_authorize_reload_flow():
         "destination": "workspace"
     }
     
-    # Clear registry of any old macros
-    to_remove = [k for k in NODE_REGISTRY if k.startswith("workspace/macro/")]
+    # Clear registry of any old clusters
+    to_remove = [k for k in NODE_REGISTRY if k.startswith("workspace/cluster/")]
     for k in to_remove:
         NODE_REGISTRY.pop(k, None)
         
-    res = client.post("/nodes/publish_macro", json=payload)
+    res = client.post("/nodes/publish_cluster", json=payload)
     assert res.status_code == 200
     type_name = res.json()["type"]
     file_path = res.json()["file_path"]
@@ -65,39 +65,39 @@ def test_macro_publish_authorize_reload_flow():
     cls = NODE_REGISTRY[type_name]
     assert cls.unauthorized is False  # Now automatically signed and authorized on publish!
 
-def test_macro_unauthorized_auth_reload_flow():
+def test_cluster_unauthorized_auth_reload_flow():
     client = TestClient(app)
     
     ws_path = get_workspace_path()
-    macros_dir = ws_path / "macros"
-    macros_dir.mkdir(parents=True, exist_ok=True)
+    clusters_dir = ws_path / "clusters"
+    clusters_dir.mkdir(parents=True, exist_ok=True)
     
-    # Create a manually written, unsigned macro file
-    macro_data = {
-        "name": "Unsigned Macro",
-        "type_name": "workspace/macro/unsigned_macro",
+    # Create a manually written, unsigned cluster file
+    cluster_data = {
+        "name": "Unsigned Cluster",
+        "type_name": "workspace/cluster/unsigned_cluster",
         "category": "Test",
         "icon": "❌",
-        "display_name": "Unsigned Macro",
-        "description": "Unsigned macro test",
+        "display_name": "Unsigned Cluster",
+        "description": "Unsigned cluster test",
         "internal_blueprint": {"nodes": [], "links": []},
         "boundary_pins": {"exec_ins": [], "exec_outs": [], "data_ins": [], "data_outs": []}
     }
     
-    file_path = macros_dir / "unsigned_macro.macro.json"
+    file_path = clusters_dir / "unsigned_cluster.cluster.json"
     with open(file_path, "w", encoding="utf-8") as f:
-        json.dump(macro_data, f, indent=2)
+        json.dump(cluster_data, f, indent=2)
         
-    # Clear registry of the macro to force fresh loading
-    NODE_REGISTRY.pop("workspace/macro/unsigned_macro", None)
+    # Clear registry of the cluster to force fresh loading
+    NODE_REGISTRY.pop("workspace/cluster/unsigned_cluster", None)
     
-    # Trigger a reload to load the unsigned macro
+    # Trigger a reload to load the unsigned cluster
     res_reload_init = client.post("/nodes/reload")
     assert res_reload_init.status_code == 200
     
-    assert "workspace/macro/unsigned_macro" in NODE_REGISTRY
-    cls = NODE_REGISTRY["workspace/macro/unsigned_macro"]
-    assert cls.unauthorized is True  # Manually written, unsigned macro should be unauthorized!
+    assert "workspace/cluster/unsigned_cluster" in NODE_REGISTRY
+    cls = NODE_REGISTRY["workspace/cluster/unsigned_cluster"]
+    assert cls.unauthorized is True  # Manually written, unsigned cluster should be unauthorized!
     
     # 2. Get unauthorized nodes list
     res_unauth = client.get("/workspace/nodes/unauthorized")
@@ -106,13 +106,13 @@ def test_macro_unauthorized_auth_reload_flow():
     assert len(unauth_list) > 0
     assert any(item["filepath"] == str(file_path) for item in unauth_list)
     
-    # 3. Authorize the macro via the API
+    # 3. Authorize the cluster via the API
     res_auth = client.post("/workspace/nodes/authorize", json={"filepath": str(file_path)})
     assert res_auth.status_code == 200
     
     # Check registry after authorize (should be dynamically authorized)
-    assert "workspace/macro/unsigned_macro" in NODE_REGISTRY
-    cls = NODE_REGISTRY["workspace/macro/unsigned_macro"]
+    assert "workspace/cluster/unsigned_cluster" in NODE_REGISTRY
+    cls = NODE_REGISTRY["workspace/cluster/unsigned_cluster"]
     assert cls.unauthorized is False  # Should be authorized now!
     
     # 4. Call reload endpoint
@@ -120,7 +120,7 @@ def test_macro_unauthorized_auth_reload_flow():
     assert res_reload.status_code == 200
     
     # Check registry after reload (should persist authorized status because file was signed)
-    assert "workspace/macro/unsigned_macro" in NODE_REGISTRY
-    cls = NODE_REGISTRY["workspace/macro/unsigned_macro"]
+    assert "workspace/cluster/unsigned_cluster" in NODE_REGISTRY
+    cls = NODE_REGISTRY["workspace/cluster/unsigned_cluster"]
     assert cls.unauthorized is False
 

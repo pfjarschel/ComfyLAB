@@ -48,11 +48,11 @@ def get_global_user_nodes_dir() -> Path:
     return nodes_dir
 
 
-def get_global_user_macros_dir() -> Path:
-    """Returns the base user_macros directory (~/.comfylab/user_macros) and ensures it exists."""
-    macros_dir = get_comfylab_base_dir() / "user_macros"
-    macros_dir.mkdir(parents=True, exist_ok=True)
-    return macros_dir
+def get_global_user_clusters_dir() -> Path:
+    """Returns the base user_clusters directory (~/.comfylab/user_clusters) and ensures it exists."""
+    clusters_dir = get_comfylab_base_dir() / "user_clusters"
+    clusters_dir.mkdir(parents=True, exist_ok=True)
+    return clusters_dir
 
 def get_config_file_path() -> Path:
     """Returns the path to ~/.comfylab/config.json."""

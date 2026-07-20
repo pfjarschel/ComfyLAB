@@ -31,7 +31,7 @@ a = Analysis(
         'backend.routers.packages',
         'comfylab.nodes.base',
         'comfylab.nodes.loader',
-        'comfylab.nodes.macro'
+        'comfylab.nodes.cluster'
     ],
     hookspath=[],
     hooksconfig={},

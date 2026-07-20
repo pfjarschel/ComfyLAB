@@ -128,8 +128,8 @@ async def test_heatmap_plot_node():
 async def test_calculator_node():
     blueprint = {
         "nodes": [
-            {"id": "calc1", "type": "math/arithmetic/calculator", "properties": {"Expression": "a + b * sin(c)", "variables": ["a", "b", "c"]}},
-            {"id": "calc2", "type": "math/arithmetic/calculator", "properties": {"Expression": "x ^ y", "variables": ["x", "y"]}}
+            {"id": "calc1", "type": "math/basic/calculator", "properties": {"Expression": "a + b * sin(c)", "variables": ["a", "b", "c"]}},
+            {"id": "calc2", "type": "math/basic/calculator", "properties": {"Expression": "x ^ y", "variables": ["x", "y"]}}
         ],
         "links": []
     }
@@ -179,7 +179,7 @@ async def test_linear_scale_node():
 async def test_ramp_generator_node():
     blueprint = {
         "nodes": [
-            {"id": "ramp", "type": "Numeric Arrays/manipulation/ramp_generator", "properties": {"Start": 1.0, "Stop": 5.0, "Steps": 5}}
+            {"id": "ramp", "type": "Numeric Arrays/manipulation/linspace", "properties": {"Start": 1.0, "Stop": 5.0, "Steps": 5}}
         ],
         "links": []
     }
@@ -275,7 +275,7 @@ async def test_file_path_generator_and_logger():
     # Test logger
     blueprint_log = {
         "nodes": [
-            {"id": "logger", "type": "File I\\/O/csv_logger", "properties": {
+            {"id": "logger", "type": "File I\\/O/save_csv", "properties": {
                 "FilePath": test_filepath,
                 "Data": {"time": [0, 1], "voltage": [2.5, 3.1]},
                 "mode": "overwrite"

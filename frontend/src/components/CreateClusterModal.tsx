@@ -40,17 +40,17 @@ interface DetectedBoundary {
   data_outs: DetectedPin[];
 }
 
-interface CreateMacroModalProps {
+interface CreateClusterModalProps {
   isOpen: boolean;
   detectedBoundary: DetectedBoundary;
   selectedNodeIds: string[];
   internalBlueprint: { nodes: any[]; links: any[] };
   hasActiveWorkspace: boolean;
   onClose: () => void;
-  onCreated: (typeName: string, macroNodeData: any) => void;
+  onCreated: (typeName: string, clusterNodeData: any) => void;
 }
 
-export const CreateMacroModal = ({
+export const CreateClusterModal = ({
   isOpen,
   detectedBoundary,
   selectedNodeIds,
@@ -58,10 +58,10 @@ export const CreateMacroModal = ({
   hasActiveWorkspace,
   onClose,
   onCreated
-}: CreateMacroModalProps) => {
+}: CreateClusterModalProps) => {
   const [form, setForm] = useState({
     displayName: '',
-    category: 'User/Macros',
+    category: 'User/Clusters',
     icon: '📦',
     description: '',
     destination: 'global' as 'global' | 'workspace'
@@ -108,7 +108,7 @@ export const CreateMacroModal = ({
             // This source node is not a target of any exec link → it's an entry point
             // But we need its ExecIn pin name. Find it from nodes that ARE targets.
             // The source's exec out connects to a target. That target's ExecIn is the internal entry.
-            // Wait — the source node IS the entry point. We need to map the macro's ExecIn
+            // Wait — the source node IS the entry point. We need to map the cluster's ExecIn
             // to the first exec node's input.
           }
         }
@@ -213,12 +213,12 @@ export const CreateMacroModal = ({
     const finalNodes = [...internalBlueprint.nodes];
     const finalLinks = [...internalBlueprint.links];
 
-    // Inject macro/boundary/input nodes
+    // Inject cluster/boundary/input nodes
     boundaryPins.exec_ins.forEach((ein: any, idx: number) => {
       const inputNodeId = `input_${ein.name}`;
       finalNodes.push({
         id: inputNodeId,
-        type: 'macro/boundary/input',
+        type: 'cluster/boundary/input',
         position: { x: minX - 250, y: minY + idx * 120 },
         properties: {
           Name: ein.name,
@@ -242,7 +242,7 @@ export const CreateMacroModal = ({
       const inputNodeId = `input_${din.name}`;
       finalNodes.push({
         id: inputNodeId,
-        type: 'macro/boundary/input',
+        type: 'cluster/boundary/input',
         position: { x: minX - 250, y: minY + (boundaryPins.exec_ins.length + idx) * 120 },
         properties: {
           Name: din.name,
@@ -262,12 +262,12 @@ export const CreateMacroModal = ({
       din.maps_to = { node_id: inputNodeId, pin: 'Value' };
     });
 
-    // Inject macro/boundary/output nodes
+    // Inject cluster/boundary/output nodes
     boundaryPins.exec_outs.forEach((eout: any, idx: number) => {
       const outputNodeId = `output_${eout.name}`;
       finalNodes.push({
         id: outputNodeId,
-        type: 'macro/boundary/output',
+        type: 'cluster/boundary/output',
         position: { x: maxX + 100, y: minY + idx * 120 },
         properties: {
           Name: eout.name,
@@ -290,7 +290,7 @@ export const CreateMacroModal = ({
       const outputNodeId = `output_${dout.name}`;
       finalNodes.push({
         id: outputNodeId,
-        type: 'macro/boundary/output',
+        type: 'cluster/boundary/output',
         position: { x: maxX + 100, y: minY + (boundaryPins.exec_outs.length + idx) * 120 },
         properties: {
           Name: dout.name,
@@ -310,9 +310,9 @@ export const CreateMacroModal = ({
     });
 
     try {
-      const res = await axios.post(`${BACKEND_URL}/nodes/publish_macro`, {
+      const res = await axios.post(`${BACKEND_URL}/nodes/publish_cluster`, {
         display_name: form.displayName.trim(),
-        category: form.category.trim() || 'User/Macros',
+        category: form.category.trim() || 'User/Clusters',
         icon: form.icon.trim() || '📦',
         description: form.description.trim(),
         internal_blueprint: { nodes: finalNodes, links: finalLinks },
@@ -321,10 +321,10 @@ export const CreateMacroModal = ({
       });
 
       if (res.data.success) {
-        const prefix = form.destination === 'workspace' ? 'workspace/macro' : 'user/macro';
+        const prefix = form.destination === 'workspace' ? 'workspace/cluster' : 'user/cluster';
         const cleanName = form.displayName.trim().toLowerCase().replace(/[^a-z0-9\s_-]/g, '').replace(/[\s_-]+/g, '_');
 
-        const macroNodeData: any = {};
+        const clusterNodeData: any = {};
         detectedBoundary.data_ins.forEach(pin => {
           let val = pin.default;
           if (val === undefined || val === null) {
@@ -333,14 +333,14 @@ export const CreateMacroModal = ({
             else if (pin.type === 'text') val = '';
             else val = null;
           }
-          macroNodeData[pin.name] = val;
+          clusterNodeData[pin.name] = val;
         });
 
-        onCreated(`${prefix}/${cleanName}`, macroNodeData);
+        onCreated(`${prefix}/${cleanName}`, clusterNodeData);
         onClose();
       }
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to publish macro.');
+      setError(err.response?.data?.detail || 'Failed to publish cluster.');
     } finally {
       setIsPublishing(false);
     }
@@ -351,7 +351,7 @@ export const CreateMacroModal = ({
       <div className="modal-content glass-panel" style={{ width: '520px', maxHeight: '90vh' }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span>📦</span> Group into Macro
+            <span>📦</span> Group into Cluster
           </h3>
           <button className="modal-close-btn" onClick={onClose}>✕</button>
         </div>
@@ -386,7 +386,7 @@ export const CreateMacroModal = ({
               <label>Category</label>
               <input
                 type="text"
-                placeholder="User/Macros"
+                placeholder="User/Clusters"
                 value={form.category}
                 onChange={(e) => setForm({ ...form, category: e.target.value })}
                 style={{ background: 'var(--input-bg)', border: '1px solid var(--node-border)', color: 'var(--text-color)', padding: '8px', borderRadius: '6px' }}
@@ -397,7 +397,7 @@ export const CreateMacroModal = ({
           <div className="input-group">
             <label>Description</label>
             <textarea
-              placeholder="What does this macro do?"
+              placeholder="What does this cluster do?"
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               rows={2}
@@ -412,9 +412,9 @@ export const CreateMacroModal = ({
               onChange={(e) => setForm({ ...form, destination: e.target.value as 'global' | 'workspace' })}
               style={{ background: 'var(--input-bg)', border: '1px solid var(--node-border)', color: 'var(--text-color)', padding: '8px', borderRadius: '6px' }}
             >
-              <option value="global">Global Library (~/.comfylab/user_macros)</option>
+              <option value="global">Global Library (~/.comfylab/user_clusters)</option>
               {hasActiveWorkspace && (
-                <option value="workspace">Active Workspace (macros/)</option>
+                <option value="workspace">Active Workspace (clusters/)</option>
               )}
             </select>
           </div>
@@ -454,7 +454,7 @@ export const CreateMacroModal = ({
             disabled={isPublishing || !form.displayName.trim()}
             style={{ flex: 1.5, background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)' }}
           >
-            {isPublishing ? 'Creating...' : '🚀 Create Macro'}
+            {isPublishing ? 'Creating...' : '🚀 Create Cluster'}
           </button>
         </div>
       </div>

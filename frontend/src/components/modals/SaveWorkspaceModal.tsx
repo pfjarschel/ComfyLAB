@@ -73,7 +73,7 @@ export const SaveWorkspaceModal = ({
               style={{ cursor: 'pointer', width: '16px', height: '16px' }}
             />
             <label htmlFor="exportAsPackageCheck" style={{ fontSize: '0.85rem', color: 'var(--text-color)', cursor: 'pointer', margin: 0, fontWeight: 500 }}>
-              📦 Export as CFY Package (includes custom nodes & macros)
+              📦 Export as CFY Package (includes custom nodes & clusters)
             </label>
           </div>
         </div>

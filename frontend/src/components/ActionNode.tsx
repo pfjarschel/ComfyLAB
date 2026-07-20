@@ -71,7 +71,7 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
   const [measuredOptionalHeight, setMeasuredOptionalHeight] = useState(0);
 
   const isScriptNode = data.action && data.action.startsWith('script/');
-  const isMacro = data.action && (data.action.startsWith('user/macro/') || data.action.startsWith('workspace/macro/'));
+  const isCluster = data.action && (data.action.startsWith('user/cluster/') || data.action.startsWith('workspace/cluster/'));
   const isLibraryCallNode = !!data.action && ['ffi/call', 'library/call', 'dll/so/call'].includes(data.action.toLowerCase().replace(/\\/g, ''));
 
   // Helper: map a C type string to a frontend pin colour type
@@ -195,14 +195,14 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
     };
   }
 
-  if (layout && data.action === 'macro/boundary/input') {
+  if (layout && data.action === 'cluster/boundary/input') {
     const isExec = data.Type === 'exec';
     layout = {
       ...layout,
       execOuts: isExec ? ['Out'] : [],
       dataOuts: isExec ? [] : layout.dataOuts,
     };
-  } else if (layout && data.action === 'macro/boundary/output') {
+  } else if (layout && data.action === 'cluster/boundary/output') {
     const isExec = data.Type === 'exec';
     layout = {
       ...layout,
@@ -315,8 +315,8 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
     // 3. Body items height
     let bodyHeight = 0;
 
-    // Macro/Script/Library buttons
-    if (isMacro || isScriptNode || isLibraryCallNode || (!isScriptNode && !isMacro && registryLayout?.original_code)) {
+    // Cluster/Script/Library buttons
+    if (isCluster || isScriptNode || isLibraryCallNode || (!isScriptNode && !isCluster && registryLayout?.original_code)) {
       bodyHeight += 44;
     }
 
@@ -852,7 +852,7 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
     <div
       ref={nodeWrapperRef}
       id={`node-container-${id}`}
-      className={`glass-panel action-node ${data.status || 'idle'} ${isMacro ? 'macro-node' : ''} ${data.pinned ? 'pinned-node' : ''} ${data.isPersistent ? 'persistent-node' : ''} ${data.disabled ? 'disabled-node' : ''} ${selected ? 'selected' : ''}`}
+      className={`glass-panel action-node ${data.status || 'idle'} ${isCluster ? 'cluster-node' : ''} ${data.pinned ? 'pinned-node' : ''} ${data.isPersistent ? 'persistent-node' : ''} ${data.disabled ? 'disabled-node' : ''} ${selected ? 'selected' : ''}`}
       onDoubleClick={(e) => {
         // Do not open inspector when double-clicking interactive elements
         const target = e.target as HTMLElement;
@@ -863,7 +863,7 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
           data.onInspect(id);
         }
       }}
-      title={isMacro ? 'Double-click to inspect macro' : 'Double-click to inspect node'}
+      title={isCluster ? 'Double-click to inspect cluster' : 'Double-click to inspect node'}
       style={{
         minHeight: `${calculatedMinHeight}px`
       }}
@@ -1037,7 +1037,7 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
 
       {/* --- BODY WIDGETS --- */}
       <div className="action-node-body">
-        {isMacro && (
+        {isCluster && (
           <button
             className="script-edit-button nodrag"
             style={{
@@ -1051,7 +1051,7 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
               }
             }}
           >
-            📦 Expand Macro
+            📦 Expand Cluster
           </button>
         )}
 
@@ -1282,7 +1282,7 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
           </div>
         )}
 
-        {!isScriptNode && !isMacro && registryLayout?.original_code && (
+        {!isScriptNode && !isCluster && registryLayout?.original_code && (
           <button
             className="script-edit-button nodrag"
             onClick={() => {

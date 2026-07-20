@@ -18,25 +18,25 @@ from typing import Any, Dict, List, Optional
 
 from comfylab.engine.registry import register_node, NODE_REGISTRY
 from comfylab.nodes.base import BaseNode, ExecIn, ExecOut, DataIn, DataOut, ExecutionContext, Pin
-from comfylab.engine.models import MacroDefinitionModel, BoundaryPinsModel
+from comfylab.engine.models import ClusterDefinitionModel, BoundaryPinsModel
 from comfylab.engine.locks import ResourceLockManager
 
-MAX_MACRO_DEPTH = 10
+MAX_CLUSTER_DEPTH = 10
 
 
-class MacroExecutionContext(ExecutionContext):
+class ClusterExecutionContext(ExecutionContext):
     """
-    Execution context for nodes running inside a macro sub-graph.
+    Execution context for nodes running inside a cluster sub-graph.
     Delegates boundary pulls to the parent context and sub-engine pulls internally.
     """
     def __init__(self, parent_context: ExecutionContext, sub_engine: Any,
                  boundary_data_in_map: Dict[str, tuple], boundary_data_out_map: Dict[str, tuple],
-                 macro_node_id: str):
+                 cluster_node_id: str):
         self.parent_context = parent_context
         self.sub_engine = sub_engine
         self.boundary_data_in_map = boundary_data_in_map
         self.boundary_data_out_map = boundary_data_out_map
-        self._macro_node_id = macro_node_id
+        self._cluster_node_id = cluster_node_id
         self.lock_manager = parent_context.lock_manager
         self.engine = sub_engine
         self.run_id = parent_context.run_id
@@ -47,7 +47,7 @@ class MacroExecutionContext(ExecutionContext):
         key = (node_id, input_pin_name)
         if key in self.boundary_data_in_map:
             external_pin_name = self.boundary_data_in_map[key]
-            return await self.parent_context.pull(self._macro_node_id, external_pin_name)
+            return await self.parent_context.pull(self._cluster_node_id, external_pin_name)
         return await self.sub_engine.pull_data(node_id, input_pin_name, self)
 
     def cache_value(self, node_id: str, pin_name: str, value: Any):
@@ -64,7 +64,7 @@ class MacroExecutionContext(ExecutionContext):
         self._data_cache.clear()
 
     async def send_telemetry(self, node_id: str, data: Any):
-        prefixed_id = f"{self._macro_node_id}/{node_id}"
+        prefixed_id = f"{self._cluster_node_id}/{node_id}"
         if hasattr(self.parent_context, "send_telemetry"):
             await self.parent_context.send_telemetry(prefixed_id, data)
 
@@ -89,13 +89,13 @@ def _prefix_node_ids(blueprint: Dict[str, Any], prefix: str) -> Dict[str, Any]:
     return {"nodes": nodes, "links": links}
 
 
-def parse_macro_boundary_pins(internal_blueprint: Dict[str, Any], default_boundary_pins: Dict[str, Any]) -> Dict[str, Any]:
+def parse_cluster_boundary_pins(internal_blueprint: Dict[str, Any], default_boundary_pins: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Scans the internal blueprint of a macro for boundary input/output nodes
+    Scans the internal blueprint of a cluster for boundary input/output nodes
     and constructs the boundary pin mapping dict. If none are found, returns the default.
     """
     has_boundary_nodes = any(
-        node.get("type") in ("macro/boundary/input", "macro/boundary/output")
+        node.get("type") in ("cluster/boundary/input", "cluster/boundary/output")
         for node in internal_blueprint.get("nodes", [])
     )
     if not has_boundary_nodes:
@@ -117,7 +117,7 @@ def parse_macro_boundary_pins(internal_blueprint: Dict[str, Any], default_bounda
                 return val["value"]
             return val
         
-        if node_type == "macro/boundary/input":
+        if node_type == "cluster/boundary/input":
             name = get_prop("Name", "InputPin")
             pin_type = get_prop("Type", "data")
             data_type = get_prop("DataType", "any")
@@ -141,7 +141,7 @@ def parse_macro_boundary_pins(internal_blueprint: Dict[str, Any], default_bounda
                         "pin": "Value"
                     }
                 })
-        elif node_type == "macro/boundary/output":
+        elif node_type == "cluster/boundary/output":
             name = get_prop("Name", "OutputPin")
             pin_type = get_prop("Type", "data")
             if pin_type == "exec":
@@ -170,10 +170,10 @@ def parse_macro_boundary_pins(internal_blueprint: Dict[str, Any], default_bounda
     }
 
 
-def register_macro_node(macro_def: MacroDefinitionModel, file_path: str = ""):
-    type_name = macro_def.type_name
-    boundary = macro_def.boundary_pins
-    internal_blueprint = macro_def.internal_blueprint.model_dump()
+def register_cluster_node(cluster_def: ClusterDefinitionModel, file_path: str = ""):
+    type_name = cluster_def.type_name
+    boundary = cluster_def.boundary_pins
+    internal_blueprint = cluster_def.internal_blueprint.model_dump()
 
     inputs_def: List[Pin] = []
     outputs_def: List[Pin] = []
@@ -195,19 +195,19 @@ def register_macro_node(macro_def: MacroDefinitionModel, file_path: str = ""):
         hint = type_map.get(dout.type)
         outputs_def.append(DataOut(dout.name, type_hint=hint))
 
-    class DynamicMacroNode(BaseNode):
-        category = macro_def.category
-        icon = macro_def.icon
-        display_name = macro_def.display_name
-        description = macro_def.description
-        _macro_file_path = file_path
+    class DynamicClusterNode(BaseNode):
+        category = cluster_def.category
+        icon = cluster_def.icon
+        display_name = cluster_def.display_name
+        description = cluster_def.description
+        _cluster_file_path = file_path
 
         def __init__(self, node_id: str, properties: Optional[Dict[str, Any]] = None):
             super().__init__(node_id, properties)
-            self._macro_def = macro_def
+            self._cluster_def = cluster_def
             self._sub_engine = None
             self._computed_outputs: Dict[str, Any] = {}
-            self._depth = self.properties.get("_macro_depth", 0)
+            self._depth = self.properties.get("_cluster_depth", 0)
             self.inputs = {pin.name: pin for pin in self.__class__.inputs_def}
             self.outputs = {pin.name: pin for pin in self.__class__.outputs_def}
 
@@ -227,19 +227,19 @@ def register_macro_node(macro_def: MacroDefinitionModel, file_path: str = ""):
             return None, None
 
         async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
-            if self._depth > MAX_MACRO_DEPTH:
-                raise RuntimeError(f"Macro nesting depth exceeded ({self._depth} > {MAX_MACRO_DEPTH})")
+            if self._depth > MAX_CLUSTER_DEPTH:
+                raise RuntimeError(f"Cluster nesting depth exceeded ({self._depth} > {MAX_CLUSTER_DEPTH})")
 
             self._ensure_sub_engine()
             sub_engine = self._sub_engine
-            prefix = f"macro_{self.id}_d{self._depth}"
+            prefix = f"cluster_{self.id}_d{self._depth}"
 
             bdi_map, bdo_map = self._build_boundary_maps()
             prefixed_bdi_map = {}
             for (node_id, pin), ext_name in bdi_map.items():
                 prefixed_bdi_map[(f"{prefix}_{node_id}", pin)] = ext_name
 
-            macro_ctx = MacroExecutionContext(
+            cluster_ctx = ClusterExecutionContext(
                 context, sub_engine, prefixed_bdi_map, bdo_map, self.id
             )
 
@@ -261,7 +261,7 @@ def register_macro_node(macro_def: MacroDefinitionModel, file_path: str = ""):
 
             sub_engine.telemetry_callback = context.engine.telemetry_callback
 
-            # Run the sub-engine manually using our MacroExecutionContext (not its own plain context)
+            # Run the sub-engine manually using our ClusterExecutionContext (not its own plain context)
             run_error = None
             try:
                 sub_engine.state = "RUNNING"
@@ -271,7 +271,7 @@ def register_macro_node(macro_def: MacroDefinitionModel, file_path: str = ""):
                 original_cwd = _os.getcwd()
                 try:
                     if start_node_id and start_pin_name:
-                        task = asyncio.create_task(sub_engine.trigger_exec(start_node_id, start_pin_name, macro_ctx))
+                        task = asyncio.create_task(sub_engine.trigger_exec(start_node_id, start_pin_name, cluster_ctx))
                         sub_engine._active_tasks.add(task)
                         task.add_done_callback(sub_engine._active_tasks.discard)
                         await task
@@ -280,7 +280,7 @@ def register_macro_node(macro_def: MacroDefinitionModel, file_path: str = ""):
                         if entry_points:
                             tasks = []
                             for nid, pname in entry_points:
-                                task = asyncio.create_task(sub_engine.trigger_exec(nid, pname, macro_ctx))
+                                task = asyncio.create_task(sub_engine.trigger_exec(nid, pname, cluster_ctx))
                                 sub_engine._active_tasks.add(task)
                                 task.add_done_callback(sub_engine._active_tasks.discard)
                                 tasks.append(task)
@@ -309,15 +309,15 @@ def register_macro_node(macro_def: MacroDefinitionModel, file_path: str = ""):
                     mapped_pin = dout.maps_from.pin
                     node = sub_engine.nodes.get(mapped_node_id)
                     if node:
-                        val = await node.pull_data(macro_ctx, mapped_pin)
+                        val = await node.pull_data(cluster_ctx, mapped_pin)
                         self._computed_outputs[dout.name] = val
 
                 if run_error and context.engine.state != "ABORTED":
                     raise run_error
             finally:
-                pass  # Do NOT teardown — sub_engine lives until MacroNode.teardown() is called
+                pass  # Do NOT teardown — sub_engine lives until ClusterNode.teardown() is called
 
-            triggered_out = getattr(macro_ctx, "_triggered_exec_out", None)
+            triggered_out = getattr(cluster_ctx, "_triggered_exec_out", None)
             if triggered_out is not None:
                 return triggered_out
             if boundary.exec_outs:
@@ -331,7 +331,7 @@ def register_macro_node(macro_def: MacroDefinitionModel, file_path: str = ""):
             for dout in boundary.data_outs:
                 if dout.name == pin_name:
                     self._ensure_sub_engine()
-                    prefix = f"macro_{self.id}_d{self._depth}"
+                    prefix = f"cluster_{self.id}_d{self._depth}"
                     mapped_node_id = f"{prefix}_{dout.maps_from.node_id}"
                     mapped_pin = dout.maps_from.pin
 
@@ -340,13 +340,13 @@ def register_macro_node(macro_def: MacroDefinitionModel, file_path: str = ""):
                     for (nid, p), ext_name in bdi_map.items():
                         prefixed_bdi_map[(f"{prefix}_{nid}", p)] = ext_name
 
-                    macro_ctx = MacroExecutionContext(
+                    cluster_ctx = ClusterExecutionContext(
                         context, self._sub_engine, prefixed_bdi_map, bdo_map, self.id
                     )
 
                     node = self._sub_engine.nodes.get(mapped_node_id)
                     if node:
-                        val = await node.pull_data(macro_ctx, mapped_pin)
+                        val = await node.pull_data(cluster_ctx, mapped_pin)
                         self._computed_outputs[pin_name] = val
                         return val
                     return None
@@ -358,7 +358,7 @@ def register_macro_node(macro_def: MacroDefinitionModel, file_path: str = ""):
                 return
             from comfylab.engine.executor import ExecutionEngine
             sub_engine = ExecutionEngine()
-            prefix = f"macro_{self.id}_d{self._depth}"
+            prefix = f"cluster_{self.id}_d{self._depth}"
             prefixed_blueprint = _prefix_node_ids(internal_blueprint, prefix)
             sub_engine.load_blueprint(prefixed_blueprint)
             self._sub_engine = sub_engine
@@ -371,13 +371,13 @@ def register_macro_node(macro_def: MacroDefinitionModel, file_path: str = ""):
                     pass
             await super().teardown()
 
-    DynamicMacroNode.inputs_def = inputs_def
-    DynamicMacroNode.outputs_def = outputs_def
-    DynamicMacroNode.__name__ = type_name.replace("/", "_").replace("-", "_")
-    DynamicMacroNode.__qualname__ = DynamicMacroNode.__name__
+    DynamicClusterNode.inputs_def = inputs_def
+    DynamicClusterNode.outputs_def = outputs_def
+    DynamicClusterNode.__name__ = type_name.replace("/", "_").replace("-", "_")
+    DynamicClusterNode.__qualname__ = DynamicClusterNode.__name__
 
-    _MACRO_TYPE_PREFIXES = ("user/macro/", "workspace/macro/")
-    _BOUNDARY_TYPES = ("macro/input", "macro/output", "macro/boundary/input", "macro/boundary/output")
+    _CLUSTER_TYPE_PREFIXES = ("user/cluster/", "workspace/cluster/")
+    _BOUNDARY_TYPES = ("cluster/input", "cluster/output", "cluster/boundary/input", "cluster/boundary/output")
     missing_regular = []
     for bn in internal_blueprint.get("nodes", []):
         nt = bn.get("type")
@@ -385,42 +385,42 @@ def register_macro_node(macro_def: MacroDefinitionModel, file_path: str = ""):
             continue
         if nt in NODE_REGISTRY:
             continue
-        if nt.startswith(_MACRO_TYPE_PREFIXES) or nt in _BOUNDARY_TYPES:
+        if nt.startswith(_CLUSTER_TYPE_PREFIXES) or nt in _BOUNDARY_TYPES:
             continue
         missing_regular.append(nt)
 
     import logging
-    _macro_logger = logging.getLogger("comfylab.nodes.macro")
+    _cluster_logger = logging.getLogger("comfylab.nodes.cluster")
 
     if missing_regular:
-        DynamicMacroNode.broken = True
-        DynamicMacroNode.broken_reason = (
-            "Macro references unregistered node types: " + ", ".join(sorted(set(missing_regular)))
+        DynamicClusterNode.broken = True
+        DynamicClusterNode.broken_reason = (
+            "Cluster references unregistered node types: " + ", ".join(sorted(set(missing_regular)))
         )
-        _macro_logger.error(
-            "Macro '%s' is broken (missing inner node types: %s). Source: %s",
+        _cluster_logger.error(
+            "Cluster '%s' is broken (missing inner node types: %s). Source: %s",
             type_name, missing_regular, file_path or "<unknown>"
         )
     else:
-        DynamicMacroNode.broken = False
-        DynamicMacroNode.broken_reason = ""
+        DynamicClusterNode.broken = False
+        DynamicClusterNode.broken_reason = ""
 
     existing = NODE_REGISTRY.get(type_name)
     if missing_regular and existing is not None and not getattr(existing, "broken", False):
-        _macro_logger.warning(
-            "Skipping registration of broken macro '%s' from '%s'; keeping existing working registration.",
+        _cluster_logger.warning(
+            "Skipping registration of broken cluster '%s' from '%s'; keeping existing working registration.",
             type_name, file_path or "<unknown>"
         )
-        return DynamicMacroNode
+        return DynamicClusterNode
 
-    register_node(type_name)(DynamicMacroNode)
-    return DynamicMacroNode
+    register_node(type_name)(DynamicClusterNode)
+    return DynamicClusterNode
 
 
-def load_macro_from_file(filepath: str):
+def load_cluster_from_file(filepath: str):
     path = Path(filepath)
     if not path.exists():
-        raise FileNotFoundError(f"Macro file not found: {filepath}")
+        raise FileNotFoundError(f"Cluster file not found: {filepath}")
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
         
@@ -444,15 +444,15 @@ def load_macro_from_file(filepath: str):
         if not is_trusted:
             unauthorized = True
 
-    macro_def = MacroDefinitionModel.model_validate(data)
-    cls = register_macro_node(macro_def, str(path))
+    cluster_def = ClusterDefinitionModel.model_validate(data)
+    cls = register_cluster_node(cluster_def, str(path))
     cls.unauthorized = unauthorized
     cls.creator_identity = creator
-    return macro_def
+    return cluster_def
 
 
 
-def load_macros_from_directory(directory_path: str) -> int:
+def load_clusters_from_directory(directory_path: str) -> int:
     dir_path = Path(directory_path).resolve()
     if not dir_path.exists() or not dir_path.is_dir():
         return 0
@@ -462,21 +462,21 @@ def load_macros_from_directory(directory_path: str) -> int:
         if ".temp" in dirs:
             dirs.remove(".temp")
         for file in files:
-            if file.endswith(".macro.json"):
+            if file.endswith(".cluster.json"):
                 full_path = Path(root) / file
                 try:
-                    load_macro_from_file(str(full_path))
+                    load_cluster_from_file(str(full_path))
                     count += 1
                 except Exception as e:
                     import logging
-                    logger = logging.getLogger("comfylab.nodes.macro")
-                    logger.error(f"Failed to load macro from {full_path}: {e}")
+                    logger = logging.getLogger("comfylab.nodes.cluster")
+                    logger.error(f"Failed to load cluster from {full_path}: {e}")
     return count
 
 
-def generate_macro_json(blueprint_nodes: list, blueprint_links: list,
+def generate_cluster_json(blueprint_nodes: list, blueprint_links: list,
                         boundary_pins: dict, display_name: str,
-                        type_name: str, category: str = "User/Macros",
+                        type_name: str, category: str = "User/Clusters",
                         icon: str = "📦", description: str = "") -> dict:
     return {
         "name": display_name,

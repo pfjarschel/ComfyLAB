@@ -74,10 +74,10 @@
   --minimap-node-stroke: rgba(96, 165, 250, 0.4);
   --minimap-mask: rgba(255, 255, 255, 0.08);
 
-  /* Macro Node Styles */
-  --macro-border-color: rgba(139, 92, 246, 0.55);
-  --macro-border-style: dashed;
-  --macro-badge-bg: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(99, 102, 241, 0.25));
+  /* Cluster Node Styles */
+  --cluster-border-color: rgba(139, 92, 246, 0.55);
+  --cluster-border-style: dashed;
+  --cluster-badge-bg: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(99, 102, 241, 0.25));
 }
 
 .light-theme {
@@ -142,10 +142,10 @@
   --minimap-node-stroke: rgba(29, 78, 216, 0.4);
   --minimap-mask: rgba(15, 23, 42, 0.06);
 
-  /* Macro Node Styles */
-  --macro-border-color: rgba(124, 58, 237, 0.5);
-  --macro-border-style: dashed;
-  --macro-badge-bg: linear-gradient(135deg, rgba(124, 58, 237, 0.12), rgba(99, 102, 241, 0.12));
+  /* Cluster Node Styles */
+  --cluster-border-color: rgba(124, 58, 237, 0.5);
+  --cluster-border-style: dashed;
+  --cluster-badge-bg: linear-gradient(135deg, rgba(124, 58, 237, 0.12), rgba(99, 102, 241, 0.12));
 }
 
 body {

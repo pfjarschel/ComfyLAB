@@ -30,7 +30,7 @@ def test_all_nodes_schema():
     
     # Check standard and instrument nodes are registered and correctly serialized
     assert "constants/number" in schema
-    assert "math/arithmetic/add" in schema
+    assert "math/basic/add" in schema
     assert "visa/signal_generator/config_wave" in schema
     assert "visa/oscilloscope/acquire" in schema
     
@@ -40,10 +40,10 @@ def test_all_nodes_schema():
     assert number_schema["category"] == "CONSTANTS"
     assert number_schema["dataOuts"] == [{"name": "Value", "label": "Value", "type": "number"}]
     
-    add_schema = schema["math/arithmetic/add"]
+    add_schema = schema["math/basic/add"]
     assert add_schema["name"] == "Add"
     assert add_schema["icon"] == "➕"
-    assert add_schema["category"] == "MATH/Arithmetic"
+    assert add_schema["category"] == "MATH/Basic"
     assert len(add_schema["dataIns"]) == 2
     assert add_schema["dataIns"][0]["name"] == "A"
     assert add_schema["dataIns"][0]["type"] == "number"

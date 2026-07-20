@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 
 from backend.main import app
 from backend.workspace import get_workspace_path, set_workspace_path
-from comfylab.engine.config import get_config, update_config, get_global_user_nodes_dir, get_global_user_macros_dir
+from comfylab.engine.config import get_config, update_config, get_global_user_nodes_dir, get_global_user_clusters_dir
 from comfylab.engine.security import get_creator_identity
 from comfylab.engine.registry import NODE_REGISTRY
 from comfylab.nodes.base import BaseNode
@@ -277,16 +277,16 @@ class CustomTempNode(BaseNode):
     load_module_from_filepath(str(node_file))
     assert "test/custom_temp_node" in NODE_REGISTRY
 
-    # 1.1 Save a mock macro to workspace macros dir
-    ws_macros = get_workspace_path() / "macros"
-    ws_macros.mkdir(parents=True, exist_ok=True)
-    macro_json = {
-        "name": "My Temp Macro",
-        "type_name": "workspace/macro/test_temp_macro",
-        "category": "User/Macros",
+    # 1.1 Save a mock cluster to workspace clusters dir
+    ws_clusters = get_workspace_path() / "clusters"
+    ws_clusters.mkdir(parents=True, exist_ok=True)
+    cluster_json = {
+        "name": "My Temp Cluster",
+        "type_name": "workspace/cluster/test_temp_cluster",
+        "category": "User/Clusters",
         "icon": "📦",
-        "display_name": "My Temp Macro",
-        "description": "Temp test macro",
+        "display_name": "My Temp Cluster",
+        "description": "Temp test cluster",
         "internal_blueprint": {
             "nodes": [],
             "links": []
@@ -298,17 +298,17 @@ class CustomTempNode(BaseNode):
             "data_outs": []
         }
     }
-    macro_file = ws_macros / "test_temp_macro.macro.json"
-    macro_file.write_text(json.dumps(macro_json), encoding="utf-8")
+    cluster_file = ws_clusters / "test_temp_cluster.cluster.json"
+    cluster_file.write_text(json.dumps(cluster_json), encoding="utf-8")
 
-    from comfylab.nodes.macro import load_macro_from_file
-    load_macro_from_file(str(macro_file))
+    from comfylab.nodes.cluster import load_cluster_from_file
+    load_cluster_from_file(str(cluster_file))
 
     # 2. Define blueprint and export package
     blueprint = {
         "nodes": [
             {"id": "node_1", "type": "test/custom_temp_node", "properties": {}},
-            {"id": "node_2", "type": "workspace/macro/test_temp_macro", "properties": {}}
+            {"id": "node_2", "type": "workspace/cluster/test_temp_cluster", "properties": {}}
         ],
         "links": []
     }
@@ -322,11 +322,11 @@ class CustomTempNode(BaseNode):
     export_data = response.json()
     package_file = Path(export_data["path"])
     
-    # 3. Clean up the dynamic node and macro from registry and delete files
+    # 3. Clean up the dynamic node and cluster from registry and delete files
     NODE_REGISTRY.pop("test/custom_temp_node", None)
-    NODE_REGISTRY.pop("workspace/macro/test_temp_macro", None)
+    NODE_REGISTRY.pop("workspace/cluster/test_temp_cluster", None)
     node_file.unlink()
-    macro_file.unlink()
+    cluster_file.unlink()
     
     # 4. Import package temporarily
     import_payload = {
@@ -345,54 +345,54 @@ class CustomTempNode(BaseNode):
     # Verify files are extracted to .temp folders
     assert (get_workspace_path() / "blueprints" / ".temp" / "my_temp_package.json").exists()
     assert (get_workspace_path() / "nodes" / ".temp" / "custom_temp_node.py").exists()
-    assert (get_workspace_path() / "macros" / ".temp" / "test_temp_macro.macro.json").exists()
+    assert (get_workspace_path() / "clusters" / ".temp" / "test_temp_cluster.cluster.json").exists()
     
-    # Verify node and macro are loaded back in registry
+    # Verify node and cluster are loaded back in registry
     assert "test/custom_temp_node" in NODE_REGISTRY
-    assert "workspace/macro/test_temp_macro" in NODE_REGISTRY
+    assert "workspace/cluster/test_temp_cluster" in NODE_REGISTRY
     
-    # Assert GET /macro/{type_name} retrieves the temporary macro definition successfully
-    macro_res = client.get("/macro/workspace/macro/test_temp_macro")
-    assert macro_res.status_code == 200
-    assert macro_res.json()["name"] == "My Temp Macro"
+    # Assert GET /cluster/{type_name} retrieves the temporary cluster definition successfully
+    cluster_res = client.get("/cluster/workspace/cluster/test_temp_cluster")
+    assert cluster_res.status_code == 200
+    assert cluster_res.json()["name"] == "My Temp Cluster"
     
     # Cleanup registry
     NODE_REGISTRY.pop("test/custom_temp_node", None)
-    NODE_REGISTRY.pop("workspace/macro/test_temp_macro", None)
+    NODE_REGISTRY.pop("workspace/cluster/test_temp_cluster", None)
 
 
-def test_publish_temp_macro():
-    # 1. POST to /nodes/publish_macro with destination="temp"
+def test_publish_temp_cluster():
+    # 1. POST to /nodes/publish_cluster with destination="temp"
     payload = {
-        "display_name": "My Temp Macro Test",
-        "category": "User/Macros",
+        "display_name": "My Temp Cluster Test",
+        "category": "User/Clusters",
         "icon": "📦",
-        "description": "Temp macro for testing",
+        "description": "Temp cluster for testing",
         "internal_blueprint": {"nodes": [], "links": []},
         "boundary_pins": {"exec_ins": [], "exec_outs": [], "data_ins": [], "data_outs": []},
         "destination": "temp",
-        "type_name": "workspace/macro/my_temp_macro_test"
+        "type_name": "workspace/cluster/my_temp_cluster_test"
     }
     
     # Clear registry if exists
-    NODE_REGISTRY.pop("workspace/macro/my_temp_macro_test", None)
+    NODE_REGISTRY.pop("workspace/cluster/my_temp_cluster_test", None)
     
-    res = client.post("/nodes/publish_macro", json=payload)
+    res = client.post("/nodes/publish_cluster", json=payload)
     assert res.status_code == 200
     data = res.json()
     assert data["success"] is True
-    assert data["type"] == "workspace/macro/my_temp_macro_test"
+    assert data["type"] == "workspace/cluster/my_temp_cluster_test"
     
-    # 2. GET the macro definition and check _is_temp is True
-    macro_res = client.get("/macro/workspace/macro/my_temp_macro_test")
-    assert macro_res.status_code == 200
-    macro_data = macro_res.json()
-    assert macro_data["_is_temp"] is True
-    assert macro_data["name"] == "My Temp Macro Test"
+    # 2. GET the cluster definition and check _is_temp is True
+    cluster_res = client.get("/cluster/workspace/cluster/my_temp_cluster_test")
+    assert cluster_res.status_code == 200
+    cluster_data = cluster_res.json()
+    assert cluster_data["_is_temp"] is True
+    assert cluster_data["name"] == "My Temp Cluster Test"
     
     # Cleanup file
     Path(data["file_path"]).unlink()
-    NODE_REGISTRY.pop("workspace/macro/my_temp_macro_test", None)
+    NODE_REGISTRY.pop("workspace/cluster/my_temp_cluster_test", None)
 
 
 @pytest.mark.asyncio

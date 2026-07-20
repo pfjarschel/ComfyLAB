@@ -1369,28 +1369,6 @@ class ShapeNdarrayNode(BaseNode):
         return None
 
 
-@register_node("string/concat")
-class ConcatStringsNode(BaseNode):
-    """Concatenates string A and B."""
-    icon = "➕"
-    display_name = "Concatenate Strings"
-    description = "Concatenates string A and string B."
-    
-    inputs_def = [
-        DataIn("A", type_hint=str, default="", widget="text"),
-        DataIn("B", type_hint=str, default="", widget="text"),
-        DataIn("Separator", type_hint=str, default="", widget="text", optional=True)
-    ]
-    outputs_def = [DataOut("Result", type_hint=str)]
-
-    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
-        if pin_name == "Result":
-            a = str(await context.pull(self.id, "A"))
-            b = str(await context.pull(self.id, "B"))
-            sep = str(await context.pull(self.id, "Separator"))
-            return a + sep + b
-        return None
-
 
 @register_node("string/format")
 class FormatStringNode(BaseNode):
@@ -1421,33 +1399,12 @@ class FormatStringNode(BaseNode):
         return None
 
 
-@register_node("string/case")
-class CaseStringNode(BaseNode):
-    """Converts a string to UPPER or lower case."""
-    icon = "🔠"
-    display_name = "String Case"
-    description = "Converts a string to UPPER or lower case."
-    
-    inputs_def = [
-        DataIn("InputString", type_hint=str, default="", widget="text"),
-        DataIn("ToUppercase", type_hint=bool, default=True, widget="checkbox")
-    ]
-    outputs_def = [DataOut("Result", type_hint=str)]
-
-    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
-        if pin_name == "Result":
-            inp = str(await context.pull(self.id, "InputString"))
-            upper = bool(await context.pull(self.id, "ToUppercase"))
-            return inp.upper() if upper else inp.lower()
-        return None
-
-
-@register_node("macro/boundary/input")
-class MacroInputNode(BaseNode):
-    """Anchor node representing a macro input pin inside its sub-graph."""
+@register_node("cluster/boundary/input")
+class ClusterInputNode(BaseNode):
+    """Anchor node representing a cluster input pin inside its sub-graph."""
     icon = "📥"
-    display_name = "Macro Input"
-    description = "Exposes a macro input boundary pin. Connect this to nodes inside the macro."
+    display_name = "Cluster Input"
+    description = "Exposes a cluster input boundary pin. Connect this to nodes inside the cluster."
 
     inputs_def = [
         DataIn("Name", type_hint=str, default="InputPin", widget="text"),
@@ -1464,19 +1421,19 @@ class MacroInputNode(BaseNode):
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Value":
-            if hasattr(context, "parent_context") and hasattr(context, "_macro_node_id"):
+            if hasattr(context, "parent_context") and hasattr(context, "_cluster_node_id"):
                 pin_name_config = await context.pull(self.id, "Name")
-                return await context.parent_context.pull(context._macro_node_id, pin_name_config)
+                return await context.parent_context.pull(context._cluster_node_id, pin_name_config)
             return None
         return None
 
 
-@register_node("macro/boundary/output")
-class MacroOutputNode(BaseNode):
-    """Anchor node representing a macro output pin inside its sub-graph."""
+@register_node("cluster/boundary/output")
+class ClusterOutputNode(BaseNode):
+    """Anchor node representing a cluster output pin inside its sub-graph."""
     icon = "📤"
-    display_name = "Macro Output"
-    description = "Exposes a macro output boundary pin. Connect nodes inside the macro to this."
+    display_name = "Cluster Output"
+    description = "Exposes a cluster output boundary pin. Connect nodes inside the cluster to this."
 
     inputs_def = [
         DataIn("Name", type_hint=str, default="OutputPin", widget="text"),
@@ -1490,7 +1447,7 @@ class MacroOutputNode(BaseNode):
         if trigger_pin == "In":
             if hasattr(context, "parent_context"):
                 pin_name_config = await context.pull(self.id, "Name")
-                # Record that this macro output was triggered in the macro execution context
+                # Record that this cluster output was triggered in the cluster execution context
                 context._triggered_exec_out = pin_name_config
         return None
 

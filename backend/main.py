@@ -178,7 +178,7 @@ async def startup_event():
             
             # Clean up temporary package files on server startup
             import shutil
-            for subdir in ["blueprints", "nodes", "macros"]:
+            for subdir in ["blueprints", "nodes", "clusters"]:
                 temp_dir = ws_path / subdir / ".temp"
                 if temp_dir.exists():
                     try:
@@ -196,12 +196,12 @@ async def startup_event():
         except Exception as e:
             logger.error(f"Failed to auto-restore last workspace {last_ws}: {e}")
     try:
-        from comfylab.engine.registry import load_all_macros_deferred
-        load_all_macros_deferred()
+        from comfylab.engine.registry import load_all_clusters_deferred
+        load_all_clusters_deferred()
         from comfylab.engine.registry import NODE_REGISTRY
-        logger.info(f"Macro loading complete. Total registered nodes: {len(NODE_REGISTRY)}")
+        logger.info(f"Cluster loading complete. Total registered nodes: {len(NODE_REGISTRY)}")
     except Exception as e:
-        logger.error(f"Macro loading skipped (will retry on reload): {e}")
+        logger.error(f"Cluster loading skipped (will retry on reload): {e}")
 
 import sys
 IS_TESTING = "pytest" in sys.modules or "unittest" in sys.modules

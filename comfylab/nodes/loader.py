@@ -89,10 +89,10 @@ def load_all_nodes():
                 normalized_rel_path = rel_path.replace(os.sep, "/")
                 module_parts = normalized_rel_path[:-3].split("/")
                 
-                # Exclude base.py, loader.py, and macro.py in the root directory
+                # Exclude base.py, loader.py, and cluster.py in the root directory
                 if len(module_parts) == 1:
                     module_name_root = module_parts[0]
-                    if module_name_root in ["base", "loader", "macro"]:
+                    if module_name_root in ["base", "loader", "cluster"]:
                         continue
                     if module_name_root.startswith("script_"):
                         lang = module_name_root[7:]
@@ -140,41 +140,41 @@ def load_all_nodes():
     except Exception as e:
         logger.error(f"Error loading workspace nodes: {e}")
 
-    # (macro loading is called separately after load_all_nodes returns)
+    # (cluster loading is called separately after load_all_nodes returns)
 
 
-def load_all_macros():
+def load_all_clusters():
     try:
-        from comfylab.engine.config import get_global_user_macros_dir
-        from comfylab.nodes.macro import load_macros_from_directory
-        global_macro_dir = get_global_user_macros_dir()
-        count = load_macros_from_directory(str(global_macro_dir))
+        from comfylab.engine.config import get_global_user_clusters_dir
+        from comfylab.nodes.cluster import load_clusters_from_directory
+        global_cluster_dir = get_global_user_clusters_dir()
+        count = load_clusters_from_directory(str(global_cluster_dir))
         if count > 0:
-            logger.info(f"Loaded {count} macros from global user macros directory.")
+            logger.info(f"Loaded {count} clusters from global user clusters directory.")
     except Exception as e:
-        logger.error(f"Error loading global user macros: {e}")
+        logger.error(f"Error loading global user clusters: {e}")
 
     try:
-        from comfylab.nodes.macro import load_macros_from_directory
+        from comfylab.nodes.cluster import load_clusters_from_directory
         from backend.workspace import get_workspace_path
         workspace_path = get_workspace_path()
         if workspace_path:
-            workspace_macros_dir = Path(workspace_path) / "macros"
-            workspace_macros_dir.mkdir(parents=True, exist_ok=True)
-            count = load_macros_from_directory(str(workspace_macros_dir))
+            workspace_clusters_dir = Path(workspace_path) / "clusters"
+            workspace_clusters_dir.mkdir(parents=True, exist_ok=True)
+            count = load_clusters_from_directory(str(workspace_clusters_dir))
             if count > 0:
-                logger.info(f"Loaded {count} macros from workspace macros directory.")
+                logger.info(f"Loaded {count} clusters from workspace clusters directory.")
     except Exception as e:
-        logger.error(f"Error loading workspace macros: {e}")
+        logger.error(f"Error loading workspace clusters: {e}")
 
 
 def reload_registry():
-    """Clears and fully reloads all nodes and macros in the global registry."""
-    from comfylab.engine.registry import NODE_REGISTRY, load_all_macros_deferred, invalidate_schema_cache
+    """Clears and fully reloads all nodes and clusters in the global registry."""
+    from comfylab.engine.registry import NODE_REGISTRY, load_all_clusters_deferred, invalidate_schema_cache
     from comfylab.engine.security import clear_signature_cache
     NODE_REGISTRY.clear()
     invalidate_schema_cache()
     clear_signature_cache()
     load_all_nodes()
-    load_all_macros_deferred(force=True)
+    load_all_clusters_deferred(force=True)
 

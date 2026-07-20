@@ -48,7 +48,7 @@ async def test_linear_math_execution():
         "nodes": [
             {"id": "num1", "type": "constants/number", "properties": {"value": 7.0}},
             {"id": "num2", "type": "constants/number", "properties": {"value": 3.0}},
-            {"id": "add", "type": "math/arithmetic/add", "properties": {}},
+            {"id": "add", "type": "math/basic/add", "properties": {}},
             {"id": "print", "type": "outputs/basic/print", "properties": {}}
         ],
         "links": [

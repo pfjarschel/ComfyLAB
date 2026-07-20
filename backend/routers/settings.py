@@ -20,12 +20,12 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 
-from comfylab.engine.config import get_config, get_global_user_nodes_dir, get_global_user_macros_dir, update_config
+from comfylab.engine.config import get_config, get_global_user_nodes_dir, get_global_user_clusters_dir, update_config
 from backend.workspace import get_workspace_path
 from comfylab.nodes.loader import load_module_from_filepath
 from comfylab.engine.registry import NODE_REGISTRY
 from comfylab.nodes.publisher import generate_node_class_code
-from comfylab.nodes.macro import parse_macro_boundary_pins
+from comfylab.nodes.cluster import parse_cluster_boundary_pins
 import importlib
 
 SCRIPTING_TOGGLES = {
@@ -204,7 +204,7 @@ async def publish_node(payload: PublishNodePayload):
         "file_path": str(filepath)
     }
 
-class PublishMacroPayload(BaseModel):
+class PublishClusterPayload(BaseModel):
     display_name: str
     category: str
     icon: str
@@ -215,28 +215,28 @@ class PublishMacroPayload(BaseModel):
     type_name: Optional[str] = None
 
 
-@router.post("/nodes/publish_macro")
-async def publish_macro(payload: PublishMacroPayload):
+@router.post("/nodes/publish_cluster")
+async def publish_cluster(payload: PublishClusterPayload):
     if payload.destination == "global":
-        target_dir = get_global_user_macros_dir()
-        prefix = "user/macro"
+        target_dir = get_global_user_clusters_dir()
+        prefix = "user/cluster"
     elif payload.destination == "workspace":
         workspace_path = get_workspace_path()
         if not workspace_path:
-            raise HTTPException(status_code=400, detail="No active workspace found to publish macro to.")
-        target_dir = workspace_path / "macros"
+            raise HTTPException(status_code=400, detail="No active workspace found to publish cluster to.")
+        target_dir = workspace_path / "clusters"
         target_dir.mkdir(parents=True, exist_ok=True)
-        prefix = "workspace/macro"
+        prefix = "workspace/cluster"
     elif payload.destination == "temp":
         workspace_path = get_workspace_path()
         if not workspace_path:
-            raise HTTPException(status_code=400, detail="No active workspace found to publish macro to.")
-        target_dir = workspace_path / "macros" / ".temp"
+            raise HTTPException(status_code=400, detail="No active workspace found to publish cluster to.")
+        target_dir = workspace_path / "clusters" / ".temp"
         target_dir.mkdir(parents=True, exist_ok=True)
         if payload.type_name and "/" in payload.type_name:
             prefix = payload.type_name.rsplit("/", 1)[0]
         else:
-            prefix = "workspace/macro"
+            prefix = "workspace/cluster"
     else:
         raise HTTPException(status_code=400, detail=f"Invalid destination: {payload.destination}")
 
@@ -246,12 +246,12 @@ async def publish_macro(payload: PublishMacroPayload):
         raise HTTPException(status_code=400, detail="Invalid node name.")
 
     type_name = f"{prefix}/{clean_name}"
-    filename = f"{clean_name}.macro.json"
+    filename = f"{clean_name}.cluster.json"
     filepath = target_dir / filename
 
-    boundary_pins = parse_macro_boundary_pins(payload.internal_blueprint, payload.boundary_pins)
+    boundary_pins = parse_cluster_boundary_pins(payload.internal_blueprint, payload.boundary_pins)
 
-    macro_json = {
+    cluster_json = {
         "name": payload.display_name,
         "type_name": type_name,
         "category": payload.category,
@@ -262,27 +262,27 @@ async def publish_macro(payload: PublishMacroPayload):
         "boundary_pins": boundary_pins
     }
 
-    from comfylab.engine.models import MacroDefinitionModel
+    from comfylab.engine.models import ClusterDefinitionModel
     try:
-        MacroDefinitionModel.model_validate(macro_json)
+        ClusterDefinitionModel.model_validate(cluster_json)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Invalid macro definition: {e}")
+        raise HTTPException(status_code=400, detail=f"Invalid cluster definition: {e}")
 
     try:
         from comfylab.engine.security import sign_json
-        signed_macro = sign_json(macro_json)
+        signed_cluster = sign_json(cluster_json)
         with open(filepath, "w", encoding="utf-8") as f:
-            json.dump(signed_macro, f, indent=2)
+            json.dump(signed_cluster, f, indent=2)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to write macro file: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to write cluster file: {e}")
 
     try:
-        from comfylab.nodes.macro import load_macro_from_file
-        load_macro_from_file(str(filepath))
+        from comfylab.nodes.cluster import load_cluster_from_file
+        load_cluster_from_file(str(filepath))
     except Exception as e:
         if filepath.exists():
             filepath.unlink()
-        raise HTTPException(status_code=500, detail=f"Failed to register published macro: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to register published cluster: {e}")
 
     return {
         "success": True,
@@ -291,19 +291,19 @@ async def publish_macro(payload: PublishMacroPayload):
     }
 
 
-@router.get("/macro/{type_name:path}")
-async def get_macro_definition(type_name: str):
+@router.get("/cluster/{type_name:path}")
+async def get_cluster_definition(type_name: str):
     from pathlib import Path
-    from comfylab.engine.config import get_global_user_macros_dir
+    from comfylab.engine.config import get_global_user_clusters_dir
     from backend.workspace import get_workspace_path
 
     slug = type_name.split("/")[-1] if "/" in type_name else type_name
     candidates = []
-    candidates.append(get_global_user_macros_dir() / f"{slug}.macro.json")
+    candidates.append(get_global_user_clusters_dir() / f"{slug}.cluster.json")
     ws = get_workspace_path()
     if ws:
-        candidates.append(ws / "macros" / f"{slug}.macro.json")
-        candidates.append(ws / "macros" / ".temp" / f"{slug}.macro.json")
+        candidates.append(ws / "clusters" / f"{slug}.cluster.json")
+        candidates.append(ws / "clusters" / ".temp" / f"{slug}.cluster.json")
 
     for candidate in candidates:
         if candidate.exists():
@@ -313,7 +313,7 @@ async def get_macro_definition(type_name: str):
                     data["_is_temp"] = True
                 return data
 
-    raise HTTPException(status_code=404, detail=f"Macro definition not found for type '{type_name}'")
+    raise HTTPException(status_code=404, detail=f"Cluster definition not found for type '{type_name}'")
 
 
 
