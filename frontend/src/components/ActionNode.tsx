@@ -121,6 +121,35 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
     };
   }
 
+  // Dynamic Inputs: augment layout for nodes using "dynamic_inputs" ui_behavior
+  if (layout && layout.ui_behavior?.dynamic_inputs) {
+    const dynConfig = layout.ui_behavior.dynamic_inputs;
+    const prefix = dynConfig.prefix || 'Item';
+    const type = dynConfig.type || 'any';
+    const widget = dynConfig.widget;
+    
+    // Default to the node's configured itemCount property, or the behavior's default_count
+    const count = typeof data.itemCount === 'number' 
+      ? data.itemCount 
+      : (layout.ui_behavior.dynamic_inputs.default_count || 1);
+
+    const dynIns = layout.dataIns ? [...layout.dataIns] : [];
+    
+    for (let i = 0; i < count; i++) {
+      dynIns.push({
+        name: `${prefix} ${i}`,
+        label: `${prefix} ${i}`,
+        type,
+        widget,
+      });
+    }
+    
+    layout = {
+      ...layout,
+      dataIns: dynIns,
+    };
+  }
+
   // Library Call: augment static layout with dynamic pins from library_args
   if (layout && isLibraryCallNode) {
     const libraryArgs: any[] = data.library_args || data.ffi_args || [];
@@ -1567,6 +1596,75 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
           </div>
         )}
       </div>
+
+      {layout.ui_behavior?.dynamic_inputs && (
+        <div style={{ display: 'flex', gap: '4px', padding: '4px 8px', justifyContent: 'center' }}>
+          <button
+            className="nodrag"
+            style={{
+              background: 'var(--controls-bg)',
+              border: '1px solid var(--node-border)',
+              color: 'var(--text-color)',
+              borderRadius: '4px',
+              padding: '2px 6px',
+              fontSize: '0.68rem',
+              cursor: 'pointer',
+              fontWeight: 600,
+              whiteSpace: 'nowrap',
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              const dynConfig = layout.ui_behavior!.dynamic_inputs!;
+              const currentCount = typeof data.itemCount === 'number' 
+                ? data.itemCount 
+                : (dynConfig.default_count || 1);
+              setNodes(ns => ns.map(n => n.id === id ? {
+                ...n,
+                data: {
+                  ...n.data,
+                  itemCount: currentCount + 1
+                }
+              } : n));
+            }}
+          >
+            Add
+          </button>
+          <button
+            className="nodrag"
+            style={{
+              background: 'var(--controls-bg)',
+              border: '1px solid var(--node-border)',
+              color: 'var(--text-color)',
+              borderRadius: '4px',
+              padding: '2px 6px',
+              fontSize: '0.68rem',
+              cursor: 'pointer',
+              fontWeight: 600,
+              whiteSpace: 'nowrap',
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              const dynConfig = layout.ui_behavior!.dynamic_inputs!;
+              const minCount = dynConfig.min_count ?? 1;
+              const currentCount = typeof data.itemCount === 'number' 
+                ? data.itemCount 
+                : (dynConfig.default_count || 1);
+              const newCount = Math.max(minCount, currentCount - 1);
+              if (newCount !== currentCount) {
+                setNodes(ns => ns.map(n => n.id === id ? {
+                  ...n,
+                  data: {
+                    ...n.data,
+                    itemCount: newCount
+                  }
+                } : n));
+              }
+            }}
+          >
+            Remove
+          </button>
+        </div>
+      )}
 
       {hasOptionalInputs && (
         <div 

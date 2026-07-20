@@ -519,33 +519,77 @@ class CreateListNode(BaseNode):
     display_name = "Create List"
     description = "Creates a list from a comma-separated string of numbers or texts."
     
+    ui_behavior = {"dynamic_inputs": {"prefix": "Row", "type": "str", "widget": "text", "default_count": 1}}
+    
     inputs_def = [
-        DataIn("CSVString", type_hint=str, default="1, 2, 3, 4, 5", widget="text"),
         DataIn("ParseNumbers", type_hint=bool, default=False, widget="checkbox")
     ]
     outputs_def = [DataOut("List", type_hint=list)]
 
+    def __init__(self, node_id: str, properties: Optional[Dict[str, Any]] = None):
+        super().__init__(node_id, properties)
+        item_count = int(self.properties.get("itemCount", 1))
+        for i in range(item_count):
+            self.inputs[f"Row {i}"] = DataIn(f"Row {i}", type_hint=str, default="")
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "List":
-            csv_str = await context.pull(self.id, "CSVString")
             parse_num = bool(await context.pull(self.id, "ParseNumbers"))
+            item_count = int(self.properties.get("itemCount", 1))
             
-            if not csv_str:
-                return []
-                
-            items = [item.strip() for item in csv_str.split(",")]
-            if parse_num:
-                parsed = []
-                for item in items:
-                    try:
-                        val = float(item)
-                        if val == int(val):
-                            val = int(val)
-                        parsed.append(val)
-                    except ValueError:
-                        parsed.append(item)
-                return parsed
-            return items
+            parsed_rows = []
+            for i in range(item_count):
+                csv_str = await context.pull(self.id, f"Row {i}")
+                if not csv_str:
+                    continue
+                    
+                items = [item.strip() for item in csv_str.split(",")]
+                if parse_num:
+                    parsed = []
+                    for item in items:
+                        try:
+                            val = float(item)
+                            if val == int(val):
+                                val = int(val)
+                            parsed.append(val)
+                        except ValueError:
+                            parsed.append(item)
+                    parsed_rows.append(parsed)
+                else:
+                    parsed_rows.append(items)
+            
+            if len(parsed_rows) == 1 and item_count == 1:
+                return parsed_rows[0]
+            return parsed_rows
+        return None
+
+
+@register_node("Lists/manipulation/pack")
+class PackListNode(BaseNode):
+    """Packs multiple inputs into a single List."""
+    icon = "📦"
+    display_name = "Pack List"
+    description = "Packs multiple evaluated inputs into a standard python list."
+
+    ui_behavior = {"dynamic_inputs": {"prefix": "Item", "type": "any", "default_count": 2}}
+    
+    inputs_def = []
+    outputs_def = [DataOut("List", type_hint=list)]
+
+    def __init__(self, node_id: str, properties: Optional[Dict[str, Any]] = None):
+        super().__init__(node_id, properties)
+        item_count = int(self.properties.get("itemCount", 2))
+        for i in range(item_count):
+            self.inputs[f"Item {i}"] = DataIn(f"Item {i}", type_hint=Any, default=None)
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "List":
+            item_count = int(self.properties.get("itemCount", 2))
+            result = []
+            for i in range(item_count):
+                val = await context.pull(self.id, f"Item {i}")
+                result.append(val)
+            return result
         return None
 
 
@@ -764,6 +808,42 @@ class TakeListNode(BaseNode):
         return None
 
 
+@register_node("Numeric Arrays/manipulation/create_filled")
+class CreateFilledNdarrayNode(BaseNode):
+    """Outputs a constant NDArray filled with a specific value, given a shape."""
+    icon = "🟩"
+    display_name = "Create Filled Array"
+    description = "Outputs an NDArray filled with a single value."
+    
+    inputs_def = [
+        DataIn("Shape", type_hint=Any, default="100", widget="text"),
+        DataIn("Value", type_hint=float, default=0.0, widget="number")
+    ]
+    outputs_def = [DataOut("Array", type_hint=np.ndarray)]
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Array":
+            shape_raw = await context.pull(self.id, "Shape")
+            val = float(await context.pull(self.id, "Value"))
+            
+            shape = []
+            if isinstance(shape_raw, str):
+                try:
+                    shape = [int(x.strip()) for x in shape_raw.split(',') if x.strip()]
+                except Exception:
+                    shape = [100]
+            elif isinstance(shape_raw, (list, tuple, np.ndarray)):
+                shape = [int(x) for x in shape_raw]
+            elif isinstance(shape_raw, (int, float)):
+                shape = [int(shape_raw)]
+            
+            if not shape:
+                shape = [100]
+                
+            return np.full(shape, val, dtype=float)
+        return None
+
+
 @register_node("Numeric Arrays/manipulation/create")
 class CreateNdarrayNode(BaseNode):
     """Creates a NumPy array from a comma-separated string."""
@@ -771,27 +851,73 @@ class CreateNdarrayNode(BaseNode):
     display_name = "Create NDArray"
     description = "Creates a NumPy numeric array from a comma-separated string of numbers."
     
-    inputs_def = [
-        DataIn("CSVString", type_hint=str, default="1, 2, 3, 4, 5", widget="text")
-    ]
+    ui_behavior = {"dynamic_inputs": {"prefix": "Row", "type": "str", "widget": "text", "default_count": 1}}
+    
+    inputs_def = []
     outputs_def = [DataOut("Array", type_hint=np.ndarray)]
+
+    def __init__(self, node_id: str, properties: Optional[Dict[str, Any]] = None):
+        super().__init__(node_id, properties)
+        item_count = int(self.properties.get("itemCount", 1))
+        for i in range(item_count):
+            self.inputs[f"Row {i}"] = DataIn(f"Row {i}", type_hint=str, default="")
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Array":
-            csv_str = await context.pull(self.id, "CSVString")
+            item_count = int(self.properties.get("itemCount", 1))
             
-            if not csv_str:
-                return np.array([], dtype=float)
+            parsed_rows = []
+            for i in range(item_count):
+                csv_str = await context.pull(self.id, f"Row {i}")
+                if not csv_str:
+                    continue
+                    
+                items = [item.strip() for item in csv_str.split(",")]
+                parsed = []
+                for item in items:
+                    try:
+                        val = float(item)
+                        parsed.append(val)
+                    except ValueError:
+                        parsed.append(np.nan)
+                parsed_rows.append(parsed)
                 
-            items = [item.strip() for item in csv_str.split(",")]
-            parsed = []
-            for item in items:
-                try:
-                    val = float(item)
-                    parsed.append(val)
-                except ValueError:
-                    parsed.append(np.nan)
-            return np.array(parsed, dtype=float)
+            if len(parsed_rows) == 1 and item_count == 1:
+                return np.array(parsed_rows[0], dtype=float)
+            return np.array(parsed_rows, dtype=float)
+        return None
+
+
+@register_node("Numeric Arrays/manipulation/pack")
+class PackNdarrayNode(BaseNode):
+    """Packs multiple inputs into a NumPy Array."""
+    icon = "📦"
+    display_name = "Pack NDArray"
+    description = "Packs multiple evaluated inputs into a NumPy ndarray. Raises an error if dimensions are inconsistent."
+
+    ui_behavior = {"dynamic_inputs": {"prefix": "Item", "type": "any", "default_count": 2}}
+    
+    inputs_def = []
+    outputs_def = [DataOut("Array", type_hint=np.ndarray)]
+
+    def __init__(self, node_id: str, properties: Optional[Dict[str, Any]] = None):
+        super().__init__(node_id, properties)
+        item_count = int(self.properties.get("itemCount", 2))
+        for i in range(item_count):
+            self.inputs[f"Item {i}"] = DataIn(f"Item {i}", type_hint=Any, default=None)
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Array":
+            item_count = int(self.properties.get("itemCount", 2))
+            result = []
+            for i in range(item_count):
+                val = await context.pull(self.id, f"Item {i}")
+                result.append(val)
+            
+            try:
+                return np.array(result, dtype=float)
+            except Exception as e:
+                raise ValueError(f"Inconsistent dimensions or types for Pack NDArray: {e}")
         return None
 
 

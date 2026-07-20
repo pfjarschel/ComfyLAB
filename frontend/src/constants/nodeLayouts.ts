@@ -47,9 +47,9 @@ export const getPinColor = (type: string | undefined): string => {
       return '#ec4899'; // Pink (LabVIEW string)
     case 'ndarray':
     case 'array':
-      return '#06b6d4'; // Cyan (LabVIEW arrays/waveform)
+      return '#e5a50a'; // Yellow (LabVIEW arrays/waveform)
     case 'list':
-      return '#e5a50a'; // Yellow for standard Lists
+      return '#06b6d4'; // Cyan for standard Lists
     case 'any':
     default:
       return '#64748b'; // Neutral slate gray for generic/unspecified types
