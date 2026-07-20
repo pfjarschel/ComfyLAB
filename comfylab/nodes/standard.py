@@ -40,7 +40,7 @@ class NumberNode(BaseNode):
         return None
 
 
-@register_node("math/arithmetic/add")
+@register_node("math/basic/add")
 class AddNode(BaseNode):
     """Pulls two numbers, A and B, and outputs their sum."""
     icon = "➕"
@@ -279,7 +279,7 @@ class StringNode(BaseNode):
 
 
 
-@register_node("math/arithmetic/subtract")
+@register_node("math/basic/subtract")
 class SubtractNode(BaseNode):
     """Pulls two numbers, A and B, and outputs A - B."""
     icon = "➖"
@@ -300,7 +300,7 @@ class SubtractNode(BaseNode):
         return None
 
 
-@register_node("math/arithmetic/multiply")
+@register_node("math/basic/multiply")
 class MultiplyNode(BaseNode):
     """Pulls two numbers, A and B, and outputs their product."""
     icon = "✖️"
@@ -321,7 +321,7 @@ class MultiplyNode(BaseNode):
         return None
 
 
-@register_node("math/arithmetic/divide")
+@register_node("math/basic/divide")
 class DivideNode(BaseNode):
     """Pulls two numbers, A and B, and outputs A / B."""
     icon = "➗"
@@ -340,12 +340,12 @@ class DivideNode(BaseNode):
             b = await context.pull(self.id, "B")
             denom = float(b)
             if denom == 0.0:
-                raise ZeroDivisionError("Division by zero in math/arithmetic/divide node.")
+                raise ZeroDivisionError("Division by zero in math/basic/divide node.")
             return float(a) / denom
         return None
 
 
-@register_node("math/arithmetic/power")
+@register_node("math/basic/power")
 class PowerNode(BaseNode):
     """Raises base A to exponent B (A^B)."""
     icon = "🔋"
@@ -366,35 +366,63 @@ class PowerNode(BaseNode):
         return None
 
 
-@register_node("math/trigonometry/trig")
+@register_node("math/basic/trig")
 class TrigNode(BaseNode):
-    """Computes trig functions (sin, cos, tan)."""
+    """Computes trig functions (sin, cos, tan, and their inverses/hyperbolics)."""
     icon = "📐"
     display_name = "Trigonometry"
-    description = "Computes trig functions (sin, cos, tan) in radians or degrees."
+    description = "Computes trig and hyperbolic functions in radians or degrees. Supports arrays."
     
     inputs_def = [
-        DataIn("Value", type_hint=float, default=0.0, widget="number"),
-        DataIn("Function", type_hint=str, default="sin", widget="dropdown", options=["sin", "cos", "tan"]),
+        DataIn("Value", type_hint=Any, default=0.0),
+        DataIn("Function", type_hint=str, default="sin", widget="dropdown", options=[
+            "sin", "cos", "tan", "asin", "acos", "atan",
+            "sinh", "cosh", "tanh", "asinh", "acosh", "atanh"
+        ]),
         DataIn("UseDegrees", type_hint=bool, default=False, widget="checkbox")
     ]
-    outputs_def = [DataOut("Result", type_hint=float)]
+    outputs_def = [DataOut("Result", type_hint=Any)]
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
-            val = float(await context.pull(self.id, "Value"))
+            val = await context.pull(self.id, "Value")
+            if val is None:
+                val = 0.0
             func = await context.pull(self.id, "Function")
             deg = bool(await context.pull(self.id, "UseDegrees"))
             
-            angle = math.radians(val) if deg else val
+            # Convert to numpy array to transparently handle scalars and arrays
+            val_np = np.asarray(val, dtype=float)
             
-            if func == "sin":
-                return math.sin(angle)
-            elif func == "cos":
-                return math.cos(angle)
-            elif func == "tan":
-                return math.tan(angle)
-            return 0.0
+            angle = val_np
+            is_direct = func in ["sin", "cos", "tan"]
+            if deg and is_direct:
+                angle = np.radians(angle)
+                
+            res = None
+            if func == "sin": res = np.sin(angle)
+            elif func == "cos": res = np.cos(angle)
+            elif func == "tan": res = np.tan(angle)
+            elif func == "asin": res = np.arcsin(angle)
+            elif func == "acos": res = np.arccos(angle)
+            elif func == "atan": res = np.arctan(angle)
+            elif func == "sinh": res = np.sinh(angle)
+            elif func == "cosh": res = np.cosh(angle)
+            elif func == "tanh": res = np.tanh(angle)
+            elif func == "asinh": res = np.arcsinh(angle)
+            elif func == "acosh": res = np.arccosh(angle)
+            elif func == "atanh": res = np.arctanh(angle)
+            else: res = val_np * 0.0
+            
+            is_inverse = func in ["asin", "acos", "atan"]
+            if deg and is_inverse:
+                res = np.degrees(res)
+                
+            res = np.nan_to_num(res, nan=0.0, posinf=1e99, neginf=-1e99)
+            
+            if res.ndim == 0:
+                return float(res)
+            return res
         return None
 
 
@@ -1567,7 +1595,7 @@ class HasChangedNode(BaseNode):
         self._changed = False
 
 
-@register_node("math/arithmetic/calculator")
+@register_node("math/basic/calculator")
 class CalculatorNode(BaseNode):
     """Evaluates a mathematical expression with dynamic variable inputs."""
     icon = "🧮"
@@ -1669,11 +1697,11 @@ class LinearScaleNode(BaseNode):
         return None
 
 
-@register_node("Numeric Arrays/manipulation/ramp_generator")
-class RampGeneratorNode(BaseNode):
-    """Generates a linear ramp of values, equivalent to numpy.linspace."""
+@register_node("Numeric Arrays/manipulation/linspace")
+class LinspaceNode(BaseNode):
+    """Generates a linear sequence of values, equivalent to numpy.linspace."""
     icon = "📈"
-    display_name = "Ramp Generator"
+    display_name = "Linspace"
     description = "Generates an ndarray of evenly spaced numbers over a specified interval."
 
     inputs_def = [
