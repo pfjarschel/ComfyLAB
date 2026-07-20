@@ -1448,7 +1448,7 @@ class CalculatorNode(BaseNode):
     display_name = "Calculator"
     description = "Evaluates a mathematical expression with variable inputs."
     default_width = 240
-    ui_behavior = {"custom_widget": "calculator"}
+    ui_behavior = {"custom_widget": "calculator", "render_standard_inputs": True}
 
     inputs_def = []
     outputs_def = [

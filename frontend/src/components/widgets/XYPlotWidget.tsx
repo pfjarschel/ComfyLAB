@@ -72,8 +72,9 @@ const PlotlyXYRenderer = ({ nodeId, xLabel, yLabel, width, height }: PlotlyXYRen
       const x = results.x || [];
       const y = results.y || [];
       
-      if (x.length > 0 && y.length > 0) {
-        setPlotData({ x, y });
+      if (y.length > 0) {
+        const finalX = x.length > 0 ? x : Array.from({ length: y.length }, (_, i) => i);
+        setPlotData({ x: finalX, y });
       }
 
       setLabels({

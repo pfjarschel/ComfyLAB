@@ -65,6 +65,7 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
 
   const statusBarRef = useRef<HTMLDivElement>(null);
   const optionalToggleRef = useRef<HTMLDivElement>(null);
+  const nodeWrapperRef = useRef<HTMLDivElement>(null);
 
   const [measuredStatusHeight, setMeasuredStatusHeight] = useState(44);
   const [measuredOptionalHeight, setMeasuredOptionalHeight] = useState(0);
@@ -347,6 +348,16 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
 
   const isXYPlot = data.action === 'outputs/plots/xy_plot';
   const calculatedMinHeight = calculateMinHeight();
+
+  // Trigger React Flow's updateNodeInternals whenever the node's dimensions change
+  useEffect(() => {
+    if (!nodeWrapperRef.current) return;
+    const observer = new ResizeObserver(() => {
+      updateNodeInternals(id);
+    });
+    observer.observe(nodeWrapperRef.current);
+    return () => observer.disconnect();
+  }, [id, updateNodeInternals]);
 
   // Measure status bar height dynamically to handle multi-line error/status wrapping
   useEffect(() => {
@@ -810,6 +821,7 @@ export const ActionNode = ({ id, data, selected }: NodeProps<any>) => {
 
   return (
     <div
+      ref={nodeWrapperRef}
       id={`node-container-${id}`}
       className={`glass-panel action-node ${data.status || 'idle'} ${isMacro ? 'macro-node' : ''} ${data.pinned ? 'pinned-node' : ''} ${data.isPersistent ? 'persistent-node' : ''} ${data.disabled ? 'disabled-node' : ''} ${selected ? 'selected' : ''}`}
       onDoubleClick={(e) => {

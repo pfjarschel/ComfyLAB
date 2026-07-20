@@ -93,19 +93,20 @@ class ImageDisplayNode(BaseNode):
         return "Out"
 
 
-@register_node("File I\/O/csv_logger")
-class DataLoggerNode(BaseNode):
-    """Logs experimental data (scalars, lists, or dictionaries) to a CSV file."""
+@register_node("File I\/O/save_csv")
+class SaveDataNode(BaseNode):
+    """Saves experimental data (scalars, lists, or dictionaries) to a CSV file."""
     icon = "📝"
-    display_name = "CSV Logger"
-    description = "Logs structured data rows to a CSV file. Supports appending or overwriting."
+    display_name = "Save CSV"
+    description = "Saves structured data rows to a CSV file. Supports appending or overwriting."
 
     inputs_def = [
         ExecIn("Write"),
         DataIn("FilePath", type_hint=str, default="output.csv", widget="text"),
         DataIn("Data", type_hint=Any),
         DataIn("Headers", type_hint=list, optional=True),
-        DataIn("Transpose", type_hint=bool, default=True, widget="checkbox", optional=True)
+        DataIn("Transpose", type_hint=bool, default=True, widget="checkbox", optional=True),
+        DataIn("Append", type_hint=bool, default=False, widget="checkbox", optional=True)
     ]
     outputs_def = [ExecOut("Out")]
 
@@ -114,7 +115,7 @@ class DataLoggerNode(BaseNode):
         data = await context.pull(self.id, "Data")
         headers = await context.pull(self.id, "Headers")
         transpose = await context.pull(self.id, "Transpose")
-        mode_prop = self.properties.get("mode", "append").lower()
+        append_mode = await context.pull(self.id, "Append")
 
         if isinstance(data, np.ndarray):
             data = data.tolist()
@@ -138,7 +139,8 @@ class DataLoggerNode(BaseNode):
         file_empty = not file_exists or os.path.getsize(filepath) == 0
 
         # Determine open mode
-        open_mode = 'w' if (mode_prop == "overwrite" or not file_exists) else 'a'
+        append_mode = False if append_mode is None else bool(append_mode)
+        open_mode = 'a' if (append_mode and not file_empty) else 'w'
 
         if isinstance(data, dict):
             # Check if values are lists (writing columns) or scalars (writing a single row)
@@ -205,18 +207,19 @@ class DataLoggerNode(BaseNode):
         return "Out"
 
 
-@register_node("File I\/O/parquet_logger")
-class ParquetLoggerNode(BaseNode):
-    """Logs experimental data (scalars, lists, or dictionaries) to a Parquet file."""
+@register_node("File I\/O/save_parquet")
+class SaveParquetNode(BaseNode):
+    """Saves experimental data (scalars, lists, or dictionaries) to a Parquet file."""
     icon = "📝"
-    display_name = "Parquet Logger"
-    description = "Logs structured data rows to a Parquet file. Highly optimized for large matrices and columnar data. Appending is supported via fastparquet."
+    display_name = "Save Parquet"
+    description = "Saves structured data rows to a Parquet file. Highly optimized for large matrices and columnar data. Appending is supported via fastparquet."
 
     inputs_def = [
         ExecIn("Write"),
         DataIn("FilePath", type_hint=str, default="output.parquet", widget="text"),
         DataIn("Data", type_hint=Any),
-        DataIn("Headers", type_hint=list, optional=True)
+        DataIn("Headers", type_hint=list, optional=True),
+        DataIn("Append", type_hint=bool, default=False, widget="checkbox", optional=True)
     ]
     outputs_def = [ExecOut("Out")]
 
@@ -226,6 +229,7 @@ class ParquetLoggerNode(BaseNode):
         filepath = await context.pull(self.id, "FilePath")
         data = await context.pull(self.id, "Data")
         headers = await context.pull(self.id, "Headers")
+        append_mode = await context.pull(self.id, "Append")
 
         if isinstance(data, np.ndarray):
             data = data.tolist()
@@ -272,7 +276,8 @@ class ParquetLoggerNode(BaseNode):
             # Parquet requires all column names to be strings
             df.columns = df.columns.astype(str)
             
-            if not file_empty:
+            append_mode = False if append_mode is None else bool(append_mode)
+            if append_mode and not file_empty:
                 df.to_parquet(filepath, engine='fastparquet', append=True)
             else:
                 df.to_parquet(filepath, engine='fastparquet')
@@ -280,11 +285,11 @@ class ParquetLoggerNode(BaseNode):
         return "Out"
 
 
-@register_node("File I\/O/csv_loader")
-class CSVLoaderNode(BaseNode):
+@register_node("File I\/O/load_csv")
+class LoadCSVNode(BaseNode):
     """Reads a CSV file into data arrays."""
     icon = "📂"
-    display_name = "CSV Loader"
+    display_name = "Load CSV"
     description = "Reads a CSV file and outputs its contents as Columns (2D array), Headers, and a Dictionary mapping names to arrays."
 
     inputs_def = [
@@ -334,11 +339,11 @@ class CSVLoaderNode(BaseNode):
         return "Out"
 
 
-@register_node("File I\/O/parquet_loader")
-class ParquetLoaderNode(BaseNode):
+@register_node("File I\/O/load_parquet")
+class LoadParquetNode(BaseNode):
     """Reads a Parquet file into data arrays."""
     icon = "📂"
-    display_name = "Parquet Loader"
+    display_name = "Load Parquet"
     description = "Reads a Parquet file and outputs Columns, Headers, and a Dictionary."
 
     inputs_def = [
