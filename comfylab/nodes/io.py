@@ -93,6 +93,55 @@ class ImageDisplayNode(BaseNode):
         return "Out"
 
 
+@register_node("File I\/O/image_to_array")
+class ImageToArrayNode(BaseNode):
+    """Loads an image from the workspace and converts it to a numeric array."""
+    icon = "🖼️"
+    display_name = "Image to Array"
+    description = "Loads an image from the workspace (relative path) and outputs it as a NumPy array."
+
+    inputs_def = [
+        DataIn("FilePath", type_hint=str, default="uploads/image.png", widget="text"),
+        DataIn("Grayscale", type_hint=bool, default=False, widget="checkbox"),
+    ]
+    outputs_def = [DataOut("Array", type_hint=np.ndarray)]
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Array":
+            filepath = await context.pull(self.id, "FilePath")
+            grayscale = bool(await context.pull(self.id, "Grayscale"))
+            
+            if not filepath:
+                return None
+                
+            try:
+                from PIL import Image, ImageFile
+                from backend.workspace import get_workspace_path
+                import os
+                
+                ImageFile.LOAD_TRUNCATED_IMAGES = True
+                
+                ws_path = get_workspace_path()
+                full_path = os.path.join(ws_path, filepath) if ws_path else filepath
+                
+                if not os.path.exists(full_path):
+                    logger.error(f"ImageToArray: File not found {full_path}")
+                    return None
+                    
+                img = Image.open(full_path)
+                if grayscale:
+                    img = img.convert("L")
+                
+                return np.array(img)
+            except ImportError:
+                logger.error("Pillow (PIL) is required to load images. Please install it.")
+                return None
+            except Exception as e:
+                logger.error(f"Error loading image: {e}")
+                return None
+        return None
+
+
 @register_node("File I\/O/save_csv")
 class SaveDataNode(BaseNode):
     """Saves experimental data (scalars, lists, or dictionaries) to a CSV file."""

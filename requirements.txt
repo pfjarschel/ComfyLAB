@@ -14,3 +14,4 @@ scipy>=1.7.0
 pandas>=2.0.0
 pyarrow>=14.0.0
 fastparquet>=2023.10.0
+Pillow>=10.0.0
