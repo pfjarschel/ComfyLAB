@@ -81,7 +81,7 @@ const edgeTypes: any = {
 };
 
 let id = 0;
-const getId = () => `node_${Date.now()}_${id++}`;
+const getId = () => `block_${Date.now()}_${id++}`;
 
 const lineSegmentsIntersect = (
   p1: { x: number; y: number },

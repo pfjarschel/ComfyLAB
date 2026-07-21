@@ -162,7 +162,7 @@ export function useWorkspaceHistory({
     }
 
     const newBlocks = clipboard.blocks.map(block => {
-      const newId = `node_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+      const newId = `block_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
       idMap[block.id] = newId;
       const cleanData = JSON.parse(JSON.stringify(block.data || {}));
       let newPos = {
@@ -212,7 +212,7 @@ export function useWorkspaceHistory({
 
     const idMap: Record<string, string> = {};
     const newBlocks = selectedNodes.map(block => {
-      const newId = `node_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+      const newId = `block_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
       idMap[block.id] = newId;
       const cleanData = JSON.parse(JSON.stringify(block.data || {}));
       return {

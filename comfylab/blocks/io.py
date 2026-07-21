@@ -546,3 +546,73 @@ class LoadJSONBlock(BaseBlock):
             self._loaded_data = None
             
         return "Out"
+
+
+@register_block("File I\/O/array_to_image")
+class ArrayToImageBlock(BaseBlock):
+    """Saves a numeric array to an image file."""
+    icon = "🖼️"
+    display_name = "Array to Image"
+    description = "Saves an array (2D grayscale, or MxNx3/4 color) as an image file."
+
+    inputs_def = [
+        ExecIn("Save"),
+        DataIn("Data", type_hint=np.ndarray),
+        DataIn("FileName", type_hint=str, default="image.png", widget="text"),
+        DataIn("SubDir", type_hint=str, default="", widget="text", optional=True)
+    ]
+    outputs_def = [ExecOut("Out")]
+
+    async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
+        data = await context.pull(self.id, "Data")
+        filename = await context.pull(self.id, "FileName")
+        subdir = await context.pull(self.id, "SubDir")
+
+        if data is None or not filename:
+            logger.error("ArrayToImageBlock: Data and FileName cannot be empty.")
+            return None
+
+        import os
+        from PIL import Image
+        from backend.workspace import get_workspace_path
+
+        # Determine extension and append .png if needed
+        valid_extensions = {".png", ".jpg", ".jpeg", ".bmp", ".tiff", ".webp"}
+        _, ext = os.path.splitext(filename)
+        if ext.lower() not in valid_extensions:
+            filename += ".png"
+
+        filepath = os.path.join(subdir, filename) if subdir else filename
+        
+        ws_path = get_workspace_path()
+        full_path = os.path.join(ws_path, filepath) if ws_path else filepath
+
+        dir_name = os.path.dirname(full_path)
+        if dir_name:
+            os.makedirs(dir_name, exist_ok=True)
+
+        try:
+            arr = np.asarray(data)
+            
+            if np.issubdtype(arr.dtype, np.floating):
+                if np.min(arr) >= 0.0 and np.max(arr) <= 1.0:
+                    arr = arr * 255.0
+            
+            arr = np.clip(arr, 0, 255).astype(np.uint8)
+            
+            # Handling 2D, 3D
+            if arr.ndim == 2:
+                img = Image.fromarray(arr, mode='L')
+            elif arr.ndim == 3 and arr.shape[2] == 3:
+                img = Image.fromarray(arr, mode='RGB')
+            elif arr.ndim == 3 and arr.shape[2] == 4:
+                img = Image.fromarray(arr, mode='RGBA')
+            else:
+                logger.error(f"ArrayToImageBlock: Unsupported array shape {arr.shape}.")
+                return None
+                
+            img.save(full_path)
+        except Exception as e:
+            logger.error(f"Error saving image {full_path}: {e}")
+            
+        return "Out"
