@@ -112,7 +112,7 @@ export const BlockInspectorPanel = ({
     };
   }
 
-  if (action === 'math/arithmetic/calculator' && registryLayout) {
+  if (action === 'math/basic/calculator' && registryLayout) {
     const variables: string[] = Array.isArray(block.data.variables)
       ? block.data.variables
       : typeof block.data.variables === 'string'

@@ -63,6 +63,9 @@ interface PlotlyTimeRendererProps {
 const PlotlyTimeRenderer = ({ blockId, strokeColor, dataKey, width, height, onChange, savedLayout }: PlotlyTimeRendererProps) => {
   const { getNode } = useReactFlow();
   const [plotData, setPlotData] = useState<any[]>([]);
+  const [timeData, setTimeData] = useState<number[]>([]);
+  const [yLabel, setYLabel] = useState<string>('Value');
+  const [traceLabels, setTraceLabels] = useState<string[]>([]);
   const [limits, setLimits] = useState<{x_min?: number, x_max?: number, y_min?: number, y_max?: number}>({});
 
   // Initialize and listen to high-frequency telemetry events directly to bypass full block render cycle
@@ -79,6 +82,13 @@ const PlotlyTimeRenderer = ({ blockId, strokeColor, dataKey, width, height, onCh
       }
       
       if (results) {
+        if (results.time_history && Array.isArray(results.time_history)) {
+          setTimeData(results.time_history);
+        } else {
+          setTimeData([]);
+        }
+        setYLabel(results.y_label || 'Value');
+        setTraceLabels(results.labels || []);
         setLimits({
           x_min: results.x_min,
           x_max: results.x_max,
@@ -108,8 +118,7 @@ const PlotlyTimeRenderer = ({ blockId, strokeColor, dataKey, width, height, onCh
   const gridColor = isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)';
 
   const xaxis: any = {
-    title: 'Time Index',
-    titlefont: { size: 14, color: textColor },
+    title: { text: timeData.length > 0 ? 'Time (s)' : 'Time Index', font: { size: 14, color: textColor } },
     tickfont: { size: 12, color: textColor },
     gridcolor: gridColor,
     zerolinecolor: gridColor,
@@ -126,8 +135,7 @@ const PlotlyTimeRenderer = ({ blockId, strokeColor, dataKey, width, height, onCh
   }
 
   const yaxis: any = {
-    title: 'Value',
-    titlefont: { size: 14, color: textColor },
+    title: { text: yLabel, font: { size: 14, color: textColor } },
     tickfont: { size: 12, color: textColor },
     gridcolor: gridColor,
     zerolinecolor: gridColor,
@@ -143,27 +151,55 @@ const PlotlyTimeRenderer = ({ blockId, strokeColor, dataKey, width, height, onCh
     yaxis.range = [savedLayout['yaxis.range[0]'], savedLayout['yaxis.range[1]']];
   }
 
+  const colors = ['#60a5fa', '#f87171', '#34d399', '#fbbf24', '#a78bfa', '#2dd4bf'];
+  
+  const relativeTimeData = timeData.length > 0 ? timeData.map(t => t - timeData[0]) : [];
+  
+  let plotTraces: any[] = [];
+  if (plotData && plotData.length > 0) {
+    if (Array.isArray(plotData[0])) {
+      const numCurves = plotData[0].length;
+      for (let c = 0; c < numCurves; c++) {
+        const curveY = plotData.map(step => (Array.isArray(step) ? step[c] : step));
+        const traceObj: any = {
+          y: curveY,
+          type: 'scattergl',
+          mode: 'lines',
+          line: { color: colors[c % colors.length], width: 1.5 },
+          hoverinfo: timeData.length > 0 ? 'x+y' : 'y',
+          name: traceLabels?.[c] || `Trace ${c + 1}`
+        };
+        if (relativeTimeData.length > 0) traceObj.x = relativeTimeData;
+        plotTraces.push(traceObj);
+      }
+    } else {
+      const traceObj: any = {
+        y: plotData,
+        type: 'scattergl',
+        mode: 'lines',
+        line: { color: strokeColor, width: 1.5 },
+        hoverinfo: timeData.length > 0 ? 'x+y' : 'y',
+        name: traceLabels?.[0] || 'Trace 1'
+      };
+      if (relativeTimeData.length > 0) traceObj.x = relativeTimeData;
+      plotTraces = [traceObj];
+    }
+  }
+
   return (
     <div className="nodrag" style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
       <Plot
-        data={[
-          {
-            y: plotData,
-            type: 'scattergl', // Use scattergl for high performance rendering of large datasets
-            mode: 'lines',
-            line: { color: strokeColor, width: 1.5 },
-            hoverinfo: 'y'
-          }
-        ]}
+        data={plotTraces}
         layout={{
           width: Math.max(10, width - 12),
           height: Math.max(10, height - 12),
-          margin: { l: 55, r: 15, t: 15, b: 40 },
+          margin: { l: 65, r: 15, t: 15, b: 55 },
           paper_bgcolor: 'transparent',
           plot_bgcolor: 'transparent',
           uirevision: true,
           xaxis,
-          yaxis
+          yaxis,
+          legend: { font: { color: textColor } }
         }}
         config={{
           displayModeBar: 'hover',

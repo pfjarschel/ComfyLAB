@@ -23,7 +23,6 @@ import { TimePlotWidget } from './widgets/TimePlotWidget';
 import { XYPlotWidget } from './widgets/XYPlotWidget';
 import { HeatmapPlotWidget } from './widgets/HeatmapPlotWidget';
 import { DisplayScreenWidget } from './widgets/DisplayScreenWidget';
-import { RFGeneratorWidget } from './widgets/RFGeneratorWidget';
 import { ImageDisplayWidget } from './widgets/ImageDisplayWidget';
 
 // Re-export pin color resolver for compatibility with App.tsx and BlockInspectorPanel.tsx
@@ -104,7 +103,7 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
       }
     : registryLayout;
 
-  if (layout && data.action === 'math/arithmetic/calculator') {
+  if (layout && data.action === 'math/basic/calculator') {
     const variables: string[] = Array.isArray(data.variables)
       ? data.variables
       : typeof data.variables === 'string'
@@ -1350,15 +1349,6 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
               />
             </div>
           </div>
-        )}
-
-        {registryLayout?.ui_behavior?.custom_widget === 'rf_generator' && (
-          <RFGeneratorWidget
-            waveType={data.wave_type}
-            frequency={data.frequency}
-            amplitude={data.amplitude}
-            onChange={handleChange}
-          />
         )}
 
         {registryLayout?.ui_behavior?.custom_widget === 'display_area' && (

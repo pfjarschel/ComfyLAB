@@ -78,10 +78,11 @@ const PlotlyXYRenderer = ({ blockId, xLabel, yLabel, width, height, onChange, sa
 
       const x = results.x || [];
       const y = results.y || [];
+      const traceLabels = results.labels || [];
       
       if (y.length > 0) {
         const finalX = x.length > 0 ? x : Array.from({ length: y.length }, (_, i) => i);
-        setPlotData({ x: finalX, y });
+        setPlotData({ x: finalX, y, labels: traceLabels });
       }
 
       setLabels({
@@ -117,8 +118,7 @@ const PlotlyXYRenderer = ({ blockId, xLabel, yLabel, width, height, onChange, sa
   const gridColor = isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)';
 
   const xaxis: any = {
-    title: labels.x,
-    titlefont: { size: 14, color: textColor },
+    title: { text: labels.x, font: { size: 14, color: textColor } },
     tickfont: { size: 12, color: textColor },
     gridcolor: gridColor,
     zerolinecolor: gridColor,
@@ -135,8 +135,7 @@ const PlotlyXYRenderer = ({ blockId, xLabel, yLabel, width, height, onChange, sa
   }
 
   const yaxis: any = {
-    title: labels.y,
-    titlefont: { size: 14, color: textColor },
+    title: { text: labels.y, font: { size: 14, color: textColor } },
     tickfont: { size: 12, color: textColor },
     gridcolor: gridColor,
     zerolinecolor: gridColor,
@@ -152,28 +151,47 @@ const PlotlyXYRenderer = ({ blockId, xLabel, yLabel, width, height, onChange, sa
     yaxis.range = [savedLayout['yaxis.range[0]'], savedLayout['yaxis.range[1]']];
   }
 
+  const colors = ['#60a5fa', '#f87171', '#34d399', '#fbbf24', '#a78bfa', '#2dd4bf'];
+  
+  let plotTraces: any[] = [];
+  if (plotData.y && plotData.y.length > 0) {
+    if (Array.isArray(plotData.y[0])) {
+      plotTraces = plotData.y.map((yArray: any[], i: number) => ({
+        x: (plotData.x && Array.isArray(plotData.x[0])) ? plotData.x[i] : plotData.x,
+        y: yArray,
+        type: 'scattergl',
+        mode: 'lines',
+        line: { color: colors[i % colors.length], width: 2 },
+        hoverinfo: 'x+y',
+        name: plotData.labels?.[i] || `Trace ${i + 1}`
+      }));
+    } else {
+      plotTraces = [{
+        x: plotData.x,
+        y: plotData.y,
+        type: 'scattergl',
+        mode: 'lines',
+        line: { color: colors[0], width: 2 },
+        hoverinfo: 'x+y',
+        name: plotData.labels?.[0] || 'Trace 1'
+      }];
+    }
+  }
+
   return (
     <div className="nodrag" style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
       <Plot
-        data={[
-          {
-            x: plotData.x,
-            y: plotData.y,
-            type: 'scattergl',
-            mode: 'lines',
-            line: { color: '#60a5fa', width: 2 },
-            hoverinfo: 'x+y'
-          }
-        ]}
+        data={plotTraces}
         layout={{
           width: Math.max(10, width - 12),
           height: Math.max(10, height - 12),
-          margin: { l: 55, r: 15, t: 15, b: 40 },
+          margin: { l: 65, r: 15, t: 15, b: 55 },
           paper_bgcolor: 'transparent',
           plot_bgcolor: 'transparent',
           uirevision: true,
           xaxis,
-          yaxis
+          yaxis,
+          legend: { font: { color: textColor } }
         }}
         config={{
           displayModeBar: 'hover',

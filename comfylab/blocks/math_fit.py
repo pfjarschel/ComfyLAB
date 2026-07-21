@@ -166,7 +166,6 @@ class CustomFunctionFitBlock(BaseBlock):
     
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)
-        # We don't add DataIn for variables like CalculatorBlock, because they are fitted parameters.
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         x = await context.pull(self.id, "X")

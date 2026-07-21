@@ -117,8 +117,14 @@ export function useFlowExecution({
                const uiBehavior = blockRegistryRef.current?.[existingNode.data.action]?.ui_behavior || {};
                
                if (uiBehavior.accumulate_history) {
-                  const val = parseFloat(update.value);
+                  let val;
+                  if (Array.isArray(update.value)) {
+                     val = update.value.map((v: any) => parseFloat(v));
+                  } else {
+                     val = parseFloat(update.value);
+                  }
                   const oldHistory = existingNode.data.results.history || [];
+                  const oldTimeHistory = existingNode.data.results.time_history || [];
                   
                   let maxHistory = 0;
                   if (update.results?.max_history !== undefined) {
@@ -127,10 +133,22 @@ export function useFlowExecution({
                      maxHistory = Number(existingNode.data.results.max_history);
                   }
                   
+                  const timestamp = update.results?.timestamp;
+                  
                   if (maxHistory > 0) {
                      existingNode.data.results.history = [...oldHistory, val].slice(-maxHistory);
+                     if (timestamp !== undefined && timestamp !== null) {
+                        existingNode.data.results.time_history = [...oldTimeHistory, timestamp].slice(-maxHistory);
+                     } else {
+                        existingNode.data.results.time_history = [];
+                     }
                   } else {
                      existingNode.data.results.history = [...oldHistory, val];
+                     if (timestamp !== undefined && timestamp !== null) {
+                        existingNode.data.results.time_history = [...oldTimeHistory, timestamp];
+                     } else {
+                        existingNode.data.results.time_history = [];
+                     }
                   }
                } else {
                   existingNode.data.results.displayValue = update.value;
@@ -230,8 +248,8 @@ export function useFlowExecution({
           if (!existingNode.data.results) existingNode.data.results = {};
           
           for (const key of Object.keys(data)) {
-            // If the payload contains a large array, intercept it
-            if (Array.isArray(data[key]) && data[key].length > 0) {
+            // If the payload contains a large array, intercept it to prevent React state freezes
+            if (Array.isArray(data[key]) && data[key].length > 100) {
               existingNode.data.results[key] = data[key];
               hasArrayData = true;
             }
@@ -260,7 +278,7 @@ export function useFlowExecution({
         // Remove large arrays from data so they don't enter React's setBlocks pipeline
         if (hasArrayData) {
           for (const key of Object.keys(data)) {
-             if (Array.isArray(data[key]) && data[key].length > 0) {
+             if (Array.isArray(data[key]) && data[key].length > 100) {
                  delete data[key];
              }
           }
