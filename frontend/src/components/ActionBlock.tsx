@@ -1369,11 +1369,23 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
         )}
 
         {registryLayout?.ui_behavior?.custom_widget === 'time_plot' && (
-          <TimePlotWidget blockId={id} strokeColor="#34d399" dataKey="history" />
+          <TimePlotWidget 
+            blockId={id} 
+            strokeColor="#34d399" 
+            dataKey="history" 
+            onChange={handleChange} 
+            savedLayout={data.plot_layout} 
+          />
         )}
 
         {registryLayout?.ui_behavior?.custom_widget === 'xy_plot' && (
-          <XYPlotWidget blockId={id} xLabel={data.results?.x_label} yLabel={data.results?.y_label} />
+          <XYPlotWidget 
+            blockId={id} 
+            xLabel={data.results?.x_label} 
+            yLabel={data.results?.y_label} 
+            onChange={handleChange} 
+            savedLayout={data.plot_layout} 
+          />
         )}
 
         {registryLayout?.ui_behavior?.custom_widget === 'heatmap_plot' && (
@@ -1381,6 +1393,8 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
             blockId={id}
             xLabel={data.results?.x_label}
             yLabel={data.results?.y_label}
+            onChange={handleChange} 
+            savedLayout={data.plot_layout} 
           />
         )}
 

@@ -37,9 +37,11 @@ interface HeatmapPlotWidgetProps {
   blockId: string;
   xLabel?: string;
   yLabel?: string;
+  onChange?: (name: string, value: any) => void;
+  savedLayout?: any;
 }
 
-export const HeatmapPlotWidget = ({ blockId, xLabel = 'X', yLabel = 'Y' }: HeatmapPlotWidgetProps) => {
+export const HeatmapPlotWidget = ({ blockId, xLabel = 'X', yLabel = 'Y', onChange, savedLayout }: HeatmapPlotWidgetProps) => {
   return (
     <ResizablePlotContainer 
       minHeight="150px" 
@@ -55,6 +57,8 @@ export const HeatmapPlotWidget = ({ blockId, xLabel = 'X', yLabel = 'Y' }: Heatm
           initialYLabel={yLabel}
           width={width}
           height={height}
+          onChange={onChange}
+          savedLayout={savedLayout}
         />
       )}
     </ResizablePlotContainer>
@@ -67,16 +71,19 @@ interface PlotlyHeatmapRendererProps {
   initialYLabel: string;
   width: number;
   height: number;
+  onChange?: (name: string, value: any) => void;
+  savedLayout?: any;
 }
 
-const PlotlyHeatmapRenderer = ({ blockId, initialXLabel, initialYLabel, width, height }: PlotlyHeatmapRendererProps) => {
+const PlotlyHeatmapRenderer = ({ blockId, initialXLabel, initialYLabel, width, height, onChange, savedLayout }: PlotlyHeatmapRendererProps) => {
   const { getNode } = useReactFlow();
   
   const [plotData, setPlotData] = useState<{ z: any[][], x?: any[], y?: any[] }>({ z: [] });
-  const [labels, setLabels] = useState({ x: initialXLabel, y: initialYLabel });
+  const [labels, setLabels] = useState({ x: initialXLabel, y: initialYLabel, z: 'Z' });
   const [plotType, setPlotType] = useState<'heatmap' | 'contour'>('heatmap');
   const [colormap, setColormap] = useState('Viridis');
   const [interpolation, setInterpolation] = useState<'fast' | 'best' | false>(false);
+  const [limits, setLimits] = useState<{x_min?: number, x_max?: number, y_min?: number, y_max?: number, z_min?: number, z_max?: number}>({});
 
   useEffect(() => {
     const updateChart = (eventResults?: any) => {
@@ -97,7 +104,17 @@ const PlotlyHeatmapRenderer = ({ blockId, initialXLabel, initialYLabel, width, h
 
       setLabels({
         x: results.x_label || initialXLabel,
-        y: results.y_label || initialYLabel
+        y: results.y_label || initialYLabel,
+        z: results.z_label || 'Z'
+      });
+
+      setLimits({
+        x_min: results.x_min,
+        x_max: results.x_max,
+        y_min: results.y_min,
+        y_max: results.y_max,
+        z_min: results.z_min,
+        z_max: results.z_max
       });
 
       setColormap(results.colormap || 'Viridis');
@@ -133,25 +150,68 @@ const PlotlyHeatmapRenderer = ({ blockId, initialXLabel, initialYLabel, width, h
   const textColor = isLight ? '#475569' : '#94a3b8';
   const gridColor = isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)';
 
+  const xaxis: any = {
+    title: labels.x,
+    titlefont: { size: 14, color: textColor },
+    tickfont: { size: 12, color: textColor },
+    gridcolor: gridColor,
+    zerolinecolor: gridColor,
+    exponentformat: 'SI',
+    minexponent: 3
+  };
+
+  if (limits.x_min != null && limits.x_max != null) {
+    xaxis.range = [limits.x_min, limits.x_max];
+  } else if (savedLayout && savedLayout['xaxis.autorange']) {
+    xaxis.autorange = true;
+  } else if (savedLayout && savedLayout['xaxis.range[0]'] != null && savedLayout['xaxis.range[1]'] != null) {
+    xaxis.range = [savedLayout['xaxis.range[0]'], savedLayout['xaxis.range[1]']];
+  }
+
+  const yaxis: any = {
+    title: labels.y,
+    titlefont: { size: 14, color: textColor },
+    tickfont: { size: 12, color: textColor },
+    gridcolor: gridColor,
+    zerolinecolor: gridColor,
+    exponentformat: 'SI',
+    minexponent: 3
+  };
+
+  if (limits.y_min != null && limits.y_max != null) {
+    yaxis.range = [limits.y_min, limits.y_max];
+  } else if (savedLayout && savedLayout['yaxis.autorange']) {
+    yaxis.autorange = true;
+  } else if (savedLayout && savedLayout['yaxis.range[0]'] != null && savedLayout['yaxis.range[1]'] != null) {
+    yaxis.range = [savedLayout['yaxis.range[0]'], savedLayout['yaxis.range[1]']];
+  }
+
+  const trace: any = {
+    z: plotData.z,
+    x: plotData.x,
+    y: plotData.y,
+    type: plotType,
+    colorscale: getPlotlyColorscale(colormap) as any,
+    zsmooth: plotType === 'heatmap' ? interpolation : false, // Interpolation is for heatmaps
+    showscale: true,
+    colorbar: {
+      title: labels.z,
+      titlefont: { size: 14, color: textColor },
+      tickfont: { size: 12, color: textColor },
+      exponentformat: 'SI',
+      minexponent: 3
+    }
+  };
+
+  if (limits.z_min != null && limits.z_max != null) {
+    trace.zmin = limits.z_min;
+    trace.zmax = limits.z_max;
+  }
+
   return (
     <div className="nodrag" style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
       <Plot
-        data={[
-          {
-            z: plotData.z,
-            x: plotData.x,
-            y: plotData.y,
-            type: plotType,
-            colorscale: getPlotlyColorscale(colormap) as any,
-            zsmooth: plotType === 'heatmap' ? interpolation : false, // Interpolation is for heatmaps
-            showscale: true,
-            colorbar: {
-              tickfont: { size: 12, color: textColor },
-              exponentformat: 'SI',
-              minexponent: 3
-            }
-          }
-        ]}
+        data={[trace]}
         layout={{
           width: Math.max(10, width - 12),
           height: Math.max(10, height - 12),
@@ -159,29 +219,33 @@ const PlotlyHeatmapRenderer = ({ blockId, initialXLabel, initialYLabel, width, h
           paper_bgcolor: 'transparent',
           plot_bgcolor: 'transparent',
           uirevision: true,
-          xaxis: {
-            title: labels.x,
-            titlefont: { size: 14, color: textColor },
-            tickfont: { size: 12, color: textColor },
-            gridcolor: gridColor,
-            zerolinecolor: gridColor,
-            exponentformat: 'SI',
-            minexponent: 3
-          },
-          yaxis: {
-            title: labels.y,
-            titlefont: { size: 14, color: textColor },
-            tickfont: { size: 12, color: textColor },
-            gridcolor: gridColor,
-            zerolinecolor: gridColor,
-            exponentformat: 'SI',
-            minexponent: 3
-          }
+          xaxis,
+          yaxis
         }}
         config={{
           displayModeBar: 'hover',
           displaylogo: false,
           responsive: true
+        }}
+        onRelayout={(e: any) => {
+          if (onChange) {
+            const newLayout = { ...(savedLayout || {}), ...e };
+            if (e['xaxis.autorange']) {
+              delete newLayout['xaxis.range[0]'];
+              delete newLayout['xaxis.range[1]'];
+            }
+            if (e['xaxis.range[0]'] !== undefined) {
+              delete newLayout['xaxis.autorange'];
+            }
+            if (e['yaxis.autorange']) {
+              delete newLayout['yaxis.range[0]'];
+              delete newLayout['yaxis.range[1]'];
+            }
+            if (e['yaxis.range[0]'] !== undefined) {
+              delete newLayout['yaxis.autorange'];
+            }
+            onChange('plot_layout', newLayout);
+          }
         }}
         style={{ width: '100%', height: '100%' }}
         useResizeHandler={false}

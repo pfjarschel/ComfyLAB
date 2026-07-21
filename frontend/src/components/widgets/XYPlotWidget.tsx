@@ -22,9 +22,11 @@ interface XYPlotWidgetProps {
   blockId: string;
   xLabel?: string;
   yLabel?: string;
+  onChange?: (name: string, value: any) => void;
+  savedLayout?: any;
 }
 
-export const XYPlotWidget = ({ blockId, xLabel = 'X', yLabel = 'Y' }: XYPlotWidgetProps) => {
+export const XYPlotWidget = ({ blockId, xLabel = 'X', yLabel = 'Y', onChange, savedLayout }: XYPlotWidgetProps) => {
 
   return (
     <ResizablePlotContainer 
@@ -41,6 +43,8 @@ export const XYPlotWidget = ({ blockId, xLabel = 'X', yLabel = 'Y' }: XYPlotWidg
           yLabel={yLabel}
           width={width}
           height={height}
+          onChange={onChange}
+          savedLayout={savedLayout}
         />
       )}
     </ResizablePlotContainer>
@@ -53,12 +57,15 @@ interface PlotlyXYRendererProps {
   yLabel: string;
   width: number;
   height: number;
+  onChange?: (name: string, value: any) => void;
+  savedLayout?: any;
 }
 
-const PlotlyXYRenderer = ({ blockId, xLabel, yLabel, width, height }: PlotlyXYRendererProps) => {
+const PlotlyXYRenderer = ({ blockId, xLabel, yLabel, width, height, onChange, savedLayout }: PlotlyXYRendererProps) => {
   const { getNode } = useReactFlow();
   const [plotData, setPlotData] = useState<{x: any[], y: any[]}>({ x: [], y: [] });
   const [labels, setLabels] = useState({ x: xLabel, y: yLabel });
+  const [limits, setLimits] = useState<{x_min?: number, x_max?: number, y_min?: number, y_max?: number}>({});
 
   // Initialize and listen to high-frequency telemetry events directly
   useEffect(() => {
@@ -81,6 +88,13 @@ const PlotlyXYRenderer = ({ blockId, xLabel, yLabel, width, height }: PlotlyXYRe
         x: results.x_label || xLabel,
         y: results.y_label || yLabel
       });
+
+      setLimits({
+        x_min: results.x_min,
+        x_max: results.x_max,
+        y_min: results.y_min,
+        y_max: results.y_max
+      });
     };
 
     // Initial update
@@ -102,6 +116,42 @@ const PlotlyXYRenderer = ({ blockId, xLabel, yLabel, width, height }: PlotlyXYRe
   const textColor = isLight ? '#475569' : '#94a3b8';
   const gridColor = isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)';
 
+  const xaxis: any = {
+    title: labels.x,
+    titlefont: { size: 14, color: textColor },
+    tickfont: { size: 12, color: textColor },
+    gridcolor: gridColor,
+    zerolinecolor: gridColor,
+    exponentformat: 'SI',
+    minexponent: 3
+  };
+
+  if (limits.x_min != null && limits.x_max != null) {
+    xaxis.range = [limits.x_min, limits.x_max];
+  } else if (savedLayout && savedLayout['xaxis.autorange']) {
+    xaxis.autorange = true;
+  } else if (savedLayout && savedLayout['xaxis.range[0]'] != null && savedLayout['xaxis.range[1]'] != null) {
+    xaxis.range = [savedLayout['xaxis.range[0]'], savedLayout['xaxis.range[1]']];
+  }
+
+  const yaxis: any = {
+    title: labels.y,
+    titlefont: { size: 14, color: textColor },
+    tickfont: { size: 12, color: textColor },
+    gridcolor: gridColor,
+    zerolinecolor: gridColor,
+    exponentformat: 'SI',
+    minexponent: 3
+  };
+
+  if (limits.y_min != null && limits.y_max != null) {
+    yaxis.range = [limits.y_min, limits.y_max];
+  } else if (savedLayout && savedLayout['yaxis.autorange']) {
+    yaxis.autorange = true;
+  } else if (savedLayout && savedLayout['yaxis.range[0]'] != null && savedLayout['yaxis.range[1]'] != null) {
+    yaxis.range = [savedLayout['yaxis.range[0]'], savedLayout['yaxis.range[1]']];
+  }
+
   return (
     <div className="nodrag" style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
       <Plot
@@ -122,29 +172,33 @@ const PlotlyXYRenderer = ({ blockId, xLabel, yLabel, width, height }: PlotlyXYRe
           paper_bgcolor: 'transparent',
           plot_bgcolor: 'transparent',
           uirevision: true,
-          xaxis: {
-            title: labels.x,
-            titlefont: { size: 14, color: textColor },
-            tickfont: { size: 12, color: textColor },
-            gridcolor: gridColor,
-            zerolinecolor: gridColor,
-            exponentformat: 'SI',
-            minexponent: 3
-          },
-          yaxis: {
-            title: labels.y,
-            titlefont: { size: 14, color: textColor },
-            tickfont: { size: 12, color: textColor },
-            gridcolor: gridColor,
-            zerolinecolor: gridColor,
-            exponentformat: 'SI',
-            minexponent: 3
-          }
+          xaxis,
+          yaxis
         }}
         config={{
           displayModeBar: 'hover',
           displaylogo: false,
           responsive: true
+        }}
+        onRelayout={(e: any) => {
+          if (onChange) {
+            const newLayout = { ...(savedLayout || {}), ...e };
+            if (e['xaxis.autorange']) {
+              delete newLayout['xaxis.range[0]'];
+              delete newLayout['xaxis.range[1]'];
+            }
+            if (e['xaxis.range[0]'] !== undefined) {
+              delete newLayout['xaxis.autorange'];
+            }
+            if (e['yaxis.autorange']) {
+              delete newLayout['yaxis.range[0]'];
+              delete newLayout['yaxis.range[1]'];
+            }
+            if (e['yaxis.range[0]'] !== undefined) {
+              delete newLayout['yaxis.autorange'];
+            }
+            onChange('plot_layout', newLayout);
+          }
         }}
         style={{ width: '100%', height: '100%' }}
         useResizeHandler={false}

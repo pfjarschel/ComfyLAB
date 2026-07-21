@@ -36,7 +36,11 @@ class XYPlotBlock(BaseBlock):
         DataIn("X", type_hint=np.ndarray),
         DataIn("Y", type_hint=np.ndarray),
         DataIn("XLabel", type_hint=str, default="X", optional=True),
-        DataIn("YLabel", type_hint=str, default="Y", optional=True)
+        DataIn("YLabel", type_hint=str, default="Y", optional=True),
+        DataIn("XMin", type_hint=float, optional=True),
+        DataIn("XMax", type_hint=float, optional=True),
+        DataIn("YMin", type_hint=float, optional=True),
+        DataIn("YMax", type_hint=float, optional=True)
     ]
     outputs_def = [ExecOut("Out")]
 
@@ -50,12 +54,21 @@ class XYPlotBlock(BaseBlock):
         x_list = x.tolist() if isinstance(x, np.ndarray) else (x if isinstance(x, list) else [])
         y_list = y.tolist() if isinstance(y, np.ndarray) else (y if isinstance(y, list) else [])
 
+        x_min = await context.pull(self.id, "XMin")
+        x_max = await context.pull(self.id, "XMax")
+        y_min = await context.pull(self.id, "YMin")
+        y_max = await context.pull(self.id, "YMax")
+
         # Send telemetry payload
         payload = {
             "x": x_list,
             "y": y_list,
             "x_label": str(x_label) if x_label else "X",
-            "y_label": str(y_label) if y_label else "Y"
+            "y_label": str(y_label) if y_label else "Y",
+            "x_min": float(x_min) if x_min is not None else None,
+            "x_max": float(x_max) if x_max is not None else None,
+            "y_min": float(y_min) if y_min is not None else None,
+            "y_max": float(y_max) if y_max is not None else None
         }
         await context.send_telemetry(self.id, payload)
         return "Out"
@@ -74,7 +87,11 @@ class PlotBlock(BaseBlock):
     inputs_def = [
         ExecIn("Plot"),
         DataIn("InputData"),
-        DataIn("MaxHistory", type_hint=int, default=0, widget="number")
+        DataIn("MaxHistory", type_hint=int, default=0, widget="number"),
+        DataIn("XMin", type_hint=float, optional=True),
+        DataIn("XMax", type_hint=float, optional=True),
+        DataIn("YMin", type_hint=float, optional=True),
+        DataIn("YMax", type_hint=float, optional=True)
     ]
     outputs_def = [ExecOut("Out")]
 
@@ -87,13 +104,22 @@ class PlotBlock(BaseBlock):
         except Exception:
             max_history = 0
 
+        x_min = await context.pull(self.id, "XMin")
+        x_max = await context.pull(self.id, "XMax")
+        y_min = await context.pull(self.id, "YMin")
+        y_max = await context.pull(self.id, "YMax")
+
         # Convert np.ndarray to list for JSON telemetry serialization
         val_serialized = val.tolist() if isinstance(val, np.ndarray) else val
 
         # Send numerical or array telemetry package
         await context.send_telemetry(self.id, {
             "value": val_serialized,
-            "max_history": max_history
+            "max_history": max_history,
+            "x_min": float(x_min) if x_min is not None else None,
+            "x_max": float(x_max) if x_max is not None else None,
+            "y_min": float(y_min) if y_min is not None else None,
+            "y_max": float(y_max) if y_max is not None else None
         })
         return "Out"
 
@@ -113,14 +139,21 @@ class HeatmapPlotBlock(BaseBlock):
         DataIn("Z", type_hint=np.ndarray),
         DataIn("X", type_hint=np.ndarray, optional=True),
         DataIn("Y", type_hint=np.ndarray, optional=True),
+        DataIn("Colormap", type_hint=str, default="Viridis", widget="dropdown", 
+               options=["Plotly3", "Viridis", "Cividis", "Hot", "Inferno", "Turbo", "Agsunset", "Picnic", "Phase", "Greys", "Bluered"]),
         DataIn("XLabel", type_hint=str, default="X", optional=True),
         DataIn("YLabel", type_hint=str, default="Y", optional=True),
         DataIn("PlotType", type_hint=str, default="Heatmap", widget="dropdown",
-               options=["Heatmap", "Contour"]),
-        DataIn("Colormap", type_hint=str, default="Viridis", widget="dropdown", 
-               options=["Plotly3", "Viridis", "Cividis", "Hot", "Inferno", "Turbo", "Agsunset", "Picnic", "Phase", "Greys", "Bluered"]),
+               options=["Heatmap", "Contour"], optional=True),
         DataIn("Interpolation", type_hint=str, default="None", widget="dropdown",
-               options=["None", "Fast (linear)", "Good (bilinear)", "Best (spline36)"])
+               options=["None", "Fast (linear)", "Good (bilinear)", "Best (spline36)"], optional=True),
+        DataIn("XMin", type_hint=float, optional=True),
+        DataIn("XMax", type_hint=float, optional=True),
+        DataIn("YMin", type_hint=float, optional=True),
+        DataIn("YMax", type_hint=float, optional=True),
+        DataIn("ZMin", type_hint=float, optional=True),
+        DataIn("ZMax", type_hint=float, optional=True),
+        DataIn("ZLabel", type_hint=str, default="Z", optional=True)
     ]
     outputs_def = [ExecOut("Out")]
 
@@ -168,6 +201,14 @@ class HeatmapPlotBlock(BaseBlock):
             except Exception as e:
                 logger.error(f"Error interpolating Heatmap Z array: {e}")
 
+        x_min = await context.pull(self.id, "XMin")
+        x_max = await context.pull(self.id, "XMax")
+        y_min = await context.pull(self.id, "YMin")
+        y_max = await context.pull(self.id, "YMax")
+        z_min = await context.pull(self.id, "ZMin")
+        z_max = await context.pull(self.id, "ZMax")
+        z_label = await context.pull(self.id, "ZLabel")
+
         payload = {
             "z": z_out,
             "x": x_out,
@@ -176,7 +217,14 @@ class HeatmapPlotBlock(BaseBlock):
             "y_label": str(y_label) if y_label else "Y",
             "colormap": str(colormap) if colormap else "Viridis",
             "interpolation": "False", # Tell frontend not to smooth it since we pre-smoothed it
-            "plot_type": str(plot_type) if plot_type else "Heatmap"
+            "plot_type": str(plot_type) if plot_type else "Heatmap",
+            "x_min": float(x_min) if x_min is not None else None,
+            "x_max": float(x_max) if x_max is not None else None,
+            "y_min": float(y_min) if y_min is not None else None,
+            "y_max": float(y_max) if y_max is not None else None,
+            "z_min": float(z_min) if z_min is not None else None,
+            "z_max": float(z_max) if z_max is not None else None,
+            "z_label": str(z_label) if z_label else "Z"
         }
         await context.send_telemetry(self.id, payload)
         return "Out"
