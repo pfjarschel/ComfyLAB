@@ -18,29 +18,29 @@ import math
 from typing import Dict, List, Any, Optional, Callable, Union
 
 from comfylab.engine.models import BlueprintModel
-from comfylab.engine.registry import get_node_class
+from comfylab.engine.registry import get_block_class
 from comfylab.engine.locks import ResourceLockManager
-from comfylab.nodes.base import BaseNode, ExecutionContext, ExecIn, DataIn, ExecOut
+from comfylab.blocks.base import BaseBlock, ExecutionContext, ExecIn, DataIn, ExecOut
 from backend.workspace import get_workspace_path
-from comfylab.engine.logging import run_id_var, set_node_context, reset_node_context
+from comfylab.engine.logging import run_id_var, set_block_context, reset_block_context
 
 logger = logging.getLogger("comfylab.engine.executor")
 
 PERSISTENT_IGNORED_KEYS = {"isPersistent", "autoClearPersistent"}
 
-async def _detect_persistent_changes(node: BaseNode, context: ExecutionContext) -> tuple[bool, Dict[str, Any]]:
+async def _detect_persistent_changes(block: BaseBlock, context: ExecutionContext) -> tuple[bool, Dict[str, Any]]:
     """
-    Checks if a persistent node's parameters or input pin data have changed since the last execution.
+    Checks if a persistent block's parameters or input pin data have changed since the last execution.
     Returns (has_changes, current_inputs).
     Properties are checked first (cheap, no I/O) and short-circuit before any upstream pull.
     """
     properties_changed = False
-    for k, v in node.properties.items():
-        if k not in PERSISTENT_IGNORED_KEYS and getattr(node, "_last_properties", {}).get(k) != v:
+    for k, v in block.properties.items():
+        if k not in PERSISTENT_IGNORED_KEYS and getattr(block, "_last_properties", {}).get(k) != v:
             properties_changed = True
             break
-    for k in getattr(node, "_last_properties", {}):
-        if k not in PERSISTENT_IGNORED_KEYS and k not in node.properties:
+    for k in getattr(block, "_last_properties", {}):
+        if k not in PERSISTENT_IGNORED_KEYS and k not in block.properties:
             properties_changed = True
             break
 
@@ -48,12 +48,12 @@ async def _detect_persistent_changes(node: BaseNode, context: ExecutionContext) 
         return True, {}
 
     current_inputs = {}
-    for name, pin in node.inputs.items():
+    for name, pin in block.inputs.items():
         if isinstance(pin, DataIn):
-            current_inputs[name] = await context.pull(node.id, name)
+            current_inputs[name] = await context.pull(block.id, name)
 
     inputs_changed = False
-    last_inputs = getattr(node, "_last_inputs", {})
+    last_inputs = getattr(block, "_last_inputs", {})
     for k, v in current_inputs.items():
         if last_inputs.get(k) != v:
             inputs_changed = True
@@ -69,19 +69,19 @@ class ExecutionEngine:
     """
     Main executor for ComfyLAB graphs.
     Coordinates graph loading, state transitions, execution token flow (push wires),
-    lazy data evaluation (pull wires), node execution watchdogs, and safe global teardown.
+    lazy data evaluation (pull wires), block execution watchdogs, and safe global teardown.
     """
     def __init__(self):
         self.state: str = "IDLE"  # IDLE, RUNNING, PAUSED, ABORTED
         self.lock_manager = ResourceLockManager()
-        self.nodes: Dict[str, BaseNode] = {}
-        self.persistent_nodes: Dict[str, BaseNode] = {}
-        # maps (target_node_id, target_pin_name) -> (source_node_id, source_pin_name)
+        self.blocks: Dict[str, BaseBlock] = {}
+        self.persistent_blocks: Dict[str, BaseBlock] = {}
+        # maps (target_block_id, target_pin_name) -> (source_block_id, source_pin_name)
         self.data_links: Dict[tuple[str, str], tuple[str, str]] = {}
-        # maps (source_node_id, source_pin_name) -> (target_node_id, target_pin_name)
+        # maps (source_block_id, source_pin_name) -> (target_block_id, target_pin_name)
         self.exec_links: Dict[tuple[str, str], tuple[str, str]] = {}
-        # Tracks nodes in the order they started executing to perform reverse teardown
-        self.executed_nodes_order: List[str] = []
+        # Tracks blocks in the order they started executing to perform reverse teardown
+        self.executed_blocks_order: List[str] = []
         # Telemetry callback: async def (run_id, message_dict)
         self.telemetry_callback: Optional[Callable[[str, Dict[str, Any]], Any]] = None
         self._resume_event = asyncio.Event()
@@ -95,7 +95,7 @@ class ExecutionEngine:
 
     def load_blueprint(self, blueprint_data: Union[Dict[str, Any], BlueprintModel]):
         """
-        Validates the blueprint JSON schema, instantiates the required nodes
+        Validates the blueprint JSON schema, instantiates the required blocks
         from the registry, and maps both data and execution links.
         Accepts a raw dict (validated here) or a pre-validated BlueprintModel (used directly).
         """
@@ -104,100 +104,100 @@ class ExecutionEngine:
         else:
             blueprint = BlueprintModel.model_validate(blueprint_data)
 
-        # 1. Clean up self.persistent_nodes that are not in the new blueprint (i.e. deleted from canvas)
-        blueprint_node_ids = {node_model.id for node_model in blueprint.nodes}
-        nodes_to_teardown = []
-        for p_id in list(self.persistent_nodes.keys()):
-            if p_id not in blueprint_node_ids:
-                node = self.persistent_nodes.pop(p_id)
-                nodes_to_teardown.append(node)
+        # 1. Clean up self.persistent_blocks that are not in the new blueprint (i.e. deleted from canvas)
+        blueprint_block_ids = {block_model.id for block_model in blueprint.blocks}
+        blocks_to_teardown = []
+        for p_id in list(self.persistent_blocks.keys()):
+            if p_id not in blueprint_block_ids:
+                block = self.persistent_blocks.pop(p_id)
+                blocks_to_teardown.append(block)
 
-        self.nodes.clear()
+        self.blocks.clear()
         self.data_links.clear()
         self.exec_links.clear()
-        self.executed_nodes_order.clear()
+        self.executed_blocks_order.clear()
 
-        # Instantiate nodes
-        for node_model in blueprint.nodes:
-            cls = get_node_class(node_model.type)
+        # Instantiate blocks
+        for block_model in blueprint.blocks:
+            cls = get_block_class(block_model.type)
             if getattr(cls, "unauthorized", False):
-                raise ValueError(f"Cannot execute unauthorized custom node '{node_model.type}'. The code is unsigned or untrusted.")
+                raise ValueError(f"Cannot execute unauthorized custom block '{block_model.type}'. The code is unsigned or untrusted.")
             
-            node_id = node_model.id
-            is_persistent = node_model.properties.get("isPersistent", False)
-            auto_clear = node_model.properties.get("autoClearPersistent", True)  # Checked by default!
+            block_id = block_model.id
+            is_persistent = block_model.properties.get("isPersistent", False)
+            auto_clear = block_model.properties.get("autoClearPersistent", True)  # Checked by default!
 
-            # Check if this node is already cached as persistent
-            if is_persistent and node_id in self.persistent_nodes:
-                cached_node = self.persistent_nodes[node_id]
+            # Check if this block is already cached as persistent
+            if is_persistent and block_id in self.persistent_blocks:
+                cached_block = self.persistent_blocks[block_id]
 
                 # Check if parameters changed (ignoring isPersistent and autoClearPersistent)
                 properties_changed = False
                 ignored_keys = {"isPersistent", "autoClearPersistent"}
-                for k, v in node_model.properties.items():
-                    if k not in ignored_keys and cached_node.properties.get(k) != v:
+                for k, v in block_model.properties.items():
+                    if k not in ignored_keys and cached_block.properties.get(k) != v:
                         properties_changed = True
                         break
                 # Also check if any old property was deleted
-                for k in cached_node.properties:
-                    if k not in ignored_keys and k not in node_model.properties:
+                for k in cached_block.properties:
+                    if k not in ignored_keys and k not in block_model.properties:
                         properties_changed = True
                         break
 
                 if properties_changed and auto_clear:
-                    logger.info(f"Auto-clearing persistent node '{node_id}' due to parameter changes.")
-                    nodes_to_teardown.append(cached_node)
-                    self.persistent_nodes.pop(node_id)
+                    logger.info(f"Auto-clearing persistent block '{block_id}' due to parameter changes.")
+                    blocks_to_teardown.append(cached_block)
+                    self.persistent_blocks.pop(block_id)
                     # Create new instance
-                    node_instance = cls(node_id, node_model.properties)
-                    self.nodes[node_id] = node_instance
-                    self.persistent_nodes[node_id] = node_instance
+                    block_instance = cls(block_id, block_model.properties)
+                    self.blocks[block_id] = block_instance
+                    self.persistent_blocks[block_id] = block_instance
                 else:
                     # Reuse cached instance and update properties
-                    cached_node.properties = node_model.properties
-                    self.nodes[node_id] = cached_node
+                    cached_block.properties = block_model.properties
+                    self.blocks[block_id] = cached_block
             else:
                 # If it was persistent before but toggled off, tear it down
-                if node_id in self.persistent_nodes:
-                    node = self.persistent_nodes.pop(node_id)
-                    nodes_to_teardown.append(node)
+                if block_id in self.persistent_blocks:
+                    block = self.persistent_blocks.pop(block_id)
+                    blocks_to_teardown.append(block)
 
                 # Create a new instance
-                node_instance = cls(node_id, node_model.properties)
-                self.nodes[node_id] = node_instance
+                block_instance = cls(block_id, block_model.properties)
+                self.blocks[block_id] = block_instance
                 if is_persistent:
-                    self.persistent_nodes[node_id] = node_instance
+                    self.persistent_blocks[block_id] = block_instance
 
-        # Run teardown in background/sync for deleted/cleared nodes
-        for node in nodes_to_teardown:
+        # Run teardown in background/sync for deleted/cleared blocks
+        for block in blocks_to_teardown:
             try:
                 loop = asyncio.get_running_loop()
-                loop.create_task(node.teardown())
+                loop.create_task(block.teardown())
             except RuntimeError:
                 try:
-                    asyncio.run(node.teardown())
+                    asyncio.run(block.teardown())
                 except Exception as run_err:
                     logger.error(f"Teardown failed in sync context: {run_err}")
 
         # Map links
         for link in blueprint.links:
             if link.type == "data":
-                self.data_links[(link.target_node, link.target_pin)] = (link.source_node, link.source_pin)
+                self.data_links[(link.target_block, link.target_pin)] = (link.source_block, link.source_pin)
             elif link.type == "exec":
-                self.exec_links[(link.source_node, link.source_pin)] = (link.target_node, link.target_pin)
+                self.exec_links[(link.source_block, link.source_pin)] = (link.target_block, link.target_pin)
 
-    async def run(self, start_node_id: Optional[str] = None, start_pin_name: Optional[str] = None, run_id: Optional[str] = None):
+    async def run(self, start_block_id: Optional[str] = None, start_pin_name: Optional[str] = None, run_id: Optional[str] = None):
         """
         Executes the currently loaded graph.
-        If start_node_id and start_pin_name are provided, execution triggers there.
-        Otherwise, triggers all entry nodes (nodes with execution inputs but no incoming execution links).
+        If start_block_id and start_pin_name are provided, execution triggers there.
+        Otherwise, triggers all entry blocks (blocks with execution inputs but no incoming execution links).
         """
         if self.state == "RUNNING" or self.state == "PAUSED":
             raise RuntimeError("Engine is already running or paused.")
 
         self.state = "RUNNING"
         self._resume_event.set()
-        self.executed_nodes_order.clear()
+        self.executed_blocks_order.clear()
         self._teardown_complete = False
         run_id = run_id or str(uuid.uuid4())
         self.current_run_id = run_id
@@ -211,13 +211,13 @@ class ExecutionEngine:
 
         original_cwd = os.getcwd()
         # Set the working directory to the workspace for this execution session.
-        # This allows file-based nodes and script nodes to resolve relative paths
+        # This allows file-based blocks and script blocks to resolve relative paths
         # from the workspace root.
         os.chdir(str(get_workspace_path()))
 
         try:
-            if start_node_id and start_pin_name:
-                task = asyncio.create_task(self.trigger_exec(start_node_id, start_pin_name, context))
+            if start_block_id and start_pin_name:
+                task = asyncio.create_task(self.trigger_exec(start_block_id, start_pin_name, context))
                 self._active_tasks.add(task)
                 task.add_done_callback(self._active_tasks.discard)
                 await task
@@ -225,8 +225,8 @@ class ExecutionEngine:
                 entry_points = self._find_entry_points()
                 if entry_points:
                     tasks = []
-                    for node_id, pin_name in entry_points:
-                        task = asyncio.create_task(self.trigger_exec(node_id, pin_name, context))
+                    for block_id, pin_name in entry_points:
+                        task = asyncio.create_task(self.trigger_exec(block_id, pin_name, context))
                         self._active_tasks.add(task)
                         task.add_done_callback(self._active_tasks.discard)
                         tasks.append(task)
@@ -259,26 +259,26 @@ class ExecutionEngine:
         """Finds all ExecIn pins that do not have incoming execution links."""
         exec_targets = set(self.exec_links.values())
         entry_points = []
-        for node_id, node in self.nodes.items():
-            for pin_name, pin in node.inputs.items():
+        for block_id, block in self.blocks.items():
+            for pin_name, pin in block.inputs.items():
                 if isinstance(pin, ExecIn):
-                    if (node_id, pin_name) not in exec_targets:
-                        entry_points.append((node_id, pin_name))
+                    if (block_id, pin_name) not in exec_targets:
+                        entry_points.append((block_id, pin_name))
         return entry_points
 
-    async def trigger_exec(self, node_id: str, pin_name: str, context: ExecutionContext):
+    async def trigger_exec(self, block_id: str, pin_name: str, context: ExecutionContext):
         """
-        Triggers execution starting at a node input or output pin.
+        Triggers execution starting at a block input or output pin.
         If pin_name is an output pin (in exec_links), resolves it to target input pin first.
         Propagates execution token sequentially along execution wires.
         """
-        current_node_id = node_id
+        current_block_id = block_id
         current_pin_name = pin_name
 
-        if (node_id, pin_name) in self.exec_links:
-            current_node_id, current_pin_name = self.exec_links[(node_id, pin_name)]
+        if (block_id, pin_name) in self.exec_links:
+            current_block_id, current_pin_name = self.exec_links[(block_id, pin_name)]
 
-        while current_node_id is not None:
+        while current_block_id is not None:
             if self.state == "ABORTED":
                 break
 
@@ -288,158 +288,158 @@ class ExecutionEngine:
             if self.state == "ABORTED":
                 break
 
-            node = self.nodes.get(current_node_id)
-            if not node:
+            block = self.blocks.get(current_block_id)
+            if not block:
                 break
 
             # Track execution order for safe reverse teardown
-            if current_node_id not in self.executed_nodes_order:
-                self.executed_nodes_order.append(current_node_id)
+            if current_block_id not in self.executed_blocks_order:
+                self.executed_blocks_order.append(current_block_id)
 
-            # Broadcast node start running status
-            await self._broadcast_status(context.run_id, current_node_id, "running")
+            # Broadcast block start running status
+            await self._broadcast_status(context.run_id, current_block_id, "running")
 
-            # Set node context variables (ID, Name, File)
-            node_tokens = set_node_context(node)
-            logger.debug(f"Executing node '{current_node_id}'")
+            # Set block context variables (ID, Name, File)
+            block_tokens = set_block_context(block)
+            logger.debug(f"Executing block '{current_block_id}'")
             try:
-                # Node execution watchdog / timeout
-                timeout = node.properties.get("timeout", None)
+                # Block execution watchdog / timeout
+                timeout = block.properties.get("timeout", None)
                 try:
-                    async def execute_node():
-                        if node.properties.get("disabled", False):
-                            logger.info(f"Node '{node.id}' is disabled. Passing execution token ahead.")
-                            for name, pin in node.outputs.items():
+                    async def execute_block():
+                        if block.properties.get("disabled", False):
+                            logger.info(f"Block '{block.id}' is disabled. Passing execution token ahead.")
+                            for name, pin in block.outputs.items():
                                 if isinstance(pin, ExecOut):
                                     return name
                             return None
 
-                        is_persistent = node.properties.get("isPersistent", False)
-                        if is_persistent and getattr(node, "_has_executed", False):
-                            has_changes, current_inputs = await _detect_persistent_changes(node, context)
+                        is_persistent = block.properties.get("isPersistent", False)
+                        if is_persistent and getattr(block, "_has_executed", False):
+                            has_changes, current_inputs = await _detect_persistent_changes(block, context)
                             if not has_changes:
-                                logger.info(f"Skipping execution for persistent node '{node.id}' - no changes detected.")
-                                if hasattr(node, "_last_outputs"):
-                                    node._outputs = dict(node._last_outputs)
-                                return getattr(node, "_last_next_pin", None)
+                                logger.info(f"Skipping execution for persistent block '{block.id}' - no changes detected.")
+                                if hasattr(block, "_last_outputs"):
+                                    block._outputs = dict(block._last_outputs)
+                                return getattr(block, "_last_next_pin", None)
                                 
-                            if node.properties.get("autoClearPersistent", True):
-                                logger.info(f"Persistent node '{node.id}' inputs or parameters changed. Auto-clearing state before execution.")
+                            if block.properties.get("autoClearPersistent", True):
+                                logger.info(f"Persistent block '{block.id}' inputs or parameters changed. Auto-clearing state before execution.")
                                 try:
-                                    await node.teardown()
+                                    await block.teardown()
                                 except Exception as teardown_err:
                                     logger.error(f"Teardown failed during auto-clear: {teardown_err}")
-                                if hasattr(node, "clear_data"):
-                                    await node.clear_data()
+                                if hasattr(block, "clear_data"):
+                                    await block.clear_data()
 
-                        next_pin = await node.execute(context, current_pin_name)
+                        next_pin = await block.execute(context, current_pin_name)
 
                         if is_persistent:
                             current_inputs = {}
-                            for name, pin in node.inputs.items():
+                            for name, pin in block.inputs.items():
                                 if isinstance(pin, DataIn):
-                                    current_inputs[name] = await context.pull(node.id, name)
-                            node._last_inputs = current_inputs
-                            node._last_properties = {k: v for k, v in node.properties.items() if k not in PERSISTENT_IGNORED_KEYS}
-                            node._last_outputs = dict(node._outputs) if hasattr(node, "_outputs") else {}
-                            node._last_next_pin = next_pin
-                            node._has_executed = True
+                                    current_inputs[name] = await context.pull(block.id, name)
+                            block._last_inputs = current_inputs
+                            block._last_properties = {k: v for k, v in block.properties.items() if k not in PERSISTENT_IGNORED_KEYS}
+                            block._last_outputs = dict(block._outputs) if hasattr(block, "_outputs") else {}
+                            block._last_next_pin = next_pin
+                            block._has_executed = True
 
                         return next_pin
 
                     if timeout is not None:
                         next_pin = await asyncio.wait_for(
-                            execute_node(), 
+                            execute_block(), 
                             timeout=float(timeout)
                         )
                     else:
-                        next_pin = await execute_node()
+                        next_pin = await execute_block()
                     
-                    # Broadcast node success status
-                    await self._broadcast_status(context.run_id, current_node_id, "success")
-                    logger.debug(f"Finished executing node '{current_node_id}' with next pin '{next_pin}'")
+                    # Broadcast block success status
+                    await self._broadcast_status(context.run_id, current_block_id, "success")
+                    logger.debug(f"Finished executing block '{current_block_id}' with next pin '{next_pin}'")
                 except Exception as e:
-                    # Broadcast node error status
-                    await self._broadcast_status(context.run_id, current_node_id, "error", message=str(e))
-                    logger.error(f"Node '{current_node_id}' execution failed: {e}")
+                    # Broadcast block error status
+                    await self._broadcast_status(context.run_id, current_block_id, "error", message=str(e))
+                    logger.error(f"Block '{current_block_id}' execution failed: {e}")
                     if isinstance(e, asyncio.TimeoutError):
-                        raise TimeoutError(f"Node '{current_node_id}' exceeded execution timeout of {timeout}s.")
+                        raise TimeoutError(f"Block '{current_block_id}' exceeded execution timeout of {timeout}s.")
                     raise e
             finally:
-                reset_node_context(node_tokens)
+                reset_block_context(block_tokens)
 
-            # Clear data cache after each execution step so subsequent nodes get fresh calculations
+            # Clear data cache after each execution step so subsequent blocks get fresh calculations
             context.clear_cache()
 
             if not next_pin:
                 break
 
             # Find next target pin in execution links
-            link_key = (current_node_id, next_pin)
+            link_key = (current_block_id, next_pin)
             if link_key in self.exec_links:
-                current_node_id, current_pin_name = self.exec_links[link_key]
+                current_block_id, current_pin_name = self.exec_links[link_key]
             else:
                 break
 
-    async def pull_data(self, target_node_id: str, target_pin_name: str, context: ExecutionContext) -> Any:
+    async def pull_data(self, target_block_id: str, target_pin_name: str, context: ExecutionContext) -> Any:
         """
         Evaluates data dependencies recursively (lazy pull evaluation).
         Retrieves cached values if already computed in the current step, or pulls from connected source.
         """
-        link_key = (target_node_id, target_pin_name)
-        target_node = self.nodes.get(target_node_id)
-        if not target_node:
-            raise ValueError(f"Target node '{target_node_id}' not found in graph.")
-        pin = target_node.inputs.get(target_pin_name)
+        link_key = (target_block_id, target_pin_name)
+        target_block = self.blocks.get(target_block_id)
+        if not target_block:
+            raise ValueError(f"Target block '{target_block_id}' not found in graph.")
+        pin = target_block.inputs.get(target_pin_name)
 
         val = None
         if link_key in self.data_links:
-            source_node_id, source_pin_name = self.data_links[link_key]
+            source_block_id, source_pin_name = self.data_links[link_key]
 
             # Check cache
-            cached, cached_val = context.get_cached(source_node_id, source_pin_name)
+            cached, cached_val = context.get_cached(source_block_id, source_pin_name)
             if cached:
                 val = cached_val
             else:
-                source_node = self.nodes.get(source_node_id)
-                if not source_node:
-                    raise ValueError(f"Source node '{source_node_id}' not found in graph.")
+                source_block = self.blocks.get(source_block_id)
+                if not source_block:
+                    raise ValueError(f"Source block '{source_block_id}' not found in graph.")
 
                 # Check if we can skip pulling (memoization)
-                is_persistent = source_node.properties.get("isPersistent", False)
+                is_persistent = source_block.properties.get("isPersistent", False)
                 skip_pull = False
                 ignored_keys = {"isPersistent", "autoClearPersistent"}
                 
-                if is_persistent and getattr(source_node, "_has_pulled", False):
-                    has_changes, current_inputs = await _detect_persistent_changes(source_node, context)
+                if is_persistent and getattr(source_block, "_has_pulled", False):
+                    has_changes, current_inputs = await _detect_persistent_changes(source_block, context)
                     if not has_changes:
-                        logger.info(f"Skipping pull_data for persistent node '{source_node.id}' - no changes detected.")
-                        if hasattr(source_node, "_last_outputs") and source_pin_name in source_node._last_outputs:
-                            val = source_node._last_outputs[source_pin_name]
+                        logger.info(f"Skipping pull_data for persistent block '{source_block.id}' - no changes detected.")
+                        if hasattr(source_block, "_last_outputs") and source_pin_name in source_block._last_outputs:
+                            val = source_block._last_outputs[source_pin_name]
                             skip_pull = True
                             
-                    if has_changes and source_node.properties.get("autoClearPersistent", True):
-                        logger.info(f"Persistent node '{source_node.id}' inputs or parameters changed. Auto-clearing state before pull.")
+                    if has_changes and source_block.properties.get("autoClearPersistent", True):
+                        logger.info(f"Persistent block '{source_block.id}' inputs or parameters changed. Auto-clearing state before pull.")
                         try:
-                            await source_node.teardown()
+                            await source_block.teardown()
                         except Exception as teardown_err:
                             logger.error(f"Teardown failed during auto-clear: {teardown_err}")
-                        if hasattr(source_node, "clear_data"):
-                            await source_node.clear_data()
+                        if hasattr(source_block, "clear_data"):
+                            await source_block.clear_data()
 
                 if not skip_pull:
-                    is_disabled = source_node.properties.get("disabled", False)
+                    is_disabled = source_block.properties.get("disabled", False)
                     if is_disabled:
-                        logger.info(f"Node '{source_node_id}' is disabled. Attempting to pass-through data or return default.")
-                        out_pin = source_node.outputs.get(source_pin_name)
+                        logger.info(f"Block '{source_block_id}' is disabled. Attempting to pass-through data or return default.")
+                        out_pin = source_block.outputs.get(source_pin_name)
                         in_pin = None
                         if out_pin:
-                            for _, pin in source_node.inputs.items():
+                            for _, pin in source_block.inputs.items():
                                 if isinstance(pin, DataIn) and pin.type_hint == out_pin.type_hint:
                                     in_pin = pin
                                     break
                         if in_pin:
-                            val = await context.pull(source_node.id, in_pin.name)
+                            val = await context.pull(source_block.id, in_pin.name)
                         else:
                             if out_pin:
                                 th = out_pin.type_hint
@@ -458,50 +458,50 @@ class ExecutionEngine:
                             else:
                                 val = None
                     else:
-                        # Set source node context variables during pulling
-                        node_tokens = set_node_context(source_node)
-                        logger.debug(f"Pulling data from node '{source_node_id}' output pin '{source_pin_name}'")
+                        # Set source block context variables during pulling
+                        block_tokens = set_block_context(source_block)
+                        logger.debug(f"Pulling data from block '{source_block_id}' output pin '{source_pin_name}'")
                         try:
                             # Pull data with optional watchdog timeout
-                            timeout = source_node.properties.get("timeout", None)
+                            timeout = source_block.properties.get("timeout", None)
                             try:
                                 if timeout is not None:
                                     val = await asyncio.wait_for(
-                                        source_node.pull_data(context, source_pin_name), 
+                                        source_block.pull_data(context, source_pin_name), 
                                         timeout=float(timeout)
                                     )
                                 else:
-                                    val = await source_node.pull_data(context, source_pin_name)
+                                    val = await source_block.pull_data(context, source_pin_name)
                             except asyncio.TimeoutError:
-                                raise TimeoutError(f"Node '{source_node_id}' exceeded pull_data timeout of {timeout}s.")
+                                raise TimeoutError(f"Block '{source_block_id}' exceeded pull_data timeout of {timeout}s.")
                         finally:
-                            reset_node_context(node_tokens)
+                            reset_block_context(block_tokens)
 
                     # If persistent, cache current state
                     if is_persistent:
                         current_inputs = {}
-                        for name, pin in source_node.inputs.items():
+                        for name, pin in source_block.inputs.items():
                             if isinstance(pin, DataIn):
-                                current_inputs[name] = await context.pull(source_node.id, name)
-                        source_node._last_inputs = current_inputs
-                        source_node._last_properties = {k: v for k, v in source_node.properties.items() if k not in PERSISTENT_IGNORED_KEYS}
-                        if not hasattr(source_node, "_last_outputs"):
-                            source_node._last_outputs = {}
-                        source_node._last_outputs[source_pin_name] = val
-                        source_node._has_pulled = True
+                                current_inputs[name] = await context.pull(source_block.id, name)
+                        source_block._last_inputs = current_inputs
+                        source_block._last_properties = {k: v for k, v in source_block.properties.items() if k not in PERSISTENT_IGNORED_KEYS}
+                        if not hasattr(source_block, "_last_outputs"):
+                            source_block._last_outputs = {}
+                        source_block._last_outputs[source_pin_name] = val
+                        source_block._has_pulled = True
 
-                context.cache_value(source_node_id, source_pin_name, val)
+                context.cache_value(source_block_id, source_pin_name, val)
                 await self.send_pin_values(
                     context.run_id, 
-                    source_node_id, 
+                    source_block_id, 
                     {source_pin_name: summarize_value(val)}
                 )
         else:
             # Return property value if defined in blueprint, otherwise fallback to pin default value
             if isinstance(pin, DataIn):
-                val = target_node.properties.get(target_pin_name)
+                val = target_block.properties.get(target_pin_name)
                 if val is None:
-                    val = target_node.properties.get(target_pin_name.lower())
+                    val = target_block.properties.get(target_pin_name.lower())
                 if val is None:
                     val = pin.default
 
@@ -511,10 +511,10 @@ class ExecutionEngine:
                 try:
                     numeric_val = float(val)
                     if pin.min_val is not None and numeric_val < pin.min_val:
-                        logger.warning(f"Clamping value {numeric_val} for input pin '{target_pin_name}' on node '{target_node_id}' to min_val {pin.min_val}")
+                        logger.warning(f"Clamping value {numeric_val} for input pin '{target_pin_name}' on block '{target_block_id}' to min_val {pin.min_val}")
                         val = pin.min_val
                     elif pin.max_val is not None and numeric_val > pin.max_val:
-                        logger.warning(f"Clamping value {numeric_val} for input pin '{target_pin_name}' on node '{target_node_id}' to max_val {pin.max_val}")
+                        logger.warning(f"Clamping value {numeric_val} for input pin '{target_pin_name}' on block '{target_block_id}' to max_val {pin.max_val}")
                         val = pin.max_val
                 except (ValueError, TypeError):
                     pass
@@ -564,11 +564,11 @@ class ExecutionEngine:
             except Exception as e:
                 logger.error(f"Failed to send run status telemetry: {e}")
 
-    async def _broadcast_status(self, run_id: str, node_id: str, status: str, message: Optional[str] = None):
+    async def _broadcast_status(self, run_id: str, block_id: str, status: str, message: Optional[str] = None):
         if self.telemetry_callback:
             msg = {
                 "type": "status",
-                "node_id": node_id,
+                "block_id": block_id,
                 "status": status
             }
             if message is not None:
@@ -578,7 +578,7 @@ class ExecutionEngine:
             except Exception as e:
                 logger.error(f"Failed to send status telemetry: {e}")
 
-    async def send_telemetry(self, run_id: str, node_id: str, data: Any):
+    async def send_telemetry(self, run_id: str, block_id: str, data: Any):
         if self.telemetry_callback:
             if isinstance(data, bytes):
                 # Prefix the bytes with the run_id (36 characters)
@@ -590,7 +590,7 @@ class ExecutionEngine:
             else:
                 msg = {
                     "type": "telemetry",
-                    "node_id": node_id,
+                    "block_id": block_id,
                     "data": data
                 }
                 try:
@@ -598,11 +598,11 @@ class ExecutionEngine:
                 except Exception as e:
                     logger.error(f"Failed to send telemetry data: {e}")
 
-    async def send_pin_values(self, run_id: str, node_id: str, pin_values: Dict[str, Any]):
+    async def send_pin_values(self, run_id: str, block_id: str, pin_values: Dict[str, Any]):
         if self.telemetry_callback:
             msg = {
                 "type": "pin_values",
-                "node_id": node_id,
+                "block_id": block_id,
                 "pin_values": pin_values
             }
             try:
@@ -611,66 +611,66 @@ class ExecutionEngine:
                 logger.error(f"Failed to send pin values telemetry: {e}")
 
     async def _teardown_all(self):
-        """Teardown all instantiated nodes in topological dependency order (downstream first)."""
+        """Teardown all instantiated blocks in topological dependency order (downstream first)."""
         async with self._teardown_lock:
             if self._teardown_complete:
                 return
             self._teardown_complete = True
 
             # Build adjacency list of upstream dependencies.
-            # Node u depends on v if there is a data link from v to u, or execution link from v to u.
-            nodes_to_sort = list(self.nodes.keys())
-            upstream_map = {node_id: set() for node_id in nodes_to_sort}
+            # Block u depends on v if there is a data link from v to u, or execution link from v to u.
+            blocks_to_sort = list(self.blocks.keys())
+            upstream_map = {block_id: set() for block_id in blocks_to_sort}
 
-            # Data links: (target_node, target_pin) -> (source_node, source_pin)
+            # Data links: (target_block, target_pin) -> (source_block, source_pin)
             # target reads from source, so target depends on source.
             for (target_id, _), (source_id, _) in self.data_links.items():
                 if target_id in upstream_map and source_id in upstream_map:
                     upstream_map[target_id].add(source_id)
 
-            # Exec links: (source_node, source_pin) -> (target_node, target_pin)
+            # Exec links: (source_block, source_pin) -> (target_block, target_pin)
             # target executes after source, so target depends on source.
             for (source_id, _), (target_id, _) in self.exec_links.items():
                 if target_id in upstream_map and source_id in upstream_map:
                     upstream_map[target_id].add(source_id)
 
-            # Cycle-safe post-order DFS to sort nodes topologically
+            # Cycle-safe post-order DFS to sort blocks topologically
             visited = set()
             visiting = set()
-            ordered_nodes = []
+            ordered_blocks = []
 
-            def dfs(node_id: str):
-                if node_id in visiting:
+            def dfs(block_id: str):
+                if block_id in visiting:
                     return  # Cycle detected, break to prevent infinite recursion
-                if node_id in visited:
+                if block_id in visited:
                     return
-                visiting.add(node_id)
-                for upstream in upstream_map[node_id]:
+                visiting.add(block_id)
+                for upstream in upstream_map[block_id]:
                     dfs(upstream)
-                visiting.remove(node_id)
-                visited.add(node_id)
-                ordered_nodes.append(node_id)
+                visiting.remove(block_id)
+                visited.add(block_id)
+                ordered_blocks.append(block_id)
 
-            for node_id in nodes_to_sort:
-                dfs(node_id)
+            for block_id in blocks_to_sort:
+                dfs(block_id)
 
-            # ordered_nodes has upstream nodes first, downstream nodes last.
-            # Reverse it so downstream nodes (which depend on upstream nodes) are torn down first.
-            teardown_targets = list(reversed(ordered_nodes))
+            # ordered_blocks has upstream blocks first, downstream blocks last.
+            # Reverse it so downstream blocks (which depend on upstream blocks) are torn down first.
+            teardown_targets = list(reversed(ordered_blocks))
 
             # Execute teardown hooks
-            for node_id in teardown_targets:
-                node = self.nodes.get(node_id)
-                if node:
-                    # Skip teardown for persistent nodes
-                    if node.properties.get("isPersistent", False):
-                        logger.debug(f"Skipping teardown for persistent node '{node_id}'")
+            for block_id in teardown_targets:
+                block = self.blocks.get(block_id)
+                if block:
+                    # Skip teardown for persistent blocks
+                    if block.properties.get("isPersistent", False):
+                        logger.debug(f"Skipping teardown for persistent block '{block_id}'")
                         continue
                     try:
-                        await node.teardown()
+                        await block.teardown()
                     except Exception as e:
-                        # Ensure one failing node teardown doesn't block other node teardowns
-                        logger.error(f"Teardown failed for node '{node_id}': {e}")
+                        # Ensure one failing block teardown doesn't block other block teardowns
+                        logger.error(f"Teardown failed for block '{block_id}': {e}")
 
 
 def summarize_value(val: Any) -> str:

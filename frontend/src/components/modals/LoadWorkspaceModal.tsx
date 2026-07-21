@@ -64,7 +64,7 @@ export const LoadWorkspaceModal = ({
                     gap: '10px',
                     padding: '10px 12px',
                     background: 'var(--dnd-bg)',
-                    border: '1px solid var(--node-border)',
+                    border: '1px solid var(--block-border)',
                     borderRadius: '6px',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',

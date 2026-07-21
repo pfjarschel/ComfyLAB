@@ -1,13 +1,13 @@
 import pytest
 import shutil
 from comfylab.engine.executor import ExecutionEngine
-from comfylab.nodes.script_lua import parse_lua_decorators, LuaScriptNode
-from comfylab.nodes.script_js import parse_js_decorators, JavaScriptScriptNode, TypeScriptScriptNode
-from comfylab.nodes.script_rust import parse_rust_decorators, RustScriptNode
-from comfylab.nodes.script_julia import JuliaScriptNode
-from comfylab.nodes.script_r import RScriptNode
-from comfylab.nodes.script_octave import parse_octave_decorators, OctaveScriptNode
-from comfylab.nodes.script_wolfram import parse_wolfram_decorators, WolframScriptNode
+from comfylab.blocks.script_lua import parse_lua_decorators, LuaScriptBlock
+from comfylab.blocks.script_js import parse_js_decorators, JavaScriptScriptBlock, TypeScriptScriptBlock
+from comfylab.blocks.script_rust import parse_rust_decorators, RustScriptBlock
+from comfylab.blocks.script_julia import JuliaScriptBlock
+from comfylab.blocks.script_r import RScriptBlock
+from comfylab.blocks.script_octave import parse_octave_decorators, OctaveScriptBlock
+from comfylab.blocks.script_wolfram import parse_wolfram_decorators, WolframScriptBlock
 
 
 class TestParseMultilangDecorators:
@@ -75,7 +75,7 @@ class TestMultilangExecution:
             pytest.skip("Neither lupa nor lua executable is available in PATH.")
 
         blueprint = {
-            "nodes": [
+            "blocks": [
                 {
                     "id": "lua_script",
                     "type": "script/lua",
@@ -86,8 +86,8 @@ class TestMultilangExecution:
                 {"id": "print", "type": "outputs/basic/print", "properties": {}}
             ],
             "links": [
-                {"id": "l1", "type": "exec", "source_node": "lua_script", "source_pin": "Out", "target_node": "print", "target_pin": "In"},
-                {"id": "l2", "type": "data", "source_node": "lua_script", "source_pin": "result", "target_node": "print", "target_pin": "Value"}
+                {"id": "l1", "type": "exec", "source_block": "lua_script", "source_pin": "Out", "target_block": "print", "target_pin": "In"},
+                {"id": "l2", "type": "data", "source_block": "lua_script", "source_pin": "result", "target_block": "print", "target_pin": "Value"}
             ]
         }
 
@@ -95,23 +95,23 @@ class TestMultilangExecution:
         # Enable it in config so loader registers it
         update_config({"enable_lua_scripting": True})
 
-        # Dynamically import/register node if loader skipped it initially
-        from comfylab.engine.registry import register_node
-        register_node("script/lua")(LuaScriptNode)
+        # Dynamically import/register block if loader skipped it initially
+        from comfylab.engine.registry import register_block
+        register_block("script/lua")(LuaScriptBlock)
 
         engine = ExecutionEngine()
         engine.load_blueprint(blueprint)
-        await engine.run(start_node_id="lua_script", start_pin_name="In")
+        await engine.run(start_block_id="lua_script", start_pin_name="In")
 
-        assert engine.nodes["print"].last_printed == 15.0
+        assert engine.blocks["print"].last_printed == 15.0
 
     @pytest.mark.asyncio
     async def test_js_execution(self):
-        if not shutil.which("node"):
-            pytest.skip("node executable is not available in PATH.")
+        if not shutil.which("block"):
+            pytest.skip("block executable is not available in PATH.")
 
         blueprint = {
-            "nodes": [
+            "blocks": [
                 {
                     "id": "js_script",
                     "type": "script/javascript",
@@ -122,19 +122,19 @@ class TestMultilangExecution:
                 {"id": "print", "type": "outputs/basic/print", "properties": {}}
             ],
             "links": [
-                {"id": "l1", "type": "exec", "source_node": "js_script", "source_pin": "Out", "target_node": "print", "target_pin": "In"},
-                {"id": "l2", "type": "data", "source_node": "js_script", "source_pin": "result", "target_node": "print", "target_pin": "Value"}
+                {"id": "l1", "type": "exec", "source_block": "js_script", "source_pin": "Out", "target_block": "print", "target_pin": "In"},
+                {"id": "l2", "type": "data", "source_block": "js_script", "source_pin": "result", "target_block": "print", "target_pin": "Value"}
             ]
         }
 
-        from comfylab.engine.registry import register_node
-        register_node("script/javascript")(JavaScriptScriptNode)
+        from comfylab.engine.registry import register_block
+        register_block("script/javascript")(JavaScriptScriptBlock)
 
         engine = ExecutionEngine()
         engine.load_blueprint(blueprint)
-        await engine.run(start_node_id="js_script", start_pin_name="In")
+        await engine.run(start_block_id="js_script", start_pin_name="In")
 
-        assert engine.nodes["print"].last_printed == 8.0
+        assert engine.blocks["print"].last_printed == 8.0
 
     @pytest.mark.asyncio
     async def test_julia_execution(self):
@@ -142,7 +142,7 @@ class TestMultilangExecution:
             pytest.skip("julia executable is not available in PATH.")
 
         blueprint = {
-            "nodes": [
+            "blocks": [
                 {
                     "id": "julia_script",
                     "type": "script/julia",
@@ -153,19 +153,19 @@ class TestMultilangExecution:
                 {"id": "print", "type": "outputs/basic/print", "properties": {}}
             ],
             "links": [
-                {"id": "l1", "type": "exec", "source_node": "julia_script", "source_pin": "Out", "target_node": "print", "target_pin": "In"},
-                {"id": "l2", "type": "data", "source_node": "julia_script", "source_pin": "result", "target_node": "print", "target_pin": "Value"}
+                {"id": "l1", "type": "exec", "source_block": "julia_script", "source_pin": "Out", "target_block": "print", "target_pin": "In"},
+                {"id": "l2", "type": "data", "source_block": "julia_script", "source_pin": "result", "target_block": "print", "target_pin": "Value"}
             ]
         }
 
-        from comfylab.engine.registry import register_node
-        register_node("script/julia")(JuliaScriptNode)
+        from comfylab.engine.registry import register_block
+        register_block("script/julia")(JuliaScriptBlock)
 
         engine = ExecutionEngine()
         engine.load_blueprint(blueprint)
-        await engine.run(start_node_id="julia_script", start_pin_name="In")
+        await engine.run(start_block_id="julia_script", start_pin_name="In")
 
-        assert engine.nodes["print"].last_printed == 12.0
+        assert engine.blocks["print"].last_printed == 12.0
 
     @pytest.mark.asyncio
     async def test_rust_execution(self):
@@ -173,7 +173,7 @@ class TestMultilangExecution:
             pytest.skip("cargo or rustc executables are not available in PATH.")
 
         blueprint = {
-            "nodes": [
+            "blocks": [
                 {
                     "id": "rust_script",
                     "type": "script/rust",
@@ -184,19 +184,19 @@ class TestMultilangExecution:
                 {"id": "print", "type": "outputs/basic/print", "properties": {}}
             ],
             "links": [
-                {"id": "l1", "type": "exec", "source_node": "rust_script", "source_pin": "Out", "target_node": "print", "target_pin": "In"},
-                {"id": "l2", "type": "data", "source_node": "rust_script", "source_pin": "result", "target_node": "print", "target_pin": "Value"}
+                {"id": "l1", "type": "exec", "source_block": "rust_script", "source_pin": "Out", "target_block": "print", "target_pin": "In"},
+                {"id": "l2", "type": "data", "source_block": "rust_script", "source_pin": "result", "target_block": "print", "target_pin": "Value"}
             ]
         }
 
-        from comfylab.engine.registry import register_node
-        register_node("script/rust")(RustScriptNode)
+        from comfylab.engine.registry import register_block
+        register_block("script/rust")(RustScriptBlock)
 
         engine = ExecutionEngine()
         engine.load_blueprint(blueprint)
-        await engine.run(start_node_id="rust_script", start_pin_name="In")
+        await engine.run(start_block_id="rust_script", start_pin_name="In")
 
-        assert engine.nodes["print"].last_printed == 10.0
+        assert engine.blocks["print"].last_printed == 10.0
 
     @pytest.mark.asyncio
     async def test_r_execution(self):
@@ -204,7 +204,7 @@ class TestMultilangExecution:
             pytest.skip("Rscript is not available in PATH.")
 
         blueprint = {
-            "nodes": [
+            "blocks": [
                 {
                     "id": "r_script",
                     "type": "script/r",
@@ -215,19 +215,19 @@ class TestMultilangExecution:
                 {"id": "print", "type": "outputs/basic/print", "properties": {}}
             ],
             "links": [
-                {"id": "l1", "type": "exec", "source_node": "r_script", "source_pin": "Out", "target_node": "print", "target_pin": "In"},
-                {"id": "l2", "type": "data", "source_node": "r_script", "source_pin": "result", "target_node": "print", "target_pin": "Value"}
+                {"id": "l1", "type": "exec", "source_block": "r_script", "source_pin": "Out", "target_block": "print", "target_pin": "In"},
+                {"id": "l2", "type": "data", "source_block": "r_script", "source_pin": "result", "target_block": "print", "target_pin": "Value"}
             ]
         }
 
-        from comfylab.engine.registry import register_node
-        register_node("script/r")(RScriptNode)
+        from comfylab.engine.registry import register_block
+        register_block("script/r")(RScriptBlock)
 
         engine = ExecutionEngine()
         engine.load_blueprint(blueprint)
-        await engine.run(start_node_id="r_script", start_pin_name="In")
+        await engine.run(start_block_id="r_script", start_pin_name="In")
 
-        assert engine.nodes["print"].last_printed == 18.0
+        assert engine.blocks["print"].last_printed == 18.0
 
     @pytest.mark.asyncio
     async def test_octave_execution(self):
@@ -235,7 +235,7 @@ class TestMultilangExecution:
             pytest.skip("octave is not available in PATH.")
 
         blueprint = {
-            "nodes": [
+            "blocks": [
                 {
                     "id": "octave_script",
                     "type": "script/octave",
@@ -246,19 +246,19 @@ class TestMultilangExecution:
                 {"id": "print", "type": "outputs/basic/print", "properties": {}}
             ],
             "links": [
-                {"id": "l1", "type": "exec", "source_node": "octave_script", "source_pin": "Out", "target_node": "print", "target_pin": "In"},
-                {"id": "l2", "type": "data", "source_node": "octave_script", "source_pin": "result", "target_node": "print", "target_pin": "Value"}
+                {"id": "l1", "type": "exec", "source_block": "octave_script", "source_pin": "Out", "target_block": "print", "target_pin": "In"},
+                {"id": "l2", "type": "data", "source_block": "octave_script", "source_pin": "result", "target_block": "print", "target_pin": "Value"}
             ]
         }
 
-        from comfylab.engine.registry import register_node
-        register_node("script/octave")(OctaveScriptNode)
+        from comfylab.engine.registry import register_block
+        register_block("script/octave")(OctaveScriptBlock)
 
         engine = ExecutionEngine()
         engine.load_blueprint(blueprint)
-        await engine.run(start_node_id="octave_script", start_pin_name="In")
+        await engine.run(start_block_id="octave_script", start_pin_name="In")
 
-        assert engine.nodes["print"].last_printed == 28.0
+        assert engine.blocks["print"].last_printed == 28.0
 
     @pytest.mark.asyncio
     async def test_wolfram_execution(self):
@@ -266,7 +266,7 @@ class TestMultilangExecution:
             pytest.skip("wolframscript is not available in PATH.")
 
         blueprint = {
-            "nodes": [
+            "blocks": [
                 {
                     "id": "wolfram_script",
                     "type": "script/wolfram",
@@ -277,17 +277,17 @@ class TestMultilangExecution:
                 {"id": "print", "type": "outputs/basic/print", "properties": {}}
             ],
             "links": [
-                {"id": "l1", "type": "exec", "source_node": "wolfram_script", "source_pin": "Out", "target_node": "print", "target_pin": "In"},
-                {"id": "l2", "type": "data", "source_node": "wolfram_script", "source_pin": "result", "target_node": "print", "target_pin": "Value"}
+                {"id": "l1", "type": "exec", "source_block": "wolfram_script", "source_pin": "Out", "target_block": "print", "target_pin": "In"},
+                {"id": "l2", "type": "data", "source_block": "wolfram_script", "source_pin": "result", "target_block": "print", "target_pin": "Value"}
             ]
         }
 
-        from comfylab.engine.registry import register_node
-        register_node("script/wolfram")(WolframScriptNode)
+        from comfylab.engine.registry import register_block
+        register_block("script/wolfram")(WolframScriptBlock)
 
         engine = ExecutionEngine()
         engine.load_blueprint(blueprint)
-        await engine.run(start_node_id="wolfram_script", start_pin_name="In")
+        await engine.run(start_block_id="wolfram_script", start_pin_name="In")
 
-        assert engine.nodes["print"].last_printed == 40.0
+        assert engine.blocks["print"].last_printed == 40.0
 

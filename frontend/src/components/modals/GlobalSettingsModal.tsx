@@ -72,7 +72,7 @@ export const GlobalSettingsModal = ({
         <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '20px' }}>
           
           {/* --- TAB HEADERS --- */}
-          <div className="settings-tabs-row" style={{ display: 'flex', borderBottom: '1px solid var(--node-border)', marginBottom: '8px', gap: '8px' }}>
+          <div className="settings-tabs-row" style={{ display: 'flex', borderBottom: '1px solid var(--block-border)', marginBottom: '8px', gap: '8px' }}>
             <button 
               className={`settings-tab-btn ${settingsTab === 'general' ? 'active' : ''}`}
               onClick={() => setSettingsTab('general')}
@@ -121,7 +121,7 @@ export const GlobalSettingsModal = ({
                   className="setting-input-number"
                 />
                 <span className="setting-description">
-                  Maximum duration a custom node script is allowed to execute.
+                  Maximum duration a custom block script is allowed to execute.
                 </span>
               </div>
 
@@ -155,7 +155,7 @@ export const GlobalSettingsModal = ({
                     width: '100%',
                     padding: '8px',
                     borderRadius: '4px',
-                    border: '1px solid var(--node-border)',
+                    border: '1px solid var(--block-border)',
                     background: 'var(--bg-card)',
                     color: 'var(--text-color)',
                     fontSize: '0.85rem',
@@ -164,11 +164,11 @@ export const GlobalSettingsModal = ({
                   }}
                 />
                 <span className="setting-description" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
-                  Default Python interpreter path used by the "External Python" script node. Leave empty to use the server's running interpreter.
+                  Default Python interpreter path used by the "External Python" script block. Leave empty to use the server's running interpreter.
                 </span>
               </div>
 
-              {/* Custom Node Directories */}
+              {/* Custom Block Directories */}
               <div className="setting-group">
                 <label className="setting-label">Custom Discovery Folders</label>
                 <div className="directories-list">
@@ -196,7 +196,7 @@ export const GlobalSettingsModal = ({
                 <div className="add-directory-row">
                   <input
                     type="text"
-                    placeholder="e.g. /home/user/my_nodes"
+                    placeholder="e.g. /home/user/my_blocks"
                     value={newDirInput}
                     onChange={(e) => setNewDirInput(e.target.value)}
                     onKeyDown={(e) => {
@@ -233,7 +233,7 @@ export const GlobalSettingsModal = ({
                   </button>
                 </div>
                 <span className="setting-description">
-                  Paths to scan at startup for custom Python nodes.
+                  Paths to scan at startup for custom Python blocks.
                 </span>
               </div>
             </>
@@ -243,15 +243,15 @@ export const GlobalSettingsModal = ({
             <>
               {/* Scripting language toggles */}
               <div className="setting-group">
-                <label className="setting-label">Enable Scripting Nodes</label>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '6px', background: 'var(--dnd-bg)', padding: '12px', borderRadius: '6px', border: '1px solid var(--node-border)' }}>
+                <label className="setting-label">Enable Scripting Blocks</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '6px', background: 'var(--dnd-bg)', padding: '12px', borderRadius: '6px', border: '1px solid var(--block-border)' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '0.85rem' }}>
                     <input
                       type="checkbox"
                       checked={settings.enable_lua_scripting}
                       onChange={(e) => setSettings({ ...settings, enable_lua_scripting: e.target.checked })}
                     />
-                    <span>🌙 Enable Lua Script Node</span>
+                    <span>🌙 Enable Lua Script Block</span>
                   </label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '0.85rem' }}>
                     <input
@@ -259,7 +259,7 @@ export const GlobalSettingsModal = ({
                       checked={settings.enable_julia_scripting}
                       onChange={(e) => setSettings({ ...settings, enable_julia_scripting: e.target.checked })}
                     />
-                    <span>👩‍🏫 Enable Julia Script Node</span>
+                    <span>👩‍🏫 Enable Julia Script Block</span>
                   </label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '0.85rem' }}>
                     <input
@@ -267,7 +267,7 @@ export const GlobalSettingsModal = ({
                       checked={settings.enable_js_scripting}
                       onChange={(e) => setSettings({ ...settings, enable_js_scripting: e.target.checked })}
                     />
-                    <span>☕ / 🟦 Enable JS/TS Script Node</span>
+                    <span>☕ / 🟦 Enable JS/TS Script Block</span>
                   </label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '0.85rem' }}>
                     <input
@@ -275,7 +275,7 @@ export const GlobalSettingsModal = ({
                       checked={settings.enable_rust_scripting}
                       onChange={(e) => setSettings({ ...settings, enable_rust_scripting: e.target.checked })}
                     />
-                    <span>🦀 Enable Rust Script Node</span>
+                    <span>🦀 Enable Rust Script Block</span>
                   </label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '0.85rem' }}>
                     <input
@@ -283,7 +283,7 @@ export const GlobalSettingsModal = ({
                       checked={settings.enable_r_scripting}
                       onChange={(e) => setSettings({ ...settings, enable_r_scripting: e.target.checked })}
                     />
-                    <span>📊 Enable R Script Node</span>
+                    <span>📊 Enable R Script Block</span>
                   </label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '0.85rem' }}>
                     <input
@@ -291,7 +291,7 @@ export const GlobalSettingsModal = ({
                       checked={settings.enable_octave_scripting}
                       onChange={(e) => setSettings({ ...settings, enable_octave_scripting: e.target.checked })}
                     />
-                    <span>📐 Enable Octave Script Node</span>
+                    <span>📐 Enable Octave Script Block</span>
                   </label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '0.85rem' }}>
                     <input
@@ -299,7 +299,7 @@ export const GlobalSettingsModal = ({
                       checked={settings.enable_wolfram_scripting}
                       onChange={(e) => setSettings({ ...settings, enable_wolfram_scripting: e.target.checked })}
                     />
-                    <span>🧠 Enable Wolfram Script Node</span>
+                    <span>🧠 Enable Wolfram Script Block</span>
                   </label>
                 </div>
               </div>
@@ -322,7 +322,7 @@ export const GlobalSettingsModal = ({
                 ) : diagnosticsData ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px', maxHeight: '180px', overflowY: 'auto', paddingRight: '4px' }}>
                     {Object.entries(diagnosticsData.dependencies || {}).map(([key, info]: [string, any]) => (
-                      <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', background: 'var(--input-bg)', border: '1px solid var(--node-border)', borderRadius: '6px' }}>
+                      <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 10px', background: 'var(--input-bg)', border: '1px solid var(--block-border)', borderRadius: '6px' }}>
                         <div>
                           <div style={{ fontSize: '0.8rem', fontWeight: 500, color: 'var(--text-color)' }}>{info.description}</div>
                           <div style={{ fontSize: '0.7rem', color: info.installed ? '#22c55e' : '#f97316' }}>{info.version}</div>

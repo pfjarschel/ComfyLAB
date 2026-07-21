@@ -21,28 +21,28 @@ import inspect
 
 # Context variables for storing execution context dynamically
 run_id_var = contextvars.ContextVar("run_id", default="")
-node_id_var = contextvars.ContextVar("node_id", default="")
-node_name_var = contextvars.ContextVar("node_name", default="")
-node_file_var = contextvars.ContextVar("node_file", default="")
+block_id_var = contextvars.ContextVar("block_id", default="")
+block_name_var = contextvars.ContextVar("block_name", default="")
+block_file_var = contextvars.ContextVar("block_file", default="")
 
 class StructuredLoggingFilter(logging.Filter):
     """
-    Filter to inject run_id, node_id, node_name, and node_file from contextvars into each LogRecord.
+    Filter to inject run_id, block_id, block_name, and block_file from contextvars into each LogRecord.
     """
     def filter(self, record):
         record.run_id = run_id_var.get() or "N/A"
-        node_id = node_id_var.get()
-        node_name = node_name_var.get()
-        node_file = node_file_var.get()
+        block_id = block_id_var.get()
+        block_name = block_name_var.get()
+        block_file = block_file_var.get()
         
-        record.node_id = node_id or "N/A"
-        record.node_name = node_name or "N/A"
-        record.node_file = node_file or "N/A"
+        record.block_id = block_id or "N/A"
+        record.block_name = block_name or "N/A"
+        record.block_file = block_file or "N/A"
         
-        if node_id:
-            record.node_info = f"{node_id} ({node_name} in {node_file})"
+        if block_id:
+            record.block_info = f"{block_id} ({block_name} in {block_file})"
         else:
-            record.node_info = "N/A"
+            record.block_info = "N/A"
         return True
 
 class JsonFormatter(logging.Formatter):
@@ -56,9 +56,9 @@ class JsonFormatter(logging.Formatter):
             "name": record.name,
             "message": record.getMessage(),
             "run_id": getattr(record, "run_id", "N/A"),
-            "node_id": getattr(record, "node_id", "N/A"),
-            "node_name": getattr(record, "node_name", "N/A"),
-            "node_file": getattr(record, "node_file", "N/A")
+            "block_id": getattr(record, "block_id", "N/A"),
+            "block_name": getattr(record, "block_name", "N/A"),
+            "block_file": getattr(record, "block_file", "N/A")
         }
         if record.exc_info:
             log_record["exception"] = self.formatException(record.exc_info)
@@ -106,11 +106,11 @@ def setup_logging():
 
     structured_filter = StructuredLoggingFilter()
 
-    # 2. Console Stream Handler (Human-readable text with detailed node info)
+    # 2. Console Stream Handler (Human-readable text with detailed block info)
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setLevel(console_level)
     console_formatter = logging.Formatter(
-        "%(asctime)s | %(levelname)-8s | [Run: %(run_id)s] [Node: %(node_info)s] | %(name)s | %(message)s"
+        "%(asctime)s | %(levelname)-8s | [Run: %(run_id)s] [Block: %(block_info)s] | %(name)s | %(message)s"
     )
     console_handler.setFormatter(console_formatter)
     console_handler.addFilter(structured_filter)
@@ -139,28 +139,28 @@ def setup_logging():
         f"(Console level: {logging.getLevelName(console_level)}, File level: {logging.getLevelName(file_level)})"
     )
 
-def set_node_context(node):
+def set_block_context(block):
     """
-    Sets node context variables for logging from the given node instance.
-    Returns a tuple of context tokens to be used with reset_node_context.
+    Sets block context variables for logging from the given block instance.
+    Returns a tuple of context tokens to be used with reset_block_context.
     """
-    if not node:
+    if not block:
         return (
-            node_id_var.set(""),
-            node_name_var.set(""),
-            node_file_var.set("")
+            block_id_var.set(""),
+            block_name_var.set(""),
+            block_file_var.set("")
         )
     
-    node_id = getattr(node, "id", "")
-    node_name = getattr(node, "display_name", "") or node.__class__.__name__
+    block_id = getattr(block, "id", "")
+    block_name = getattr(block, "display_name", "") or block.__class__.__name__
     
-    # Resolve node python file path
+    # Resolve block python file path
     file_path = "Unknown"
-    if hasattr(node, "_cluster_file_path") and node._cluster_file_path:
-        file_path = node._cluster_file_path
+    if hasattr(block, "_cluster_file_path") and block._cluster_file_path:
+        file_path = block._cluster_file_path
     else:
         try:
-            file_path = inspect.getfile(node.__class__)
+            file_path = inspect.getfile(block.__class__)
         except Exception:
             pass
             
@@ -174,16 +174,16 @@ def set_node_context(node):
             pass
             
     return (
-        node_id_var.set(node_id),
-        node_name_var.set(node_name),
-        node_file_var.set(file_path)
+        block_id_var.set(block_id),
+        block_name_var.set(block_name),
+        block_file_var.set(file_path)
     )
 
-def reset_node_context(tokens):
+def reset_block_context(tokens):
     """
-    Resets the contextvars to their values before set_node_context was called.
+    Resets the contextvars to their values before set_block_context was called.
     """
     if tokens:
-        node_id_var.reset(tokens[0])
-        node_name_var.reset(tokens[1])
-        node_file_var.reset(tokens[2])
+        block_id_var.reset(tokens[0])
+        block_name_var.reset(tokens[1])
+        block_file_var.reset(tokens[2])

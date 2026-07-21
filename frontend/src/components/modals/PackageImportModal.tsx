@@ -47,12 +47,12 @@ export const PackageImportModal = ({
   if (!isOpen || !packagePreviewData) return null;
 
   const hasUntrusted = !packagePreviewData.blueprint_status?.is_trusted || 
-                       packagePreviewData.nodes?.some((n: any) => !n.is_trusted) || 
+                       packagePreviewData.blocks?.some((n: any) => !n.is_trusted) || 
                        packagePreviewData.clusters?.some((m: any) => !m.is_trusted);
 
   return (
     <div className="modal-overlay" style={{ zIndex: 1001 }} onClick={onClose}>
-      <div className="modal-content glass-panel" style={{ width: '500px', border: '1px solid var(--node-border)' }} onClick={(e) => e.stopPropagation()}>
+      <div className="modal-content glass-panel" style={{ width: '500px', border: '1px solid var(--block-border)' }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-header" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
           <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-color)' }}>
             <span>📦</span> Preview Package: {packageFilename}
@@ -83,16 +83,16 @@ export const PackageImportModal = ({
             </div>
           </div>
 
-          {/* Nodes List */}
-          {packagePreviewData.nodes && packagePreviewData.nodes.length > 0 && (
+          {/* Blocks List */}
+          {packagePreviewData.blocks && packagePreviewData.blocks.length > 0 && (
             <div style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '12px' }}>
-              <h4 style={{ margin: '0 0 6px 0', fontSize: '0.9rem', color: 'var(--text-color)' }}>Custom Nodes:</h4>
+              <h4 style={{ margin: '0 0 6px 0', fontSize: '0.9rem', color: 'var(--text-color)' }}>Custom Blocks:</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                {packagePreviewData.nodes.map((node: any) => (
-                  <div key={node.filename} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '6px 10px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{node.filename}</span>
-                    <span style={{ fontSize: '0.8rem', color: node.is_trusted ? '#10b981' : '#f59e0b' }}>
-                      {node.is_trusted ? '🛡️ Trusted' : '⚠️ Untrusted'}
+                {packagePreviewData.blocks.map((block: any) => (
+                  <div key={block.filename} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '6px 10px', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{block.filename}</span>
+                    <span style={{ fontSize: '0.8rem', color: block.is_trusted ? '#10b981' : '#f59e0b' }}>
+                      {block.is_trusted ? '🛡️ Trusted' : '⚠️ Untrusted'}
                     </span>
                   </div>
                 ))}

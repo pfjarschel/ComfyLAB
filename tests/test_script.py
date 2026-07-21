@@ -1,6 +1,6 @@
 import pytest
-import comfylab.nodes
-from comfylab.nodes.script import parse_script_decorators, PythonScriptNode
+import comfylab.blocks
+from comfylab.blocks.script import parse_script_decorators, PythonScriptBlock
 from comfylab.engine.executor import ExecutionEngine
 
 
@@ -81,12 +81,12 @@ class TestParseScriptDecorators:
         assert outputs[0]['type'] == 'list'
 
 
-class TestPythonScriptNodeExecution:
+class TestPythonScriptBlockExecution:
 
     @pytest.mark.asyncio
     async def test_basic_script_multiply(self):
         blueprint = {
-            "nodes": [
+            "blocks": [
                 {"id": "num", "type": "constants/number", "properties": {"value": 5.0}},
                 {
                     "id": "script",
@@ -98,28 +98,28 @@ class TestPythonScriptNodeExecution:
                 {"id": "display", "type": "outputs/basic/display", "properties": {}}
             ],
             "links": [
-                {"id": "l1", "type": "data", "source_node": "num", "source_pin": "Value", "target_node": "script", "target_pin": "value"},
-                {"id": "l2", "type": "exec", "source_node": "script", "source_pin": "Out", "target_node": "display", "target_pin": "In"},
-                {"id": "l3", "type": "data", "source_node": "script", "source_pin": "result", "target_node": "display", "target_pin": "Value"}
+                {"id": "l1", "type": "data", "source_block": "num", "source_pin": "Value", "target_block": "script", "target_pin": "value"},
+                {"id": "l2", "type": "exec", "source_block": "script", "source_pin": "Out", "target_block": "display", "target_pin": "In"},
+                {"id": "l3", "type": "data", "source_block": "script", "source_pin": "result", "target_block": "display", "target_pin": "Value"}
             ]
         }
 
         telemetry = {}
         async def cb(run_id, msg):
             if isinstance(msg, dict) and msg.get("type") == "telemetry":
-                telemetry[msg["node_id"]] = msg["data"]
+                telemetry[msg["block_id"]] = msg["data"]
 
         engine = ExecutionEngine()
         engine.telemetry_callback = cb
         engine.load_blueprint(blueprint)
-        await engine.run(start_node_id="script", start_pin_name="In")
+        await engine.run(start_block_id="script", start_pin_name="In")
 
         assert telemetry["display"] == {"value": 15.0}
 
     @pytest.mark.asyncio
     async def test_script_multiple_outputs(self):
         blueprint = {
-            "nodes": [
+            "blocks": [
                 {
                     "id": "script",
                     "type": "script/python",
@@ -131,24 +131,24 @@ class TestPythonScriptNodeExecution:
                 {"id": "print2", "type": "outputs/basic/print", "properties": {}}
             ],
             "links": [
-                {"id": "l1", "type": "exec", "source_node": "script", "source_pin": "Out", "target_node": "print1", "target_pin": "In"},
-                {"id": "l2", "type": "exec", "source_node": "print1", "source_pin": "Out", "target_node": "print2", "target_pin": "In"},
-                {"id": "l3", "type": "data", "source_node": "script", "source_pin": "doubled", "target_node": "print1", "target_pin": "Value"},
-                {"id": "l4", "type": "data", "source_node": "script", "source_pin": "tripled", "target_node": "print2", "target_pin": "Value"}
+                {"id": "l1", "type": "exec", "source_block": "script", "source_pin": "Out", "target_block": "print1", "target_pin": "In"},
+                {"id": "l2", "type": "exec", "source_block": "print1", "source_pin": "Out", "target_block": "print2", "target_pin": "In"},
+                {"id": "l3", "type": "data", "source_block": "script", "source_pin": "doubled", "target_block": "print1", "target_pin": "Value"},
+                {"id": "l4", "type": "data", "source_block": "script", "source_pin": "tripled", "target_block": "print2", "target_pin": "Value"}
             ]
         }
 
         engine = ExecutionEngine()
         engine.load_blueprint(blueprint)
-        await engine.run(start_node_id="script", start_pin_name="In")
+        await engine.run(start_block_id="script", start_pin_name="In")
 
-        assert engine.nodes["print1"].last_printed == 20.0
-        assert engine.nodes["print2"].last_printed == 30.0
+        assert engine.blocks["print1"].last_printed == 20.0
+        assert engine.blocks["print2"].last_printed == 30.0
 
     @pytest.mark.asyncio
     async def test_script_with_default_input(self):
         blueprint = {
-            "nodes": [
+            "blocks": [
                 {
                     "id": "script",
                     "type": "script/python",
@@ -159,21 +159,21 @@ class TestPythonScriptNodeExecution:
                 {"id": "print", "type": "outputs/basic/print", "properties": {}}
             ],
             "links": [
-                {"id": "l1", "type": "exec", "source_node": "script", "source_pin": "Out", "target_node": "print", "target_pin": "In"},
-                {"id": "l2", "type": "data", "source_node": "script", "source_pin": "result", "target_node": "print", "target_pin": "Value"}
+                {"id": "l1", "type": "exec", "source_block": "script", "source_pin": "Out", "target_block": "print", "target_pin": "In"},
+                {"id": "l2", "type": "data", "source_block": "script", "source_pin": "result", "target_block": "print", "target_pin": "Value"}
             ]
         }
 
         engine = ExecutionEngine()
         engine.load_blueprint(blueprint)
-        await engine.run(start_node_id="script", start_pin_name="In")
+        await engine.run(start_block_id="script", start_pin_name="In")
 
-        assert engine.nodes["print"].last_printed == 10.0
+        assert engine.blocks["print"].last_printed == 10.0
 
     @pytest.mark.asyncio
     async def test_script_syntax_error(self):
         blueprint = {
-            "nodes": [
+            "blocks": [
                 {
                     "id": "script",
                     "type": "script/python",
@@ -189,14 +189,14 @@ class TestPythonScriptNodeExecution:
         engine.load_blueprint(blueprint)
 
         with pytest.raises(SyntaxError):
-            await engine.run(start_node_id="script", start_pin_name="In")
+            await engine.run(start_block_id="script", start_pin_name="In")
 
         assert engine.state == "ABORTED"
 
     @pytest.mark.asyncio
     async def test_script_runtime_error(self):
         blueprint = {
-            "nodes": [
+            "blocks": [
                 {
                     "id": "script",
                     "type": "script/python",
@@ -212,14 +212,14 @@ class TestPythonScriptNodeExecution:
         engine.load_blueprint(blueprint)
 
         with pytest.raises(ZeroDivisionError):
-            await engine.run(start_node_id="script", start_pin_name="In")
+            await engine.run(start_block_id="script", start_pin_name="In")
 
         assert engine.state == "ABORTED"
 
     @pytest.mark.asyncio
     async def test_script_timeout(self):
         blueprint = {
-            "nodes": [
+            "blocks": [
                 {
                     "id": "script",
                     "type": "script/python",
@@ -236,14 +236,14 @@ class TestPythonScriptNodeExecution:
         engine.load_blueprint(blueprint)
 
         with pytest.raises(TimeoutError):
-            await engine.run(start_node_id="script", start_pin_name="In")
+            await engine.run(start_block_id="script", start_pin_name="In")
 
         assert engine.state == "ABORTED"
 
     @pytest.mark.asyncio
     async def test_script_empty_code(self):
         blueprint = {
-            "nodes": [
+            "blocks": [
                 {
                     "id": "script",
                     "type": "script/python",
@@ -257,12 +257,12 @@ class TestPythonScriptNodeExecution:
         engine.load_blueprint(blueprint)
 
         with pytest.raises(ValueError, match="no code"):
-            await engine.run(start_node_id="script", start_pin_name="In")
+            await engine.run(start_block_id="script", start_pin_name="In")
 
     @pytest.mark.asyncio
     async def test_script_with_math_import(self):
         blueprint = {
-            "nodes": [
+            "blocks": [
                 {
                     "id": "script",
                     "type": "script/python",
@@ -273,22 +273,22 @@ class TestPythonScriptNodeExecution:
                 {"id": "print", "type": "outputs/basic/print", "properties": {}}
             ],
             "links": [
-                {"id": "l1", "type": "exec", "source_node": "script", "source_pin": "Out", "target_node": "print", "target_pin": "In"},
-                {"id": "l2", "type": "data", "source_node": "script", "source_pin": "result", "target_node": "print", "target_pin": "Value"}
+                {"id": "l1", "type": "exec", "source_block": "script", "source_pin": "Out", "target_block": "print", "target_pin": "In"},
+                {"id": "l2", "type": "data", "source_block": "script", "source_pin": "result", "target_block": "print", "target_pin": "Value"}
             ]
         }
 
         engine = ExecutionEngine()
         engine.load_blueprint(blueprint)
-        await engine.run(start_node_id="script", start_pin_name="In")
+        await engine.run(start_block_id="script", start_pin_name="In")
 
         import math
-        assert abs(engine.nodes["print"].last_printed - math.pi) < 0.0001
+        assert abs(engine.blocks["print"].last_printed - math.pi) < 0.0001
 
     @pytest.mark.asyncio
     async def test_script_in_for_loop(self):
         blueprint = {
-            "nodes": [
+            "blocks": [
                 {"id": "loop", "type": "control_flow/loops/for_loop", "properties": {"Count": 3}},
                 {
                     "id": "script",
@@ -300,26 +300,26 @@ class TestPythonScriptNodeExecution:
                 {"id": "print", "type": "outputs/basic/print", "properties": {}}
             ],
             "links": [
-                {"id": "l1", "type": "exec", "source_node": "loop", "source_pin": "LoopBody", "target_node": "script", "target_pin": "In"},
-                {"id": "l2", "type": "exec", "source_node": "script", "source_pin": "Out", "target_node": "print", "target_pin": "In"},
-                {"id": "l3", "type": "data", "source_node": "loop", "source_pin": "Index", "target_node": "script", "target_pin": "idx"},
-                {"id": "l4", "type": "data", "source_node": "script", "source_pin": "result", "target_node": "print", "target_pin": "Value"}
+                {"id": "l1", "type": "exec", "source_block": "loop", "source_pin": "LoopBody", "target_block": "script", "target_pin": "In"},
+                {"id": "l2", "type": "exec", "source_block": "script", "source_pin": "Out", "target_block": "print", "target_pin": "In"},
+                {"id": "l3", "type": "data", "source_block": "loop", "source_pin": "Index", "target_block": "script", "target_pin": "idx"},
+                {"id": "l4", "type": "data", "source_block": "script", "source_pin": "result", "target_block": "print", "target_pin": "Value"}
             ]
         }
 
         engine = ExecutionEngine()
         engine.load_blueprint(blueprint)
-        await engine.run(start_node_id="loop", start_pin_name="Start")
+        await engine.run(start_block_id="loop", start_pin_name="Start")
 
-        assert engine.nodes["print"].last_printed == 20
+        assert engine.blocks["print"].last_printed == 20
 
 
-class TestExternalPythonScriptNodeExecution:
+class TestExternalPythonScriptBlockExecution:
 
     @pytest.mark.asyncio
     async def test_basic_external_script_multiply(self):
         blueprint = {
-            "nodes": [
+            "blocks": [
                 {"id": "num", "type": "constants/number", "properties": {"value": 6.0}},
                 {
                     "id": "script",
@@ -331,26 +331,26 @@ class TestExternalPythonScriptNodeExecution:
                 {"id": "display", "type": "outputs/basic/display", "properties": {}}
             ],
             "links": [
-                {"id": "l1", "type": "data", "source_node": "num", "source_pin": "Value", "target_node": "script", "target_pin": "value"},
-                {"id": "l2", "type": "exec", "source_node": "script", "source_pin": "Out", "target_node": "display", "target_pin": "In"},
-                {"id": "l3", "type": "data", "source_node": "script", "source_pin": "result", "target_node": "display", "target_pin": "Value"}
+                {"id": "l1", "type": "data", "source_block": "num", "source_pin": "Value", "target_block": "script", "target_pin": "value"},
+                {"id": "l2", "type": "exec", "source_block": "script", "source_pin": "Out", "target_block": "display", "target_pin": "In"},
+                {"id": "l3", "type": "data", "source_block": "script", "source_pin": "result", "target_block": "display", "target_pin": "Value"}
             ]
         }
 
-        # Dynamically load the node to registry (since loader might have skipped it or run already)
-        from comfylab.engine.registry import register_node
-        from comfylab.nodes.script_external_python import ExternalPythonScriptNode
-        register_node("script/python_external")(ExternalPythonScriptNode)
+        # Dynamically load the block to registry (since loader might have skipped it or run already)
+        from comfylab.engine.registry import register_block
+        from comfylab.blocks.script_external_python import ExternalPythonScriptBlock
+        register_block("script/python_external")(ExternalPythonScriptBlock)
 
         telemetry = {}
         async def cb(run_id, msg):
             if isinstance(msg, dict) and msg.get("type") == "telemetry":
-                telemetry[msg["node_id"]] = msg["data"]
+                telemetry[msg["block_id"]] = msg["data"]
 
         engine = ExecutionEngine()
         engine.telemetry_callback = cb
         engine.load_blueprint(blueprint)
-        await engine.run(start_node_id="script", start_pin_name="In")
+        await engine.run(start_block_id="script", start_pin_name="In")
 
         assert telemetry["display"] == {"value": 24.0}
 

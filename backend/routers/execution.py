@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Dict, Any, List
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException
 from pydantic import BaseModel
-from comfylab.engine.logging import run_id_var, node_id_var
+from comfylab.engine.logging import run_id_var, block_id_var
 from comfylab.engine.config import get_config
 
 
@@ -26,14 +26,14 @@ logger = logging.getLogger("backend.routers.execution")
 
 from comfylab.engine.executor import ExecutionEngine
 
-from comfylab.nodes.script import parse_script_decorators, validate_code as validate_python
-from comfylab.nodes.script_lua import parse_lua_decorators, validate_code as validate_lua
-from comfylab.nodes.script_js import parse_js_decorators, validate_code as validate_js
-from comfylab.nodes.script_julia import validate_code as validate_julia
-from comfylab.nodes.script_r import validate_code as validate_r
-from comfylab.nodes.script_rust import parse_rust_decorators
-from comfylab.nodes.script_octave import parse_octave_decorators
-from comfylab.nodes.script_wolfram import parse_wolfram_decorators
+from comfylab.blocks.script import parse_script_decorators, validate_code as validate_python
+from comfylab.blocks.script_lua import parse_lua_decorators, validate_code as validate_lua
+from comfylab.blocks.script_js import parse_js_decorators, validate_code as validate_js
+from comfylab.blocks.script_julia import validate_code as validate_julia
+from comfylab.blocks.script_r import validate_code as validate_r
+from comfylab.blocks.script_rust import parse_rust_decorators
+from comfylab.blocks.script_octave import parse_octave_decorators
+from comfylab.blocks.script_wolfram import parse_wolfram_decorators
 import shutil
 import tempfile
 import os
@@ -62,8 +62,8 @@ VALIDATOR_REGISTRY = {
     "r": validate_r,
 }
 
-# Import comfylab.nodes to trigger dynamic recursive auto-discovery
-import comfylab.nodes
+# Import comfylab.blocks to trigger dynamic recursive auto-discovery
+import comfylab.blocks
 
 router = APIRouter()
 
@@ -84,7 +84,7 @@ engine.telemetry_callback = on_telemetry_event
 
 
 class BlueprintPayload(BaseModel):
-    nodes: list
+    blocks: list
     links: list
     raw_canvas: Dict[str, Any] = None
 
@@ -157,38 +157,38 @@ async def get_status():
 
 
 
-@router.post("/nodes/{node_id}/clear")
-async def clear_node_data(node_id: str):
-    """Resets transient state and tears down persistent state for a given node."""
-    node = engine.nodes.get(node_id)
-    if not node:
-        node = engine.persistent_nodes.get(node_id)
+@router.post("/blocks/{block_id}/clear")
+async def clear_block_data(block_id: str):
+    """Resets transient state and tears down persistent state for a given block."""
+    block = engine.blocks.get(block_id)
+    if not block:
+        block = engine.persistent_blocks.get(block_id)
 
-    if node:
-        if hasattr(node, "clear_data"):
-            await node.clear_data()
+    if block:
+        if hasattr(block, "clear_data"):
+            await block.clear_data()
         
-        if node_id in engine.persistent_nodes:
+        if block_id in engine.persistent_blocks:
             try:
-                await node.teardown()
+                await block.teardown()
             except Exception as e:
-                logger.error(f"Teardown failed on clear for node '{node_id}': {e}")
-            engine.persistent_nodes.pop(node_id, None)
+                logger.error(f"Teardown failed on clear for block '{block_id}': {e}")
+            engine.persistent_blocks.pop(block_id, None)
             
         return {"status": "success"}
     else:
-        return {"status": "skipped", "reason": "Node not loaded in current engine or persistent cache"}
+        return {"status": "skipped", "reason": "Block not loaded in current engine or persistent cache"}
 
 
-@router.post("/nodes/clear_persistent")
-async def clear_all_persistent_nodes():
-    """Tears down and clears all persistent nodes currently cached in the engine."""
-    for node_id, node in list(engine.persistent_nodes.items()):
+@router.post("/blocks/clear_persistent")
+async def clear_all_persistent_blocks():
+    """Tears down and clears all persistent blocks currently cached in the engine."""
+    for block_id, block in list(engine.persistent_blocks.items()):
         try:
-            await node.teardown()
+            await block.teardown()
         except Exception as e:
-            logger.error(f"Teardown failed during clear_persistent for node '{node_id}': {e}")
-    engine.persistent_nodes.clear()
+            logger.error(f"Teardown failed during clear_persistent for block '{block_id}': {e}")
+    engine.persistent_blocks.clear()
     return {"status": "success"}
 
 
@@ -282,23 +282,23 @@ async def telemetry_websocket(websocket: WebSocket, run_id: str):
                 import json
                 data = json.loads(msg_text)
                 if isinstance(data, dict) and data.get("type") == "update_property":
-                    node_id = data.get("node_id")
+                    block_id = data.get("block_id")
                     name = data.get("name")
                     value = data.get("value")
-                    if node_id and name is not None:
+                    if block_id and name is not None:
                         # Set context vars so the update property log is correctly tagged
                         run_token = run_id_var.set(run_id)
-                        node_token = node_id_var.set(node_id)
+                        block_token = block_id_var.set(block_id)
                         try:
-                            # Update the property in the running engine nodes
-                            node = engine.nodes.get(node_id)
-                            if node:
-                                node.properties[name] = value
-                                node.properties[name.lower()] = value
-                                logger.info(f"Updated running node property {name} = {value}")
+                            # Update the property in the running engine blocks
+                            block = engine.blocks.get(block_id)
+                            if block:
+                                block.properties[name] = value
+                                block.properties[name.lower()] = value
+                                logger.info(f"Updated running block property {name} = {value}")
                         finally:
                             run_id_var.reset(run_token)
-                            node_id_var.reset(node_token)
+                            block_id_var.reset(block_token)
             except (json.JSONDecodeError, TypeError):
                 # Silent fallback for simple text heartbeats or invalid JSON
                 pass

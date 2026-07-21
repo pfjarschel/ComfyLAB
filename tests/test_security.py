@@ -46,7 +46,7 @@ def test_sign_verify_raw_data():
     assert verify_data(data, sig, fake_identity) is False
 
 def test_sign_verify_python_file():
-    content = """def my_node():
+    content = """def my_block():
     return "result"
 """
     with tempfile.NamedTemporaryFile(suffix=".py", mode="w", delete=False, encoding="utf-8") as f:
@@ -79,7 +79,7 @@ def test_sign_verify_python_file():
 def test_sign_verify_json():
     data = {
         "name": "Test Blueprint",
-        "nodes": [
+        "blocks": [
             {"id": "1", "type": "math/basic/add"}
         ],
         "links": []
@@ -106,16 +106,16 @@ def test_sign_verify_json():
     _, is_valid_2 = verify_json(tampered_2)
     assert is_valid_2 is False
 
-def test_dynamic_node_authorization_flow():
-    from comfylab.nodes.loader import load_module_from_filepath
-    from comfylab.engine.registry import NODE_REGISTRY, get_node_class
+def test_dynamic_block_authorization_flow():
+    from comfylab.blocks.loader import load_module_from_filepath
+    from comfylab.engine.registry import BLOCK_REGISTRY, get_block_class
     
-    # 1. Unsigned dynamic node
-    code_unsigned = """from comfylab.nodes.base import BaseNode
-from comfylab.engine.registry import register_node
+    # 1. Unsigned dynamic block
+    code_unsigned = """from comfylab.blocks.base import BaseBlock
+from comfylab.engine.registry import register_block
 
-@register_node("test/dynamic_unsigned")
-class DynamicUnsignedNode(BaseNode):
+@register_block("test/dynamic_unsigned")
+class DynamicUnsignedBlock(BaseBlock):
     pass
 """
     with tempfile.NamedTemporaryFile(suffix=".py", mode="w", delete=False, encoding="utf-8") as f:
@@ -124,19 +124,19 @@ class DynamicUnsignedNode(BaseNode):
         
     try:
         load_module_from_filepath(str(temp_path))
-        assert "test/dynamic_unsigned" in NODE_REGISTRY
-        cls = get_node_class("test/dynamic_unsigned")
+        assert "test/dynamic_unsigned" in BLOCK_REGISTRY
+        cls = get_block_class("test/dynamic_unsigned")
         assert getattr(cls, "unauthorized", False) is True
     finally:
         temp_path.unlink()
-        NODE_REGISTRY.pop("test/dynamic_unsigned", None)
+        BLOCK_REGISTRY.pop("test/dynamic_unsigned", None)
 
-    # 2. Signed dynamic node
-    code_signed = """from comfylab.nodes.base import BaseNode
-from comfylab.engine.registry import register_node
+    # 2. Signed dynamic block
+    code_signed = """from comfylab.blocks.base import BaseBlock
+from comfylab.engine.registry import register_block
 
-@register_node("test/dynamic_signed")
-class DynamicSignedNode(BaseNode):
+@register_block("test/dynamic_signed")
+class DynamicSignedBlock(BaseBlock):
     pass
 """
     with tempfile.NamedTemporaryFile(suffix=".py", mode="w", delete=False, encoding="utf-8") as f:
@@ -146,34 +146,34 @@ class DynamicSignedNode(BaseNode):
     try:
         sign_python_file(temp_path)
         load_module_from_filepath(str(temp_path))
-        assert "test/dynamic_signed" in NODE_REGISTRY
-        cls = get_node_class("test/dynamic_signed")
+        assert "test/dynamic_signed" in BLOCK_REGISTRY
+        cls = get_block_class("test/dynamic_signed")
         assert getattr(cls, "unauthorized", False) is False
     finally:
         temp_path.unlink()
-        NODE_REGISTRY.pop("test/dynamic_signed", None)
+        BLOCK_REGISTRY.pop("test/dynamic_signed", None)
 
-def test_unauthorized_node_execution_blocked():
-    from comfylab.nodes.base import BaseNode
-    from comfylab.engine.registry import register_node, NODE_REGISTRY
+def test_unauthorized_block_execution_blocked():
+    from comfylab.blocks.base import BaseBlock
+    from comfylab.engine.registry import register_block, BLOCK_REGISTRY
     from comfylab.engine.executor import ExecutionEngine
     
-    @register_node("test/blocked_node")
-    class BlockedNode(BaseNode):
+    @register_block("test/blocked_block")
+    class BlockedBlock(BaseBlock):
         pass
         
-    BlockedNode.unauthorized = True
+    BlockedBlock.unauthorized = True
     
     engine = ExecutionEngine()
     blueprint = {
-        "nodes": [
-            {"id": "node_1", "type": "test/blocked_node", "properties": {}}
+        "blocks": [
+            {"id": "block_1", "type": "test/blocked_block", "properties": {}}
         ],
         "links": []
     }
     
-    with pytest.raises(ValueError, match="Cannot execute unauthorized custom node"):
+    with pytest.raises(ValueError, match="Cannot execute unauthorized custom block"):
         engine.load_blueprint(blueprint)
         
-    NODE_REGISTRY.pop("test/blocked_node", None)
+    BLOCK_REGISTRY.pop("test/blocked_block", None)
 

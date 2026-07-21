@@ -98,7 +98,7 @@ export const UploadFileModal = ({ isOpen, onClose, BACKEND_URL }: UploadFileModa
               style={{ 
                 padding: '8px', 
                 borderRadius: '4px', 
-                border: '1px solid var(--node-border)',
+                border: '1px solid var(--block-border)',
                 background: 'var(--dnd-bg)',
                 color: 'var(--text-color)',
                 fontSize: '0.9rem'
@@ -121,7 +121,7 @@ export const UploadFileModal = ({ isOpen, onClose, BACKEND_URL }: UploadFileModa
               style={{ 
                 padding: '8px', 
                 borderRadius: '4px', 
-                border: '1px solid var(--node-border)',
+                border: '1px solid var(--block-border)',
                 background: file ? 'var(--dnd-bg)' : 'transparent',
                 color: 'var(--text-color)',
                 fontSize: '0.9rem',

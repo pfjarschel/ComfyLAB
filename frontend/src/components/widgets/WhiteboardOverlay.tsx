@@ -58,9 +58,9 @@ interface WhiteboardOverlayProps {
   markedForDeletion: Set<string>;
   hoverPoint: Point | null;
   editingTextId: string | null;
-  nodes: any[];
+  blocks: any[];
   edges: any[];
-  pushStateToHistory: (nodes: any[], edges: any[], annotations: any[]) => void;
+  pushStateToHistory: (blocks: any[], edges: any[], annotations: any[]) => void;
   setAnnotations: (annotations: Annotation[]) => void;
   setEditingTextId: (id: string | null) => void;
   onMouseDown: (e: React.MouseEvent<SVGSVGElement>) => void;
@@ -81,7 +81,7 @@ export const WhiteboardOverlay = ({
   markedForDeletion,
   hoverPoint,
   editingTextId,
-  nodes,
+  blocks,
   edges,
   pushStateToHistory,
   setAnnotations,
@@ -193,7 +193,7 @@ export const WhiteboardOverlay = ({
       onClick: (e: React.MouseEvent) => {
         if (isEraser) {
           e.stopPropagation();
-          pushStateToHistory(nodes, edges, annotations);
+          pushStateToHistory(blocks, edges, annotations);
           const nextAnnotations = annotations.filter(a => a.id !== ann.id);
           setAnnotations(nextAnnotations);
         }
@@ -596,7 +596,7 @@ export const WhiteboardOverlay = ({
                   const val = e.target.value.trim() || 'Text Note';
                   setEditingTextId(null);
                   if (val === ann.text) return;
-                  pushStateToHistory(nodes, edges, annotations);
+                  pushStateToHistory(blocks, edges, annotations);
                   const nextAnnotations = annotations.map(a => a.id === ann.id ? { ...a, text: val } : a);
                   setAnnotations(nextAnnotations);
                 }}
@@ -655,7 +655,7 @@ export const WhiteboardOverlay = ({
       default:
         return null;
     }
-  }, [editingTextId, drawTool, canvasMode, pushStateToHistory, annotations, nodes, edges, setAnnotations, setEditingTextId, hoverPoint, markedForDeletion]);
+  }, [editingTextId, drawTool, canvasMode, pushStateToHistory, annotations, blocks, edges, setAnnotations, setEditingTextId, hoverPoint, markedForDeletion]);
 
   if (!showAnnotations) return null;
 

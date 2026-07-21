@@ -19,23 +19,23 @@ import { ResizablePlotContainer } from '../common/ResizablePlotContainer';
 import { useReactFlow } from '@xyflow/react';
 
 interface TimePlotWidgetProps {
-  nodeId: string;
+  blockId: string;
   strokeColor?: string;
   dataKey?: string;
 }
 
-export const TimePlotWidget = ({ nodeId, strokeColor = '#34d399', dataKey = 'waveform' }: TimePlotWidgetProps) => {
+export const TimePlotWidget = ({ blockId, strokeColor = '#34d399', dataKey = 'waveform' }: TimePlotWidgetProps) => {
   return (
     <ResizablePlotContainer 
       minHeight="120px"
       background="var(--input-bg)" 
       padding="6px" 
       borderRadius="6px"
-      border="1px solid var(--node-border)"
+      border="1px solid var(--block-border)"
     >
       {(width, height) => (
         <PlotlyTimeRenderer
-          nodeId={nodeId}
+          blockId={blockId}
           strokeColor={strokeColor}
           dataKey={dataKey}
           width={width}
@@ -47,24 +47,24 @@ export const TimePlotWidget = ({ nodeId, strokeColor = '#34d399', dataKey = 'wav
 };
 
 interface PlotlyTimeRendererProps {
-  nodeId: string;
+  blockId: string;
   strokeColor: string;
   dataKey: string;
   width: number;
   height: number;
 }
 
-const PlotlyTimeRenderer = ({ nodeId, strokeColor, dataKey, width, height }: PlotlyTimeRendererProps) => {
+const PlotlyTimeRenderer = ({ blockId, strokeColor, dataKey, width, height }: PlotlyTimeRendererProps) => {
   const { getNode } = useReactFlow();
   const [plotData, setPlotData] = useState<any[]>([]);
 
-  // Initialize and listen to high-frequency telemetry events directly to bypass full node render cycle
+  // Initialize and listen to high-frequency telemetry events directly to bypass full block render cycle
   useEffect(() => {
     const updateChart = (eventResults?: any) => {
-      const node = getNode(nodeId);
-      if (!node && !eventResults) return;
+      const block = getNode(blockId);
+      if (!block && !eventResults) return;
       
-      const points = eventResults?.[dataKey] || (node?.data?.results as any)?.[dataKey];
+      const points = eventResults?.[dataKey] || (block?.data?.results as any)?.[dataKey];
       if (points && Array.isArray(points)) {
         setPlotData(points);
       }
@@ -73,7 +73,7 @@ const PlotlyTimeRenderer = ({ nodeId, strokeColor, dataKey, width, height }: Plo
     // Initial update
     updateChart();
 
-    const eventName = `telemetry-${nodeId}`;
+    const eventName = `telemetry-${blockId}`;
     const handleTelemetry = (e: any) => {
       updateChart(e.detail?.results);
     };
@@ -83,7 +83,7 @@ const PlotlyTimeRenderer = ({ nodeId, strokeColor, dataKey, width, height }: Plo
     return () => {
       window.removeEventListener(eventName, handleTelemetry);
     };
-  }, [nodeId, dataKey, getNode]);
+  }, [blockId, dataKey, getNode]);
 
   const isLight = document.documentElement.classList.contains('light-theme');
   const textColor = isLight ? '#475569' : '#94a3b8';

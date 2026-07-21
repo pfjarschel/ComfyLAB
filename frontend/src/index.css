@@ -18,9 +18,9 @@
   --text-color: #f8fafc;
   --text-muted: #94a3b8;
   --accent-color: #3b82f6;
-  --node-bg: rgba(30, 41, 59, 0.7);
-  --node-border: rgba(148, 163, 184, 0.2);
-  --node-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
+  --block-bg: rgba(30, 41, 59, 0.7);
+  --block-border: rgba(148, 163, 184, 0.2);
+  --block-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
   --sidebar-bg: rgba(10, 15, 28, 0.95);
   --sidebar-border: rgba(96, 165, 250, 0.2);
   --dnd-bg: rgba(30, 41, 59, 0.4);
@@ -32,8 +32,8 @@
   --editor-bg: #1e1e1e;
   --panel-bg: rgba(15, 23, 42, 0.95);
   --logo-gradient: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
-  --node-id-bg: rgba(30, 41, 59, 0.5);
-  --node-id-color: #94a3b8;
+  --block-id-bg: rgba(30, 41, 59, 0.5);
+  --block-id-color: #94a3b8;
   
   /* Menu Hover Highlights */
   --menu-hover-bg: rgba(59, 130, 246, 0.15);
@@ -70,11 +70,11 @@
 
   /* MiniMap colors */
   --minimap-bg: rgba(15, 23, 42, 0.65);
-  --minimap-node-fill: rgba(96, 165, 250, 0.25);
-  --minimap-node-stroke: rgba(96, 165, 250, 0.4);
+  --minimap-block-fill: rgba(96, 165, 250, 0.25);
+  --minimap-block-stroke: rgba(96, 165, 250, 0.4);
   --minimap-mask: rgba(255, 255, 255, 0.08);
 
-  /* Cluster Node Styles */
+  /* Cluster Block Styles */
   --cluster-border-color: rgba(139, 92, 246, 0.55);
   --cluster-border-style: dashed;
   --cluster-badge-bg: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(99, 102, 241, 0.25));
@@ -86,9 +86,9 @@
   --text-color: #0f172a;
   --text-muted: #475569;
   --accent-color: #1d4ed8;
-  --node-bg: rgba(255, 255, 255, 0.85);
-  --node-border: rgba(148, 163, 184, 0.4);
-  --node-shadow: 0 4px 25px rgba(15, 23, 42, 0.05);
+  --block-bg: rgba(255, 255, 255, 0.85);
+  --block-border: rgba(148, 163, 184, 0.4);
+  --block-shadow: 0 4px 25px rgba(15, 23, 42, 0.05);
   --sidebar-bg: rgba(255, 255, 255, 0.95);
   --sidebar-border: rgba(148, 163, 184, 0.4);
   --dnd-bg: rgba(241, 245, 249, 0.85);
@@ -100,8 +100,8 @@
   --editor-bg: #ffffff;
   --panel-bg: rgba(255, 255, 255, 0.95);
   --logo-gradient: linear-gradient(135deg, #004ba6 0%, #8060e1 100%);
-  --node-id-bg: rgba(148, 163, 184, 0.18);
-  --node-id-color: #334155;
+  --block-id-bg: rgba(148, 163, 184, 0.18);
+  --block-id-color: #334155;
 
   /* Menu Hover Highlights */
   --menu-hover-bg: rgba(29, 78, 216, 0.2);
@@ -138,11 +138,11 @@
 
   /* MiniMap colors */
   --minimap-bg: rgba(241, 245, 249, 0.9);
-  --minimap-node-fill: rgba(29, 78, 216, 0.2);
-  --minimap-node-stroke: rgba(29, 78, 216, 0.4);
+  --minimap-block-fill: rgba(29, 78, 216, 0.2);
+  --minimap-block-stroke: rgba(29, 78, 216, 0.4);
   --minimap-mask: rgba(15, 23, 42, 0.06);
 
-  /* Cluster Node Styles */
+  /* Cluster Block Styles */
   --cluster-border-color: rgba(124, 58, 237, 0.5);
   --cluster-border-style: dashed;
   --cluster-badge-bg: linear-gradient(135deg, rgba(124, 58, 237, 0.12), rgba(99, 102, 241, 0.12));
@@ -164,9 +164,9 @@ body {
 }
 
 .glass-panel {
-  background: var(--node-bg);
-  border: 1px solid var(--node-border);
-  box-shadow: var(--node-shadow);
+  background: var(--block-bg);
+  border: 1px solid var(--block-border);
+  box-shadow: var(--block-shadow);
   border-radius: 12px;
   /* Optimization for sharp zoom */
   transform: translateZ(0);
@@ -208,7 +208,7 @@ body {
   background: var(--button-secondary-hover-bg);
   border-color: var(--button-secondary-border);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px var(--node-shadow);
+  box-shadow: 0 4px 12px var(--block-shadow);
 }
 
 button:disabled {
@@ -226,10 +226,10 @@ button:disabled {
 
 .react-flow__controls {
   background: var(--controls-bg);
-  border: 1px solid var(--node-border);
+  border: 1px solid var(--block-border);
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: var(--node-shadow);
+  box-shadow: var(--block-shadow);
 }
 
 .react-flow__controls-button {

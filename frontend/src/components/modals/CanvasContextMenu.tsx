@@ -20,18 +20,18 @@ interface CanvasContextMenuProps {
     y: number;
     clientX: number;
     clientY: number;
-    type: 'pane' | 'node' | 'edge' | 'selection';
+    type: 'pane' | 'block' | 'edge' | 'selection';
     targetId?: string | null;
   } | null;
   contextMenuSearch: string;
   setContextMenuSearch: (value: string) => void;
-  nodeRegistry: any;
+  blockRegistry: any;
   isLocked: boolean;
   snapToGrid: boolean;
   showAnnotations: boolean;
-  selectedNodeIds: Set<string>;
-  clipboardNodesCount: number;
-  nodes: any[];
+  selectedBlockIds: Set<string>;
+  clipboardBlocksCount: number;
+  blocks: any[];
   edges: any[];
   onClose: () => void;
   onAddNodeAtClientPosition: (type: string, clientX: number, clientY: number) => void;
@@ -43,17 +43,17 @@ interface CanvasContextMenuProps {
   onToggleSnap: () => void;
   onToggleAnnotations: () => void;
   onClearCanvas: () => void;
-  onInspectNode: (id: string) => void;
-  onCopyNode: () => void;
-  onDuplicateNode: () => void;
-  onDeleteNode: (id: string) => void;
+  onInspectBlock: (id: string) => void;
+  onCopyBlock: () => void;
+  onDuplicateBlock: () => void;
+  onDeleteBlock: (id: string) => void;
   onDeleteEdge: (id: string) => void;
   onEditScript: (id: string, code: string, action: string) => void;
   onGroupIntoCluster: () => void;
-  onClearNodeData: (id: string) => void;
-  onClearAllNodesData: () => void;
-  onReplaceNode: (nodeId: string, replacementAction: string) => void;
-  onNodeDataChange: (id: string, key: string, value: any) => void;
+  onClearBlockData: (id: string) => void;
+  onClearAllBlocksData: () => void;
+  onReplaceBlock: (blockId: string, replacementAction: string) => void;
+  onBlockDataChange: (id: string, key: string, value: any) => void;
 }
 
 
@@ -62,13 +62,13 @@ export const CanvasContextMenu = ({
   contextMenu,
   contextMenuSearch,
   setContextMenuSearch,
-  nodeRegistry,
+  blockRegistry,
   isLocked,
   snapToGrid,
   showAnnotations,
-  selectedNodeIds,
-  clipboardNodesCount,
-  nodes,
+  selectedBlockIds,
+  clipboardBlocksCount,
+  blocks,
   edges,
   onClose,
   onAddNodeAtClientPosition,
@@ -80,17 +80,17 @@ export const CanvasContextMenu = ({
   onToggleSnap,
   onToggleAnnotations,
   onClearCanvas,
-  onInspectNode,
-  onCopyNode,
-  onDuplicateNode,
-  onDeleteNode,
+  onInspectBlock,
+  onCopyBlock,
+  onDuplicateBlock,
+  onDeleteBlock,
   onDeleteEdge,
   onEditScript,
   onGroupIntoCluster,
-  onClearNodeData,
-  onClearAllNodesData,
-  onReplaceNode,
-  onNodeDataChange,
+  onClearBlockData,
+  onClearAllBlocksData,
+  onReplaceBlock,
+  onBlockDataChange,
 }: CanvasContextMenuProps) => {
   const menuRef = useRef<HTMLDivElement>(null);
   const hasClamped = useRef(false);
@@ -148,19 +148,19 @@ export const CanvasContextMenu = ({
 
   if (!contextMenu || !contextMenu.show) return null;
 
-  // Context Menu flat filtered nodes
+  // Context Menu flat filtered blocks
   const menuSearchQuery = contextMenuSearch.toLowerCase().trim();
-  const menuFilteredNodes = Object.entries(nodeRegistry || {}).map(([type, nodeSchema]: [string, any]) => ({
+  const menuFilteredNodes = Object.entries(blockRegistry || {}).map(([type, nodeSchema]: [string, any]) => ({
     type,
     name: nodeSchema.name || '',
     description: nodeSchema.description || '',
     category: nodeSchema.category || 'Other',
     icon: nodeSchema.icon || '⚙️'
-  })).filter(node => {
+  })).filter(block => {
     return !menuSearchQuery || 
-           node.name.toLowerCase().includes(menuSearchQuery) || 
-           node.description.toLowerCase().includes(menuSearchQuery) ||
-           node.category.toLowerCase().includes(menuSearchQuery);
+           block.name.toLowerCase().includes(menuSearchQuery) || 
+           block.description.toLowerCase().includes(menuSearchQuery) ||
+           block.category.toLowerCase().includes(menuSearchQuery);
   }).sort((a, b) => a.name.localeCompare(b.name));
 
   return (
@@ -180,35 +180,35 @@ export const CanvasContextMenu = ({
         <>
           <div className="context-menu-submenu-parent">
             <button className="context-menu-item">
-              <span>➕</span> Add Node <span className="submenu-arrow">▶</span>
+              <span>➕</span> Add Block <span className="submenu-arrow">▶</span>
             </button>
             <div className={`context-menu-submenu glass-panel ${submenuDirs.left ? 'submenu-left' : ''} ${submenuDirs.addTop ? 'submenu-top' : ''}`}>
               <input
                 type="text"
-                placeholder="Search nodes..."
+                placeholder="Search blocks..."
                 autoFocus
                 value={contextMenuSearch}
                 className="context-menu-search-input"
                 onChange={(e) => setContextMenuSearch(e.target.value)}
               />
-              <div className="context-menu-node-list">
+              <div className="context-menu-block-list">
                 {menuFilteredNodes.length === 0 ? (
-                  <div className="context-menu-no-results">No nodes found</div>
+                  <div className="context-menu-no-results">No blocks found</div>
                 ) : (
-                  menuFilteredNodes.map((node) => (
+                  menuFilteredNodes.map((block) => (
                     <button
-                      key={node.type}
-                      className="context-menu-node-item"
+                      key={block.type}
+                      className="context-menu-block-item"
                       onClick={() => {
-                        onAddNodeAtClientPosition(node.type, contextMenu.clientX, contextMenu.clientY);
+                        onAddNodeAtClientPosition(block.type, contextMenu.clientX, contextMenu.clientY);
                         onClose();
                       }}
-                      title={node.description}
+                      title={block.description}
                     >
-                      <span className="node-icon">{node.icon}</span>
-                      <div className="node-details">
-                        <span className="node-name">{node.name}</span>
-                        <span className="node-category">{node.category}</span>
+                      <span className="block-icon">{block.icon}</span>
+                      <div className="block-details">
+                        <span className="block-name">{block.name}</span>
+                        <span className="block-category">{block.category}</span>
                       </div>
                     </button>
                   ))
@@ -216,7 +216,7 @@ export const CanvasContextMenu = ({
               </div>
             </div>
           </div>
-          {clipboardNodesCount > 0 && !isLocked && (
+          {clipboardBlocksCount > 0 && !isLocked && (
             <button
               className="context-menu-item"
               onClick={() => {
@@ -224,7 +224,7 @@ export const CanvasContextMenu = ({
                 onClose();
               }}
             >
-              <span>📋</span> Paste Node
+              <span>📋</span> Paste Block
             </button>
           )}
           <div className="context-menu-divider" />
@@ -243,7 +243,7 @@ export const CanvasContextMenu = ({
                 <path d="M8 12h4M12 5.5h4M12 18.5h4M12 5.5v13" />
               </svg>
             </span>
-            Auto-Organize Nodes
+            Auto-Organize Blocks
           </button>
           <button className="context-menu-item" onClick={() => { onToggleLocked(); onClose(); }}>
             <span>{isLocked ? '🔓' : '🔒'}</span> {isLocked ? 'Unlock Interactivity' : 'Lock Interactivity'}
@@ -256,10 +256,10 @@ export const CanvasContextMenu = ({
           </button>
           <div className="context-menu-divider" />
           <button className="context-menu-item" disabled={isLocked} onClick={() => {
-            onClearAllNodesData();
+            onClearAllBlocksData();
             onClose();
           }}>
-            <span>🧹</span> Clear All Nodes Data
+            <span>🧹</span> Clear All Blocks Data
           </button>
           <button className="context-menu-item danger" disabled={isLocked} onClick={() => {
             onClearCanvas();
@@ -270,65 +270,65 @@ export const CanvasContextMenu = ({
         </>
       )}
 
-      {contextMenu.type === 'node' && (
+      {contextMenu.type === 'block' && (
         <>
-          <button className="context-menu-item" onClick={() => { onInspectNode(contextMenu.targetId!); onClose(); }}>
-            <span>ℹ️</span> Inspect Node
+          <button className="context-menu-item" onClick={() => { onInspectBlock(contextMenu.targetId!); onClose(); }}>
+            <span>ℹ️</span> Inspect Block
           </button>
           <button
             className="context-menu-item"
             onClick={() => {
-              const node = nodes.find(n => n.id === contextMenu.targetId);
-              const isDisabled = !node?.data?.disabled;
-              onNodeDataChange(contextMenu.targetId!, 'disabled', isDisabled);
+              const block = blocks.find(n => n.id === contextMenu.targetId);
+              const isDisabled = !block?.data?.disabled;
+              onBlockDataChange(contextMenu.targetId!, 'disabled', isDisabled);
               onClose();
             }}
           >
-            <span>{nodes.find(n => n.id === contextMenu.targetId)?.data?.disabled ? '✅' : '🚫'}</span>{' '}
-            {nodes.find(n => n.id === contextMenu.targetId)?.data?.disabled ? 'Enable Node' : 'Disable Node'}
+            <span>{blocks.find(n => n.id === contextMenu.targetId)?.data?.disabled ? '✅' : '🚫'}</span>{' '}
+            {blocks.find(n => n.id === contextMenu.targetId)?.data?.disabled ? 'Enable Block' : 'Disable Block'}
           </button>
           <button 
             className="context-menu-item" 
             onClick={() => {
-              const node = nodes.find(n => n.id === contextMenu.targetId);
-              const isPersistent = !node?.data?.isPersistent;
-              onNodeDataChange(contextMenu.targetId!, 'isPersistent', isPersistent);
+              const block = blocks.find(n => n.id === contextMenu.targetId);
+              const isPersistent = !block?.data?.isPersistent;
+              onBlockDataChange(contextMenu.targetId!, 'isPersistent', isPersistent);
               if (isPersistent) {
-                onNodeDataChange(contextMenu.targetId!, 'autoClearPersistent', true);
+                onBlockDataChange(contextMenu.targetId!, 'autoClearPersistent', true);
               }
               onClose();
             }}
           >
-            <span>{nodes.find(n => n.id === contextMenu.targetId)?.data?.isPersistent ? '🔓' : '🔒'}</span>{' '}
-            {nodes.find(n => n.id === contextMenu.targetId)?.data?.isPersistent ? 'Make Transient' : 'Make Persistent'}
+            <span>{blocks.find(n => n.id === contextMenu.targetId)?.data?.isPersistent ? '🔓' : '🔒'}</span>{' '}
+            {blocks.find(n => n.id === contextMenu.targetId)?.data?.isPersistent ? 'Make Transient' : 'Make Persistent'}
           </button>
-          <button className="context-menu-item" onClick={() => { onClearNodeData(contextMenu.targetId!); onClose(); }}>
-            <span>🧹</span> Clear Node Data
+          <button className="context-menu-item" onClick={() => { onClearBlockData(contextMenu.targetId!); onClose(); }}>
+            <span>🧹</span> Clear Block Data
           </button>
-          <button className="context-menu-item" onClick={() => { onCopyNode(); onClose(); }}>
-            <span>📄</span> Copy Node
+          <button className="context-menu-item" onClick={() => { onCopyBlock(); onClose(); }}>
+            <span>📄</span> Copy Block
           </button>
 
-          <button className="context-menu-item" onClick={() => { onDuplicateNode(); onClose(); }}>
-            <span>👯</span> Duplicate Node
+          <button className="context-menu-item" onClick={() => { onDuplicateBlock(); onClose(); }}>
+            <span>👯</span> Duplicate Block
           </button>
           <button
             className="context-menu-item danger"
             onClick={() => {
-              onDeleteNode(contextMenu.targetId!);
+              onDeleteBlock(contextMenu.targetId!);
               onClose();
             }}
           >
-            <span>🗑️</span> Delete Node
+            <span>🗑️</span> Delete Block
           </button>
           {(() => {
-            const node = nodes.find(n => n.id === contextMenu.targetId);
-            if (node && node.data?.action && node.data.action.startsWith('script/')) {
+            const block = blocks.find(n => n.id === contextMenu.targetId);
+            if (block && block.data?.action && block.data.action.startsWith('script/')) {
               return (
                 <>
                   <div className="context-menu-divider" />
                   <button className="context-menu-item" onClick={() => {
-                    onEditScript(node.id, node.data.code, node.data.action);
+                    onEditScript(block.id, block.data.code, block.data.action);
                     onClose();
                   }}>
                     <span>📝</span> Edit Script
@@ -338,7 +338,7 @@ export const CanvasContextMenu = ({
             }
             return null;
           })()}
-          {selectedNodeIds.size >= 2 && (
+          {selectedBlockIds.size >= 2 && (
             <>
               <div className="context-menu-divider" />
               <button className="context-menu-item" onClick={() => { onGroupIntoCluster(); onClose(); }}>
@@ -347,25 +347,25 @@ export const CanvasContextMenu = ({
             </>
           )}
           {(() => {
-            const node = nodes.find(n => n.id === contextMenu.targetId);
-            if (!node || !node.data?.action) return null;
+            const block = blocks.find(n => n.id === contextMenu.targetId);
+            if (!block || !block.data?.action) return null;
 
             // 1. Identify Connected Pins
-            const targetHandles = Array.from(new Set(edges.filter(e => e.target === node.id).map(e => e.targetHandle).filter(Boolean))) as string[];
-            const sourceHandles = Array.from(new Set(edges.filter(e => e.source === node.id).map(e => e.sourceHandle).filter(Boolean))) as string[];
+            const targetHandles = Array.from(new Set(edges.filter(e => e.target === block.id).map(e => e.targetHandle).filter(Boolean))) as string[];
+            const sourceHandles = Array.from(new Set(edges.filter(e => e.source === block.id).map(e => e.sourceHandle).filter(Boolean))) as string[];
             const totalConnected = targetHandles.length + sourceHandles.length;
 
             // 2. Score candidates
-            const oldAction = node.data?.action || '';
+            const oldAction = block.data?.action || '';
             const oldBaseName = oldAction.split('/').pop()?.toLowerCase() || '';
 
-            const oldSchema = nodeRegistry?.[oldAction];
+            const oldSchema = blockRegistry?.[oldAction];
             const oldCategory = oldSchema?.category || '';
             const oldActionParts = oldAction.split('/');
             const oldCategoryFromPath = oldActionParts.slice(0, -1).join('/').toLowerCase();
 
             // Try filtering strictly by category first
-            let candidatesList = Object.entries(nodeRegistry || {}).filter(([type, schema]: [string, any]) => {
+            let candidatesList = Object.entries(blockRegistry || {}).filter(([type, schema]: [string, any]) => {
               if (type === oldAction) return false;
               const candidateCategory = schema.category || '';
               const candidateCategoryFromPath = type.split('/').slice(0, -1).join('/').toLowerCase();
@@ -374,9 +374,9 @@ export const CanvasContextMenu = ({
               return !!(isExactCategoryMatch || isPathCategoryMatch);
             });
 
-            // Fallback if no matching category nodes are found
+            // Fallback if no matching category blocks are found
             if (candidatesList.length === 0) {
-              candidatesList = Object.entries(nodeRegistry || {}).filter(([type]) => type !== oldAction);
+              candidatesList = Object.entries(blockRegistry || {}).filter(([type]) => type !== oldAction);
             }
 
             const candidates = candidatesList.map(([type, schema]: [string, any]) => {
@@ -455,7 +455,7 @@ export const CanvasContextMenu = ({
                 <div className="context-menu-divider" />
                 <div className="context-menu-submenu-parent">
                   <button className="context-menu-item">
-                    <span>🔄</span> Replace Node <span className="submenu-arrow">▶</span>
+                    <span>🔄</span> Replace Block <span className="submenu-arrow">▶</span>
                   </button>
                   <div className={`context-menu-submenu glass-panel ${submenuDirs.left ? 'submenu-left' : ''} ${submenuDirs.replaceTop ? 'submenu-top' : ''}`}>
                     <input
@@ -466,7 +466,7 @@ export const CanvasContextMenu = ({
                       className="context-menu-search-input"
                       onChange={(e) => setContextMenuSearch(e.target.value)}
                     />
-                    <div className="context-menu-node-list">
+                    <div className="context-menu-block-list">
                       {/* Suggestions list */}
                       {suggestions.length > 0 && !contextMenuSearch.trim() && (
                         <>
@@ -484,18 +484,18 @@ export const CanvasContextMenu = ({
                           {suggestions.map((sug) => (
                             <button
                               key={`sug-${sug.type}`}
-                              className="context-menu-node-item"
+                              className="context-menu-block-item"
                               onClick={() => {
-                                onReplaceNode(contextMenu.targetId!, sug.type);
+                                onReplaceBlock(contextMenu.targetId!, sug.type);
                                 onClose();
                               }}
                               title={sug.description}
                               style={{ background: 'rgba(96, 165, 250, 0.05)', display: 'flex', alignItems: 'center', gap: '8px', width: '100%', textAlign: 'left' }}
                             >
-                              <span className="node-icon">{sug.icon}</span>
-                              <div className="node-details" style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
-                                <span className="node-name" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sug.name}</span>
-                                <span className="node-category" style={{ fontSize: '0.7rem', opacity: 0.6 }}>{sug.category}</span>
+                              <span className="block-icon">{sug.icon}</span>
+                              <div className="block-details" style={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
+                                <span className="block-name" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sug.name}</span>
+                                <span className="block-category" style={{ fontSize: '0.7rem', opacity: 0.6 }}>{sug.category}</span>
                               </div>
                               <span style={{
                                 fontSize: '0.65rem',
@@ -517,22 +517,22 @@ export const CanvasContextMenu = ({
 
                       {/* Main filtered library list */}
                       {menuFilteredNodes.filter(n => n.type !== oldAction).length === 0 ? (
-                        <div className="context-menu-no-results">No nodes found</div>
+                        <div className="context-menu-no-results">No blocks found</div>
                       ) : (
                         menuFilteredNodes.filter(n => n.type !== oldAction).map((regNode) => (
                           <button
                             key={regNode.type}
-                            className="context-menu-node-item"
+                            className="context-menu-block-item"
                             onClick={() => {
-                              onReplaceNode(contextMenu.targetId!, regNode.type);
+                              onReplaceBlock(contextMenu.targetId!, regNode.type);
                               onClose();
                             }}
                             title={regNode.description}
                           >
-                            <span className="node-icon">{regNode.icon}</span>
-                            <div className="node-details">
-                              <span className="node-name">{regNode.name}</span>
-                              <span className="node-category">{regNode.category}</span>
+                            <span className="block-icon">{regNode.icon}</span>
+                            <div className="block-details">
+                              <span className="block-name">{regNode.name}</span>
+                              <span className="block-category">{regNode.category}</span>
                             </div>
                           </button>
                         ))
@@ -548,45 +548,45 @@ export const CanvasContextMenu = ({
 
       {contextMenu.type === 'selection' && (
         <>
-          <button className="context-menu-item" onClick={() => { onCopyNode(); onClose(); }}>
-            <span>📄</span> Copy Nodes
+          <button className="context-menu-item" onClick={() => { onCopyBlock(); onClose(); }}>
+            <span>📄</span> Copy Blocks
           </button>
-          <button className="context-menu-item" onClick={() => { onDuplicateNode(); onClose(); }}>
-            <span>👯</span> Duplicate Nodes
-          </button>
-          <button
-            className="context-menu-item"
-            onClick={() => {
-              selectedNodeIds.forEach(id => {
-                onNodeDataChange(id, 'disabled', true);
-              });
-              onClose();
-            }}
-          >
-            <span>🚫</span> Disable Nodes
+          <button className="context-menu-item" onClick={() => { onDuplicateBlock(); onClose(); }}>
+            <span>👯</span> Duplicate Blocks
           </button>
           <button
             className="context-menu-item"
             onClick={() => {
-              selectedNodeIds.forEach(id => {
-                onNodeDataChange(id, 'disabled', false);
+              selectedBlockIds.forEach(id => {
+                onBlockDataChange(id, 'disabled', true);
               });
               onClose();
             }}
           >
-            <span>✅</span> Enable Nodes
+            <span>🚫</span> Disable Blocks
+          </button>
+          <button
+            className="context-menu-item"
+            onClick={() => {
+              selectedBlockIds.forEach(id => {
+                onBlockDataChange(id, 'disabled', false);
+              });
+              onClose();
+            }}
+          >
+            <span>✅</span> Enable Blocks
           </button>
           <button
             className="context-menu-item danger"
             onClick={() => {
-              // Delete all selected nodes
-              onDeleteNode('');
+              // Delete all selected blocks
+              onDeleteBlock('');
               onClose();
             }}
           >
-            <span>🗑️</span> Delete Nodes
+            <span>🗑️</span> Delete Blocks
           </button>
-          {selectedNodeIds.size >= 2 && (
+          {selectedBlockIds.size >= 2 && (
             <>
               <div className="context-menu-divider" />
               <button className="context-menu-item" onClick={() => { onGroupIntoCluster(); onClose(); }}>

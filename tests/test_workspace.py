@@ -2,7 +2,7 @@ import os
 import tempfile
 import shutil
 import pytest
-import comfylab.nodes
+import comfylab.blocks
 from comfylab.engine.executor import ExecutionEngine
 from backend.workspace import (
     get_workspace_path,
@@ -48,14 +48,14 @@ class TestWorkspaceConfig:
             assert os.path.exists(nested)
 
 
-class TestScriptNodeWorkspaceIntegration:
+class TestScriptBlockWorkspaceIntegration:
 
     @pytest.mark.asyncio
     async def test_script_runs_in_workspace_cwd(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             set_workspace_path(tmpdir)
             blueprint = {
-                "nodes": [
+                "blocks": [
                     {
                         "id": "script",
                         "type": "script/python",
@@ -66,23 +66,23 @@ class TestScriptNodeWorkspaceIntegration:
                     {"id": "print", "type": "outputs/basic/print", "properties": {}}
                 ],
                 "links": [
-                    {"id": "l1", "type": "exec", "source_node": "script", "source_pin": "Out", "target_node": "print", "target_pin": "In"},
-                    {"id": "l2", "type": "data", "source_node": "script", "source_pin": "cwd", "target_node": "print", "target_pin": "Value"}
+                    {"id": "l1", "type": "exec", "source_block": "script", "source_pin": "Out", "target_block": "print", "target_pin": "In"},
+                    {"id": "l2", "type": "data", "source_block": "script", "source_pin": "cwd", "target_block": "print", "target_pin": "Value"}
                 ]
             }
 
             engine = ExecutionEngine()
             engine.load_blueprint(blueprint)
-            await engine.run(start_node_id="script", start_pin_name="In")
+            await engine.run(start_block_id="script", start_pin_name="In")
 
-            assert engine.nodes["print"].last_printed == os.path.realpath(tmpdir)
+            assert engine.blocks["print"].last_printed == os.path.realpath(tmpdir)
 
     @pytest.mark.asyncio
     async def test_script_can_write_file_to_workspace(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             set_workspace_path(tmpdir)
             blueprint = {
-                "nodes": [
+                "blocks": [
                     {
                         "id": "script",
                         "type": "script/python",
@@ -96,7 +96,7 @@ class TestScriptNodeWorkspaceIntegration:
 
             engine = ExecutionEngine()
             engine.load_blueprint(blueprint)
-            await engine.run(start_node_id="script", start_pin_name="In")
+            await engine.run(start_block_id="script", start_pin_name="In")
 
             output_file = os.path.join(tmpdir, "test_output.txt")
             assert os.path.exists(output_file)
@@ -108,7 +108,7 @@ class TestScriptNodeWorkspaceIntegration:
         with tempfile.TemporaryDirectory() as tmpdir:
             set_workspace_path(tmpdir)
             blueprint = {
-                "nodes": [
+                "blocks": [
                     {
                         "id": "script",
                         "type": "script/python",
@@ -119,16 +119,16 @@ class TestScriptNodeWorkspaceIntegration:
                     {"id": "print", "type": "outputs/basic/print", "properties": {}}
                 ],
                 "links": [
-                    {"id": "l1", "type": "exec", "source_node": "script", "source_pin": "Out", "target_node": "print", "target_pin": "In"},
-                    {"id": "l2", "type": "data", "source_node": "script", "source_pin": "ws_path", "target_node": "print", "target_pin": "Value"}
+                    {"id": "l1", "type": "exec", "source_block": "script", "source_pin": "Out", "target_block": "print", "target_pin": "In"},
+                    {"id": "l2", "type": "data", "source_block": "script", "source_pin": "ws_path", "target_block": "print", "target_pin": "Value"}
                 ]
             }
 
             engine = ExecutionEngine()
             engine.load_blueprint(blueprint)
-            await engine.run(start_node_id="script", start_pin_name="In")
+            await engine.run(start_block_id="script", start_pin_name="In")
 
-            assert engine.nodes["print"].last_printed == os.path.realpath(tmpdir)
+            assert engine.blocks["print"].last_printed == os.path.realpath(tmpdir)
 
     @pytest.mark.asyncio
     async def test_engine_restores_cwd_after_run(self):
@@ -140,7 +140,7 @@ class TestScriptNodeWorkspaceIntegration:
             assert os.getcwd() == "/"
 
             blueprint = {
-                "nodes": [
+                "blocks": [
                     {
                         "id": "script",
                         "type": "script/python",
@@ -154,7 +154,7 @@ class TestScriptNodeWorkspaceIntegration:
 
             engine = ExecutionEngine()
             engine.load_blueprint(blueprint)
-            await engine.run(start_node_id="script", start_pin_name="In")
+            await engine.run(start_block_id="script", start_pin_name="In")
 
             # After the run, CWD should be restored back to "/"
             assert os.getcwd() == "/"
@@ -172,7 +172,7 @@ class TestScriptNodeWorkspaceIntegration:
                 f.write(module_content)
 
             blueprint = {
-                "nodes": [
+                "blocks": [
                     {
                         "id": "script",
                         "type": "script/python",
@@ -183,16 +183,16 @@ class TestScriptNodeWorkspaceIntegration:
                     {"id": "print", "type": "outputs/basic/print", "properties": {}}
                 ],
                 "links": [
-                    {"id": "l1", "type": "exec", "source_node": "script", "source_pin": "Out", "target_node": "print", "target_pin": "In"},
-                    {"id": "l2", "type": "data", "source_node": "script", "source_pin": "result", "target_node": "print", "target_pin": "Value"}
+                    {"id": "l1", "type": "exec", "source_block": "script", "source_pin": "Out", "target_block": "print", "target_pin": "In"},
+                    {"id": "l2", "type": "data", "source_block": "script", "source_pin": "result", "target_block": "print", "target_pin": "Value"}
                 ]
             }
 
             engine = ExecutionEngine()
             engine.load_blueprint(blueprint)
-            await engine.run(start_node_id="script", start_pin_name="In")
+            await engine.run(start_block_id="script", start_pin_name="In")
 
-            assert engine.nodes["print"].last_printed == 12.0
+            assert engine.blocks["print"].last_printed == 12.0
 
             # Ensure workspace path is cleaned up from sys.path
             assert os.path.realpath(tmpdir) not in sys.path

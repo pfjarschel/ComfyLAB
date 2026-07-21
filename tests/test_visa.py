@@ -1,10 +1,10 @@
 from unittest.mock import MagicMock, patch
 import pytest
 from comfylab.engine.executor import ExecutionEngine
-from comfylab.engine.registry import get_all_nodes_schema
+from comfylab.engine.registry import get_all_blocks_schema
 
-def test_visa_nodes_registration():
-    schema = get_all_nodes_schema()
+def test_visa_blocks_registration():
+    schema = get_all_blocks_schema()
     
     # Assert they are present in the global registry
     assert "visa/core/resource_manager" in schema
@@ -20,9 +20,9 @@ def test_visa_nodes_registration():
     assert rm_schema["dataOuts"][0]["name"] == "Resources"
 
 @pytest.mark.asyncio
-async def test_visa_nodes_mock_execution():
-    # Patch pyvisa inside comfylab.nodes.visa to run unit test without real NI-VISA or device connection
-    with patch("comfylab.nodes.visa.pyvisa") as mock_pyvisa:
+async def test_visa_blocks_mock_execution():
+    # Patch pyvisa inside comfylab.blocks.visa to run unit test without real NI-VISA or device connection
+    with patch("comfylab.blocks.visa.pyvisa") as mock_pyvisa:
         mock_rm = MagicMock()
         mock_pyvisa.ResourceManager.return_value = mock_rm
         
@@ -35,11 +35,11 @@ async def test_visa_nodes_mock_execution():
         mock_rm.open_resource.return_value = mock_device
 
         # Reset wrapper to force re-evaluation in this test scope
-        from comfylab.nodes.visa import visa_rm_wrapper
+        from comfylab.blocks.visa import visa_rm_wrapper
         visa_rm_wrapper._rm = None
 
         blueprint = {
-            "nodes": [
+            "blocks": [
                 {"id": "device", "type": "visa/core/device", "properties": {
                     "Address": "GPIB0::2::INSTR",
                     "ReadTermination": "\\r",
@@ -51,26 +51,26 @@ async def test_visa_nodes_mock_execution():
             ],
             "links": [
                 # Open Device -> Exec Query
-                {"id": "l1", "type": "exec", "source_node": "device", "source_pin": "Out", "target_node": "query", "target_pin": "In"},
+                {"id": "l1", "type": "exec", "source_block": "device", "source_pin": "Out", "target_block": "query", "target_pin": "In"},
                 # Query -> Exec Print
-                {"id": "l2", "type": "exec", "source_node": "query", "source_pin": "Out", "target_node": "print", "target_pin": "In"},
+                {"id": "l2", "type": "exec", "source_block": "query", "source_pin": "Out", "target_block": "print", "target_pin": "In"},
                 # Connect Device output pin -> Query Device input pin
-                {"id": "l3", "type": "data", "source_node": "device", "source_pin": "Device", "target_node": "query", "target_pin": "Device"},
+                {"id": "l3", "type": "data", "source_block": "device", "source_pin": "Device", "target_block": "query", "target_pin": "Device"},
                 # Connect Query Response output pin -> Print Value input pin
-                {"id": "l4", "type": "data", "source_node": "query", "source_pin": "Response", "target_node": "print", "target_pin": "Value"}
+                {"id": "l4", "type": "data", "source_block": "query", "source_pin": "Response", "target_block": "print", "target_pin": "Value"}
             ]
         }
 
         engine = ExecutionEngine()
         engine.load_blueprint(blueprint)
 
-        # Execute from device node
-        await engine.run(start_node_id="device", start_pin_name="Open")
+        # Execute from device block
+        await engine.run(start_block_id="device", start_pin_name="Open")
 
         # Assert that device was opened and query returned mock response
-        device_node = engine.nodes["device"]
+        device_block = engine.blocks["device"]
         # Device is closed after teardown (which runs automatically on completion)
-        assert device_node._device is None
+        assert device_block._device is None
         mock_device.close.assert_called()
 
         # Assert custom values were unescaped and applied to mock device
@@ -78,13 +78,13 @@ async def test_visa_nodes_mock_execution():
         assert mock_device.write_termination == "\r"
         assert mock_device.timeout == 500
 
-        print_node = engine.nodes["print"]
-        assert print_node.last_printed == "Mock SCPI Instrument (GPIB0::2::INSTR)"
+        print_block = engine.blocks["print"]
+        assert print_block.last_printed == "Mock SCPI Instrument (GPIB0::2::INSTR)"
 
 
 @pytest.mark.asyncio
-async def test_pfj_siggen_nodes_execution():
-    with patch("comfylab.nodes.visa.pyvisa") as mock_pyvisa:
+async def test_pfj_siggen_blocks_execution():
+    with patch("comfylab.blocks.visa.pyvisa") as mock_pyvisa:
         mock_rm = MagicMock()
         mock_pyvisa.ResourceManager.return_value = mock_rm
         
@@ -92,11 +92,11 @@ async def test_pfj_siggen_nodes_execution():
         mock_device.resource_name = "GPIB0::2::INSTR"
         mock_rm.open_resource.return_value = mock_device
 
-        from comfylab.nodes.visa import visa_rm_wrapper
+        from comfylab.blocks.visa import visa_rm_wrapper
         visa_rm_wrapper._rm = None
 
         blueprint = {
-            "nodes": [
+            "blocks": [
                 {"id": "device", "type": "visa/core/device", "properties": {"Address": "GPIB0::2::INSTR"}},
                 {"id": "config_wave", "type": "visa/signal_generator/config_wave", "properties": {
                     "WaveType": "square",
@@ -116,19 +116,19 @@ async def test_pfj_siggen_nodes_execution():
                 }}
             ],
             "links": [
-                {"id": "l1", "type": "exec", "source_node": "device", "source_pin": "Out", "target_node": "config_wave", "target_pin": "In"},
-                {"id": "l2", "type": "exec", "source_node": "config_wave", "source_pin": "Out", "target_node": "config_chirp", "target_pin": "In"},
-                {"id": "l3", "type": "exec", "source_node": "config_chirp", "source_pin": "Out", "target_node": "set_output", "target_pin": "In"},
-                {"id": "l4", "type": "data", "source_node": "device", "source_pin": "Device", "target_node": "config_wave", "target_pin": "Device"},
-                {"id": "l5", "type": "data", "source_node": "device", "source_pin": "Device", "target_node": "config_chirp", "target_pin": "Device"},
-                {"id": "l6", "type": "data", "source_node": "device", "source_pin": "Device", "target_node": "set_output", "target_pin": "Device"}
+                {"id": "l1", "type": "exec", "source_block": "device", "source_pin": "Out", "target_block": "config_wave", "target_pin": "In"},
+                {"id": "l2", "type": "exec", "source_block": "config_wave", "source_pin": "Out", "target_block": "config_chirp", "target_pin": "In"},
+                {"id": "l3", "type": "exec", "source_block": "config_chirp", "source_pin": "Out", "target_block": "set_output", "target_pin": "In"},
+                {"id": "l4", "type": "data", "source_block": "device", "source_pin": "Device", "target_block": "config_wave", "target_pin": "Device"},
+                {"id": "l5", "type": "data", "source_block": "device", "source_pin": "Device", "target_block": "config_chirp", "target_pin": "Device"},
+                {"id": "l6", "type": "data", "source_block": "device", "source_pin": "Device", "target_block": "set_output", "target_pin": "Device"}
             ]
         }
 
         engine = ExecutionEngine()
         engine.load_blueprint(blueprint)
 
-        await engine.run(start_node_id="device", start_pin_name="Open")
+        await engine.run(start_block_id="device", start_pin_name="Open")
 
         # Verify calls to device.write
         write_calls = [call[0][0] for call in mock_device.write.call_args_list]
@@ -147,8 +147,8 @@ async def test_pfj_siggen_nodes_execution():
 
 
 @pytest.mark.asyncio
-async def test_pfj_osc_nodes_execution():
-    with patch("comfylab.nodes.visa.pyvisa") as mock_pyvisa:
+async def test_pfj_osc_blocks_execution():
+    with patch("comfylab.blocks.visa.pyvisa") as mock_pyvisa:
         mock_rm = MagicMock()
         mock_pyvisa.ResourceManager.return_value = mock_rm
         
@@ -165,11 +165,11 @@ async def test_pfj_osc_nodes_execution():
             return ""
         mock_device.query.side_effect = mock_query
 
-        from comfylab.nodes.visa import visa_rm_wrapper
+        from comfylab.blocks.visa import visa_rm_wrapper
         visa_rm_wrapper._rm = None
 
         blueprint = {
-            "nodes": [
+            "blocks": [
                 {"id": "device", "type": "visa/core/device", "properties": {"Address": "GPIB0::3::INSTR"}},
                 {"id": "timebase", "type": "visa/oscilloscope/timebase", "properties": {
                     "Scale": 0.005,
@@ -193,16 +193,16 @@ async def test_pfj_osc_nodes_execution():
                 }}
             ],
             "links": [
-                {"id": "l1", "type": "exec", "source_node": "device", "source_pin": "Out", "target_node": "timebase", "target_pin": "In"},
-                {"id": "l2", "type": "exec", "source_node": "timebase", "source_pin": "Out", "target_node": "channel", "target_pin": "In"},
-                {"id": "l3", "type": "exec", "source_node": "channel", "source_pin": "Out", "target_node": "trigger", "target_pin": "In"},
-                {"id": "l4", "type": "exec", "source_node": "trigger", "source_pin": "Out", "target_node": "state", "target_pin": "In"},
-                {"id": "l5", "type": "exec", "source_node": "state", "source_pin": "Out", "target_node": "acquire", "target_pin": "In"},
-                {"id": "l6", "type": "data", "source_node": "device", "source_pin": "Device", "target_node": "timebase", "target_pin": "Device"},
-                {"id": "l7", "type": "data", "source_node": "device", "source_pin": "Device", "target_node": "channel", "target_pin": "Device"},
-                {"id": "l8", "type": "data", "source_node": "device", "source_pin": "Device", "target_node": "trigger", "target_pin": "Device"},
-                {"id": "l9", "type": "data", "source_node": "device", "source_pin": "Device", "target_node": "state", "target_pin": "Device"},
-                {"id": "la", "type": "data", "source_node": "device", "source_pin": "Device", "target_node": "acquire", "target_pin": "Device"}
+                {"id": "l1", "type": "exec", "source_block": "device", "source_pin": "Out", "target_block": "timebase", "target_pin": "In"},
+                {"id": "l2", "type": "exec", "source_block": "timebase", "source_pin": "Out", "target_block": "channel", "target_pin": "In"},
+                {"id": "l3", "type": "exec", "source_block": "channel", "source_pin": "Out", "target_block": "trigger", "target_pin": "In"},
+                {"id": "l4", "type": "exec", "source_block": "trigger", "source_pin": "Out", "target_block": "state", "target_pin": "In"},
+                {"id": "l5", "type": "exec", "source_block": "state", "source_pin": "Out", "target_block": "acquire", "target_pin": "In"},
+                {"id": "l6", "type": "data", "source_block": "device", "source_pin": "Device", "target_block": "timebase", "target_pin": "Device"},
+                {"id": "l7", "type": "data", "source_block": "device", "source_pin": "Device", "target_block": "channel", "target_pin": "Device"},
+                {"id": "l8", "type": "data", "source_block": "device", "source_pin": "Device", "target_block": "trigger", "target_pin": "Device"},
+                {"id": "l9", "type": "data", "source_block": "device", "source_pin": "Device", "target_block": "state", "target_pin": "Device"},
+                {"id": "la", "type": "data", "source_block": "device", "source_pin": "Device", "target_block": "acquire", "target_pin": "Device"}
             ]
         }
 
@@ -215,7 +215,7 @@ async def test_pfj_osc_nodes_execution():
         engine.telemetry_callback = mock_telemetry_callback
         engine.load_blueprint(blueprint)
 
-        await engine.run(start_node_id="device", start_pin_name="Open")
+        await engine.run(start_block_id="device", start_pin_name="Open")
 
         # Verify calls to device.write
         write_calls = [call[0][0] for call in mock_device.write.call_args_list]
@@ -228,10 +228,10 @@ async def test_pfj_osc_nodes_execution():
         assert "trig:free" in write_calls
         assert "run" in write_calls
 
-        # Verify outputs from acquire node
-        acquire_node = engine.nodes["acquire"]
-        assert list(acquire_node._last_time) == [0.0, 0.1, 0.2]
-        assert list(acquire_node._last_waveform) == [1.2, 1.5, 1.8]
+        # Verify outputs from acquire block
+        acquire_block = engine.blocks["acquire"]
+        assert list(acquire_block._last_time) == [0.0, 0.1, 0.2]
+        assert list(acquire_block._last_waveform) == [1.2, 1.5, 1.8]
 
         # Verify telemetry binary payload was generated
         binary_payloads = [p for p in telemetry_payloads if isinstance(p, bytes)]
@@ -243,8 +243,8 @@ async def test_pfj_osc_nodes_execution():
 
 
 @pytest.mark.asyncio
-async def test_pfj_osc_connect_node_teardown_sends_stop():
-    with patch("comfylab.nodes.visa.pyvisa") as mock_pyvisa:
+async def test_pfj_osc_connect_block_teardown_sends_stop():
+    with patch("comfylab.blocks.visa.pyvisa") as mock_pyvisa:
         mock_rm = MagicMock()
         mock_pyvisa.ResourceManager.return_value = mock_rm
 
@@ -252,11 +252,11 @@ async def test_pfj_osc_connect_node_teardown_sends_stop():
         mock_device.resource_name = "GPIB0::3::INSTR"
         mock_rm.open_resource.return_value = mock_device
 
-        from comfylab.nodes.visa import visa_rm_wrapper
+        from comfylab.blocks.visa import visa_rm_wrapper
         visa_rm_wrapper._rm = None
 
         blueprint = {
-            "nodes": [
+            "blocks": [
                 {"id": "connect", "type": "visa/oscilloscope/connect", "properties": {
                     "Address": "GPIB0::3::INSTR"
                 }}
@@ -266,11 +266,11 @@ async def test_pfj_osc_connect_node_teardown_sends_stop():
 
         engine = ExecutionEngine()
         engine.load_blueprint(blueprint)
-        await engine.run(start_node_id="connect", start_pin_name="Open")
+        await engine.run(start_block_id="connect", start_pin_name="Open")
 
         # Teardown runs automatically on completion - device should be closed
-        connect_node = engine.nodes["connect"]
-        assert connect_node._device is None
+        connect_block = engine.blocks["connect"]
+        assert connect_block._device is None
 
         # Verify teardown sent 'stop' command
         write_calls = [call[0][0] for call in mock_device.write.call_args_list]
@@ -279,8 +279,8 @@ async def test_pfj_osc_connect_node_teardown_sends_stop():
 
 
 @pytest.mark.asyncio
-async def test_pfj_siggen_connect_node_teardown_sends_out_off():
-    with patch("comfylab.nodes.visa.pyvisa") as mock_pyvisa:
+async def test_pfj_siggen_connect_block_teardown_sends_out_off():
+    with patch("comfylab.blocks.visa.pyvisa") as mock_pyvisa:
         mock_rm = MagicMock()
         mock_pyvisa.ResourceManager.return_value = mock_rm
 
@@ -288,11 +288,11 @@ async def test_pfj_siggen_connect_node_teardown_sends_out_off():
         mock_device.resource_name = "GPIB0::2::INSTR"
         mock_rm.open_resource.return_value = mock_device
 
-        from comfylab.nodes.visa import visa_rm_wrapper
+        from comfylab.blocks.visa import visa_rm_wrapper
         visa_rm_wrapper._rm = None
 
         blueprint = {
-            "nodes": [
+            "blocks": [
                 {"id": "connect", "type": "visa/signal_generator/connect", "properties": {
                     "Address": "GPIB0::2::INSTR"
                 }}
@@ -302,11 +302,11 @@ async def test_pfj_siggen_connect_node_teardown_sends_out_off():
 
         engine = ExecutionEngine()
         engine.load_blueprint(blueprint)
-        await engine.run(start_node_id="connect", start_pin_name="Open")
+        await engine.run(start_block_id="connect", start_pin_name="Open")
 
         # Teardown runs automatically on completion - device should be closed
-        connect_node = engine.nodes["connect"]
-        assert connect_node._device is None
+        connect_block = engine.blocks["connect"]
+        assert connect_block._device is None
 
         # Verify teardown sent 'out False' command
         write_calls = [call[0][0] for call in mock_device.write.call_args_list]
@@ -315,9 +315,9 @@ async def test_pfj_siggen_connect_node_teardown_sends_out_off():
 
 
 @pytest.mark.asyncio
-async def test_pfj_osc_connect_chains_with_other_pfj_nodes():
-    """Verify that the PFJOsc connect node output Device handle is usable by other PFJ nodes."""
-    with patch("comfylab.nodes.visa.pyvisa") as mock_pyvisa:
+async def test_pfj_osc_connect_chains_with_other_pfj_blocks():
+    """Verify that the PFJOsc connect block output Device handle is usable by other PFJ blocks."""
+    with patch("comfylab.blocks.visa.pyvisa") as mock_pyvisa:
         mock_rm = MagicMock()
         mock_pyvisa.ResourceManager.return_value = mock_rm
 
@@ -333,11 +333,11 @@ async def test_pfj_osc_connect_chains_with_other_pfj_nodes():
             return ""
         mock_device.query.side_effect = mock_query
 
-        from comfylab.nodes.visa import visa_rm_wrapper
+        from comfylab.blocks.visa import visa_rm_wrapper
         visa_rm_wrapper._rm = None
 
         blueprint = {
-            "nodes": [
+            "blocks": [
                 {"id": "connect", "type": "visa/oscilloscope/connect", "properties": {
                     "Address": "GPIB0::3::INSTR"
                 }},
@@ -349,23 +349,23 @@ async def test_pfj_osc_connect_chains_with_other_pfj_nodes():
                 }}
             ],
             "links": [
-                {"id": "l1", "type": "exec", "source_node": "connect", "source_pin": "Out", "target_node": "state", "target_pin": "In"},
-                {"id": "l2", "type": "exec", "source_node": "state", "source_pin": "Out", "target_node": "acquire", "target_pin": "In"},
-                {"id": "l3", "type": "data", "source_node": "connect", "source_pin": "Device", "target_node": "state", "target_pin": "Device"},
-                {"id": "l4", "type": "data", "source_node": "connect", "source_pin": "Device", "target_node": "acquire", "target_pin": "Device"}
+                {"id": "l1", "type": "exec", "source_block": "connect", "source_pin": "Out", "target_block": "state", "target_pin": "In"},
+                {"id": "l2", "type": "exec", "source_block": "state", "source_pin": "Out", "target_block": "acquire", "target_pin": "In"},
+                {"id": "l3", "type": "data", "source_block": "connect", "source_pin": "Device", "target_block": "state", "target_pin": "Device"},
+                {"id": "l4", "type": "data", "source_block": "connect", "source_pin": "Device", "target_block": "acquire", "target_pin": "Device"}
             ]
         }
 
         engine = ExecutionEngine()
         engine.load_blueprint(blueprint)
-        await engine.run(start_node_id="connect", start_pin_name="Open")
+        await engine.run(start_block_id="connect", start_pin_name="Open")
 
         # Verify that state and acquire ran with the device handle
         write_calls = [call[0][0] for call in mock_device.write.call_args_list]
         assert "run" in write_calls
 
-        acquire_node = engine.nodes["acquire"]
-        assert list(acquire_node._last_waveform) == [1.0, 2.0, 3.0]
+        acquire_block = engine.blocks["acquire"]
+        assert list(acquire_block._last_waveform) == [1.0, 2.0, 3.0]
 
         # Teardown should send 'stop' as safety command
         await engine._teardown_all()

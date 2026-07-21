@@ -48,7 +48,7 @@ export const RFGeneratorWidget = ({
           onChange={(v) => onChange('frequency', v)}
           min={0.1}
           className="nodrag"
-          style={{ flex: 1, marginLeft: '12px', minWidth: '40px', padding: '2px 4px', fontSize: '0.8rem', background: 'var(--input-bg)', border: '1px solid var(--node-border)', borderRadius: '4px', color: 'var(--text-color)' }}
+          style={{ flex: 1, marginLeft: '12px', minWidth: '40px', padding: '2px 4px', fontSize: '0.8rem', background: 'var(--input-bg)', border: '1px solid var(--block-border)', borderRadius: '4px', color: 'var(--text-color)' }}
         />
       </div>
       <div className="input-row">
@@ -58,7 +58,7 @@ export const RFGeneratorWidget = ({
           onChange={(v) => onChange('amplitude', v)}
           min={0.0}
           className="nodrag"
-          style={{ flex: 1, marginLeft: '12px', minWidth: '40px', padding: '2px 4px', fontSize: '0.8rem', background: 'var(--input-bg)', border: '1px solid var(--node-border)', borderRadius: '4px', color: 'var(--text-color)' }}
+          style={{ flex: 1, marginLeft: '12px', minWidth: '40px', padding: '2px 4px', fontSize: '0.8rem', background: 'var(--input-bg)', border: '1px solid var(--block-border)', borderRadius: '4px', color: 'var(--text-color)' }}
         />
       </div>
     </>

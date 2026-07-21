@@ -29,14 +29,14 @@ import {
 import type { Connection, Edge, Node } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import axios from 'axios';
-import { ActionNode } from './components/ActionNode';
-import { getPinColor } from './constants/nodeLayouts';
+import { ActionBlock } from './components/ActionBlock';
+import { getPinColor } from './constants/blockLayouts';
 import { TooltipEdge } from './components/common/TooltipEdge';
 import { ScriptEditorPanel } from './components/ScriptEditorPanel';
 import { LibrarySignatureEditorPanel } from './components/LibrarySignatureEditorPanel';
 import { CreateClusterModal } from './components/CreateClusterModal';
 import { BreadcrumbBar } from './components/BreadcrumbBar';
-import { NodeInspectorPanel } from './components/NodeInspectorPanel';
+import { BlockInspectorPanel } from './components/BlockInspectorPanel';
 import { TopBar } from './components/TopBar';
 import { TabBar } from './components/TabBar';
 import { Sidebar } from './components/Sidebar';
@@ -62,18 +62,18 @@ import { useFlowExecution } from './hooks/useFlowExecution';
 interface Tab {
   id: string;
   name: string;
-  nodes: Node[];
+  blocks: Node[];
   edges: Edge[];
   annotations: any[];
   isDirty: boolean;
-  past: { nodes: any[]; edges: any[]; annotations: any[] }[];
-  future: { nodes: any[]; edges: any[]; annotations: any[] }[];
+  past: { blocks: any[]; edges: any[]; annotations: any[] }[];
+  future: { blocks: any[]; edges: any[]; annotations: any[] }[];
   canvasStack: { breadcrumbLabel: string; type: string; savedNodes?: any[]; savedEdges?: any[]; savedAnnotations?: any[] }[];
   currentLevelIndex: number;
 }
 
-const nodeTypes: any = {
-  actionNode: ActionNode,
+const blockTypes: any = {
+  actionNode: ActionBlock,
 };
 
 const edgeTypes: any = {
@@ -182,9 +182,9 @@ const rewriteEdgeStyles = (eds: any[]) => {
 const getResolvedEdgeColor = (
   sourceId: string,
   sourceHandle: string,
-  nodes: any[],
+  blocks: any[],
   edges: any[],
-  nodeRegistry: any,
+  blockRegistry: any,
   visited = new Set<string>()
 ): string => {
   if (visited.has(sourceId)) {
@@ -192,31 +192,31 @@ const getResolvedEdgeColor = (
   }
   visited.add(sourceId);
 
-  const sourceNode = nodes.find(n => n.id === sourceId);
-  if (!sourceNode) return '#64748b';
+  const sourceBlock = blocks.find(n => n.id === sourceId);
+  if (!sourceBlock) return '#64748b';
 
-  const action = sourceNode.data?.action;
+  const action = sourceBlock.data?.action;
   if (!action) return '#64748b';
 
-  const layout = nodeRegistry?.[action];
+  const layout = blockRegistry?.[action];
   if (layout?.isPassthrough) {
     const incomingEdge = edges.find(e => e.target === sourceId && e.targetHandle === 'In');
     if (incomingEdge) {
-      return getResolvedEdgeColor(incomingEdge.source, incomingEdge.sourceHandle || '', nodes, edges, nodeRegistry, visited);
+      return getResolvedEdgeColor(incomingEdge.source, incomingEdge.sourceHandle || '', blocks, edges, blockRegistry, visited);
     }
     return '#64748b';
   }
 
   if (action === 'cluster/boundary/input') {
-    const dataType = sourceNode.data?.DataType || 'any';
+    const dataType = sourceBlock.data?.DataType || 'any';
     return getPinColor(dataType);
   }
 
   if (action && action.startsWith('script/')) {
-    const pin = (sourceNode.data?.customOutputs || []).find((p: any) => p.name === sourceHandle);
+    const pin = (sourceBlock.data?.customOutputs || []).find((p: any) => p.name === sourceHandle);
     if (pin) return getPinColor(pin.type);
   } else {
-    const layout = nodeRegistry?.[action];
+    const layout = blockRegistry?.[action];
     if (layout) {
       if (layout.execOuts?.includes(sourceHandle)) {
         return '#a78bfa';
@@ -229,12 +229,12 @@ const getResolvedEdgeColor = (
   return '#64748b';
 };
 
-// Detect boundary pins for a selection of nodes
+// Detect boundary pins for a selection of blocks
 function detectBoundaryPins(
-  selectedNodeIds: Set<string>,
-  nodes: any[],
+  selectedBlockIds: Set<string>,
+  blocks: any[],
   edges: any[],
-  nodeRegistry: any
+  blockRegistry: any
 ) {
   const exec_ins: any[] = [];
   const exec_outs: any[] = [];
@@ -242,12 +242,12 @@ function detectBoundaryPins(
   const data_outs: any[] = [];
 
   for (const edge of edges) {
-    const sourceInside = selectedNodeIds.has(edge.source);
-    const targetInside = selectedNodeIds.has(edge.target);
+    const sourceInside = selectedBlockIds.has(edge.source);
+    const targetInside = selectedBlockIds.has(edge.target);
     
     if (sourceInside && !targetInside) {
-      const sourceNode = nodes.find((n: any) => n.id === edge.source);
-      const layout = nodeRegistry?.[sourceNode?.data?.action || ''];
+      const sourceBlock = blocks.find((n: any) => n.id === edge.source);
+      const layout = blockRegistry?.[sourceBlock?.data?.action || ''];
       const isExec = layout?.execOuts?.includes(edge.sourceHandle || '') || false;
       
       if (isExec) {
@@ -255,7 +255,7 @@ function detectBoundaryPins(
           name: edge.sourceHandle || 'Out',
           label: edge.sourceHandle || 'Out',
           type: 'exec',
-          maps_from: { node_id: edge.source, pin: edge.sourceHandle || '' }
+          maps_from: { block_id: edge.source, pin: edge.sourceHandle || '' }
         });
       } else {
         const pinInfo = layout?.dataOuts?.find((p: any) => p.name === edge.sourceHandle);
@@ -263,14 +263,14 @@ function detectBoundaryPins(
           name: edge.sourceHandle || 'Out',
           label: edge.sourceHandle || 'Out',
           type: pinInfo?.type || 'any',
-          maps_from: { node_id: edge.source, pin: edge.sourceHandle || '' }
+          maps_from: { block_id: edge.source, pin: edge.sourceHandle || '' }
         });
       }
     }
     
     if (targetInside && !sourceInside) {
-      const targetNode = nodes.find((n: any) => n.id === edge.target);
-      const layout = nodeRegistry?.[targetNode?.data?.action || ''];
+      const targetBlock = blocks.find((n: any) => n.id === edge.target);
+      const layout = blockRegistry?.[targetBlock?.data?.action || ''];
       const isExec = layout?.execIns?.includes(edge.targetHandle || '') || false;
       
       if (isExec) {
@@ -278,7 +278,7 @@ function detectBoundaryPins(
           name: edge.targetHandle || 'In',
           label: edge.targetHandle || 'In',
           type: 'exec',
-          maps_to: { node_id: edge.target, pin: edge.targetHandle || '' }
+          maps_to: { block_id: edge.target, pin: edge.targetHandle || '' }
         });
       } else {
         const pinInfo = layout?.dataIns?.find((p: any) => p.name === edge.targetHandle);
@@ -293,7 +293,7 @@ function detectBoundaryPins(
           step: pinInfo?.step,
           options: pinInfo?.options,
           optional: pinInfo?.optional || false,
-          maps_to: { node_id: edge.target, pin: edge.targetHandle || '' }
+          maps_to: { block_id: edge.target, pin: edge.targetHandle || '' }
         });
       }
     }
@@ -309,21 +309,21 @@ function Flow() {
     clientY: number;
     offsetX: number;
     offsetY: number;
-    sourceNodeId: string;
+    sourceBlockId: string;
     sourceHandleId: string;
     sourceHandleType: string;
   } | null>(null);
 
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
-  const [nodes, setNodes, reactFlowOnNodesChange] = useNodesState<any>([]);
+  const [blocks, setBlocks, reactFlowOnBlocksChange] = useNodesState<any>([]);
   const [edges, setEdges, reactFlowOnEdgesChange] = useEdgesState<any>([]);
   const [snapPreviewEdges, setSnapPreviewEdges] = useState<any[]>([]);
   const snapTargetRef = useRef<{ targetId: string; previews: any[] } | null>(null);
   const snapPreviewRef = useRef<any[]>([]);
   const snapRafRef = useRef<number | null>(null);
-  const nodesRef = useRef<any[]>([]);
+  const blocksRef = useRef<any[]>([]);
   const edgesRef = useRef<any[]>([]);
-  nodesRef.current = nodes;
+  blocksRef.current = blocks;
   edgesRef.current = edges;
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
 
@@ -333,18 +333,18 @@ function Flow() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [runningTabId, setRunningTabId] = useState<string | null>(null);
 
-  const [nodeRegistry, setNodeRegistry] = useState<any>(null);
+  const [blockRegistry, setBlockRegistry] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [workspacePath, setWorkspacePath] = useState<string>('');
   const [editingWorkspace, setEditingWorkspace] = useState(false);
   const [workspaceInput, setWorkspaceInput] = useState('');
 
-  const [activeScriptNode, setActiveScriptNode] = useState<{ id: string; code: string; actionType: string } | null>(null);
-  const [activeLibraryNodeId, setActiveLibraryNodeId] = useState<string | null>(null);
+  const [activeScriptBlock, setActiveScriptBlock] = useState<{ id: string; code: string; actionType: string } | null>(null);
+  const [activeLibraryBlockId, setActiveLibraryBlockId] = useState<string | null>(null);
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [inspectorOpen, setInspectorOpen] = useState(false);
-  const [inspectedNodeId, setInspectedNodeId] = useState<string | null>(null);
+  const [inspectedBlockId, setInspectedBlockId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
   const menuContainerRef = useRef<HTMLDivElement>(null);
@@ -357,7 +357,7 @@ function Flow() {
   const [createClusterOpen, setCreateClusterOpen] = useState(false);
   const [detectedBoundary, setDetectedBoundary] = useState<any>(null);
   const [selectedForCluster, setSelectedForCluster] = useState<string[]>([]);
-  const [selectedNodeIds, setSelectedNodeIds] = useState<Set<string>>(new Set());
+  const [selectedBlockIds, setSelectedBlockIds] = useState<Set<string>>(new Set());
 
   // Save/Load names
   const [currentBlueprintName, setCurrentBlueprintName] = useState<string>('');
@@ -399,7 +399,7 @@ function Flow() {
     y: number;
     clientX: number;
     clientY: number;
-    type: 'pane' | 'node' | 'edge' | 'selection';
+    type: 'pane' | 'block' | 'edge' | 'selection';
     targetId?: string | null;
   } | null>(null);
   const [contextMenuSearch, setContextMenuSearch] = useState('');
@@ -606,15 +606,15 @@ function Flow() {
   const [trustAndSign, setTrustAndSign] = useState(true);
   const [deletePackageAfterImport, setDeletePackageAfterImport] = useState(true);
   const [importPermanent, setImportPermanent] = useState(false);
-  const [unauthorizedNodesCount, setUnauthorizedNodesCount] = useState(0);
+  const [unauthorizedBlocksCount, setUnauthorizedNodesCount] = useState(0);
 
 
   const onEditScript = useCallback((id: string, code: string, actionType: string) => {
-    setActiveScriptNode({ id, code, actionType });
+    setActiveScriptBlock({ id, code, actionType });
   }, []);
 
   const onEditLibrarySignature = useCallback((id: string) => {
-    setActiveLibraryNodeId(id);
+    setActiveLibraryBlockId(id);
   }, []);
 
 
@@ -631,35 +631,35 @@ function Flow() {
 
   const fetchRegistry = useCallback(async () => {
     try {
-      const res = await axios.get(`${BACKEND_URL}/nodes`);
-      setNodeRegistry(res.data);
+      const res = await axios.get(`${BACKEND_URL}/blocks`);
+      setBlockRegistry(res.data);
     } catch (err) {
-      console.error('Failed to load ComfyLAB node templates:', err);
-      setErrorMessage('Failed to load node templates from backend.');
+      console.error('Failed to load ComfyLAB block templates:', err);
+      setErrorMessage('Failed to load block templates from backend.');
     }
   }, []);
 
   const fetchUnauthorizedNodes = useCallback(async () => {
     try {
-      const res = await axios.get(`${BACKEND_URL}/workspace/nodes/unauthorized`);
+      const res = await axios.get(`${BACKEND_URL}/workspace/blocks/unauthorized`);
       setUnauthorizedNodesCount((res.data.unauthorized || []).length);
     } catch (err) {
-      console.error("Failed to fetch unauthorized nodes:", err);
+      console.error("Failed to fetch unauthorized blocks:", err);
     }
   }, []);
 
   const handleAuthorizeAllNodes = async () => {
     try {
-      await axios.post(`${BACKEND_URL}/workspace/nodes/authorize`, { all: true });
+      await axios.post(`${BACKEND_URL}/workspace/blocks/authorize`, { all: true });
       await fetchUnauthorizedNodes();
-      // Reload nodes to reload registry definitions!
-      await axios.post(`${BACKEND_URL}/nodes/reload`);
-      // Re-fetch templates/nodes schema to update sidebar list
-      const templatesRes = await axios.get(`${BACKEND_URL}/nodes`);
-      setNodeRegistry(templatesRes.data);
+      // Reload blocks to reload registry definitions!
+      await axios.post(`${BACKEND_URL}/blocks/reload`);
+      // Re-fetch templates/blocks schema to update sidebar list
+      const templatesRes = await axios.get(`${BACKEND_URL}/blocks`);
+      setBlockRegistry(templatesRes.data);
     } catch (err) {
-      console.error("Failed to authorize nodes:", err);
-      alert("Failed to authorize nodes.");
+      console.error("Failed to authorize blocks:", err);
+      alert("Failed to authorize blocks.");
     }
   };
 
@@ -678,7 +678,7 @@ function Flow() {
     }
   }, [fetchUnauthorizedNodes]);
 
-  // Fetch settings, restore workspace path, and load dynamic node registry at startup
+  // Fetch settings, restore workspace path, and load dynamic block registry at startup
   useEffect(() => {
     const initialize = async () => {
       setLoading(true);
@@ -759,7 +759,7 @@ function Flow() {
         const newTab: Tab = {
           id: initialTabId,
           name: initialRunningInfo.rawCanvas.blueprintName || 'Untitled',
-          nodes: initialRunningInfo.rawCanvas.nodes || [],
+          blocks: initialRunningInfo.rawCanvas.blocks || [],
           edges: initialRunningInfo.rawCanvas.edges || [],
           annotations: initialRunningInfo.rawCanvas.annotations || [],
           isDirty: false,
@@ -773,7 +773,7 @@ function Flow() {
         runningTabIdRef.current = initialTabId;
         setTabs([newTab]);
         setActiveTabId(initialTabId);
-        setNodes(initialRunningInfo.rawCanvas.nodes || []);
+        setBlocks(initialRunningInfo.rawCanvas.blocks || []);
         setEdges(initialRunningInfo.rawCanvas.edges || []);
         setCurrentBlueprintName(initialRunningInfo.rawCanvas.blueprintName === 'Untitled' ? '' : (initialRunningInfo.rawCanvas.blueprintName || ''));
         setRunningTabId(initialTabId);
@@ -784,7 +784,7 @@ function Flow() {
         const newTab: Tab = {
           id: initialTabId,
           name: 'Untitled',
-          nodes: [],
+          blocks: [],
           edges: [],
           annotations: [],
           isDirty: false,
@@ -814,39 +814,39 @@ function Flow() {
     }));
   }, [currentBlueprintName, isDirty, activeTabId]);
 
-  // Automatically close script editor if the editing node is deleted/removed
+  // Automatically close script editor if the editing block is deleted/removed
   useEffect(() => {
-    if (activeScriptNode) {
-      const nodeExists = nodes.some((n: any) => n.id === activeScriptNode.id);
+    if (activeScriptBlock) {
+      const nodeExists = blocks.some((n: any) => n.id === activeScriptBlock.id);
       if (!nodeExists) {
-        setActiveScriptNode(null);
+        setActiveScriptBlock(null);
       }
     }
-  }, [nodes, activeScriptNode]);
+  }, [blocks, activeScriptBlock]);
 
-  // Automatically close inspector if the inspected node is deleted/removed
+  // Automatically close inspector if the inspected block is deleted/removed
   useEffect(() => {
-    if (inspectedNodeId) {
-      const nodeExists = nodes.some((n: any) => n.id === inspectedNodeId);
+    if (inspectedBlockId) {
+      const nodeExists = blocks.some((n: any) => n.id === inspectedBlockId);
       if (!nodeExists) {
-        setInspectedNodeId(null);
+        setInspectedBlockId(null);
         setInspectorOpen(false);
       }
     }
-  }, [nodes, inspectedNodeId]);
+  }, [blocks, inspectedBlockId]);
 
-  // Automatically switch inspected node to the first selected node if inspector is open
+  // Automatically switch inspected block to the first selected block if inspector is open
   useEffect(() => {
     if (inspectorOpen) {
-      const selectedNodes = nodes.filter((n: any) => n.selected);
+      const selectedNodes = blocks.filter((n: any) => n.selected);
       if (selectedNodes.length > 0) {
         const firstSelectedId = selectedNodes[0].id;
-        if (firstSelectedId !== inspectedNodeId) {
-          setInspectedNodeId(firstSelectedId);
+        if (firstSelectedId !== inspectedBlockId) {
+          setInspectedBlockId(firstSelectedId);
         }
       }
     }
-  }, [nodes, inspectorOpen, inspectedNodeId]);
+  }, [blocks, inspectorOpen, inspectedBlockId]);
 
   // Trigger fit view after navigating into a cluster
   useEffect(() => {
@@ -857,14 +857,14 @@ function Flow() {
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [shouldFitView, reactFlowInstance, nodes.length]);
+  }, [shouldFitView, reactFlowInstance, blocks.length]);
 
-  // Synchronize edge/wire colors dynamically for data passthrough nodes
+  // Synchronize edge/wire colors dynamically for data passthrough blocks
   useEffect(() => {
     let changed = false;
     const newEdges = edges.map(edge => {
-      const srcNode = nodes.find(n => n.id === edge.source);
-      const isExecEdge = (nodeRegistry?.[srcNode?.data?.action || '']?.execOuts?.includes(edge.sourceHandle || '') || false);
+      const srcNode = blocks.find(n => n.id === edge.source);
+      const isExecEdge = (blockRegistry?.[srcNode?.data?.action || '']?.execOuts?.includes(edge.sourceHandle || '') || false);
       
       if (isExecEdge) {
         if (edge.style?.stroke !== '#a78bfa') {
@@ -878,7 +878,7 @@ function Flow() {
         return edge;
       }
       
-      const expectedColor = getResolvedEdgeColor(edge.source, edge.sourceHandle || '', nodes, edges, nodeRegistry);
+      const expectedColor = getResolvedEdgeColor(edge.source, edge.sourceHandle || '', blocks, edges, blockRegistry);
       if (edge.style?.stroke !== expectedColor) {
         changed = true;
         return {
@@ -901,23 +901,23 @@ function Flow() {
     if (changed) {
       setEdges(newEdges);
     }
-  }, [nodes, edges, nodeRegistry]);
+  }, [blocks, edges, blockRegistry]);
 
-  // Sync node changes back into nodes array
-  const onNodeDataChange = useCallback((id: string, key: string, value: any) => {
+  // Sync block changes back into blocks array
+  const onBlockDataChange = useCallback((id: string, key: string, value: any) => {
     setIsDirty(true);
-    setNodes((nds) =>
-      nds.map((node) => {
-        if (node.id === id) {
+    setBlocks((nds) =>
+      nds.map((block) => {
+        if (block.id === id) {
           return {
-            ...node,
+            ...block,
             data: {
-              ...node.data,
+              ...block.data,
               [key]: value,
             },
           };
         }
-        return node;
+        return block;
       })
     );
 
@@ -983,24 +983,24 @@ function Flow() {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       const msg = {
         type: 'update_property',
-        node_id: id,
+        block_id: id,
         name: key,
         value: value,
       };
       wsRef.current.send(JSON.stringify(msg));
     }
-  }, [setNodes, setEdges]);
+  }, [setBlocks, setEdges]);
 
-  const onScriptCodeChange = useCallback((nodeId: string, code: string) => {
-    onNodeDataChange(nodeId, 'code', code);
-  }, [onNodeDataChange]);
+  const onScriptCodeChange = useCallback((blockId: string, code: string) => {
+    onBlockDataChange(blockId, 'code', code);
+  }, [onBlockDataChange]);
 
-  const navigateToCluster = useCallback(async (nodeId: string, actionType: string) => {
-    const currentNodes = nodesRef.current;
+  const navigateToCluster = useCallback(async (blockId: string, actionType: string) => {
+    const currentNodes = blocksRef.current;
     const currentEdges = edgesRef.current;
-    const clusterNode = currentNodes.find((n: any) => n.id === nodeId);
+    const clusterNode = currentNodes.find((n: any) => n.id === blockId);
     if (!clusterNode) {
-      setErrorMessage(`Cluster node '${nodeId}' not found. Try closing and reopening.`);
+      setErrorMessage(`Cluster block '${blockId}' not found. Try closing and reopening.`);
       return;
     }
     if (!actionType.startsWith('user/cluster/') && !actionType.startsWith('workspace/cluster/')) return;
@@ -1021,7 +1021,7 @@ function Flow() {
       };
 
       // Build internal nodes for ReactFlow from the cluster's internal_blueprint
-      const internalNodes = (clusterDef.internal_blueprint?.nodes || []).map((bn: any) => ({
+      const internalNodes = (clusterDef.internal_blueprint?.blocks || []).map((bn: any) => ({
         id: bn.id,
         type: 'actionNode',
         position: bn.position || { x: Math.random() * 200 + 50, y: Math.random() * 200 + 50 },
@@ -1029,7 +1029,7 @@ function Flow() {
           action: bn.type,
           status: 'idle',
           resultMessage: '',
-          onChange: onNodeDataChange,
+          onChange: onBlockDataChange,
           onEditScript: onEditScript,
           onEditLibrarySignature: onEditLibrarySignature,
           onNavigateInto: (nid: string, atype: string) => navigateToCluster(nid, atype),
@@ -1038,15 +1038,15 @@ function Flow() {
           onResizeEnd: () => setIsDirty(true),
           ...(bn.properties || {}),
         },
-        style: bn.style || (nodeRegistry?.[bn.type]?.defaultWidth && nodeRegistry?.[bn.type]?.defaultHeight
-          ? { width: nodeRegistry[bn.type].defaultWidth, height: nodeRegistry[bn.type].defaultHeight }
+        style: bn.style || (blockRegistry?.[bn.type]?.defaultWidth && blockRegistry?.[bn.type]?.defaultHeight
+          ? { width: blockRegistry[bn.type].defaultWidth, height: blockRegistry[bn.type].defaultHeight }
           : { width: 210, minHeight: 100 }),
         width: bn.width,
         height: bn.height,
       }));
 
       const internalEdges = (clusterDef.internal_blueprint?.links || []).map((bl: any) => {
-        const srcNode = (clusterDef.internal_blueprint?.nodes || []).find((n: any) => n.id === bl.source_node);
+        const srcNode = (clusterDef.internal_blueprint?.blocks || []).find((n: any) => n.id === bl.source_block);
         const srcActionType = srcNode?.type;
         const sourceData = srcNode?.properties || {};
 
@@ -1063,7 +1063,7 @@ function Flow() {
             const pin = (sourceData.customOutputs || []).find((p: any) => p.name === bl.source_pin);
             if (pin) { pinColor = getPinColor(pin.type); }
           } else {
-            const layout = nodeRegistry?.[srcActionType];
+            const layout = blockRegistry?.[srcActionType];
             if (layout) {
               const pin = layout.dataOuts?.find((p: any) => p.name === bl.source_pin);
               if (pin) { pinColor = getPinColor(pin.type); }
@@ -1074,9 +1074,9 @@ function Flow() {
         return {
           id: bl.id,
           type: 'default',
-          source: bl.source_node,
+          source: bl.source_block,
           sourceHandle: bl.source_pin,
-          target: bl.target_node,
+          target: bl.target_block,
           targetHandle: bl.target_pin,
           style: isExec
             ? { stroke: pinColor, strokeWidth: 2, animated: true }
@@ -1085,7 +1085,7 @@ function Flow() {
         };
       });
 
-      const layout = nodeRegistry?.[actionType];
+      const layout = blockRegistry?.[actionType];
       const clusterName = layout?.name || actionType.split('/').pop() || 'Cluster';
 
       const newLevel = {
@@ -1095,7 +1095,7 @@ function Flow() {
       updatedStack.push(newLevel);
       setCanvasStack(updatedStack);
       setCurrentLevelIndex(updatedStack.length - 1);
-      setNodes(internalNodes);
+      setBlocks(internalNodes);
       setEdges(internalEdges);
       setErrorMessage(null);
       setShouldFitView(true);
@@ -1103,29 +1103,29 @@ function Flow() {
       console.error('Failed to navigate into cluster:', err);
       setErrorMessage(`Failed to open cluster: ${err.response?.data?.detail || err.message}`);
     }
-  }, [nodeRegistry, onNodeDataChange, onEditScript, onEditLibrarySignature, setNodes, setEdges, setIsDirty]);
+  }, [blockRegistry, onBlockDataChange, onEditScript, onEditLibrarySignature, setBlocks, setEdges, setIsDirty]);
 
-  const handleInspectNode = useCallback((nodeId: string) => {
-    setInspectedNodeId(nodeId);
+  const handleInspectNode = useCallback((blockId: string) => {
+    setInspectedBlockId(blockId);
     setInspectorOpen(true);
   }, []);
 
   const pushStateToHistoryRef = useRef<() => void>(() => {});
 
-  // Base node data factory
-  const getBaseNodeData = useCallback((extra: any = {}) => ({
+  // Base block data factory
+  const getBaseBlockData = useCallback((extra: any = {}) => ({
     ...extra,
     status: extra.status || 'idle',
     resultMessage: extra.resultMessage || '',
     results: extra.results || {},
-    onChange: onNodeDataChange,
+    onChange: onBlockDataChange,
     onEditScript: onEditScript,
     onEditLibrarySignature: onEditLibrarySignature,
     onNavigateInto: navigateToCluster,
     onInspect: handleInspectNode,
     onResizeStart: () => pushStateToHistoryRef.current(),
     onResizeEnd: () => setIsDirty(true),
-  }), [onNodeDataChange, onEditScript, onEditLibrarySignature, navigateToCluster, handleInspectNode, setIsDirty]);
+  }), [onBlockDataChange, onEditScript, onEditLibrarySignature, navigateToCluster, handleInspectNode, setIsDirty]);
 
   const {
     pushStateToHistory,
@@ -1134,20 +1134,20 @@ function Flow() {
     handleCopy,
     handlePaste,
     handleDuplicate,
-    clipboardNodesCount,
+    clipboardBlocksCount,
   } = useWorkspaceHistory({
-    nodes,
+    blocks,
     edges,
     annotations,
-    setNodes,
+    setBlocks,
     setEdges,
     setAnnotations,
     setIsDirty,
-    selectedNodeIds,
-    setSelectedNodeIds,
+    selectedBlockIds,
+    setSelectedBlockIds,
     reactFlowInstance,
     snapToGrid,
-    getBaseNodeData,
+    getBaseBlockData,
     pastRef,
     futureRef,
   });
@@ -1161,63 +1161,63 @@ function Flow() {
     setQuickConnectMenu(null);
   }, []);
 
-  const handleClearNodeData = useCallback(async (nodeId: string) => {
+  const handleClearBlockData = useCallback(async (blockId: string) => {
     pushStateToHistory();
     setIsDirty(true);
     
-    setNodes((nds) =>
-      nds.map((node) => {
-        if (node.id === nodeId) {
-          const clearedData = { ...node.data };
+    setBlocks((nds) =>
+      nds.map((block) => {
+        if (block.id === blockId) {
+          const clearedData = { ...block.data };
           clearedData.status = 'idle';
           clearedData.resultMessage = '';
           clearedData.results = {};
           return {
-            ...node,
+            ...block,
             data: clearedData,
           };
         }
-        return node;
+        return block;
       })
     );
 
     setTabs((prevTabs) =>
       prevTabs.map((t) => {
-        const hasNode = t.nodes?.some((n: any) => n.id === nodeId);
+        const hasNode = t.blocks?.some((n: any) => n.id === blockId);
         if (!hasNode) return t;
-        const updatedNodes = t.nodes.map((node: any) => {
-          if (node.id === nodeId) {
-            const clearedData = { ...node.data };
+        const updatedNodes = t.blocks.map((block: any) => {
+          if (block.id === blockId) {
+            const clearedData = { ...block.data };
             clearedData.status = 'idle';
             clearedData.resultMessage = '';
             clearedData.results = {};
-            return { ...node, data: clearedData };
+            return { ...block, data: clearedData };
           }
-          return node;
+          return block;
         });
-        return { ...t, nodes: updatedNodes };
+        return { ...t, blocks: updatedNodes };
       })
     );
 
     try {
-      await axios.post(`${BACKEND_URL}/nodes/${nodeId}/clear`);
+      await axios.post(`${BACKEND_URL}/blocks/${blockId}/clear`);
     } catch (err) {
-      console.warn('Failed to notify backend to clear node data:', err);
+      console.warn('Failed to notify backend to clear block data:', err);
     }
-  }, [setNodes, setTabs, BACKEND_URL, pushStateToHistory]);
+  }, [setBlocks, setTabs, BACKEND_URL, pushStateToHistory]);
 
-  const handleClearAllNodesData = useCallback(async () => {
+  const handleClearAllBlocksData = useCallback(async () => {
     pushStateToHistory();
     setIsDirty(true);
 
-    setNodes((nds) =>
-      nds.map((node) => {
-        const clearedData = { ...node.data };
+    setBlocks((nds) =>
+      nds.map((block) => {
+        const clearedData = { ...block.data };
         clearedData.status = 'idle';
         clearedData.resultMessage = '';
         clearedData.results = {};
         return {
-          ...node,
+          ...block,
           data: clearedData,
         };
       })
@@ -1226,64 +1226,64 @@ function Flow() {
     setTabs((prevTabs) =>
       prevTabs.map((t) => {
         if (t.id !== activeTabId) return t;
-        const updatedNodes = (t.nodes || []).map((node: any) => {
-          const clearedData = { ...node.data };
+        const updatedNodes = (t.blocks || []).map((block: any) => {
+          const clearedData = { ...block.data };
           clearedData.status = 'idle';
           clearedData.resultMessage = '';
           clearedData.results = {};
-          return { ...node, data: clearedData };
+          return { ...block, data: clearedData };
         });
-        return { ...t, nodes: updatedNodes };
+        return { ...t, blocks: updatedNodes };
       })
     );
 
-    const nodeIds = nodes.map((n) => n.id);
+    const blockIds = blocks.map((n) => n.id);
     try {
       await Promise.all(
-        nodeIds.map((id) => axios.post(`${BACKEND_URL}/nodes/${id}/clear`))
+        blockIds.map((id) => axios.post(`${BACKEND_URL}/blocks/${id}/clear`))
       );
     } catch (err) {
-      console.warn('Failed to notify backend to clear some nodes data:', err);
+      console.warn('Failed to notify backend to clear some blocks data:', err);
     }
-  }, [nodes, activeTabId, setNodes, setTabs, BACKEND_URL, pushStateToHistory]);
+  }, [blocks, activeTabId, setBlocks, setTabs, BACKEND_URL, pushStateToHistory]);
 
 
   // Converts the React Flow representation to ComfyLAB blueprint JSON specification
   const exportBlueprint = () => {
-    const blueprintNodes = nodes.map((node) => {
+    const blueprintNodes = blocks.map((block) => {
       const props: Record<string, any> = {};
       const excludeKeys = ['action', 'status', 'resultMessage', 'onChange', 'results', 'onEditScript', 'onEditFFISignature', 'onEditLibrarySignature', 'onNavigateInto', 'onInspect'];
 
       
-      // Dynamically copy all non-metadata fields from node.data to properties
-      Object.keys(node.data || {}).forEach((key) => {
-        if (!excludeKeys.includes(key) && (node.data as any)[key] !== undefined) {
-          props[key] = (node.data as any)[key];
+      // Dynamically copy all non-metadata fields from block.data to properties
+      Object.keys(block.data || {}).forEach((key) => {
+        if (!excludeKeys.includes(key) && (block.data as any)[key] !== undefined) {
+          props[key] = (block.data as any)[key];
         }
       });
       return {
-        id: node.id,
-        type: node.data.action,
+        id: block.id,
+        type: block.data.action,
         properties: props,
       };
     });
 
     const blueprintLinks = edges.map((edge) => {
-      const sourceNode = nodes.find((n) => n.id === edge.source);
-      const layout = nodeRegistry?.[sourceNode?.data?.action || ''];
+      const sourceBlock = blocks.find((n) => n.id === edge.source);
+      const layout = blockRegistry?.[sourceBlock?.data?.action || ''];
       const isExec = layout?.execOuts.includes(edge.sourceHandle || '');
 
       return {
         id: edge.id,
         type: isExec ? 'exec' : 'data',
-        source_node: edge.source,
+        source_block: edge.source,
         source_pin: edge.sourceHandle || '',
-        target_node: edge.target,
+        target_block: edge.target,
         target_pin: edge.targetHandle || '',
       };
     });
 return {
-      nodes: blueprintNodes,
+      blocks: blueprintNodes,
       links: blueprintLinks,
     };
   };
@@ -1325,7 +1325,7 @@ return {
           snapToGrid,
           pushStateToHistory,
           closeContextMenu,
-          nodes,
+          blocks,
           edges,
           annotations,
           setAnnotations,
@@ -1342,10 +1342,10 @@ return {
           wsRef,
         } = useFlowExecution({
           activeTabId,
-          nodes,
+          blocks,
           edges,
           currentBlueprintName,
-          setNodes,
+          setBlocks,
           setTabs,
           exportBlueprint,
           BACKEND_URL,
@@ -1357,7 +1357,7 @@ return {
           runningTabId,
           setRunningTabId,
           setErrorMessage,
-          nodeRegistry,
+          blockRegistry,
         });
 
         const handleRunRef = useRef(handleRun);
@@ -1375,12 +1375,12 @@ return {
 
   // --- HISTORY & UNDO/REDO UTILITIES ---
 
-  const onNodesChange = useCallback((changes: any[]) => {
-    // Filter out position changes for pinned nodes
+  const onBlocksChange = useCallback((changes: any[]) => {
+    // Filter out position changes for pinned blocks
     const filteredChanges = changes.filter(c => {
       if (c.type === 'position') {
-        const node = nodesRef.current.find(n => n.id === c.id);
-        if (node?.data?.pinned) {
+        const block = blocksRef.current.find(n => n.id === c.id);
+        if (block?.data?.pinned) {
           return false;
         }
       }
@@ -1395,8 +1395,8 @@ return {
     if (hasDirtyChange) {
       setIsDirty(true);
     }
-    reactFlowOnNodesChange(filteredChanges);
-  }, [reactFlowOnNodesChange, pushStateToHistory]);
+    reactFlowOnBlocksChange(filteredChanges);
+  }, [reactFlowOnBlocksChange, pushStateToHistory]);
 
   const onEdgesChange = useCallback((changes: any[]) => {
     const hasRemoval = changes.some(c => c.type === 'remove');
@@ -1410,17 +1410,17 @@ return {
     reactFlowOnEdgesChange(changes);
   }, [reactFlowOnEdgesChange, pushStateToHistory]);
 
-  const onNodeDragStart = useCallback(() => {
+  const onBlockDragStart = useCallback(() => {
     pushStateToHistory();
   }, [pushStateToHistory]);
 
-  const getOutputPinType = useCallback((node: any, pinName: string): string => {
-    const action = node.data?.action;
+  const getOutputPinType = useCallback((block: any, pinName: string): string => {
+    const action = block.data?.action;
     if (action?.startsWith('script/')) {
-      const pin = (node.data?.customOutputs || []).find((p: any) => p.name === pinName);
+      const pin = (block.data?.customOutputs || []).find((p: any) => p.name === pinName);
       return pin?.type || 'any';
     }
-    if (action === 'cluster/boundary/input') return node.data?.DataType || 'any';
+    if (action === 'cluster/boundary/input') return block.data?.DataType || 'any';
     const layout = registryRef.current?.[action];
     if (layout) {
       if (layout.execOuts?.includes(pinName)) return 'exec';
@@ -1430,10 +1430,10 @@ return {
     return 'any';
   }, []);
 
-  const getInputPinType = useCallback((node: any, pinName: string): string => {
-    const action = node.data?.action;
+  const getInputPinType = useCallback((block: any, pinName: string): string => {
+    const action = block.data?.action;
     if (action?.startsWith('script/')) {
-      const pin = (node.data?.customInputs || []).find((p: any) => p.name === pinName);
+      const pin = (block.data?.customInputs || []).find((p: any) => p.name === pinName);
       return pin?.type || 'any';
     }
     const layout = registryRef.current?.[action];
@@ -1445,12 +1445,12 @@ return {
     return 'any';
   }, []);
 
-  const getNodePinDefs = useCallback((node: any) => {
-    const action = node.data?.action;
+  const getNodePinDefs = useCallback((block: any) => {
+    const action = block.data?.action;
     const layout = registryRef.current?.[action];
     if (action?.startsWith('script/')) {
-      const customIns = (node.data?.customInputs || []).filter((p: any) => p.type !== 'exec');
-      const customOuts = (node.data?.customOutputs || []).filter((p: any) => p.type !== 'exec');
+      const customIns = (block.data?.customInputs || []).filter((p: any) => p.type !== 'exec');
+      const customOuts = (block.data?.customOutputs || []).filter((p: any) => p.type !== 'exec');
       return {
         execIns: layout?.execIns || [],
         execOuts: layout?.execOuts || [],
@@ -1505,10 +1505,10 @@ return {
     return pairs;
   }, [getOutputPinType, getInputPinType]);
 
-  const onNodeDrag = useCallback((_event: any, draggedNode: any) => {
+  const onBlockDrag = useCallback((_event: any, draggedNode: any) => {
     if (!draggedNode) return;
     try {
-    const currentNodes = nodesRef.current;
+    const currentNodes = blocksRef.current;
     const currentEdges = edgesRef.current;
 
     const dragW = draggedNode.measured?.width ?? draggedNode.width ?? 210;
@@ -1517,7 +1517,7 @@ return {
     const dragY = draggedNode.position.y;
     const SNAP_THRESHOLD = 50;
 
-    let bestTarget: { node: any; side: 'left' | 'right'; gap: number } | null = null;
+    let bestTarget: { block: any; side: 'left' | 'right'; gap: number } | null = null;
 
     for (const other of currentNodes) {
       if (other.id === draggedNode.id) continue;
@@ -1528,7 +1528,7 @@ return {
       const otherX = other.position.x;
       const otherY = other.position.y;
 
-      // Check vertical overlap (at least 30% of the smaller node)
+      // Check vertical overlap (at least 30% of the smaller block)
       const overlapTop = Math.max(dragY, otherY);
       const overlapBottom = Math.min(dragY + dragH, otherY + otherH);
       const overlapHeight = Math.max(0, overlapBottom - overlapTop);
@@ -1542,13 +1542,13 @@ return {
       if (gapRight >= -10 && gapRight < SNAP_THRESHOLD) {
         // Dragged is to the LEFT of other → dragged outputs → other inputs
         if (!bestTarget || gapRight < bestTarget.gap) {
-          bestTarget = { node: other, side: 'left', gap: gapRight };
+          bestTarget = { block: other, side: 'left', gap: gapRight };
         }
       }
       if (gapLeft >= -10 && gapLeft < SNAP_THRESHOLD) {
         // Dragged is to the RIGHT of other → other outputs → dragged inputs
         if (!bestTarget || gapLeft < bestTarget.gap) {
-          bestTarget = { node: other, side: 'right', gap: gapLeft };
+          bestTarget = { block: other, side: 'right', gap: gapLeft };
         }
       }
     }
@@ -1565,14 +1565,14 @@ return {
       return;
     }
 
-    const target = bestTarget.node;
+    const target = bestTarget.block;
     const draggedPins = getNodePinDefs(draggedNode);
     const targetPins = getNodePinDefs(target);
     const previews: any[] = [];
 
-    const getEdgeColor = (sourceNode: any, handleName: string, isExec: boolean) => {
+    const getEdgeColor = (sourceBlock: any, handleName: string, isExec: boolean) => {
       if (isExec) return '#a78bfa';
-      const type = getOutputPinType(sourceNode, handleName);
+      const type = getOutputPinType(sourceBlock, handleName);
       return getPinColor(type);
     };
 
@@ -1674,11 +1674,11 @@ return {
       });
     }
     } catch (e) {
-      // Prevent snap-connect errors from breaking node dragging
+      // Prevent snap-connect errors from breaking block dragging
     }
   }, [getNodePinDefs, matchPins, getOutputPinType]);
 
-  const onNodeDragStop = useCallback((_event: any, _draggedNode: any) => {
+  const onBlockDragStop = useCallback((_event: any, _draggedNode: any) => {
     if (snapRafRef.current) {
       cancelAnimationFrame(snapRafRef.current);
       snapRafRef.current = null;
@@ -1730,11 +1730,11 @@ return {
       align: 'UL',
     });
 
-    nodes.forEach((node) => {
-      const width = node.measured?.width ?? node.width ?? (node.style?.width ? parseFloat(String(node.style.width)) : 210);
-      const height = node.measured?.height ?? node.height ?? (node.style?.height ? parseFloat(String(node.style.height)) : 120);
+    blocks.forEach((block) => {
+      const width = block.measured?.width ?? block.width ?? (block.style?.width ? parseFloat(String(block.style.width)) : 210);
+      const height = block.measured?.height ?? block.height ?? (block.style?.height ? parseFloat(String(block.style.height)) : 120);
 
-      dagreGraph.setNode(node.id, {
+      dagreGraph.setNode(block.id, {
         width,
         height,
       });
@@ -1746,14 +1746,14 @@ return {
 
     dagre.layout(dagreGraph);
 
-    const layoutedNodes = nodes.map((node) => {
-      if (node.data?.pinned) {
-        return node;
+    const layoutedNodes = blocks.map((block) => {
+      if (block.data?.pinned) {
+        return block;
       }
 
-      const nodeWithPosition = dagreGraph.node(node.id);
-      const width = node.measured?.width ?? node.width ?? (node.style?.width ? parseFloat(String(node.style.width)) : 210);
-      const height = node.measured?.height ?? node.height ?? (node.style?.height ? parseFloat(String(node.style.height)) : 120);
+      const nodeWithPosition = dagreGraph.node(block.id);
+      const width = block.measured?.width ?? block.width ?? (block.style?.width ? parseFloat(String(block.style.width)) : 210);
+      const height = block.measured?.height ?? block.height ?? (block.style?.height ? parseFloat(String(block.style.height)) : 120);
 
       let newX = nodeWithPosition.x - width / 2;
       let newY = nodeWithPosition.y - height / 2;
@@ -1764,12 +1764,12 @@ return {
       }
 
       return {
-        ...node,
+        ...block,
         position: { x: newX, y: newY },
       };
     });
 
-    setNodes(layoutedNodes);
+    setBlocks(layoutedNodes);
     setIsDirty(true);
 
     if (reactFlowInstance) {
@@ -1777,7 +1777,7 @@ return {
         reactFlowInstance.fitView({ padding: 0.2, duration: 400 });
       }, 50);
     }
-  }, [nodes, edges, snapToGrid, reactFlowInstance, pushStateToHistory, setNodes]);
+  }, [blocks, edges, snapToGrid, reactFlowInstance, pushStateToHistory, setBlocks]);
 
 
 
@@ -1786,7 +1786,7 @@ return {
   // Stable selection handler to avoid infinite render loops
   const onSelectionChange = useCallback(({ nodes: selNodes }: any) => {
     const ids = new Set<string>(selNodes.map((n: any) => n.id));
-    setSelectedNodeIds((prev: Set<string>) => {
+    setSelectedBlockIds((prev: Set<string>) => {
       if (prev.size === ids.size && [...prev].every((id: string) => ids.has(id))) {
         return prev;
       }
@@ -1804,33 +1804,33 @@ return {
       try {
         const exclude = ['action', 'status', 'resultMessage', 'onChange', 'results', 'onEditScript', 'onEditFFISignature', 'onEditLibrarySignature', 'onNavigateInto', 'onInspect'];
 
-        const blueprintNodes = nodesRef.current.map((n: any) => {
+        const blueprintNodes = blocksRef.current.map((n: any) => {
           const props: any = {};
           Object.keys(n.data || {}).forEach((k: string) => { if (!exclude.includes(k)) props[k] = n.data[k]; });
           return { id: n.id, type: n.data.action, position: n.position, properties: props, style: n.style, width: n.width, height: n.height };
         });
         const isExec = (sourceAction: string, sourceHandle: string) => {
-          const layout = nodeRegistry?.[sourceAction];
+          const layout = blockRegistry?.[sourceAction];
           return layout?.execOuts?.includes(sourceHandle) || false;
         };
         const blueprintLinks = edgesRef.current.map((e: any) => ({
           id: e.id,
-          type: isExec(nodesRef.current.find((n: any) => n.id === e.source)?.data?.action || '', e.sourceHandle || '') ? 'exec' : 'data',
-          source_node: e.source,
+          type: isExec(blocksRef.current.find((n: any) => n.id === e.source)?.data?.action || '', e.sourceHandle || '') ? 'exec' : 'data',
+          source_block: e.source,
           source_pin: e.sourceHandle || '',
-          target_node: e.target,
+          target_block: e.target,
           target_pin: e.targetHandle || '',
         }));
 
         const defRes = await axios.get(`${BACKEND_URL}/cluster/${encodeURIComponent(currentLevel.type)}`);
         const existingDef = defRes.data;
 
-        await axios.post(`${BACKEND_URL}/nodes/publish_cluster`, {
+        await axios.post(`${BACKEND_URL}/blocks/publish_cluster`, {
           display_name: existingDef.display_name || existingDef.name || currentLevel.type,
           category: existingDef.category || 'User/Clusters',
           icon: existingDef.icon || '📦',
           description: existingDef.description || '',
-          internal_blueprint: { nodes: blueprintNodes, links: blueprintLinks },
+          internal_blueprint: { blocks: blueprintNodes, links: blueprintLinks },
           boundary_pins: existingDef.boundary_pins,
           destination: existingDef._is_temp ? 'temp' : (existingDef.type_name?.startsWith('workspace/') ? 'workspace' : 'global'),
           type_name: currentLevel.type
@@ -1840,17 +1840,17 @@ return {
         console.error('Failed to save cluster edits:', err);
       }
     }
-  }, [nodeRegistry, fetchRegistry]);
+  }, [blockRegistry, fetchRegistry]);
 
   // Construct payload representing the root Level 0 blueprint
   const getSavePayload = useCallback(() => {
     const curLevelIndex = currentLevelIndexRef.current;
-    const rootNodes = curLevelIndex === 0 ? nodes : (canvasStackRef.current[0]?.savedNodes || []);
+    const rootNodes = curLevelIndex === 0 ? blocks : (canvasStackRef.current[0]?.savedNodes || []);
     const rootEdges = curLevelIndex === 0 ? edges : (canvasStackRef.current[0]?.savedEdges || []);
     const rootAnnotations = curLevelIndex === 0 ? annotations : (canvasStackRef.current[0]?.savedAnnotations || []);
 
     return {
-      nodes: rootNodes.map(({ id, type, position, data, style, width, height }: any) => {
+      blocks: rootNodes.map(({ id, type, position, data, style, width, height }: any) => {
         const persistData = { ...data };
         delete persistData.onChange;
         delete persistData.status;
@@ -1861,7 +1861,7 @@ return {
       edges: rootEdges,
       annotations: rootAnnotations
     };
-  }, [nodes, edges, annotations]);
+  }, [blocks, edges, annotations]);
 
   // Breadcrumb navigation: navigate to a specific level
   const handleBreadcrumbNavigate = useCallback(async (index: number) => {
@@ -1872,7 +1872,7 @@ return {
     const updatedStack = [...canvasStackRef.current];
     updatedStack[curLevelIndex] = {
       ...updatedStack[curLevelIndex],
-      savedNodes: nodesRef.current,
+      savedNodes: blocksRef.current,
       savedEdges: edgesRef.current,
       savedAnnotations: annotationsRef.current,
     };
@@ -1881,13 +1881,13 @@ return {
     await saveCurrentClusterEdits();
 
     const targetLevel = updatedStack[index];
-    // Recreate node and data object references to force React Flow to rebuild the components
+    // Recreate block and data object references to force React Flow to rebuild the components
     // and visually pick up the updated cluster inputs/outputs registry schema immediately.
-    const restoredNodes = (targetLevel.savedNodes || []).map((node: any) => ({
-      ...node,
-      data: getBaseNodeData(node.data)
+    const restoredNodes = (targetLevel.savedNodes || []).map((block: any) => ({
+      ...block,
+      data: getBaseBlockData(block.data)
     }));
-    setNodes(restoredNodes);
+    setBlocks(restoredNodes);
     setEdges(targetLevel.savedEdges || []);
     setAnnotations(targetLevel.savedAnnotations || []);
     setShouldFitView(true);
@@ -1895,7 +1895,7 @@ return {
     updatedStack.length = index + 1;
     setCanvasStack(updatedStack);
     setCurrentLevelIndex(index);
-  }, [saveCurrentClusterEdits, setNodes, setEdges, setAnnotations, getBaseNodeData]);
+  }, [saveCurrentClusterEdits, setBlocks, setEdges, setAnnotations, getBaseBlockData]);
 
 
 
@@ -1942,19 +1942,19 @@ return {
     }
   };
 
-  // Base node data factory
+  // Base block data factory
   const registryRef = useRef<any>(null);
-  registryRef.current = nodeRegistry;
+  registryRef.current = blockRegistry;
 
   // Connect pins (execution wires get purple styling, data wires get dynamically colored styling)
   const onConnect = useCallback(
     (params: Connection | Edge) => {
       pushStateToHistory();
       setIsDirty(true);
-      const currentNodes = nodesRef.current;
+      const currentNodes = blocksRef.current;
       const currentRegistry = registryRef.current;
-      const sourceNode = currentNodes.find((n: any) => n.id === params.source);
-      const layout = currentRegistry?.[sourceNode?.data?.action || ''];
+      const sourceBlock = currentNodes.find((n: any) => n.id === params.source);
+      const layout = currentRegistry?.[sourceBlock?.data?.action || ''];
       
       let isExec = false;
       let pinColor = '#10b981';
@@ -1964,11 +1964,11 @@ return {
           isExec = true;
           pinColor = '#a78bfa';
         } else {
-          if (sourceNode?.data?.action === 'cluster/boundary/input') {
-            const dataType = sourceNode.data.DataType || 'any';
+          if (sourceBlock?.data?.action === 'cluster/boundary/input') {
+            const dataType = sourceBlock.data.DataType || 'any';
             pinColor = getPinColor(dataType);
-          } else if (sourceNode?.data?.action && sourceNode.data.action.startsWith('script/')) {
-            const pin = (sourceNode.data.customOutputs || []).find((p: any) => p.name === params.sourceHandle);
+          } else if (sourceBlock?.data?.action && sourceBlock.data.action.startsWith('script/')) {
+            const pin = (sourceBlock.data.customOutputs || []).find((p: any) => p.name === params.sourceHandle);
             if (pin) { pinColor = getPinColor(pin.type); }
           } else {
             const pin = layout.dataOuts.find((p: any) => p.name === params.sourceHandle);
@@ -2010,8 +2010,8 @@ return {
     if (!isValid && targetIsPane && quickConnectStartRef.current) {
        const { nodeId, handleId, handleType } = quickConnectStartRef.current;
        
-       const sourceNode = nodesRef.current.find((n: any) => n.id === nodeId);
-       const layout = registryRef.current?.[sourceNode?.data?.action];
+       const sourceBlock = blocksRef.current.find((n: any) => n.id === nodeId);
+       const layout = registryRef.current?.[sourceBlock?.data?.action];
        let isExec = false;
        if (layout) {
          if (handleType === 'source') {
@@ -2047,7 +2047,7 @@ return {
          clientY,
          offsetX,
          offsetY,
-         sourceNodeId: nodeId,
+         sourceBlockId: nodeId,
          sourceHandleId: handleId,
          sourceHandleType: handleType
        });
@@ -2061,7 +2061,7 @@ return {
     event.dataTransfer.dropEffect = 'move';
   }, []);
 
-  const addNodeAtClientPosition = useCallback((type: string, clientX: number, clientY: number) => {
+  const addBlockAtClientPosition = useCallback((type: string, clientX: number, clientY: number) => {
     if (!reactFlowInstance) return null;
 
     pushStateToHistory();
@@ -2081,7 +2081,7 @@ return {
       };
     }
 
-    const layout = nodeRegistry?.[type];
+    const layout = blockRegistry?.[type];
     if (!layout) return;
 
     // Populate default property values
@@ -2131,34 +2131,34 @@ return {
     }
 
 
-    const newNodeId = getId();
-    const newNode: Node = {
-      id: newNodeId,
+    const newBlockId = getId();
+    const newBlock: Node = {
+      id: newBlockId,
       type: 'actionNode',
       position,
-      data: getBaseNodeData({
+      data: getBaseBlockData({
         action: type,
         ...initialProps
       }),
-      style: (nodeRegistry?.[type]?.defaultWidth && nodeRegistry?.[type]?.defaultHeight)
-        ? { width: nodeRegistry[type].defaultWidth, height: nodeRegistry[type].defaultHeight }
+      style: (blockRegistry?.[type]?.defaultWidth && blockRegistry?.[type]?.defaultHeight)
+        ? { width: blockRegistry[type].defaultWidth, height: blockRegistry[type].defaultHeight }
         : {
             width: 210,
             minHeight: (type && type.startsWith('script/')) ? 220 : 160
           },
     };
 
-    setNodes((nds) => nds.concat(newNode));
-    return newNodeId;
-  }, [reactFlowInstance, nodeRegistry, pushStateToHistory, getBaseNodeData, snapToGrid, setNodes, isLocked]);
+    setBlocks((nds) => nds.concat(newBlock));
+    return newBlockId;
+  }, [reactFlowInstance, blockRegistry, pushStateToHistory, getBaseBlockData, snapToGrid, setBlocks, isLocked]);
 
   const handleQuickConnect = useCallback((menu: any, createType: string) => {
     setQuickConnectMenu(null);
-    const { clientX, clientY, sourceNodeId, sourceHandleId, sourceHandleType } = menu;
+    const { clientX, clientY, sourceBlockId, sourceHandleId, sourceHandleType } = menu;
 
-    const sourceNode = nodesRef.current.find((n: any) => n.id === sourceNodeId);
-    if (!sourceNode) return;
-    const layout = nodeRegistry?.[sourceNode.data.action];
+    const sourceBlock = blocksRef.current.find((n: any) => n.id === sourceBlockId);
+    if (!sourceBlock) return;
+    const layout = blockRegistry?.[sourceBlock.data.action];
     if (!layout) return;
 
     let dataType = 'any';
@@ -2170,8 +2170,8 @@ return {
       if (pin) dataType = pin.type || 'any';
     }
 
-    const newNodeId = addNodeAtClientPosition(createType, clientX, clientY);
-    if (newNodeId) {
+    const newBlockId = addBlockAtClientPosition(createType, clientX, clientY);
+    if (newBlockId) {
       setTimeout(() => {
         const newLayout = registryRef.current?.[createType];
         if (!newLayout) return;
@@ -2180,9 +2180,9 @@ return {
 
         const newEdge = {
           id: `edge_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-          source: sourceHandleType === 'source' ? sourceNodeId : newNodeId,
+          source: sourceHandleType === 'source' ? sourceBlockId : newBlockId,
           sourceHandle: sourceHandleType === 'source' ? sourceHandleId : newLayout.dataOuts?.[0]?.name,
-          target: sourceHandleType === 'source' ? newNodeId : sourceNodeId,
+          target: sourceHandleType === 'source' ? newBlockId : sourceBlockId,
           targetHandle: sourceHandleType === 'source' ? newLayout.dataIns?.[0]?.name : sourceHandleId,
           style: { stroke: edgeColor, strokeWidth: 1.5, animated: false },
           markerEnd: { type: MarkerType.ArrowClosed, color: edgeColor },
@@ -2192,7 +2192,7 @@ return {
         setEdges((eds: any) => [...eds, newEdge]);
       }, 100);
     }
-  }, [nodeRegistry, setEdges, addNodeAtClientPosition]);
+  }, [blockRegistry, setEdges, addBlockAtClientPosition]);
 
   const onDrop = useCallback(
     (event: React.DragEvent) => {
@@ -2200,26 +2200,26 @@ return {
       event.preventDefault();
       const type = event.dataTransfer.getData('application/reactflow');
       if (!type) return;
-      addNodeAtClientPosition(type, event.clientX, event.clientY);
+      addBlockAtClientPosition(type, event.clientX, event.clientY);
     },
-    [addNodeAtClientPosition, isLocked]
+    [addBlockAtClientPosition, isLocked]
   );
 
-  const handleReplaceNode = useCallback((nodeId: string, replacementAction: string) => {
+  const handleReplaceBlock = useCallback((blockId: string, replacementAction: string) => {
     pushStateToHistory();
     setIsDirty(true);
 
-    const schema = nodeRegistry?.[replacementAction];
+    const schema = blockRegistry?.[replacementAction];
     if (!schema) return;
 
-    const newBaseData = getBaseNodeData({
+    const newBaseData = getBaseBlockData({
       action: replacementAction,
     });
 
-    setNodes((nds) =>
+    setBlocks((nds) =>
       nds.map((n) => {
-        if (n.id === nodeId) {
-          const oldSchema = nodeRegistry?.[n.data?.action];
+        if (n.id === blockId) {
+          const oldSchema = blockRegistry?.[n.data?.action];
           const isDefaultName = !n.data?.customName || n.data.customName === oldSchema?.name || n.data.customName === n.data?.action;
           const customName = isDefaultName ? schema.name : n.data?.customName;
           return {
@@ -2243,30 +2243,30 @@ return {
 
     setEdges((eds) =>
       eds.filter((edge) => {
-        if (edge.target === nodeId) {
+        if (edge.target === blockId) {
           const pin = edge.targetHandle || '';
           return newExecIns.includes(pin) || newDataIns.includes(pin);
         }
-        if (edge.source === nodeId) {
+        if (edge.source === blockId) {
           const pin = edge.sourceHandle || '';
           return newExecOuts.includes(pin) || newDataOuts.includes(pin);
         }
         return true;
       })
     );
-  }, [nodeRegistry, getBaseNodeData, setNodes, setEdges, pushStateToHistory]);
+  }, [blockRegistry, getBaseBlockData, setBlocks, setEdges, pushStateToHistory]);
 
-  const handleDeleteNodeFromMenu = useCallback((id: string) => {
+  const handleDeleteBlockFromMenu = useCallback((id: string) => {
     pushStateToHistory();
     setIsDirty(true);
-    const selectedIds = new Set(nodes.filter(n => n.selected).map(n => n.id));
+    const selectedIds = new Set(blocks.filter(n => n.selected).map(n => n.id));
     if (!selectedIds.has(id)) {
       selectedIds.add(id);
     }
-    setNodes(nds => nds.filter(n => !selectedIds.has(n.id)));
+    setBlocks(nds => nds.filter(n => !selectedIds.has(n.id)));
     setEdges(eds => eds.filter(edge => !selectedIds.has(edge.source) && !selectedIds.has(edge.target)));
-    setSelectedNodeIds(new Set());
-  }, [nodes, setNodes, setEdges, pushStateToHistory]);
+    setSelectedBlockIds(new Set());
+  }, [blocks, setBlocks, setEdges, pushStateToHistory]);
 
   const handleDeleteEdgeFromMenu = useCallback((id: string) => {
     pushStateToHistory();
@@ -2291,15 +2291,15 @@ return {
     []
   );
 
-  const onNodeContextMenu = useCallback(
-    (event: any, node: any) => {
+  const onBlockContextMenu = useCallback(
+    (event: any, block: any) => {
       event.preventDefault();
       if (!reactFlowWrapper.current) return;
       const rect = reactFlowWrapper.current.getBoundingClientRect();
 
-      setNodes((nds) =>
+      setBlocks((nds) =>
         nds.map((n) => {
-          if (n.id === node.id) {
+          if (n.id === block.id) {
             return { ...n, selected: true };
           }
           return event.shiftKey ? n : { ...n, selected: n.selected };
@@ -2312,11 +2312,11 @@ return {
         y: event.clientY - rect.top,
         clientX: event.clientX,
         clientY: event.clientY,
-        type: 'node',
-        targetId: node.id,
+        type: 'block',
+        targetId: block.id,
       });
     },
-    [setNodes]
+    [setBlocks]
   );
 
   const onSelectionContextMenu = useCallback(
@@ -2360,7 +2360,7 @@ return {
   const handleWrapperMouseDown = useCallback((event: React.MouseEvent) => {
     if (canvasMode !== 'cut' || event.button !== 0) return;
     
-    // Prevent cutting when the user clicks on a node, handle, or controls to drag/connect
+    // Prevent cutting when the user clicks on a block, handle, or controls to drag/connect
     const target = event.target as HTMLElement;
     if (target.closest('.react-flow__node') || target.closest('.react-flow__handle') || target.closest('.react-flow__controls')) {
       return;
@@ -2463,31 +2463,31 @@ return {
 
 
 
-  // Group selected nodes into a cluster
+  // Group selected blocks into a cluster
   const handleGroupIntoCluster = useCallback(() => {
-    if (selectedNodeIds.size < 2) {
-      alert('Select at least 2 nodes on the canvas to group into a cluster.\n\nClick nodes while holding Shift, or drag a selection box.');
+    if (selectedBlockIds.size < 2) {
+      alert('Select at least 2 blocks on the canvas to group into a cluster.\n\nClick blocks while holding Shift, or drag a selection box.');
       return;
     }
 
-    const boundary = detectBoundaryPins(selectedNodeIds, nodes, edges, nodeRegistry);
+    const boundary = detectBoundaryPins(selectedBlockIds, blocks, edges, blockRegistry);
     setDetectedBoundary(boundary);
-    setSelectedForCluster(Array.from(selectedNodeIds));
+    setSelectedForCluster(Array.from(selectedBlockIds));
     setCreateClusterOpen(true);
-  }, [selectedNodeIds, nodes, edges, nodeRegistry]);
+  }, [selectedBlockIds, blocks, edges, blockRegistry]);
 
-  // Collapse selected nodes into a single cluster node on the canvas
+  // Collapse selected blocks into a single cluster block on the canvas
   const collapseIntoClusterNode = useCallback((typeName: string, clusterNodeData: any) => {
-    if (selectedNodeIds.size === 0) return;
+    if (selectedBlockIds.size === 0) return;
 
     pushStateToHistory();
     setIsDirty(true);
 
-    const boundary = detectBoundaryPins(selectedNodeIds, nodes, edges, nodeRegistry);
+    const boundary = detectBoundaryPins(selectedBlockIds, blocks, edges, blockRegistry);
 
     // Calculate bounding box center
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    const selNodes = nodes.filter((n: any) => selectedNodeIds.has(n.id));
+    const selNodes = blocks.filter((n: any) => selectedBlockIds.has(n.id));
     selNodes.forEach((n: any) => {
       minX = Math.min(minX, n.position.x);
       minY = Math.min(minY, n.position.y);
@@ -2507,13 +2507,13 @@ return {
     const centerX = (minX + maxX) / 2;
     const centerY = (minY + maxY) / 2;
 
-    // Create cluster node
+    // Create cluster block
     const clusterNodeId = getId();
     const clusterNode: any = {
       id: clusterNodeId,
       type: 'actionNode',
       position: { x: centerX - 105, y: centerY - 80 },
-      data: getBaseNodeData({
+      data: getBaseBlockData({
         action: typeName,
         ...clusterNodeData,
       }),
@@ -2525,8 +2525,8 @@ return {
 
     // Build new edges: keep edges that are external to the selection, reconnect boundary edges
     const newEdges = edges.filter((edge: any) => {
-      const srcInside = selectedNodeIds.has(edge.source);
-      const tgtInside = selectedNodeIds.has(edge.target);
+      const srcInside = selectedBlockIds.has(edge.source);
+      const tgtInside = selectedBlockIds.has(edge.target);
       // Keep edges where both ends are outside
       if (!srcInside && !tgtInside) return true;
       // Remove edges where both ends are inside
@@ -2537,7 +2537,7 @@ return {
 
     // Recreate boundary edges
     boundary.data_ins.forEach((pin: any) => {
-      const origEdge = edges.find((e: any) => e.target === pin.maps_to.node_id && e.targetHandle === pin.maps_to.pin);
+      const origEdge = edges.find((e: any) => e.target === pin.maps_to.block_id && e.targetHandle === pin.maps_to.pin);
       if (origEdge) {
         newEdges.push({
           id: `cluster_bdi_${origEdge.id}`,
@@ -2553,7 +2553,7 @@ return {
     });
 
     boundary.exec_ins.forEach((pin: any) => {
-      const origEdge = edges.find((e: any) => e.target === pin.maps_to.node_id && e.targetHandle === pin.maps_to.pin);
+      const origEdge = edges.find((e: any) => e.target === pin.maps_to.block_id && e.targetHandle === pin.maps_to.pin);
       if (origEdge) {
         newEdges.push({
           id: `cluster_ei_${origEdge.id}`,
@@ -2569,7 +2569,7 @@ return {
     });
 
     boundary.data_outs.forEach((pin: any) => {
-      const origEdge = edges.find((e: any) => e.source === pin.maps_from.node_id && e.sourceHandle === pin.maps_from.pin);
+      const origEdge = edges.find((e: any) => e.source === pin.maps_from.block_id && e.sourceHandle === pin.maps_from.pin);
       if (origEdge) {
         newEdges.push({
           id: `cluster_bdo_${origEdge.id}`,
@@ -2585,7 +2585,7 @@ return {
     });
 
     boundary.exec_outs.forEach((pin: any) => {
-      const origEdge = edges.find((e: any) => e.source === pin.maps_from.node_id && e.sourceHandle === pin.maps_from.pin);
+      const origEdge = edges.find((e: any) => e.source === pin.maps_from.block_id && e.sourceHandle === pin.maps_from.pin);
       if (origEdge) {
         newEdges.push({
           id: `cluster_eo_${origEdge.id}`,
@@ -2600,14 +2600,14 @@ return {
       }
     });
 
-    // Remove selected nodes and add cluster node
-    const remainingNodes = nodes.filter((n: any) => !selectedNodeIds.has(n.id));
+    // Remove selected blocks and add cluster block
+    const remainingNodes = blocks.filter((n: any) => !selectedBlockIds.has(n.id));
     remainingNodes.push(clusterNode);
 
-    setNodes(remainingNodes);
+    setBlocks(remainingNodes);
     setEdges(newEdges);
     setCreateClusterOpen(false);
-  }, [nodes, edges, nodeRegistry, selectedNodeIds, getBaseNodeData, setNodes, setEdges, pushStateToHistory]);
+  }, [blocks, edges, blockRegistry, selectedBlockIds, getBaseBlockData, setBlocks, setEdges, pushStateToHistory]);
 
 
   const handleSaveBlueprint = useCallback(async () => {
@@ -2628,13 +2628,13 @@ return {
     setIsDirty(false);
   }, [currentBlueprintName, getSavePayload, saveCurrentClusterEdits]);
   const loadBlueprintData = (payload: any, filename: string) => {
-    const restoredNodes = payload.nodes.map((node: any) => ({
-      ...node,
-      data: getBaseNodeData({
-        ...node.data,
+    const restoredNodes = payload.blocks.map((block: any) => ({
+      ...block,
+      data: getBaseBlockData({
+        ...block.data,
       })
     }));
-    setNodes(restoredNodes);
+    setBlocks(restoredNodes);
     setEdges(rewriteEdgeStyles(payload.edges));
     setAnnotations(payload.annotations || []);
     setErrorMessage(null);
@@ -2652,7 +2652,7 @@ return {
       try {
         const content = e.target?.result as string;
         const payload = JSON.parse(content);
-        if (payload.nodes && Array.isArray(payload.nodes) && payload.edges && Array.isArray(payload.edges)) {
+        if (payload.blocks && Array.isArray(payload.blocks) && payload.edges && Array.isArray(payload.edges)) {
           // Check origin
           const originUuid = payload.creator_identity || payload.origin_uuid;
           const isOriginTrusted = originUuid && 
@@ -2722,9 +2722,9 @@ return {
       // Refresh list & counts
       await fetchWorkspaceBlueprints();
       
-      // Refresh sidebar node templates
-      const templatesRes = await axios.get(`${BACKEND_URL}/nodes`);
-      setNodeRegistry(templatesRes.data);
+      // Refresh sidebar block templates
+      const templatesRes = await axios.get(`${BACKEND_URL}/blocks`);
+      setBlockRegistry(templatesRes.data);
       
       console.log(`Successfully imported package: ${packageFilename}`);
     } catch (err: any) {
@@ -2742,7 +2742,7 @@ return {
     try {
       const loadRes = await axios.get(`${BACKEND_URL}/workspace/blueprints/${encodeURIComponent(filename)}`);
       const payload = loadRes.data;
-      if (payload.nodes && Array.isArray(payload.nodes) && payload.edges && Array.isArray(payload.edges)) {
+      if (payload.blocks && Array.isArray(payload.blocks) && payload.edges && Array.isArray(payload.edges)) {
         if (payload.origin_trusted === false) {
           setTrustWarningMessage(payload.origin_warning || "This blueprint is from another origin.");
           setPendingBlueprint(payload);
@@ -2782,7 +2782,7 @@ return {
 
   const triggerSaveToWorkspace = () => {
     const curLevelIndex = currentLevelIndexRef.current;
-    const rootNodes = curLevelIndex === 0 ? nodes : (canvasStackRef.current[0]?.savedNodes || []);
+    const rootNodes = curLevelIndex === 0 ? blocks : (canvasStackRef.current[0]?.savedNodes || []);
     if (rootNodes.length === 0) return;
     setSaveFilenameInput(currentBlueprintName || '');
     setSaveWorkspaceOpen(true);
@@ -2790,7 +2790,7 @@ return {
 
   const handleOverwriteToWorkspace = async () => {
     const curLevelIndex = currentLevelIndexRef.current;
-    const rootNodes = curLevelIndex === 0 ? nodes : (canvasStackRef.current[0]?.savedNodes || []);
+    const rootNodes = curLevelIndex === 0 ? blocks : (canvasStackRef.current[0]?.savedNodes || []);
     if (!currentBlueprintName || rootNodes.length === 0) return;
 
     if (curLevelIndex > 0) {
@@ -2814,7 +2814,7 @@ return {
 
   const handleSaveToWorkspaceWithFilename = async () => {
     const curLevelIndex = currentLevelIndexRef.current;
-    const rootNodes = curLevelIndex === 0 ? nodes : (canvasStackRef.current[0]?.savedNodes || []);
+    const rootNodes = curLevelIndex === 0 ? blocks : (canvasStackRef.current[0]?.savedNodes || []);
     if (rootNodes.length === 0) return;
     const trimmed = saveFilenameInput.trim();
     if (!trimmed) {
@@ -2884,7 +2884,7 @@ return {
         return {
           ...t,
           name: currentBlueprintName || t.name,
-          nodes: nodesRef.current,
+          blocks: blocksRef.current,
           edges: edgesRef.current,
           annotations: annotationsRef.current,
           isDirty: isDirty,
@@ -2901,7 +2901,7 @@ return {
     const targetTab = tabs.find(t => t.id === targetTabId);
     if (targetTab) {
       // 3. Load target tab state into active states
-      setNodes(targetTab.nodes);
+      setBlocks(targetTab.blocks);
       setEdges(targetTab.edges);
       setAnnotations(targetTab.annotations || []);
       setCurrentBlueprintName(targetTab.name === 'Untitled' ? '' : targetTab.name);
@@ -2924,7 +2924,7 @@ return {
         return {
           ...t,
           name: currentBlueprintName || t.name,
-          nodes: nodesRef.current,
+          blocks: blocksRef.current,
           edges: edgesRef.current,
           annotations: annotationsRef.current,
           isDirty: isDirty,
@@ -2942,7 +2942,7 @@ return {
     const newTab: Tab = {
       id: newTabId,
       name: 'Untitled',
-      nodes: [],
+      blocks: [],
       edges: [],
       annotations: [],
       isDirty: false,
@@ -2956,7 +2956,7 @@ return {
     setActiveTabId(newTabId);
 
     // Reset active states for the new tab
-    setNodes([]);
+    setBlocks([]);
     setEdges([]);
     setAnnotations([]);
     setCurrentBlueprintName('');
@@ -3003,7 +3003,7 @@ return {
       const newTab: Tab = {
         id: newTabId,
         name: 'Untitled',
-        nodes: [],
+        blocks: [],
         edges: [],
         annotations: [],
         isDirty: false,
@@ -3014,7 +3014,7 @@ return {
       };
       setTabs([newTab]);
       setActiveTabId(newTabId);
-      setNodes([]);
+      setBlocks([]);
       setEdges([]);
       setAnnotations([]);
       setCurrentBlueprintName('');
@@ -3033,7 +3033,7 @@ return {
         const nextActiveTab = remainingTabs[Math.max(0, closedIndex - 1)];
         
         // Switch states
-        setNodes(nextActiveTab.nodes);
+        setBlocks(nextActiveTab.blocks);
         setEdges(nextActiveTab.edges);
         setAnnotations(nextActiveTab.annotations || []);
         setCurrentBlueprintName(nextActiveTab.name === 'Untitled' ? '' : nextActiveTab.name);
@@ -3129,21 +3129,21 @@ return {
 
       if (e.key === 'Delete' || e.key === 'Backspace') {
         if (isLocked) return;
-        const selectedNodes = nodesRef.current.filter(n => n.selected);
+        const selectedNodes = blocksRef.current.filter(n => n.selected);
         const selectedEdges = edgesRef.current.filter(e => e.selected);
         if (selectedNodes.length > 0 || selectedEdges.length > 0) {
           e.preventDefault();
           pushStateToHistory();
           setIsDirty(true);
           
-          const selectedNodeIds = new Set(selectedNodes.map(n => n.id));
-          setNodes(nds => nds.filter(n => !selectedNodeIds.has(n.id)));
+          const selectedBlockIds = new Set(selectedNodes.map(n => n.id));
+          setBlocks(nds => nds.filter(n => !selectedBlockIds.has(n.id)));
           setEdges(eds => eds.filter(edge => 
             !selectedEdges.some(se => se.id === edge.id) && 
-            !selectedNodeIds.has(edge.source) && 
-            !selectedNodeIds.has(edge.target)
+            !selectedBlockIds.has(edge.source) && 
+            !selectedBlockIds.has(edge.target)
           ));
-          setSelectedNodeIds(new Set());
+          setSelectedBlockIds(new Set());
         }
       }
 
@@ -3208,9 +3208,9 @@ return {
   // Group and filter categories with subcategories
   const filteredGrouped: Record<string, GroupedCategory> = {};
 
-  if (nodeRegistry) {
+  if (blockRegistry) {
     const query = searchQuery.toLowerCase().trim();
-    Object.entries(nodeRegistry).forEach(([type, nodeSchema]: [string, any]) => {
+    Object.entries(blockRegistry).forEach(([type, nodeSchema]: [string, any]) => {
       const name = (nodeSchema.name || '').toLowerCase();
       const desc = (nodeSchema.description || '').toLowerCase();
       const catString = nodeSchema.category || 'Other';
@@ -3257,15 +3257,15 @@ return {
 
   const handleReloadRegistry = async () => {
     try {
-      const res = await axios.post(`${BACKEND_URL}/nodes/reload`);
-      setNodeRegistry(res.data);
+      const res = await axios.post(`${BACKEND_URL}/blocks/reload`);
+      setBlockRegistry(res.data);
     } catch (err) {
-      console.error('Failed to reload node registry:', err);
+      console.error('Failed to reload block registry:', err);
     }
   };
 
   return (
-    <RegistryContext.Provider value={nodeRegistry}>
+    <RegistryContext.Provider value={blockRegistry}>
       <div className="app-container">
         {/* --- TOP BAR / TOOLBAR --- */}
         <TopBar
@@ -3282,15 +3282,15 @@ return {
           isRunning={isRunning}
           isPaused={isPaused}
           runningTabName={tabs.find(t => t.id === runningTabId)?.name || 'Untitled'}
-          nodesCount={nodes.length}
-          selectedNodesCount={nodes.filter(n => n.selected).length}
+          blocksCount={blocks.length}
+          selectedBlocksCount={blocks.filter(n => n.selected).length}
           theme={theme}
           setTheme={setTheme}
           menuContainerRef={menuContainerRef}
           onNewBlueprint={async () => {
             setMenuOpen(false);
             if (await confirmAsync('Are you sure you want to clear the canvas and start a new blueprint?')) {
-              setNodes([]);
+              setBlocks([]);
               setEdges([]);
               setCurrentBlueprintName('');
               setIsDirty(false);
@@ -3338,7 +3338,7 @@ return {
                   const newTab: Tab = {
                     id: newTabId,
                     name: 'Untitled',
-                    nodes: [],
+                    blocks: [],
                     edges: [],
                     annotations: [],
                     isDirty: false,
@@ -3349,7 +3349,7 @@ return {
                   };
                   setTabs([newTab]);
                   setActiveTabId(newTabId);
-                  setNodes([]);
+                  setBlocks([]);
                   setEdges([]);
                   setAnnotations([]);
                   setCurrentBlueprintName('');
@@ -3362,7 +3362,7 @@ return {
                   setTabs(remainingTabs);
                   if (isActiveClosed) {
                     const nextActiveTab = remainingTabs[0];
-                    setNodes(nextActiveTab.nodes);
+                    setBlocks(nextActiveTab.blocks);
                     setEdges(nextActiveTab.edges);
                     setAnnotations(nextActiveTab.annotations || []);
                     setCurrentBlueprintName(nextActiveTab.name === 'Untitled' ? '' : nextActiveTab.name);
@@ -3382,12 +3382,12 @@ return {
           }}
           onClearPersistentStates={async () => {
             setMenuOpen(false);
-            if (await confirmAsync('Are you sure you want to clear all persistent node states and release their open handles/memory?')) {
+            if (await confirmAsync('Are you sure you want to clear all persistent block states and release their open handles/memory?')) {
               try {
-                await axios.post(`${BACKEND_URL}/nodes/clear_persistent`);
+                await axios.post(`${BACKEND_URL}/blocks/clear_persistent`);
               } catch (err) {
-                console.error('Failed to clear persistent nodes:', err);
-                alert('Failed to clear persistent node states.');
+                console.error('Failed to clear persistent blocks:', err);
+                alert('Failed to clear persistent block states.');
               }
             }
           }}
@@ -3490,11 +3490,11 @@ return {
                 <button className="error-close-btn" onClick={() => setErrorMessage(null)} title="Clear error">✕</button>
               </div>
             )}
-            {unauthorizedNodesCount > 0 && (
+            {unauthorizedBlocksCount > 0 && (
               <div className="canvas-error-alert glass-panel" style={{ border: '1px solid #f59e0b', background: 'rgba(245, 158, 11, 0.08)', display: 'flex', alignItems: 'center', gap: '10px', zIndex: 10 }}>
                 <span className="error-icon" style={{ color: '#f59e0b' }}>⚠️</span>
                 <span className="error-message" style={{ color: '#f59e0b', flex: 1, margin: 0 }}>
-                  You have {unauthorizedNodesCount} unauthorized custom node(s)/cluster(s) in your workspace.
+                  You have {unauthorizedBlocksCount} unauthorized custom block(s)/cluster(s) in your workspace.
                 </span>
                 <button 
                   className="button-primary" 
@@ -3511,7 +3511,7 @@ return {
                 <button 
                   className="button-secondary library-toggle-btn"
                   onClick={() => setSidebarOpen(true)}
-                  title="Show Node Library"
+                  title="Show Block Library"
                 >
                   <span>📚</span>
                   <span>Show Library</span>
@@ -3527,21 +3527,21 @@ return {
                   <span>Back</span>
                 </button>
               )}
-              {selectedNodeIds.size >= 2 && (
+              {selectedBlockIds.size >= 2 && (
                 <button
                   className="button-primary cluster-group-btn"
                   onClick={handleGroupIntoCluster}
                   disabled={isRunning}
-                  title={isRunning ? "Cannot group nodes while an execution is running" : "Group selected nodes into a cluster"}
+                  title={isRunning ? "Cannot group blocks while an execution is running" : "Group selected blocks into a cluster"}
                 >
-                  📦 Group into Cluster ({selectedNodeIds.size})
+                  📦 Group into Cluster ({selectedBlockIds.size})
                 </button>
               )}
             </div>
             <ReactFlow
-              nodes={nodes.map((n: any) => ({ ...n, draggable: !isLocked && !n.data?.pinned }))}
+              nodes={blocks.map((n: any) => ({ ...n, draggable: !isLocked && !n.data?.pinned }))}
               edges={snapPreviewEdges.length > 0 ? [...edges, ...snapPreviewEdges] : edges}
-              onNodesChange={onNodesChange}
+              onNodesChange={onBlocksChange}
               onEdgesChange={onEdgesChange}
               onConnect={onConnect}
               onConnectStart={onConnectStart}
@@ -3550,14 +3550,14 @@ return {
               onDrop={onDrop}
               onDragOver={onDragOver}
               onSelectionChange={onSelectionChange}
-              onNodeDragStart={onNodeDragStart}
-              onNodeDrag={onNodeDrag}
-              onNodeDragStop={onNodeDragStop}
+              onNodeDragStart={onBlockDragStart}
+              onNodeDrag={onBlockDrag}
+              onNodeDragStop={onBlockDragStop}
               isValidConnection={(connection) => {
                 if (!connection.sourceHandle || !connection.targetHandle) return true;
                 return true;
               }}
-              nodeTypes={nodeTypes}
+              nodeTypes={blockTypes}
               edgeTypes={edgeTypes}
               minZoom={0.2}
               maxZoom={2}
@@ -3572,7 +3572,7 @@ return {
               nodesConnectable={!isLocked}
               elementsSelectable={!isLocked}
               onPaneContextMenu={onPaneContextMenu}
-              onNodeContextMenu={onNodeContextMenu}
+              onNodeContextMenu={onBlockContextMenu}
               onSelectionContextMenu={onSelectionContextMenu}
               onEdgeContextMenu={onEdgeContextMenu}
               onPaneClick={closeContextMenu}
@@ -3584,7 +3584,7 @@ return {
               <Controls showInteractive={false}>
                 <ControlButton
                   onClick={onLayout}
-                  title="Auto-Organize Nodes: Clean up and lay out nodes from left to right"
+                  title="Auto-Organize Blocks: Clean up and lay out blocks from left to right"
                 >
                   <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', margin: 'auto' }}>
                     <rect x="2" y="9.5" width="6" height="5" rx="1" />
@@ -3597,7 +3597,7 @@ return {
                 <ControlButton
                   onClick={() => setIsLocked(prev => !prev)}
                   className={`control-btn-lock ${isLocked ? 'control-btn-active' : ''}`}
-                  title={isLocked ? 'Unlock Interactivity: Canvas is LOCKED' : 'Lock Interactivity: Prevent moving or connecting nodes'}
+                  title={isLocked ? 'Unlock Interactivity: Canvas is LOCKED' : 'Lock Interactivity: Prevent moving or connecting blocks'}
                 >
                   {isLocked ? (
                     <svg viewBox="0 0 25 32" width="15" height="15" style={{ display: 'block', margin: 'auto' }}>
@@ -3640,7 +3640,7 @@ return {
                 <ControlButton
                   onClick={() => setCanvasMode('select')}
                   className={`control-btn-select ${canvasMode === 'select' ? 'control-btn-active' : ''}`}
-                  title="Selection Mode: Left-click drag to select nodes, Middle/Right-click drag to pan"
+                  title="Selection Mode: Left-click drag to select blocks, Middle/Right-click drag to pan"
                 >
                   <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', margin: 'auto' }}>
                     <polygon points="3 3 10.07 19.97 12.58 12.58 19.97 10.07 3 3"></polygon>
@@ -3714,7 +3714,7 @@ return {
                 markedForDeletion={markedForDeletion}
                 hoverPoint={hoverPoint}
                 editingTextId={editingTextId}
-                nodes={nodes}
+                blocks={blocks}
                 edges={edges}
                 pushStateToHistory={pushStateToHistory}
                 setAnnotations={setAnnotations}
@@ -3756,16 +3756,16 @@ return {
               contextMenu={contextMenu}
               contextMenuSearch={contextMenuSearch}
               setContextMenuSearch={setContextMenuSearch}
-              nodeRegistry={nodeRegistry}
+              blockRegistry={blockRegistry}
               isLocked={isLocked}
               snapToGrid={snapToGrid}
               showAnnotations={showAnnotations}
-              selectedNodeIds={selectedNodeIds}
-              clipboardNodesCount={clipboardNodesCount}
-              nodes={nodes}
+              selectedBlockIds={selectedBlockIds}
+              clipboardBlocksCount={clipboardBlocksCount}
+              blocks={blocks}
               edges={edges}
               onClose={closeContextMenu}
-              onAddNodeAtClientPosition={addNodeAtClientPosition}
+              onAddNodeAtClientPosition={addBlockAtClientPosition}
               onPaste={handlePaste}
               onResetZoom={() => reactFlowInstance?.zoomTo(1, { duration: 300 })}
               onFitView={() => reactFlowInstance?.fitView({ duration: 300 })}
@@ -3775,24 +3775,24 @@ return {
               onToggleAnnotations={() => setShowAnnotations(prev => !prev)}
               onClearCanvas={async () => {
                 if (await confirmAsync('Clear canvas?')) {
-                  setNodes([]);
+                  setBlocks([]);
                   setEdges([]);
                 }
               }}
-              onInspectNode={(id) => {
-                setInspectedNodeId(id);
+              onInspectBlock={(id) => {
+                setInspectedBlockId(id);
                 setInspectorOpen(true);
               }}
-              onCopyNode={handleCopy}
-              onDuplicateNode={handleDuplicate}
-              onDeleteNode={handleDeleteNodeFromMenu}
+              onCopyBlock={handleCopy}
+              onDuplicateBlock={handleDuplicate}
+              onDeleteBlock={handleDeleteBlockFromMenu}
               onDeleteEdge={handleDeleteEdgeFromMenu}
               onEditScript={onEditScript}
               onGroupIntoCluster={handleGroupIntoCluster}
-              onClearNodeData={handleClearNodeData}
-              onClearAllNodesData={handleClearAllNodesData}
-              onReplaceNode={handleReplaceNode}
-              onNodeDataChange={onNodeDataChange}
+              onClearBlockData={handleClearBlockData}
+              onClearAllBlocksData={handleClearAllBlocksData}
+              onReplaceBlock={handleReplaceBlock}
+              onBlockDataChange={onBlockDataChange}
             />
 
           {quickConnectMenu?.show && (
@@ -3822,8 +3822,8 @@ return {
                 style={{ justifyContent: 'center', padding: '6px 16px' }}
                 onClick={() => {
                   const menu = quickConnectMenu;
-                  const sourceNode = nodesRef.current.find((n: any) => n.id === menu.sourceNodeId);
-                  const layout = registryRef.current?.[sourceNode?.data?.action];
+                  const sourceBlock = blocksRef.current.find((n: any) => n.id === menu.sourceBlockId);
+                  const layout = registryRef.current?.[sourceBlock?.data?.action];
                   let dataType = 'any';
                   if (menu.sourceHandleType === 'source') {
                     const pin = layout?.dataOuts?.find((p: any) => p.name === menu.sourceHandleId);
@@ -3868,7 +3868,7 @@ return {
                   handleQuickConnect(menu, createType);
                 }}
               >
-                Create Default Node
+                Create Default Block
               </button>
             </div>
           )}
@@ -3898,7 +3898,7 @@ return {
               setEditingTextId={setEditingTextId}
               onClearAll={async () => {
                 if (await confirmAsync("Are you sure you want to clear all annotations from this level?")) {
-                  pushStateToHistory(nodesRef.current, edgesRef.current, annotationsRef.current);
+                  pushStateToHistory(blocksRef.current, edgesRef.current, annotationsRef.current);
                   setAnnotations([]);
                 }
               }}
@@ -3906,56 +3906,56 @@ return {
             />
 
             {/* --- NODE INSPECTOR PANEL --- */}
-            {inspectorOpen && inspectedNodeId && canvasMode !== 'draw' && !activeScriptNode && (
-              <NodeInspectorPanel
+            {inspectorOpen && inspectedBlockId && canvasMode !== 'draw' && !activeScriptBlock && (
+              <BlockInspectorPanel
                 isOpen={true}
-                nodeId={inspectedNodeId}
-                nodes={nodes}
+                blockId={inspectedBlockId}
+                blocks={blocks}
                 edges={edges}
                 onClose={() => {
                   setInspectorOpen(false);
-                  setInspectedNodeId(null);
+                  setInspectedBlockId(null);
                 }}
-                onNodeDataChange={onNodeDataChange}
+                onBlockDataChange={onBlockDataChange}
                 onReloadRegistry={handleReloadRegistry}
               />
             )}
         </div>
         {/* --- GLOBAL SCRIPT EDITOR PANEL --- */}
-        {activeScriptNode && (
+        {activeScriptBlock && (
           <ScriptEditorPanel
             isOpen={true}
-            code={activeScriptNode.code}
-            nodeId={activeScriptNode.id}
-            actionType={activeScriptNode.actionType}
+            code={activeScriptBlock.code}
+            blockId={activeScriptBlock.id}
+            actionType={activeScriptBlock.actionType}
             onSave={(code, inputs, outputs) => {
-              onNodeDataChange(activeScriptNode.id, 'code', code);
-              onNodeDataChange(activeScriptNode.id, 'customInputs', inputs);
-              onNodeDataChange(activeScriptNode.id, 'customOutputs', outputs);
-              setActiveScriptNode(null);
+              onBlockDataChange(activeScriptBlock.id, 'code', code);
+              onBlockDataChange(activeScriptBlock.id, 'customInputs', inputs);
+              onBlockDataChange(activeScriptBlock.id, 'customOutputs', outputs);
+              setActiveScriptBlock(null);
             }}
-            onClose={() => setActiveScriptNode(null)}
+            onClose={() => setActiveScriptBlock(null)}
             onCodeChange={onScriptCodeChange}
             hasActiveWorkspace={!!workspacePath}
             onPublishSuccess={fetchRegistry}
-            registryLayout={nodeRegistry?.[activeScriptNode.actionType]}
+            registryLayout={blockRegistry?.[activeScriptBlock.actionType]}
             appTheme={theme}
           />
         )}
 
-        {activeLibraryNodeId && (() => {
-          const node = nodes.find((n: any) => n.id === activeLibraryNodeId);
-          if (!node) return null;
+        {activeLibraryBlockId && (() => {
+          const block = blocks.find((n: any) => n.id === activeLibraryBlockId);
+          if (!block) return null;
           return (
             <LibrarySignatureEditorPanel
               isOpen={true}
-              nodeId={node.id}
-              nodeName={node.data.customName || node.id}
-              libraryArgs={node.data.library_args || node.data.ffi_args || []}
+              blockId={block.id}
+              nodeName={block.data.customName || block.id}
+              libraryArgs={block.data.library_args || block.data.ffi_args || []}
               onSave={(args) => {
-                onNodeDataChange(node.id, 'library_args', args);
+                onBlockDataChange(block.id, 'library_args', args);
               }}
-              onClose={() => setActiveLibraryNodeId(null)}
+              onClose={() => setActiveLibraryBlockId(null)}
             />
           );
         })()}
@@ -3965,9 +3965,9 @@ return {
           <CreateClusterModal
             isOpen={true}
             detectedBoundary={detectedBoundary || { exec_ins: [], exec_outs: [], data_ins: [], data_outs: [] }}
-            selectedNodeIds={selectedForCluster}
+            selectedBlockIds={selectedForCluster}
             internalBlueprint={{
-              nodes: nodes
+              blocks: blocks
                 .filter((n: any) => selectedForCluster.includes(n.id))
                 .map((n: any) => ({ id: n.id, type: n.data.action, position: n.position, properties: (() => {
                   const props: any = {};
@@ -3978,10 +3978,10 @@ return {
               links: edges
                 .filter((e: any) => selectedForCluster.includes(e.source) && selectedForCluster.includes(e.target))
                 .map((e: any) => {
-                  const sourceNode = nodes.find((n: any) => n.id === e.source);
-                  const layout = nodeRegistry?.[sourceNode?.data?.action || ''];
+                  const sourceBlock = blocks.find((n: any) => n.id === e.source);
+                  const layout = blockRegistry?.[sourceBlock?.data?.action || ''];
                   const isExec = layout?.execOuts?.includes(e.sourceHandle || '') || false;
-                  return { id: e.id, type: isExec ? 'exec' : 'data', source_node: e.source, source_pin: e.sourceHandle || '', target_node: e.target, target_pin: e.targetHandle || '' };
+                  return { id: e.id, type: isExec ? 'exec' : 'data', source_block: e.source, source_pin: e.sourceHandle || '', target_block: e.target, target_pin: e.targetHandle || '' };
                 })
             }}
             hasActiveWorkspace={!!workspacePath}
@@ -4008,7 +4008,7 @@ return {
           onSave={async () => {
             const success = await handleSaveSettings();
             if (success) {
-              alert('Settings saved and dynamic nodes reloaded successfully!');
+              alert('Settings saved and dynamic blocks reloaded successfully!');
               setSettingsOpen(false);
             }
           }}

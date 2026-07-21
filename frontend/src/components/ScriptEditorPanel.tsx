@@ -47,11 +47,11 @@ const getLanguageDefaultCode = (type: string) => {
 interface ScriptEditorPanelProps {
   isOpen: boolean;
   code: string;
-  nodeId: string;
+  blockId: string;
   actionType: string;
   onSave: (code: string, inputs: any[], outputs: any[]) => void;
   onClose: () => void;
-  onCodeChange?: (nodeId: string, code: string) => void;
+  onCodeChange?: (blockId: string, code: string) => void;
   hasActiveWorkspace: boolean;
   onPublishSuccess: () => void;
   registryLayout?: {
@@ -302,7 +302,7 @@ declare const workspace: string;
 export const ScriptEditorPanel = ({ 
   isOpen, 
   code, 
-  nodeId, 
+  blockId, 
   actionType, 
   onSave, 
   onClose,
@@ -313,7 +313,7 @@ export const ScriptEditorPanel = ({
   appTheme = 'dark'
 }: ScriptEditorPanelProps) => {
   const getLanguageDetails = () => {
-    // Check registryLayout.script_language for published nodes
+    // Check registryLayout.script_language for published blocks
     const lang = registryLayout?.script_language || actionType;
     switch (lang) {
       case 'script/lua': case 'lua':
@@ -357,7 +357,7 @@ export const ScriptEditorPanel = ({
   const [drawerWidth, setDrawerWidth] = useState(600);
   const isResizingRef = useRef(false);
 
-  // Publish Node Form Logic
+  // Publish Block Form Logic
   const [showPublishForm, setShowPublishForm] = useState(false);
   const [publishForm, setPublishForm] = useState({
     displayName: '',
@@ -444,7 +444,7 @@ export const ScriptEditorPanel = ({
   }, []);
 
   useEffect(() => {
-    if (prevNodeIdRef.current && prevNodeIdRef.current !== nodeId && onCodeChangeRef.current) {
+    if (prevNodeIdRef.current && prevNodeIdRef.current !== blockId && onCodeChangeRef.current) {
       onCodeChangeRef.current(prevNodeIdRef.current, currentCodeRef.current);
     }
 
@@ -457,9 +457,9 @@ export const ScriptEditorPanel = ({
       tsUpdateRef.current(newCode);
     }
 
-    prevNodeIdRef.current = nodeId;
+    prevNodeIdRef.current = blockId;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [nodeId]);
+  }, [blockId]);
 
   const handleEditorChange = (value: string | undefined) => {
     const newCode = value || '';
@@ -506,7 +506,7 @@ export const ScriptEditorPanel = ({
           <span className="script-editor-icon">{langDetails.icon}</span>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600 }}>{langDetails.name} Script Editor</h3>
-            <span className="script-editor-node-id" style={{ marginTop: '2px' }}>{nodeId}</span>
+            <span className="script-editor-block-id" style={{ marginTop: '2px' }}>{blockId}</span>
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -581,7 +581,7 @@ export const ScriptEditorPanel = ({
             onClick={() => setShowPublishForm(true)} 
             style={{ flex: 1.5, background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)' }}
           >
-            🚀 Publish Node
+            🚀 Publish Block
           </button>
         ) : (
           <button 
@@ -589,7 +589,7 @@ export const ScriptEditorPanel = ({
             onClick={() => setShowPublishForm(true)} 
             style={{ flex: 1.5, background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)' }}
           >
-            💾 Update Published Node
+            💾 Update Published Block
           </button>
         )}
       </div>
@@ -599,21 +599,21 @@ export const ScriptEditorPanel = ({
           <div className="modal-content glass-panel" style={{ width: '450px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3 style={{ margin: 0 }}>
-                {isPublished ? '💾 Update Published Node' : '🚀 Publish as Custom Node'}
+                {isPublished ? '💾 Update Published Block' : '🚀 Publish as Custom Block'}
               </h3>
               <button className="modal-close-btn" onClick={() => setShowPublishForm(false)}>✕</button>
             </div>
             <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '16px 20px' }}>
               
               <div className="input-group">
-                <label>Node Display Name</label>
+                <label>Block Display Name</label>
                 <input
                   type="text"
                   placeholder="e.g. Waveform Generator"
                   value={publishForm.displayName}
                   onChange={(e) => setPublishForm({ ...publishForm, displayName: e.target.value })}
-                  style={{ background: 'var(--input-bg)', border: '1px solid var(--node-border)', color: 'var(--text-color)', padding: '8px', borderRadius: '6px' }}
-                  disabled={isPublished} // Display name (and type/filename) are immutable for existing nodes to avoid refactoring instances
+                  style={{ background: 'var(--input-bg)', border: '1px solid var(--block-border)', color: 'var(--text-color)', padding: '8px', borderRadius: '6px' }}
+                  disabled={isPublished} // Display name (and type/filename) are immutable for existing blocks to avoid refactoring instances
                 />
               </div>
 
@@ -624,7 +624,7 @@ export const ScriptEditorPanel = ({
                     type="text"
                     value={publishForm.icon}
                     onChange={(e) => setPublishForm({ ...publishForm, icon: e.target.value })}
-                    style={{ background: 'var(--input-bg)', border: '1px solid var(--node-border)', color: 'var(--text-color)', padding: '8px', borderRadius: '6px', textAlign: 'center' }}
+                    style={{ background: 'var(--input-bg)', border: '1px solid var(--block-border)', color: 'var(--text-color)', padding: '8px', borderRadius: '6px', textAlign: 'center' }}
                   />
                 </div>
                 <div className="input-group" style={{ flex: 2 }}>
@@ -634,7 +634,7 @@ export const ScriptEditorPanel = ({
                     placeholder="User or VISA/Signal Generator"
                     value={publishForm.category}
                     onChange={(e) => setPublishForm({ ...publishForm, category: e.target.value })}
-                    style={{ background: 'var(--input-bg)', border: '1px solid var(--node-border)', color: 'var(--text-color)', padding: '8px', borderRadius: '6px' }}
+                    style={{ background: 'var(--input-bg)', border: '1px solid var(--block-border)', color: 'var(--text-color)', padding: '8px', borderRadius: '6px' }}
                   />
                 </div>
               </div>
@@ -642,11 +642,11 @@ export const ScriptEditorPanel = ({
               <div className="input-group">
                 <label>Description</label>
                 <textarea
-                  placeholder="What does this custom node do?"
+                  placeholder="What does this custom block do?"
                   value={publishForm.description}
                   onChange={(e) => setPublishForm({ ...publishForm, description: e.target.value })}
                   rows={3}
-                  style={{ background: 'var(--input-bg)', border: '1px solid var(--node-border)', color: 'var(--text-color)', padding: '8px', borderRadius: '6px', resize: 'vertical', fontFamily: 'inherit', fontSize: '0.85rem' }}
+                  style={{ background: 'var(--input-bg)', border: '1px solid var(--block-border)', color: 'var(--text-color)', padding: '8px', borderRadius: '6px', resize: 'vertical', fontFamily: 'inherit', fontSize: '0.85rem' }}
                 />
               </div>
 
@@ -655,12 +655,12 @@ export const ScriptEditorPanel = ({
                 <select
                   value={publishForm.destination}
                   onChange={(e) => setPublishForm({ ...publishForm, destination: e.target.value })}
-                  style={{ background: 'var(--input-bg)', border: '1px solid var(--node-border)', color: 'var(--text-color)', padding: '8px', borderRadius: '6px' }}
+                  style={{ background: 'var(--input-bg)', border: '1px solid var(--block-border)', color: 'var(--text-color)', padding: '8px', borderRadius: '6px' }}
                   disabled={isPublished} // Destination directory is fixed once published
                 >
                   <option value="global">Global User Library (~/.comfylab/user_nodes)</option>
                   {hasActiveWorkspace && (
-                    <option value="workspace">Active Workspace (nodes/)</option>
+                    <option value="workspace">Active Workspace (blocks/)</option>
                   )}
                 </select>
               </div>
@@ -680,7 +680,7 @@ export const ScriptEditorPanel = ({
                 className="button-primary" 
                 onClick={async () => {
                   if (!publishForm.displayName.trim()) {
-                    alert('Please enter a display name for the node.');
+                    alert('Please enter a display name for the block.');
                     return;
                   }
                   
@@ -697,7 +697,7 @@ export const ScriptEditorPanel = ({
                       return;
                     }
 
-                    const pubRes = await axios.post(`${BACKEND_URL}/nodes/publish`, {
+                    const pubRes = await axios.post(`${BACKEND_URL}/blocks/publish`, {
                       display_name: publishForm.displayName.trim(),
                       category: publishForm.category.trim() || 'User',
                       icon: publishForm.icon.trim() || '⚙️',
@@ -716,7 +716,7 @@ export const ScriptEditorPanel = ({
                     }
                   } catch (err: any) {
                     console.error('Publish failed:', err);
-                    alert(err.response?.data?.detail || 'Failed to publish node.');
+                    alert(err.response?.data?.detail || 'Failed to publish block.');
                   } finally {
                     setIsValidating(false);
                   }

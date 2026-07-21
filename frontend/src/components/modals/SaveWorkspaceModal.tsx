@@ -51,7 +51,7 @@ export const SaveWorkspaceModal = ({
               placeholder="e.g. calibration_routine"
               value={saveFilenameInput}
               onChange={(e) => setSaveFilenameInput(e.target.value)}
-              style={{ background: 'var(--input-bg)', border: '1px solid var(--node-border)', color: 'var(--text-color)', padding: '8px', borderRadius: '6px' }}
+              style={{ background: 'var(--input-bg)', border: '1px solid var(--block-border)', color: 'var(--text-color)', padding: '8px', borderRadius: '6px' }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
@@ -73,7 +73,7 @@ export const SaveWorkspaceModal = ({
               style={{ cursor: 'pointer', width: '16px', height: '16px' }}
             />
             <label htmlFor="exportAsPackageCheck" style={{ fontSize: '0.85rem', color: 'var(--text-color)', cursor: 'pointer', margin: 0, fontWeight: 500 }}>
-              📦 Export as CFY Package (includes custom nodes & clusters)
+              📦 Export as CFY Package (includes custom blocks & clusters)
             </label>
           </div>
         </div>

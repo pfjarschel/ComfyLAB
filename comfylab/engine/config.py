@@ -18,7 +18,7 @@ import logging
 logger = logging.getLogger("comfylab.engine.config")
 
 DEFAULT_CONFIG = {
-    "custom_node_dirs": [],
+    "custom_block_dirs": [],
     "last_workspace": "",
     "script_timeout": 30.0,
     "visa_backend": "",
@@ -41,11 +41,11 @@ def get_comfylab_base_dir() -> Path:
     base_dir.mkdir(parents=True, exist_ok=True)
     return base_dir
 
-def get_global_user_nodes_dir() -> Path:
-    """Returns the base user_nodes directory (~/.comfylab/user_nodes) and ensures it exists."""
-    nodes_dir = get_comfylab_base_dir() / "user_nodes"
-    nodes_dir.mkdir(parents=True, exist_ok=True)
-    return nodes_dir
+def get_global_user_blocks_dir() -> Path:
+    """Returns the base user_blocks directory (~/.comfylab/user_blocks) and ensures it exists."""
+    blocks_dir = get_comfylab_base_dir() / "user_blocks"
+    blocks_dir.mkdir(parents=True, exist_ok=True)
+    return blocks_dir
 
 
 def get_global_user_clusters_dir() -> Path:

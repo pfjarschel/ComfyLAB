@@ -27,7 +27,7 @@ interface BreadcrumbBarProps {
 }
 
 export const BreadcrumbBar = ({ levels, currentIndex, onNavigate }: BreadcrumbBarProps) => {
-  const nodeRegistry = useContext(RegistryContext) as Record<string, any> | null;
+  const blockRegistry = useContext(RegistryContext) as Record<string, any> | null;
 
   if (levels.length <= 1) return null;
 
@@ -35,7 +35,7 @@ export const BreadcrumbBar = ({ levels, currentIndex, onNavigate }: BreadcrumbBa
     <div className="breadcrumb-bar nodrag nowheel">
       {levels.map((level, i) => {
         const isLast = i === levels.length - 1;
-        const layout = nodeRegistry?.[level.type];
+        const layout = blockRegistry?.[level.type];
         const icon = layout?.icon || '🏠';
         const name = level.breadcrumbLabel || layout?.name || level.type;
 

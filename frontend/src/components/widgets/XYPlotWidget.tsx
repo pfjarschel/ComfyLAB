@@ -19,12 +19,12 @@ import { ResizablePlotContainer } from '../common/ResizablePlotContainer';
 import { useReactFlow } from '@xyflow/react';
 
 interface XYPlotWidgetProps {
-  nodeId: string;
+  blockId: string;
   xLabel?: string;
   yLabel?: string;
 }
 
-export const XYPlotWidget = ({ nodeId, xLabel = 'X', yLabel = 'Y' }: XYPlotWidgetProps) => {
+export const XYPlotWidget = ({ blockId, xLabel = 'X', yLabel = 'Y' }: XYPlotWidgetProps) => {
 
   return (
     <ResizablePlotContainer 
@@ -32,11 +32,11 @@ export const XYPlotWidget = ({ nodeId, xLabel = 'X', yLabel = 'Y' }: XYPlotWidge
       background="var(--input-bg)" 
       padding="6px" 
       borderRadius="6px"
-      border="1px solid var(--node-border)"
+      border="1px solid var(--block-border)"
     >
       {(width, height) => (
         <PlotlyXYRenderer
-          nodeId={nodeId}
+          blockId={blockId}
           xLabel={xLabel}
           yLabel={yLabel}
           width={width}
@@ -48,14 +48,14 @@ export const XYPlotWidget = ({ nodeId, xLabel = 'X', yLabel = 'Y' }: XYPlotWidge
 };
 
 interface PlotlyXYRendererProps {
-  nodeId: string;
+  blockId: string;
   xLabel: string;
   yLabel: string;
   width: number;
   height: number;
 }
 
-const PlotlyXYRenderer = ({ nodeId, xLabel, yLabel, width, height }: PlotlyXYRendererProps) => {
+const PlotlyXYRenderer = ({ blockId, xLabel, yLabel, width, height }: PlotlyXYRendererProps) => {
   const { getNode } = useReactFlow();
   const [plotData, setPlotData] = useState<{x: any[], y: any[]}>({ x: [], y: [] });
   const [labels, setLabels] = useState({ x: xLabel, y: yLabel });
@@ -63,10 +63,10 @@ const PlotlyXYRenderer = ({ nodeId, xLabel, yLabel, width, height }: PlotlyXYRen
   // Initialize and listen to high-frequency telemetry events directly
   useEffect(() => {
     const updateChart = (eventResults?: any) => {
-      const node = getNode(nodeId);
-      if (!node && !eventResults) return;
+      const block = getNode(blockId);
+      if (!block && !eventResults) return;
       
-      const results = eventResults || node?.data?.results;
+      const results = eventResults || block?.data?.results;
       if (!results) return;
 
       const x = results.x || [];
@@ -86,7 +86,7 @@ const PlotlyXYRenderer = ({ nodeId, xLabel, yLabel, width, height }: PlotlyXYRen
     // Initial update
     updateChart();
 
-    const eventName = `telemetry-${nodeId}`;
+    const eventName = `telemetry-${blockId}`;
     const handleTelemetry = (e: any) => {
       updateChart(e.detail?.results);
     };
@@ -96,7 +96,7 @@ const PlotlyXYRenderer = ({ nodeId, xLabel, yLabel, width, height }: PlotlyXYRen
     return () => {
       window.removeEventListener(eventName, handleTelemetry);
     };
-  }, [nodeId, xLabel, yLabel, getNode]);
+  }, [blockId, xLabel, yLabel, getNode]);
 
   const isLight = document.documentElement.classList.contains('light-theme');
   const textColor = isLight ? '#475569' : '#94a3b8';

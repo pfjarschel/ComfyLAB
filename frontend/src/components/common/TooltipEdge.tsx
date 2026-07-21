@@ -39,8 +39,8 @@ export function TooltipEdge({
   });
 
   const { getNode } = useReactFlow();
-  const sourceNode = getNode(source);
-  const pinValues = sourceNode?.data?.pinValues as Record<string, any> | undefined;
+  const sourceBlock = getNode(source);
+  const pinValues = sourceBlock?.data?.pinValues as Record<string, any> | undefined;
   const val = pinValues?.[sourceHandleId || ''];
 
   const tooltipText = val !== undefined 

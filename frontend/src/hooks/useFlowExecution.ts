@@ -17,10 +17,10 @@ import axios from 'axios';
 
 export interface UseFlowExecutionProps {
   activeTabId: string;
-  nodes: any[];
+  blocks: any[];
   edges: any[];
   currentBlueprintName: string;
-  setNodes: React.Dispatch<React.SetStateAction<any[]>>;
+  setBlocks: React.Dispatch<React.SetStateAction<any[]>>;
   setTabs: React.Dispatch<React.SetStateAction<any[]>>;
   exportBlueprint: () => any;
   BACKEND_URL: string;
@@ -34,15 +34,15 @@ export interface UseFlowExecutionProps {
   runningTabId: string | null;
   setRunningTabId: React.Dispatch<React.SetStateAction<string | null>>;
   setErrorMessage: React.Dispatch<React.SetStateAction<string | null>>;
-  nodeRegistry: Record<string, any> | null;
+  blockRegistry: Record<string, any> | null;
 }
 
 export function useFlowExecution({
   activeTabId,
-  nodes,
+  blocks,
   edges,
   currentBlueprintName,
-  setNodes,
+  setBlocks,
   setTabs,
   exportBlueprint,
   BACKEND_URL,
@@ -54,7 +54,7 @@ export function useFlowExecution({
   runningTabId,
   setRunningTabId,
   setErrorMessage,
-  nodeRegistry,
+  blockRegistry,
 }: UseFlowExecutionProps) {
   const wsRef = useRef<WebSocket | null>(null);
   
@@ -62,18 +62,18 @@ export function useFlowExecution({
   const isPausedRef = useRef(isPaused);
   const activeTabIdRef = useRef(activeTabId);
   const runningTabIdRef = useRef(runningTabId);
-  const nodeRegistryRef = useRef(nodeRegistry);
+  const blockRegistryRef = useRef(blockRegistry);
 
-  useEffect(() => { nodeRegistryRef.current = nodeRegistry; }, [nodeRegistry]);
+  useEffect(() => { blockRegistryRef.current = blockRegistry; }, [blockRegistry]);
 
   useEffect(() => { isRunningRef.current = isRunning; }, [isRunning]);
   useEffect(() => { isPausedRef.current = isPaused; }, [isPaused]);
   useEffect(() => { activeTabIdRef.current = activeTabId; }, [activeTabId]);
   useEffect(() => { runningTabIdRef.current = runningTabId; }, [runningTabId]);
 
-  const nodesRef = useRef<any[]>(nodes);
+  const blocksRef = useRef<any[]>(blocks);
   const edgesRef = useRef<any[]>(edges);
-  useEffect(() => { nodesRef.current = nodes; }, [nodes]);
+  useEffect(() => { blocksRef.current = blocks; }, [blocks]);
   useEffect(() => { edgesRef.current = edges; }, [edges]);
 
   // Ref for batching high-frequency telemetry updates
@@ -97,12 +97,12 @@ export function useFlowExecution({
       // Clear the ref immediately so subsequent messages go into a clean state
       pendingUpdatesRef.current = {};
 
-      // 1. Update active nodes state
+      // 1. Update active blocks state
       // 1. Dispatch custom events to bypass React's state tree and avoid Fiber re-allocations
       if (activeTabIdRef.current === runningTabIdRef.current) {
-        Object.keys(updates).forEach(nodeId => {
-          const update = updates[nodeId];
-          const existingNode = nodesRef.current.find((n: any) => n.id === nodeId);
+        Object.keys(updates).forEach(blockId => {
+          const update = updates[blockId];
+          const existingNode = blocksRef.current.find((n: any) => n.id === blockId);
           if (existingNode) {
             // Mutate in-place
             if (update.status !== undefined) existingNode.data.status = update.status;
@@ -114,7 +114,7 @@ export function useFlowExecution({
             if (update.value !== undefined) {
                if (!existingNode.data.results) existingNode.data.results = {};
                
-               const uiBehavior = nodeRegistryRef.current?.[existingNode.data.action]?.ui_behavior || {};
+               const uiBehavior = blockRegistryRef.current?.[existingNode.data.action]?.ui_behavior || {};
                
                if (uiBehavior.accumulate_history) {
                   const val = parseFloat(update.value);
@@ -143,8 +143,8 @@ export function useFlowExecution({
                existingNode.data.pinValues = { ...(existingNode.data.pinValues || {}), ...update.pinValues };
             }
             
-            // Dispatch to local node plot widgets
-            window.dispatchEvent(new CustomEvent(`telemetry-${nodeId}`, {
+            // Dispatch to local block plot widgets
+            window.dispatchEvent(new CustomEvent(`telemetry-${blockId}`, {
               detail: {
                 status: existingNode.data.status,
                 resultMessage: existingNode.data.resultMessage,
@@ -160,7 +160,7 @@ export function useFlowExecution({
     const interval = setInterval(flushUpdates, 100);
 
     return () => clearInterval(interval);
-  }, [setNodes]);
+  }, [setBlocks]);
 
   const startTelemetryStream = useCallback((runId: string) => {
     if (wsRef.current) {
@@ -182,9 +182,9 @@ export function useFlowExecution({
       if (event.data instanceof ArrayBuffer) {
         const buffer = event.data;
         
-        // 1. Read node_id (first 36 bytes)
-        const nodeIdBytes = new Uint8Array(buffer, 0, 36);
-        const nodeId = decoder.decode(nodeIdBytes).replace(/\0/g, '').trim();
+        // 1. Read block_id (first 36 bytes)
+        const blockIdBytes = new Uint8Array(buffer, 0, 36);
+        const blockId = decoder.decode(blockIdBytes).replace(/\0/g, '').trim();
         
         // 2. Read point_count (bytes 36-39)
         const countView = new DataView(buffer, 36, 4);
@@ -194,7 +194,7 @@ export function useFlowExecution({
         const waveform = new Float32Array(buffer, 40, pointCount);
         
         // Mutate in-place to avoid React state GC pressure and Fiber memory leaks
-        const existingNode = nodesRef.current.find((n: any) => n.id === nodeId);
+        const existingNode = blocksRef.current.find((n: any) => n.id === blockId);
         if (existingNode) {
           if (!existingNode.data.results) existingNode.data.results = {};
           existingNode.data.results.waveform = waveform;
@@ -202,10 +202,10 @@ export function useFlowExecution({
         }
 
         // We specifically DO NOT add the waveform array to pendingUpdatesRef to prevent it from going into React state.
-        if (!pendingUpdatesRef.current[nodeId]) {
-          pendingUpdatesRef.current[nodeId] = {};
+        if (!pendingUpdatesRef.current[blockId]) {
+          pendingUpdatesRef.current[blockId] = {};
         }
-        pendingUpdatesRef.current[nodeId].resultMessage = `Captured (Binary): ${waveform.length} pts`;
+        pendingUpdatesRef.current[blockId].resultMessage = `Captured (Binary): ${waveform.length} pts`;
         return;
       }
 
@@ -213,17 +213,17 @@ export function useFlowExecution({
       
       if (msg.type === 'status') {
         // Batch status updates into pendingUpdatesRef instead of direct state updates
-        const nodeId = msg.node_id;
-        if (!pendingUpdatesRef.current[nodeId]) {
-          pendingUpdatesRef.current[nodeId] = {};
+        const blockId = msg.block_id;
+        if (!pendingUpdatesRef.current[blockId]) {
+          pendingUpdatesRef.current[blockId] = {};
         }
-        pendingUpdatesRef.current[nodeId].status = msg.status;
-        pendingUpdatesRef.current[nodeId].statusMessage = msg.message || (msg.status === 'success' ? 'Success' : '');
+        pendingUpdatesRef.current[blockId].status = msg.status;
+        pendingUpdatesRef.current[blockId].statusMessage = msg.message || (msg.status === 'success' ? 'Success' : '');
       } else if (msg.type === 'telemetry') {
-        const { node_id, data } = msg;
+        const { block_id, data } = msg;
         
-        // Find existing node to perform in-place mutation for large arrays
-        const existingNode = nodesRef.current.find((n: any) => n.id === node_id);
+        // Find existing block to perform in-place mutation for large arrays
+        const existingNode = blocksRef.current.find((n: any) => n.id === block_id);
         let hasArrayData = false;
         
         if (existingNode && data) {
@@ -238,26 +238,26 @@ export function useFlowExecution({
           }
         }
 
-        if (!pendingUpdatesRef.current[node_id]) {
-          pendingUpdatesRef.current[node_id] = {};
+        if (!pendingUpdatesRef.current[block_id]) {
+          pendingUpdatesRef.current[block_id] = {};
         }
-        if (!pendingUpdatesRef.current[node_id].results) {
-          pendingUpdatesRef.current[node_id].results = {};
+        if (!pendingUpdatesRef.current[block_id].results) {
+          pendingUpdatesRef.current[block_id].results = {};
         }
 
-        // Generate messages based on the intercepted arrays on the node, since we are about to delete them from `data`
+        // Generate messages based on the intercepted arrays on the block, since we are about to delete them from `data`
         if (hasArrayData && existingNode) {
           if (existingNode.data.results.waveform) {
-            pendingUpdatesRef.current[node_id].resultMessage = `Captured: ${existingNode.data.results.waveform.length} pts`;
+            pendingUpdatesRef.current[block_id].resultMessage = `Captured: ${existingNode.data.results.waveform.length} pts`;
           } else if (existingNode.data.results.z) {
              const zArr = existingNode.data.results.z;
-             pendingUpdatesRef.current[node_id].resultMessage = `Plotted 2D: ${zArr[0]?.length || 0}x${zArr.length || 0}`;
+             pendingUpdatesRef.current[block_id].resultMessage = `Plotted 2D: ${zArr[0]?.length || 0}x${zArr.length || 0}`;
           } else if (existingNode.data.results.x && existingNode.data.results.y) {
-            pendingUpdatesRef.current[node_id].resultMessage = `Plotted ${existingNode.data.results.y.length} pts`;
+            pendingUpdatesRef.current[block_id].resultMessage = `Plotted ${existingNode.data.results.y.length} pts`;
           }
         }
 
-        // Remove large arrays from data so they don't enter React's setNodes pipeline
+        // Remove large arrays from data so they don't enter React's setBlocks pipeline
         if (hasArrayData) {
           for (const key of Object.keys(data)) {
              if (Array.isArray(data[key]) && data[key].length > 0) {
@@ -266,24 +266,24 @@ export function useFlowExecution({
           }
         }
 
-        pendingUpdatesRef.current[node_id].results = {
-          ...pendingUpdatesRef.current[node_id].results,
+        pendingUpdatesRef.current[block_id].results = {
+          ...pendingUpdatesRef.current[block_id].results,
           ...data
         };
         
         // Handle small/scalar data messages
         if (data.value !== undefined) {
-          pendingUpdatesRef.current[node_id].value = data.value;
+          pendingUpdatesRef.current[block_id].value = data.value;
         } else if (data.state !== undefined) {
-          pendingUpdatesRef.current[node_id].resultMessage = `State: ${data.state ? 'ON' : 'OFF'}`;
+          pendingUpdatesRef.current[block_id].resultMessage = `State: ${data.state ? 'ON' : 'OFF'}`;
         }
       } else if (msg.type === 'pin_values') {
-        const { node_id, pin_values } = msg;
-        if (!pendingUpdatesRef.current[node_id]) {
-          pendingUpdatesRef.current[node_id] = {};
+        const { block_id, pin_values } = msg;
+        if (!pendingUpdatesRef.current[block_id]) {
+          pendingUpdatesRef.current[block_id] = {};
         }
-        pendingUpdatesRef.current[node_id].pinValues = {
-          ...pendingUpdatesRef.current[node_id].pinValues,
+        pendingUpdatesRef.current[block_id].pinValues = {
+          ...pendingUpdatesRef.current[block_id].pinValues,
           ...pin_values
         };
       } else if (msg.type === 'run_status') {
@@ -303,39 +303,39 @@ export function useFlowExecution({
           pendingUpdatesRef.current = {};
 
           if (msg.status === 'failed' || msg.status === 'aborted') {
-            setNodes((nds) =>
-              nds.map((node) => {
-                if (node.data.status === 'running') {
+            setBlocks((nds) =>
+              nds.map((block) => {
+                if (block.data.status === 'running') {
                   return {
-                    ...node,
+                    ...block,
                     data: {
-                      ...node.data,
+                      ...block.data,
                       status: 'stopped',
                       resultMessage: 'Stopped',
                     },
                   };
                 }
-                return node;
+                return block;
               })
             );
 
             setTabs((prevTabs) =>
               prevTabs.map((t) => {
                 if (t.id === runningTabIdRef.current) {
-                  const updatedNodes = t.nodes.map((node: any) => {
-                    if (node.data.status === 'running') {
+                  const updatedNodes = t.blocks.map((block: any) => {
+                    if (block.data.status === 'running') {
                       return {
-                        ...node,
+                        ...block,
                         data: {
-                          ...node.data,
+                          ...block.data,
                           status: 'stopped',
                           resultMessage: 'Stopped',
                         },
                       };
                     }
-                    return node;
+                    return block;
                   });
-                  return { ...t, nodes: updatedNodes };
+                  return { ...t, blocks: updatedNodes };
                 }
                 return t;
               })
@@ -355,7 +355,7 @@ export function useFlowExecution({
       console.log('[Telemetry WS] Closed.');
       pendingUpdatesRef.current = {};
     };
-  }, [WS_BACKEND_URL, setNodes, setTabs, setIsRunning, setIsPaused, setRunningTabId, setErrorMessage]);
+  }, [WS_BACKEND_URL, setBlocks, setTabs, setIsRunning, setIsPaused, setRunningTabId, setErrorMessage]);
 
   const handleRun = useCallback(async () => {
     setIsRunning(true);
@@ -363,8 +363,8 @@ export function useFlowExecution({
     setErrorMessage(null);
     setRunningTabId(activeTabIdRef.current);
 
-    // Reset status on all nodes
-    setNodes((nds) =>
+    // Reset status on all blocks
+    setBlocks((nds) =>
       nds.map((n) => ({
         ...n,
         data: { ...n.data, status: 'idle', resultMessage: '' },
@@ -372,7 +372,7 @@ export function useFlowExecution({
     );
 
     const rawCanvas = {
-      nodes: nodesRef.current.map(({ id, type, position, data, style }) => {
+      blocks: blocksRef.current.map(({ id, type, position, data, style }) => {
         const persistData = { ...data };
         delete persistData.onChange;
         delete persistData.status;
@@ -401,7 +401,7 @@ export function useFlowExecution({
       setRunningTabId(null);
       setErrorMessage(err.response?.data?.detail || 'Failed to start execution.');
     }
-  }, [BACKEND_URL, exportBlueprint, currentBlueprintName, setNodes, startTelemetryStream, setIsRunning, setIsPaused, setRunningTabId, setErrorMessage]);
+  }, [BACKEND_URL, exportBlueprint, currentBlueprintName, setBlocks, startTelemetryStream, setIsRunning, setIsPaused, setRunningTabId, setErrorMessage]);
 
   const handlePause = useCallback(async () => {
     try {
@@ -428,39 +428,39 @@ export function useFlowExecution({
       setIsPaused(false);
       setRunningTabId(null);
 
-      setNodes((nds) =>
-        nds.map((node) => {
-          if (node.data.status === 'running') {
+      setBlocks((nds) =>
+        nds.map((block) => {
+          if (block.data.status === 'running') {
             return {
-              ...node,
+              ...block,
               data: {
-                ...node.data,
+                ...block.data,
                 status: 'stopped',
                 resultMessage: 'Stopped',
               },
             };
           }
-          return node;
+          return block;
         })
       );
 
       setTabs((prevTabs) =>
         prevTabs.map((t) => {
           if (t.id === runningTabIdRef.current) {
-            const updatedNodes = t.nodes.map((node: any) => {
-              if (node.data.status === 'running') {
+            const updatedNodes = t.blocks.map((block: any) => {
+              if (block.data.status === 'running') {
                 return {
-                  ...node,
+                  ...block,
                   data: {
-                    ...node.data,
+                    ...block.data,
                     status: 'stopped',
                     resultMessage: 'Stopped',
                   },
                 };
               }
-              return node;
+              return block;
             });
-            return { ...t, nodes: updatedNodes };
+            return { ...t, blocks: updatedNodes };
           }
           return t;
         })
@@ -468,7 +468,7 @@ export function useFlowExecution({
     } catch (err) {
       console.error('Failed to abort execution:', err);
     }
-  }, [BACKEND_URL, setIsRunning, setIsPaused, setRunningTabId, setNodes, setTabs]);
+  }, [BACKEND_URL, setIsRunning, setIsPaused, setRunningTabId, setBlocks, setTabs]);
 
   useEffect(() => {
     return () => {

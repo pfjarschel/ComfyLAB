@@ -10,11 +10,11 @@ from fastapi.testclient import TestClient
 
 from backend.main import app
 from backend.workspace import get_workspace_path, set_workspace_path
-from comfylab.engine.config import get_config, update_config, get_global_user_nodes_dir, get_global_user_clusters_dir
+from comfylab.engine.config import get_config, update_config, get_global_user_blocks_dir, get_global_user_clusters_dir
 from comfylab.engine.security import get_creator_identity
-from comfylab.engine.registry import NODE_REGISTRY
-from comfylab.nodes.base import BaseNode
-from comfylab.engine.registry import register_node
+from comfylab.engine.registry import BLOCK_REGISTRY
+from comfylab.blocks.base import BaseBlock
+from comfylab.engine.registry import register_block
 
 client = TestClient(app)
 
@@ -50,29 +50,29 @@ def test_list_packages_empty():
     assert response.json() == {"packages": []}
 
 def test_package_export_load_and_import():
-    # 1. Register a dynamic test node in the workspace nodes dir so it's recognized as custom
-    ws_nodes = get_workspace_path() / "nodes"
-    ws_nodes.mkdir(parents=True, exist_ok=True)
-    node_code = """from comfylab.nodes.base import BaseNode
-from comfylab.engine.registry import register_node
+    # 1. Register a dynamic test block in the workspace blocks dir so it's recognized as custom
+    ws_blocks = get_workspace_path() / "blocks"
+    ws_blocks.mkdir(parents=True, exist_ok=True)
+    block_code = """from comfylab.blocks.base import BaseBlock
+from comfylab.engine.registry import register_block
 
-@register_node("test/custom_pack_node")
-class CustomPackNode(BaseNode):
+@register_block("test/custom_pack_block")
+class CustomPackBlock(BaseBlock):
     pass
 """
-    node_file = ws_nodes / "custom_pack_node.py"
-    node_file.write_text(node_code, encoding="utf-8")
+    block_file = ws_blocks / "custom_pack_block.py"
+    block_file.write_text(block_code, encoding="utf-8")
     
     # Force loading it into the registry
-    from comfylab.nodes.loader import load_module_from_filepath
-    load_module_from_filepath(str(node_file))
-    assert "test/custom_pack_node" in NODE_REGISTRY
+    from comfylab.blocks.loader import load_module_from_filepath
+    load_module_from_filepath(str(block_file))
+    assert "test/custom_pack_block" in BLOCK_REGISTRY
 
-    # 2. Define a test blueprint using this custom node
+    # 2. Define a test blueprint using this custom block
     blueprint = {
-        "nodes": [
-            {"id": "node_1", "type": "test/custom_pack_node", "properties": {}},
-            {"id": "node_2", "type": "constants/number", "properties": {"Value": 42}}
+        "blocks": [
+            {"id": "block_1", "type": "test/custom_pack_block", "properties": {}},
+            {"id": "block_2", "type": "constants/number", "properties": {"Value": 42}}
         ],
         "links": []
     }
@@ -94,25 +94,25 @@ class CustomPackNode(BaseNode):
     with zipfile.ZipFile(package_file, "r") as z:
         names = z.namelist()
         assert "blueprint.json" in names
-        assert "nodes/custom_pack_node.py" in names
+        assert "blocks/custom_pack_block.py" in names
 
     # 4. Load package preview
     load_payload = {"filename": "my_test_package.cfy"}
     response = client.post("/workspace/packages/load", json=load_payload)
     assert response.status_code == 200
     preview = response.json()
-    assert preview["blueprint"]["nodes"][0]["type"] == "test/custom_pack_node"
-    assert len(preview["nodes"]) == 1
-    assert preview["nodes"][0]["filename"] == "custom_pack_node.py"
-    # Export signs nodes with host's key, so it should be valid and trusted
-    assert preview["nodes"][0]["is_valid"] is True
-    assert preview["nodes"][0]["is_trusted"] is True
+    assert preview["blueprint"]["blocks"][0]["type"] == "test/custom_pack_block"
+    assert len(preview["blocks"]) == 1
+    assert preview["blocks"][0]["filename"] == "custom_pack_block.py"
+    # Export signs blocks with host's key, so it should be valid and trusted
+    assert preview["blocks"][0]["is_valid"] is True
+    assert preview["blocks"][0]["is_trusted"] is True
 
     # 5. Import package to user folder (global ~/.comfylab)
-    # We clear NODE_REGISTRY first to verify import loads them
-    NODE_REGISTRY.pop("test/custom_pack_node", None)
-    # Delete original unsigned workspace node to prevent it overriding the signed imported version on reload
-    node_file.unlink()
+    # We clear BLOCK_REGISTRY first to verify import loads them
+    BLOCK_REGISTRY.pop("test/custom_pack_block", None)
+    # Delete original unsigned workspace block to prevent it overriding the signed imported version on reload
+    block_file.unlink()
     
     import_payload = {
 
@@ -128,21 +128,21 @@ class CustomPackNode(BaseNode):
     assert not package_file.exists()
     
     # Verify imported files are in global user directory
-    user_nodes_dir = get_global_user_nodes_dir()
-    imported_node = user_nodes_dir / "custom_pack_node.py"
-    assert imported_node.exists()
+    user_blocks_dir = get_global_user_blocks_dir()
+    imported_block = user_blocks_dir / "custom_pack_block.py"
+    assert imported_block.exists()
     
     # Verify blueprint was saved to workspace blueprints
     imported_bp = get_workspace_path() / "blueprints" / "my_test_package.json"
     assert imported_bp.exists()
     
-    # Verify node is loaded back in NODE_REGISTRY and is authorized
-    assert "test/custom_pack_node" in NODE_REGISTRY
-    cls = NODE_REGISTRY["test/custom_pack_node"]
+    # Verify block is loaded back in BLOCK_REGISTRY and is authorized
+    assert "test/custom_pack_block" in BLOCK_REGISTRY
+    cls = BLOCK_REGISTRY["test/custom_pack_block"]
     assert getattr(cls, "unauthorized", False) is False
     
     # Cleanup registry
-    NODE_REGISTRY.pop("test/custom_pack_node", None)
+    BLOCK_REGISTRY.pop("test/custom_pack_block", None)
 
 def test_path_traversal_protection():
     ws_path = get_workspace_path()
@@ -153,7 +153,7 @@ def test_path_traversal_protection():
     
     # Create a malicious zip file trying to write to ../outside.txt
     with zipfile.ZipFile(malicious_package, "w") as z:
-        z.writestr("blueprint.json", json.dumps({"nodes": [], "links": []}))
+        z.writestr("blueprint.json", json.dumps({"blocks": [], "links": []}))
         z.writestr("../outside.txt", "hacked")
         
     # Attempt to load it
@@ -162,71 +162,71 @@ def test_path_traversal_protection():
     assert response.status_code == 400
     assert "Path traversal detected" in response.json()["detail"]
 
-def test_nodes_unauthorized_list_and_authorize():
-    ws_nodes = get_workspace_path() / "nodes"
-    ws_nodes.mkdir(parents=True, exist_ok=True)
+def test_blocks_unauthorized_list_and_authorize():
+    ws_blocks = get_workspace_path() / "blocks"
+    ws_blocks.mkdir(parents=True, exist_ok=True)
     
     # Unsigned file
-    node_file = ws_nodes / "unsigned_node.py"
-    node_file.write_text("class TestNode: pass", encoding="utf-8")
+    block_file = ws_blocks / "unsigned_block.py"
+    block_file.write_text("class TestBlock: pass", encoding="utf-8")
     
     # Call list unauthorized
-    response = client.get("/workspace/nodes/unauthorized")
+    response = client.get("/workspace/blocks/unauthorized")
     assert response.status_code == 200
     unauth = response.json()["unauthorized"]
     assert len(unauth) == 1
-    assert unauth[0]["filename"] == "unsigned_node.py"
+    assert unauth[0]["filename"] == "unsigned_block.py"
     assert unauth[0]["is_valid"] is False
     
     # Authorize it
-    auth_payload = {"filepath": str(node_file), "all": False}
-    response = client.post("/workspace/nodes/authorize", json=auth_payload)
+    auth_payload = {"filepath": str(block_file), "all": False}
+    response = client.post("/workspace/blocks/authorize", json=auth_payload)
     assert response.status_code == 200
     
     # Verify it is now signed (comments appended)
     from comfylab.engine.security import verify_python_file
-    creator, is_valid = verify_python_file(node_file)
+    creator, is_valid = verify_python_file(block_file)
     assert is_valid is True
     assert creator == get_creator_identity()
     
     # Verify it is no longer unauthorized
-    response = client.get("/workspace/nodes/unauthorized")
+    response = client.get("/workspace/blocks/unauthorized")
     assert response.status_code == 200
     assert len(response.json()["unauthorized"]) == 0
 
 
 def test_package_export_react_flow_format():
-    # 1. Register a dynamic test node in the workspace nodes dir so it's recognized as custom
-    ws_nodes = get_workspace_path() / "nodes"
-    ws_nodes.mkdir(parents=True, exist_ok=True)
-    node_code = """from comfylab.nodes.base import BaseNode
-from comfylab.engine.registry import register_node
+    # 1. Register a dynamic test block in the workspace blocks dir so it's recognized as custom
+    ws_blocks = get_workspace_path() / "blocks"
+    ws_blocks.mkdir(parents=True, exist_ok=True)
+    block_code = """from comfylab.blocks.base import BaseBlock
+from comfylab.engine.registry import register_block
 
-@register_node("test/custom_pack_node_rf")
-class CustomPackNodeRf(BaseNode):
+@register_block("test/custom_pack_block_rf")
+class CustomPackBlockRf(BaseBlock):
     pass
 """
-    node_file = ws_nodes / "custom_pack_node_rf.py"
-    node_file.write_text(node_code, encoding="utf-8")
+    block_file = ws_blocks / "custom_pack_block_rf.py"
+    block_file.write_text(block_code, encoding="utf-8")
     
     # Force loading it into the registry
-    from comfylab.nodes.loader import load_module_from_filepath
-    load_module_from_filepath(str(node_file))
-    assert "test/custom_pack_node_rf" in NODE_REGISTRY
+    from comfylab.blocks.loader import load_module_from_filepath
+    load_module_from_filepath(str(block_file))
+    assert "test/custom_pack_block_rf" in BLOCK_REGISTRY
 
-    # 2. Define a React Flow formatted blueprint using this custom node
+    # 2. Define a React Flow formatted blueprint using this custom block
     blueprint = {
-        "nodes": [
+        "blocks": [
             {
-                "id": "node_1",
-                "type": "actionNode",
+                "id": "block_1",
+                "type": "actionBlock",
                 "data": {
-                    "action": "test/custom_pack_node_rf"
+                    "action": "test/custom_pack_block_rf"
                 }
             },
             {
-                "id": "node_2",
-                "type": "actionNode",
+                "id": "block_2",
+                "type": "actionBlock",
                 "data": {
                     "action": "constants/number",
                     "value": 42
@@ -249,33 +249,33 @@ class CustomPackNodeRf(BaseNode):
     package_file = Path(export_data["path"])
     assert package_file.exists()
     
-    # Check that zip contains the custom node
+    # Check that zip contains the custom block
     with zipfile.ZipFile(package_file, "r") as z:
         names = z.namelist()
         assert "blueprint.json" in names
-        assert "nodes/custom_pack_node_rf.py" in names
+        assert "blocks/custom_pack_block_rf.py" in names
 
     # Cleanup registry
-    NODE_REGISTRY.pop("test/custom_pack_node_rf", None)
+    BLOCK_REGISTRY.pop("test/custom_pack_block_rf", None)
 
 
 def test_temporary_package_import():
-    # 1. Register a dynamic test node in workspace nodes dir
-    ws_nodes = get_workspace_path() / "nodes"
-    ws_nodes.mkdir(parents=True, exist_ok=True)
-    node_code = """from comfylab.nodes.base import BaseNode
-from comfylab.engine.registry import register_node
+    # 1. Register a dynamic test block in workspace blocks dir
+    ws_blocks = get_workspace_path() / "blocks"
+    ws_blocks.mkdir(parents=True, exist_ok=True)
+    block_code = """from comfylab.blocks.base import BaseBlock
+from comfylab.engine.registry import register_block
 
-@register_node("test/custom_temp_node")
-class CustomTempNode(BaseNode):
+@register_block("test/custom_temp_block")
+class CustomTempBlock(BaseBlock):
     pass
 """
-    node_file = ws_nodes / "custom_temp_node.py"
-    node_file.write_text(node_code, encoding="utf-8")
+    block_file = ws_blocks / "custom_temp_block.py"
+    block_file.write_text(block_code, encoding="utf-8")
     
-    from comfylab.nodes.loader import load_module_from_filepath
-    load_module_from_filepath(str(node_file))
-    assert "test/custom_temp_node" in NODE_REGISTRY
+    from comfylab.blocks.loader import load_module_from_filepath
+    load_module_from_filepath(str(block_file))
+    assert "test/custom_temp_block" in BLOCK_REGISTRY
 
     # 1.1 Save a mock cluster to workspace clusters dir
     ws_clusters = get_workspace_path() / "clusters"
@@ -288,7 +288,7 @@ class CustomTempNode(BaseNode):
         "display_name": "My Temp Cluster",
         "description": "Temp test cluster",
         "internal_blueprint": {
-            "nodes": [],
+            "blocks": [],
             "links": []
         },
         "boundary_pins": {
@@ -301,14 +301,14 @@ class CustomTempNode(BaseNode):
     cluster_file = ws_clusters / "test_temp_cluster.cluster.json"
     cluster_file.write_text(json.dumps(cluster_json), encoding="utf-8")
 
-    from comfylab.nodes.cluster import load_cluster_from_file
+    from comfylab.blocks.cluster import load_cluster_from_file
     load_cluster_from_file(str(cluster_file))
 
     # 2. Define blueprint and export package
     blueprint = {
-        "nodes": [
-            {"id": "node_1", "type": "test/custom_temp_node", "properties": {}},
-            {"id": "node_2", "type": "workspace/cluster/test_temp_cluster", "properties": {}}
+        "blocks": [
+            {"id": "block_1", "type": "test/custom_temp_block", "properties": {}},
+            {"id": "block_2", "type": "workspace/cluster/test_temp_cluster", "properties": {}}
         ],
         "links": []
     }
@@ -322,10 +322,10 @@ class CustomTempNode(BaseNode):
     export_data = response.json()
     package_file = Path(export_data["path"])
     
-    # 3. Clean up the dynamic node and cluster from registry and delete files
-    NODE_REGISTRY.pop("test/custom_temp_node", None)
-    NODE_REGISTRY.pop("workspace/cluster/test_temp_cluster", None)
-    node_file.unlink()
+    # 3. Clean up the dynamic block and cluster from registry and delete files
+    BLOCK_REGISTRY.pop("test/custom_temp_block", None)
+    BLOCK_REGISTRY.pop("workspace/cluster/test_temp_cluster", None)
+    block_file.unlink()
     cluster_file.unlink()
     
     # 4. Import package temporarily
@@ -344,12 +344,12 @@ class CustomTempNode(BaseNode):
     
     # Verify files are extracted to .temp folders
     assert (get_workspace_path() / "blueprints" / ".temp" / "my_temp_package.json").exists()
-    assert (get_workspace_path() / "nodes" / ".temp" / "custom_temp_node.py").exists()
+    assert (get_workspace_path() / "blocks" / ".temp" / "custom_temp_block.py").exists()
     assert (get_workspace_path() / "clusters" / ".temp" / "test_temp_cluster.cluster.json").exists()
     
-    # Verify node and cluster are loaded back in registry
-    assert "test/custom_temp_node" in NODE_REGISTRY
-    assert "workspace/cluster/test_temp_cluster" in NODE_REGISTRY
+    # Verify block and cluster are loaded back in registry
+    assert "test/custom_temp_block" in BLOCK_REGISTRY
+    assert "workspace/cluster/test_temp_cluster" in BLOCK_REGISTRY
     
     # Assert GET /cluster/{type_name} retrieves the temporary cluster definition successfully
     cluster_res = client.get("/cluster/workspace/cluster/test_temp_cluster")
@@ -357,27 +357,27 @@ class CustomTempNode(BaseNode):
     assert cluster_res.json()["name"] == "My Temp Cluster"
     
     # Cleanup registry
-    NODE_REGISTRY.pop("test/custom_temp_node", None)
-    NODE_REGISTRY.pop("workspace/cluster/test_temp_cluster", None)
+    BLOCK_REGISTRY.pop("test/custom_temp_block", None)
+    BLOCK_REGISTRY.pop("workspace/cluster/test_temp_cluster", None)
 
 
 def test_publish_temp_cluster():
-    # 1. POST to /nodes/publish_cluster with destination="temp"
+    # 1. POST to /blocks/publish_cluster with destination="temp"
     payload = {
         "display_name": "My Temp Cluster Test",
         "category": "User/Clusters",
         "icon": "📦",
         "description": "Temp cluster for testing",
-        "internal_blueprint": {"nodes": [], "links": []},
+        "internal_blueprint": {"blocks": [], "links": []},
         "boundary_pins": {"exec_ins": [], "exec_outs": [], "data_ins": [], "data_outs": []},
         "destination": "temp",
         "type_name": "workspace/cluster/my_temp_cluster_test"
     }
     
     # Clear registry if exists
-    NODE_REGISTRY.pop("workspace/cluster/my_temp_cluster_test", None)
+    BLOCK_REGISTRY.pop("workspace/cluster/my_temp_cluster_test", None)
     
-    res = client.post("/nodes/publish_cluster", json=payload)
+    res = client.post("/blocks/publish_cluster", json=payload)
     assert res.status_code == 200
     data = res.json()
     assert data["success"] is True
@@ -392,17 +392,17 @@ def test_publish_temp_cluster():
     
     # Cleanup file
     Path(data["file_path"]).unlink()
-    NODE_REGISTRY.pop("workspace/cluster/my_temp_cluster_test", None)
+    BLOCK_REGISTRY.pop("workspace/cluster/my_temp_cluster_test", None)
 
 
 @pytest.mark.asyncio
 async def test_executor_local_code_override():
-    # 1. Publish a dynamic user node first
+    # 1. Publish a dynamic user block first
     payload = {
-        "display_name": "Temp Exec Node",
+        "display_name": "Temp Exec Block",
         "category": "Test",
         "icon": "🚀",
-        "description": "Temp exec node",
+        "description": "Temp exec block",
         "code": "result = value * 2.0",
         "inputs": [
             {"name": "value", "type": "number", "default": 5.0}
@@ -413,26 +413,26 @@ async def test_executor_local_code_override():
         "destination": "workspace"
     }
     
-    NODE_REGISTRY.pop("workspace/temp_exec_node", None)
-    res = client.post("/nodes/publish", json=payload)
+    BLOCK_REGISTRY.pop("workspace/temp_exec_block", None)
+    res = client.post("/blocks/publish", json=payload)
     assert res.status_code == 200
     data = res.json()
     assert data["success"] is True
     file_path = Path(data["file_path"])
     
-    # 2. Build blueprint running this node but WITH a code override properties["code"] = "result = value + 100.0"
+    # 2. Build blueprint running this block but WITH a code override properties["code"] = "result = value + 100.0"
     blueprint = {
-        "nodes": [
+        "blocks": [
             {
-                "id": "node_override",
-                "type": "workspace/temp_exec_node",
+                "id": "block_override",
+                "type": "workspace/temp_exec_block",
                 "properties": {
                     "value": 5.0,
                     "code": "# @input name=\"value\" type=\"number\"\n# @output name=\"result\" type=\"number\"\nresult = value + 100.0"
                 }
             },
             {
-                "id": "print_node",
+                "id": "print_block",
                 "type": "outputs/basic/print",
                 "properties": {}
             }
@@ -441,17 +441,17 @@ async def test_executor_local_code_override():
             {
                 "id": "link_exec",
                 "type": "exec",
-                "source_node": "node_override",
+                "source_block": "block_override",
                 "source_pin": "Out",
-                "target_node": "print_node",
+                "target_block": "print_block",
                 "target_pin": "In"
             },
             {
                 "id": "link_data",
                 "type": "data",
-                "source_node": "node_override",
+                "source_block": "block_override",
                 "source_pin": "result",
-                "target_node": "print_node",
+                "target_block": "print_block",
                 "target_pin": "Value"
             }
         ]
@@ -461,40 +461,40 @@ async def test_executor_local_code_override():
     engine = ExecutionEngine()
     engine.load_blueprint(blueprint)
     
-    # Run graph execution starting at node_override.In
-    await engine.run(start_node_id="node_override", start_pin_name="In")
+    # Run graph execution starting at block_override.In
+    await engine.run(start_block_id="block_override", start_pin_name="In")
     
     # Assert printed value is 105.0 (from code override) instead of 10.0 (from original code)
-    print_node = engine.nodes["print_node"]
-    assert print_node.last_printed == 105.0
+    print_block = engine.blocks["print_block"]
+    assert print_block.last_printed == 105.0
     
     # Cleanup files & registry
     file_path.unlink()
-    NODE_REGISTRY.pop("workspace/temp_exec_node", None)
+    BLOCK_REGISTRY.pop("workspace/temp_exec_block", None)
 
 
 @pytest.mark.asyncio
 async def test_temp_cleanup_and_clear_endpoint():
-    # 1. Register a dynamic test node in the workspace nodes dir so it's recognized as custom
-    ws_nodes = get_workspace_path() / "nodes"
-    ws_nodes.mkdir(parents=True, exist_ok=True)
-    node_code = """from comfylab.nodes.base import BaseNode
-from comfylab.engine.registry import register_node
+    # 1. Register a dynamic test block in the workspace blocks dir so it's recognized as custom
+    ws_blocks = get_workspace_path() / "blocks"
+    ws_blocks.mkdir(parents=True, exist_ok=True)
+    block_code = """from comfylab.blocks.base import BaseBlock
+from comfylab.engine.registry import register_block
 
-@register_node("test/custom_temp_cleanup_node")
-class CustomTempCleanupNode(BaseNode):
+@register_block("test/custom_temp_cleanup_block")
+class CustomTempCleanupBlock(BaseBlock):
     pass
 """
-    node_file = ws_nodes / "custom_temp_cleanup_node.py"
-    node_file.write_text(node_code, encoding="utf-8")
+    block_file = ws_blocks / "custom_temp_cleanup_block.py"
+    block_file.write_text(block_code, encoding="utf-8")
     
-    from comfylab.nodes.loader import load_module_from_filepath
-    load_module_from_filepath(str(node_file))
-    assert "test/custom_temp_cleanup_node" in NODE_REGISTRY
+    from comfylab.blocks.loader import load_module_from_filepath
+    load_module_from_filepath(str(block_file))
+    assert "test/custom_temp_cleanup_block" in BLOCK_REGISTRY
 
     # Create package
     blueprint = {
-        "nodes": [{"id": "node_1", "type": "test/custom_temp_cleanup_node", "properties": {}}],
+        "blocks": [{"id": "block_1", "type": "test/custom_temp_cleanup_block", "properties": {}}],
         "links": []
     }
     
@@ -507,8 +507,8 @@ class CustomTempCleanupNode(BaseNode):
     export_data = response.json()
     
     # Remove from registry and delete original
-    NODE_REGISTRY.pop("test/custom_temp_cleanup_node", None)
-    node_file.unlink()
+    BLOCK_REGISTRY.pop("test/custom_temp_cleanup_block", None)
+    block_file.unlink()
     
     # Import package temporarily
     import_payload = {
@@ -523,11 +523,11 @@ class CustomTempCleanupNode(BaseNode):
     
     # Verify temp folders exist
     temp_bp = get_workspace_path() / "blueprints" / ".temp" / "cleanup_test_package.json"
-    temp_node = get_workspace_path() / "nodes" / ".temp" / "custom_temp_cleanup_node.py"
+    temp_block = get_workspace_path() / "blocks" / ".temp" / "custom_temp_cleanup_block.py"
     assert temp_bp.exists()
-    assert temp_node.exists()
-    assert "test/custom_temp_cleanup_node" in NODE_REGISTRY
-    assert NODE_REGISTRY["test/custom_temp_cleanup_node"].category.startswith("Temporary/")
+    assert temp_block.exists()
+    assert "test/custom_temp_cleanup_block" in BLOCK_REGISTRY
+    assert BLOCK_REGISTRY["test/custom_temp_cleanup_block"].category.startswith("Temporary/")
     
     # Test POST /workspace/packages/clear_temp
     clear_response = client.post("/workspace/packages/clear_temp")
@@ -536,20 +536,20 @@ class CustomTempCleanupNode(BaseNode):
     
     # Verify deleted
     assert not temp_bp.exists()
-    assert not temp_node.exists()
-    assert "test/custom_temp_cleanup_node" not in NODE_REGISTRY
+    assert not temp_block.exists()
+    assert "test/custom_temp_cleanup_block" not in BLOCK_REGISTRY
     
     # Import again temporarily to test that standard load DOES NOT auto-cleanup anymore
     response = client.post("/workspace/packages/import", json=import_payload)
     assert response.status_code == 200
     assert temp_bp.exists()
-    assert temp_node.exists()
-    assert "test/custom_temp_cleanup_node" in NODE_REGISTRY
+    assert temp_block.exists()
+    assert "test/custom_temp_cleanup_block" in BLOCK_REGISTRY
     
     # Save a standard blueprint
     bp_save_payload = {
         "filename": "standard_bp.json",
-        "blueprint": {"nodes": [], "links": []}
+        "blueprint": {"blocks": [], "links": []}
     }
     save_response = client.post("/workspace/blueprints", json=bp_save_payload)
     assert save_response.status_code == 200
@@ -560,8 +560,8 @@ class CustomTempCleanupNode(BaseNode):
     
     # Verify temp files are still there (no auto-purge on load anymore)
     assert temp_bp.exists()
-    assert temp_node.exists()
-    assert "test/custom_temp_cleanup_node" in NODE_REGISTRY
+    assert temp_block.exists()
+    assert "test/custom_temp_cleanup_block" in BLOCK_REGISTRY
     
     # Test startup event cleanup
     from backend.main import startup_event
@@ -573,7 +573,7 @@ class CustomTempCleanupNode(BaseNode):
     
     # Verify startup event successfully cleaned up temp files
     assert not temp_bp.exists()
-    assert not temp_node.exists()
+    assert not temp_block.exists()
     
     # Clean up standard blueprint file
     (get_workspace_path() / "blueprints" / "standard_bp.json").unlink()

@@ -3,7 +3,7 @@ import asyncio
 from fastapi.testclient import TestClient
 from backend.main import app
 from comfylab.engine.executor import ExecutionEngine
-import comfylab.nodes
+import comfylab.blocks
 
 
 @pytest.fixture(autouse=True)
@@ -24,7 +24,7 @@ def isolated_config(tmp_path, monkeypatch):
     # Write a default config with a test creator_identity
     config_file = base_dir / "config.json"
     default_config = {
-        "custom_node_dirs": [],
+        "custom_block_dirs": [],
         "last_workspace": "",
         "script_timeout": 30.0,
         "visa_backend": "",
@@ -62,7 +62,7 @@ def test_api_run_endpoint_spawns_task():
     
     # Simple blueprint: Constants/Number -> Output/Print
     blueprint = {
-        "nodes": [
+        "blocks": [
             {"id": "num", "type": "constants/number", "properties": {"value": 5.5}},
             {"id": "print", "type": "outputs/basic/print", "properties": {}}
         ],
@@ -70,9 +70,9 @@ def test_api_run_endpoint_spawns_task():
             {
                 "id": "l1",
                 "type": "data",
-                "source_node": "num",
+                "source_block": "num",
                 "source_pin": "Value",
-                "target_node": "print",
+                "target_block": "print",
                 "target_pin": "Value"
             }
         ]
@@ -102,7 +102,7 @@ async def test_telemetry_generation_via_callbacks():
 
     # Blueprint: Constants/Number -> Output/Print
     blueprint = {
-        "nodes": [
+        "blocks": [
             {"id": "num", "type": "constants/number", "properties": {"value": 42.0}},
             {"id": "print", "type": "outputs/basic/print", "properties": {}}
         ],
@@ -110,22 +110,22 @@ async def test_telemetry_generation_via_callbacks():
             {
                 "id": "l1",
                 "type": "data",
-                "source_node": "num",
+                "source_block": "num",
                 "source_pin": "Value",
-                "target_node": "print",
+                "target_block": "print",
                 "target_pin": "Value"
             }
         ]
     }
 
     engine.load_blueprint(blueprint)
-    await engine.run(start_node_id="print", start_pin_name="In")
+    await engine.run(start_block_id="print", start_pin_name="In")
 
     # Check that status updates were broadcast
     assert len(received_messages) >= 2
     
-    # Should have a 'running' and 'success' status for print node
-    print_statuses = [m for m in received_messages if m.get("node_id") == "print"]
+    # Should have a 'running' and 'success' status for print block
+    print_statuses = [m for m in received_messages if m.get("block_id") == "print"]
     assert len(print_statuses) == 2
     assert print_statuses[0]["status"] == "running"
     assert print_statuses[1]["status"] == "success"
@@ -141,7 +141,7 @@ def test_settings_api_preserves_multilang():
     
     # Build updated payload
     payload = {
-        "custom_node_dirs": initial_data.get("custom_node_dirs", []),
+        "custom_block_dirs": initial_data.get("custom_block_dirs", []),
         "script_timeout": 15.0,
         "visa_backend": initial_data.get("visa_backend", ""),
         "last_workspace": initial_data.get("last_workspace", ""),
@@ -194,7 +194,7 @@ def test_blueprint_origin_verification():
 
         # Case 1: Matching origin_uuid
         bp_match = {
-            "nodes": [],
+            "blocks": [],
             "edges": [],
             "origin_uuid": current_identity
         }
@@ -207,7 +207,7 @@ def test_blueprint_origin_verification():
 
         # Case 2: Missing origin_uuid
         bp_missing = {
-            "nodes": [],
+            "blocks": [],
             "edges": []
         }
         (blueprints_dir / "missing.json").write_text(json.dumps(bp_missing), encoding="utf-8")
@@ -220,7 +220,7 @@ def test_blueprint_origin_verification():
 
         # Case 3: Trusted origin_uuid
         bp_trusted = {
-            "nodes": [],
+            "blocks": [],
             "edges": [],
             "origin_uuid": "trusted-identity-1"
         }
@@ -232,7 +232,7 @@ def test_blueprint_origin_verification():
 
         # Case 4: Untrusted origin_uuid (mismatch)
         bp_untrusted = {
-            "nodes": [],
+            "blocks": [],
             "edges": [],
             "origin_uuid": "untrusted-uuid"
         }
@@ -266,7 +266,7 @@ def test_save_settings_preserves_custom_users_and_identity():
     
     # POST settings without custom_users, creator_identity, and trusted_origins
     payload = {
-        "custom_node_dirs": [],
+        "custom_block_dirs": [],
         "script_timeout": 20.0,
         "visa_backend": "",
         "last_workspace": "",
@@ -292,28 +292,28 @@ def test_save_settings_preserves_custom_users_and_identity():
     assert config["external_python_path"] == "/usr/bin/python3"
 
 
-def test_clear_node_data_endpoint():
+def test_clear_block_data_endpoint():
     from backend.routers.execution import engine
     client = TestClient(app)
     
-    # 1. Test clearing a node that is not loaded (graceful skip)
-    response = client.post("/nodes/nonexistent_node/clear")
+    # 1. Test clearing a block that is not loaded (graceful skip)
+    response = client.post("/blocks/nonexistent_block/clear")
     assert response.status_code == 200
     assert response.json()["status"] == "skipped"
     assert "not loaded" in response.json()["reason"]
     
-    # 2. Test clearing a node that is loaded
+    # 2. Test clearing a block that is loaded
     blueprint = {
-        "nodes": [
+        "blocks": [
             {"id": "test_print", "type": "outputs/basic/print", "properties": {}}
         ],
         "links": []
     }
-    # Load blueprint directly to instantiate the nodes
+    # Load blueprint directly to instantiate the blocks
     engine.load_blueprint(blueprint)
     
-    # Clear the node
-    response = client.post("/nodes/test_print/clear")
+    # Clear the block
+    response = client.post("/blocks/test_print/clear")
     assert response.status_code == 200
     assert response.json()["status"] == "success"
 

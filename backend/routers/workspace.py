@@ -21,7 +21,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from backend.workspace import get_workspace_path, set_workspace_path
-from comfylab.engine.config import get_config, update_config, get_global_user_nodes_dir, get_global_user_clusters_dir
+from comfylab.engine.config import get_config, update_config, get_global_user_blocks_dir, get_global_user_clusters_dir
 from comfylab.engine.security import (
     get_creator_identity,
     verify_json,
@@ -45,7 +45,7 @@ class TrustOriginPayload(BaseModel):
     origin_uuid: str
 
 
-class AuthorizeNodePayload(BaseModel):
+class AuthorizeBlockPayload(BaseModel):
     filepath: str = ""
     all: bool = False
 
@@ -284,16 +284,16 @@ async def trust_origin(payload: TrustOriginPayload):
         trusted.append(payload.origin_uuid)
         update_config({"trusted_origins": trusted})
         
-        # Trigger dynamic reload so that previously unauthorized nodes/clusters from this origin are authorized immediately
-        from comfylab.nodes.loader import reload_registry
+        # Trigger dynamic reload so that previously unauthorized blocks/clusters from this origin are authorized immediately
+        from comfylab.blocks.loader import reload_registry
         reload_registry()
         
     return {"status": "success", "trusted_origins": trusted}
 
 
-@router.get("/workspace/nodes/unauthorized")
-async def list_unauthorized_nodes():
-    """Lists all user node and cluster files that are currently unsigned or untrusted."""
+@router.get("/workspace/blocks/unauthorized")
+async def list_unauthorized_blocks():
+    """Lists all user block and cluster files that are currently unsigned or untrusted."""
     config = get_config()
     trusted_origins = config.get("trusted_origins", [])
     local_identity = config.get("creator_identity", "")
@@ -302,9 +302,9 @@ async def list_unauthorized_nodes():
     ws_path = get_workspace_path()
     
     paths_to_scan = [
-        (ws_path / "nodes", "*.py", "python"),
+        (ws_path / "blocks", "*.py", "python"),
         (ws_path / "clusters", "*.cluster.json", "cluster"),
-        (get_global_user_nodes_dir(), "*.py", "python"),
+        (get_global_user_blocks_dir(), "*.py", "python"),
         (get_global_user_clusters_dir(), "*.cluster.json", "cluster")
     ]
     
@@ -318,7 +318,7 @@ async def list_unauthorized_nodes():
                         unauthorized_files.append({
                             "filepath": str(f),
                             "filename": f.name,
-                            "type": "node",
+                            "type": "block",
                             "creator_identity": creator,
                             "is_valid": is_valid
                         })
@@ -348,14 +348,14 @@ async def list_unauthorized_nodes():
     return {"unauthorized": unauthorized_files}
 
 
-@router.post("/workspace/nodes/authorize")
-async def authorize_nodes(payload: AuthorizeNodePayload):
-    """Signs custom nodes or clusters with the host's private key to authorize them."""
+@router.post("/workspace/blocks/authorize")
+async def authorize_blocks(payload: AuthorizeBlockPayload):
+    """Signs custom blocks or clusters with the host's private key to authorize them."""
     ws_path = get_workspace_path()
     allowed_roots = [
-        ws_path / "nodes",
+        ws_path / "blocks",
         ws_path / "clusters",
-        get_global_user_nodes_dir(),
+        get_global_user_blocks_dir(),
         get_global_user_clusters_dir()
     ]
     
@@ -367,7 +367,7 @@ async def authorize_nodes(payload: AuthorizeNodePayload):
                 is_allowed = True
                 break
         if not is_allowed:
-            raise HTTPException(status_code=403, detail="Access denied: File must be inside workspace or user nodes/clusters folders.")
+            raise HTTPException(status_code=403, detail="Access denied: File must be inside workspace or user blocks/clusters folders.")
             
         if resolved.name.endswith(".py"):
             sign_python_file(resolved)
@@ -378,7 +378,7 @@ async def authorize_nodes(payload: AuthorizeNodePayload):
             resolved.write_text(json.dumps(signed_data, indent=2), encoding="utf-8")
             
     if payload.all:
-        unauth_res = await list_unauthorized_nodes()
+        unauth_res = await list_unauthorized_blocks()
         for item in unauth_res["unauthorized"]:
             authorize_single_file(Path(item["filepath"]))
     else:
@@ -386,7 +386,7 @@ async def authorize_nodes(payload: AuthorizeNodePayload):
             raise HTTPException(status_code=400, detail="Missing filepath.")
         authorize_single_file(Path(payload.filepath))
         
-    from comfylab.nodes.loader import reload_registry
+    from comfylab.blocks.loader import reload_registry
     reload_registry()
     
     return {"success": True}

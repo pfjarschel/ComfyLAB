@@ -17,14 +17,14 @@ class LinkModel(BaseModel):
     """Represents a connection (execution or data wire) between two pins."""
     id: str
     type: Literal["exec", "data"]
-    source_node: str
+    source_block: str
     source_pin: str
-    target_node: str
+    target_block: str
     target_pin: str
 
 
-class NodeModel(BaseModel):
-    """Represents a serialized node in the blueprint."""
+class BlockModel(BaseModel):
+    """Represents a serialized block in the blueprint."""
     id: str
     type: str
     properties: Dict[str, Any] = Field(default_factory=dict)
@@ -32,16 +32,16 @@ class NodeModel(BaseModel):
 
 
 class BlueprintModel(BaseModel):
-    """Represents the complete graph schema containing nodes and links."""
-    nodes: List[NodeModel]
+    """Represents the complete graph schema containing blocks and links."""
+    blocks: List[BlockModel]
     links: List[LinkModel]
 
 
 # --- Cluster Definition Models ---
 
 class BoundaryMappingModel(BaseModel):
-    """Maps a boundary pin to an internal node pin."""
-    node_id: str
+    """Maps a boundary pin to an internal block pin."""
+    block_id: str
     pin: str
 
 

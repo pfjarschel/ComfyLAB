@@ -17,25 +17,25 @@ import { FormattedDisplay } from '../common/FormattedDisplay';
 import { useReactFlow } from '@xyflow/react';
 
 interface DisplayScreenWidgetProps {
-  nodeId: string;
+  blockId: string;
   initialValue?: any;
 }
 
-export const DisplayScreenWidget = ({ nodeId, initialValue }: DisplayScreenWidgetProps) => {
+export const DisplayScreenWidget = ({ blockId, initialValue }: DisplayScreenWidgetProps) => {
   const [displayValue, setDisplayValue] = useState<any>(initialValue);
   const { getNode } = useReactFlow();
 
   useEffect(() => {
     const handleTelemetry = () => {
-      const node = getNode(nodeId);
-      if (node && (node.data?.results as any)?.displayValue !== undefined) {
-        setDisplayValue((node.data.results as any).displayValue);
+      const block = getNode(blockId);
+      if (block && (block.data?.results as any)?.displayValue !== undefined) {
+        setDisplayValue((block.data.results as any).displayValue);
       }
     };
-    const eventName = `telemetry-${nodeId}`;
+    const eventName = `telemetry-${blockId}`;
     window.addEventListener(eventName, handleTelemetry);
     return () => window.removeEventListener(eventName, handleTelemetry);
-  }, [nodeId, getNode]);
+  }, [blockId, getNode]);
 
   return (
     <div

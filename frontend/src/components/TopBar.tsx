@@ -28,8 +28,8 @@ interface TopBarProps {
   isRunning: boolean;
   isPaused: boolean;
   runningTabName: string;
-  nodesCount: number;
-  selectedNodesCount: number;
+  blocksCount: number;
+  selectedBlocksCount: number;
   theme: 'dark' | 'light';
   setTheme: (theme: 'dark' | 'light') => void;
   menuContainerRef: React.RefObject<HTMLDivElement | null>;
@@ -67,7 +67,7 @@ export const TopBar = ({
   isRunning,
   isPaused,
   runningTabName,
-  nodesCount,
+  blocksCount,
    
   theme,
   setTheme,
@@ -116,11 +116,11 @@ export const TopBar = ({
               <button onClick={onNewBlueprint}>
                 <span>📄</span> New Blueprint
               </button>
-              <button onClick={onSaveBlueprint} disabled={nodesCount === 0}>
+              <button onClick={onSaveBlueprint} disabled={blocksCount === 0}>
                 <span>💾</span> Save Blueprint
               </button>
               {currentBlueprintName && onOverwriteBlueprint && (
-                <button onClick={onOverwriteBlueprint} disabled={nodesCount === 0}>
+                <button onClick={onOverwriteBlueprint} disabled={blocksCount === 0}>
                   <span>💾</span> Overwrite Blueprint
                 </button>
               )}
@@ -133,7 +133,7 @@ export const TopBar = ({
               <button onClick={onClearPersistentStates}>
                 <span>🧹</span> Clear Persistent States
               </button>
-              <button onClick={onDownloadBlueprint} disabled={nodesCount === 0}>
+              <button onClick={onDownloadBlueprint} disabled={blocksCount === 0}>
                 <span>📥</span> Download Blueprint
               </button>
               <button onClick={onUploadBlueprintClick}>
@@ -251,7 +251,7 @@ export const TopBar = ({
           <button 
             className="button-primary run-btn" 
             onClick={onRun} 
-            disabled={nodesCount === 0}
+            disabled={blocksCount === 0}
             style={{ height: '38px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}
           >
             <svg viewBox="0 0 24 24" width="16" height="16" fill="#10b981" style={{ display: 'inline-block', verticalAlign: 'middle' }}>

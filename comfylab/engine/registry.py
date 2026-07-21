@@ -13,46 +13,46 @@
 from typing import Dict, Type, Any, List
 import re
 import logging
-from comfylab.nodes.base import BaseNode, ExecIn, ExecOut, DataIn, DataOut
+from comfylab.blocks.base import BaseBlock, ExecIn, ExecOut, DataIn, DataOut
 
 logger = logging.getLogger("comfylab.engine.registry")
 
 
-def _safe_getfile(cls: Type[BaseNode]) -> str:
+def _safe_getfile(cls: Type[BaseBlock]) -> str:
     try:
         import inspect
         return inspect.getfile(cls)
     except Exception:
         return ""
 
-TEST_VERIFICATION_NODES = {"test/blocked_node", "test/custom_pack_node"}
+TEST_VERIFICATION_BLOCKS = {"test/blocked_block", "test/custom_pack_block"}
 
 def _is_verification_test(type_name: str) -> bool:
-    return type_name.startswith("test/dynamic_") or type_name in TEST_VERIFICATION_NODES
+    return type_name.startswith("test/dynamic_") or type_name in TEST_VERIFICATION_BLOCKS
 
-# Global map storing registered node types
-NODE_REGISTRY: Dict[str, Type[BaseNode]] = {}
+# Global map storing registered block types
+BLOCK_REGISTRY: Dict[str, Type[BaseBlock]] = {}
 
-# Cached serialized node schema (invalidated on any new registration)
+# Cached serialized block schema (invalidated on any new registration)
 _schema_cache: Dict[str, Any] = None
 
 
 def invalidate_schema_cache() -> None:
-    """Clears the cached node schema. Call after node registrations change."""
+    """Clears the cached block schema. Call after block registrations change."""
     global _schema_cache
     _schema_cache = None
 
-def register_node(type_name: str):
+def register_block(type_name: str):
     """
-    Decorator to register a BaseNode subclass in the global registry.
+    Decorator to register a BaseBlock subclass in the global registry.
     Usage:
-        @register_node("math/arithmetic/add")
-        class AddNode(BaseNode):
+        @register_block("math/arithmetic/add")
+        class AddBlock(BaseBlock):
             ...
     """
-    def decorator(cls: Type[BaseNode]):
-        if not issubclass(cls, BaseNode):
-            raise TypeError(f"Class {cls.__name__} must inherit from BaseNode")
+    def decorator(cls: Type[BaseBlock]):
+        if not issubclass(cls, BaseBlock):
+            raise TypeError(f"Class {cls.__name__} must inherit from BaseBlock")
         
         # Security/Signature check
         try:
@@ -111,7 +111,7 @@ def register_node(type_name: str):
             else:
                 cls.category = "Logic"
 
-        # Prepend "Temporary/" to category if node is loaded from a temp directory
+        # Prepend "Temporary/" to category if block is loaded from a temp directory
         try:
             from pathlib import Path
             if hasattr(cls, "_cluster_file_path") and cls._cluster_file_path:
@@ -127,16 +127,16 @@ def register_node(type_name: str):
         except Exception:
             pass
 
-        existing = NODE_REGISTRY.get(type_name)
+        existing = BLOCK_REGISTRY.get(type_name)
         if existing is not None and existing is not cls:
             new_src = getattr(cls, "_cluster_file_path", "") or _safe_getfile(cls)
             old_src = getattr(existing, "_cluster_file_path", "") or _safe_getfile(existing)
             logger.warning(
-                "Duplicate node type '%s' registered from '%s', overwriting previous registration from '%s'.",
+                "Duplicate block type '%s' registered from '%s', overwriting previous registration from '%s'.",
                 type_name, new_src or "<unknown>", old_src or "<unknown>"
             )
 
-        NODE_REGISTRY[type_name] = cls
+        BLOCK_REGISTRY[type_name] = cls
         invalidate_schema_cache()
         return cls
     return decorator
@@ -172,14 +172,14 @@ def format_category(category_str: str) -> str:
     return formatted
 
 
-def get_node_class(type_name: str) -> Type[BaseNode]:
+def get_block_class(type_name: str) -> Type[BaseBlock]:
     """
-    Retrieves the node class registered for a type name.
+    Retrieves the block class registered for a type name.
     Raises KeyError if the type name is not registered.
     """
-    if type_name not in NODE_REGISTRY:
-        raise KeyError(f"Node type '{type_name}' is not registered in NODE_REGISTRY.")
-    return NODE_REGISTRY[type_name]
+    if type_name not in BLOCK_REGISTRY:
+        raise KeyError(f"Block type '{type_name}' is not registered in BLOCK_REGISTRY.")
+    return BLOCK_REGISTRY[type_name]
 
 
 def _map_type_hint_to_str(type_hint: Any) -> str:
@@ -209,9 +209,9 @@ def _map_default_widget(type_str: str) -> str:
         return "text"
     return "any"
 
-def get_all_nodes_schema() -> Dict[str, Any]:
+def get_all_blocks_schema() -> Dict[str, Any]:
     """
-    Serializes all registered nodes, their metadata, and their inputs/outputs definition.
+    Serializes all registered blocks, their metadata, and their inputs/outputs definition.
     Result is cached and reused until the registry changes (see invalidate_schema_cache).
     """
     global _schema_cache
@@ -219,7 +219,7 @@ def get_all_nodes_schema() -> Dict[str, Any]:
         return _schema_cache
 
     schema = {}
-    for type_name, cls in NODE_REGISTRY.items():
+    for type_name, cls in BLOCK_REGISTRY.items():
         exec_ins = []
         exec_outs = []
         data_ins = []
@@ -262,8 +262,8 @@ def get_all_nodes_schema() -> Dict[str, Any]:
                 
         # Determine friendly display name
         display_name = getattr(cls, "display_name", "") or cls.__name__
-        if display_name.endswith("Node") and display_name != "Node":
-            display_name = display_name[:-4]  # Strip "Node" suffix for presentation
+        if display_name.endswith("Block") and display_name != "Block":
+            display_name = display_name[:-4]  # Strip "Block" suffix for presentation
 
         # Resolve relative source file path
         import inspect
@@ -312,12 +312,12 @@ def get_all_nodes_schema() -> Dict[str, Any]:
 
 
 
-# Trigger recursive auto-discovery of all node modules
-from comfylab.nodes.loader import load_all_nodes
-load_all_nodes()
+# Trigger recursive auto-discovery of all block modules
+from comfylab.blocks.loader import load_all_blocks
+load_all_blocks()
 
 # Cluster loading is deferred to avoid circular imports during module initialization.
-# It is called explicitly from the FastAPI startup event and from the /nodes/reload endpoint.
+# It is called explicitly from the FastAPI startup event and from the /blocks/reload endpoint.
 _clusters_loaded = False
 
 
@@ -325,7 +325,7 @@ def load_all_clusters_deferred(force: bool = False):
     global _clusters_loaded
     if _clusters_loaded and not force:
         return
-    from comfylab.nodes.loader import load_all_clusters
+    from comfylab.blocks.loader import load_all_clusters
     load_all_clusters()
     _clusters_loaded = True
 

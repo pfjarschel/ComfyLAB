@@ -60,12 +60,12 @@ export const Sidebar = ({
   return (
     <div className="sidebar-container glass-panel nodrag nowheel">
       <div className="sidebar-header">
-        <h3>Node Library</h3>
+        <h3>Block Library</h3>
         <div style={{ display: 'flex', gap: '6px' }}>
           <button
             className="button-secondary"
             onClick={onReloadRegistry}
-            title="Refresh node library"
+            title="Refresh block library"
             style={{ height: '30px', padding: '0 8px', fontSize: '0.8rem' }}
           >
             <span>🔄</span>
@@ -73,7 +73,7 @@ export const Sidebar = ({
           <button 
             className="button-secondary library-toggle-btn active"
             onClick={() => setSidebarOpen(false)}
-            title="Hide Node Library"
+            title="Hide Block Library"
             style={{ height: '30px', padding: '0 10px', fontSize: '0.8rem', gap: '6px' }}
           >
             <span>📚</span>
@@ -84,7 +84,7 @@ export const Sidebar = ({
       <div className="sidebar-search-container">
         <input
           type="text"
-          placeholder="Search nodes..."
+          placeholder="Search blocks..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="sidebar-search-input"
@@ -102,7 +102,7 @@ export const Sidebar = ({
       <div className="sidebar-content">
         {Object.entries(filteredGrouped).length === 0 && (
           <div style={{ color: '#64748b', fontSize: '0.85rem', textAlign: 'center', marginTop: '20px' }}>
-            No nodes match your search.
+            No blocks match your search.
           </div>
         )}
         {Object.entries(filteredGrouped)
@@ -127,19 +127,19 @@ export const Sidebar = ({
               
               {isCatExpanded && (
                 <div className="sidebar-category-content">
-                  {/* Direct Nodes */}
+                  {/* Direct Blocks */}
                   {[...catData.directNodes]
                     .sort((a, b) => a.name.localeCompare(b.name))
-                    .map((node) => (
+                    .map((block) => (
                     <div 
-                      key={node.type} 
-                      className="dndnode" 
-                      onDragStart={(e) => { e.dataTransfer.setData('application/reactflow', node.type); }} 
+                      key={block.type} 
+                      className="dndblock" 
+                      onDragStart={(e) => { e.dataTransfer.setData('application/reactflow', block.type); }} 
                       draggable
-                      title={node.description}
+                      title={block.description}
                     >
-                      <span style={{ fontSize: '0.95rem' }}>{node.icon || '⚙️'}</span> 
-                      <span>{node.name}</span>
+                      <span style={{ fontSize: '0.95rem' }}>{block.icon || '⚙️'}</span> 
+                      <span>{block.name}</span>
                     </div>
                   ))}
 
@@ -163,16 +163,16 @@ export const Sidebar = ({
                           <div className="sidebar-subcategory-content">
                             {[...subNodes]
                               .sort((a, b) => a.name.localeCompare(b.name))
-                              .map((node) => (
+                              .map((block) => (
                               <div 
-                                key={node.type} 
-                                className="dndnode" 
-                                onDragStart={(e) => { e.dataTransfer.setData('application/reactflow', node.type); }} 
+                                key={block.type} 
+                                className="dndblock" 
+                                onDragStart={(e) => { e.dataTransfer.setData('application/reactflow', block.type); }} 
                                 draggable
-                                title={node.description}
+                                title={block.description}
                               >
-                                <span style={{ fontSize: '0.95rem' }}>{node.icon || '⚙️'}</span> 
-                                <span>{node.name}</span>
+                                <span style={{ fontSize: '0.95rem' }}>{block.icon || '⚙️'}</span> 
+                                <span>{block.name}</span>
                               </div>
                             ))}
                           </div>

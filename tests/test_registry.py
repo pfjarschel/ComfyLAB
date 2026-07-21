@@ -1,34 +1,34 @@
 import pytest
-from comfylab.nodes.base import BaseNode
-from comfylab.engine.registry import register_node, get_node_class, NODE_REGISTRY
+from comfylab.blocks.base import BaseBlock
+from comfylab.engine.registry import register_block, get_block_class, BLOCK_REGISTRY
 
-def test_node_registration():
-    @register_node("test/dummy")
-    class DummyNode(BaseNode):
+def test_block_registration():
+    @register_block("test/dummy")
+    class DummyBlock(BaseBlock):
         pass
 
-    assert "test/dummy" in NODE_REGISTRY
-    assert get_node_class("test/dummy") is DummyNode
+    assert "test/dummy" in BLOCK_REGISTRY
+    assert get_block_class("test/dummy") is DummyBlock
 
 
 def test_invalid_class_registration():
     with pytest.raises(TypeError):
-        @register_node("test/invalid")
-        class NotANode:
+        @register_block("test/invalid")
+        class NotABlock:
             pass
 
 
-def test_get_unregistered_node():
+def test_get_unregistered_block():
     with pytest.raises(KeyError):
-        get_node_class("nonexistent/node/type")
+        get_block_class("nonexistent/block/type")
 
 
-def test_all_nodes_schema():
-    from comfylab.engine.registry import get_all_nodes_schema
+def test_all_blocks_schema():
+    from comfylab.engine.registry import get_all_blocks_schema
     
-    schema = get_all_nodes_schema()
+    schema = get_all_blocks_schema()
     
-    # Check standard and instrument nodes are registered and correctly serialized
+    # Check standard and instrument blocks are registered and correctly serialized
     assert "constants/number" in schema
     assert "math/basic/add" in schema
     assert "visa/signal_generator/config_wave" in schema

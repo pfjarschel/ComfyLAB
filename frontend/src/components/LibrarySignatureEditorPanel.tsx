@@ -28,9 +28,9 @@ export interface LibraryArg {
 
 interface LibrarySignatureEditorPanelProps {
   isOpen: boolean;
-  nodeId: string;
+  blockId: string;
   nodeName: string;
-  /** Current library_args property value (serialised array from node data) */
+  /** Current library_args property value (serialised array from block data) */
   libraryArgs: LibraryArg[];
   onSave: (args: LibraryArg[]) => void;
   onClose: () => void;
@@ -80,7 +80,7 @@ const freshArg = (): LibraryArg => ({
 
 export const LibrarySignatureEditorPanel = ({
   isOpen,
-  nodeId,
+  blockId,
   nodeName,
   libraryArgs,
   onSave,
@@ -90,7 +90,7 @@ export const LibrarySignatureEditorPanel = ({
   const [drawerWidth, setDrawerWidth] = useState(560);
   const isResizingRef = useRef(false);
 
-  // Sync incoming libraryArgs whenever the panel opens or the source node changes
+  // Sync incoming libraryArgs whenever the panel opens or the source block changes
   useEffect(() => {
     if (isOpen) {
       // Ensure every entry has a stable local id
@@ -98,7 +98,7 @@ export const LibrarySignatureEditorPanel = ({
         libraryArgs.map(a => ({ ...a, id: a.id || newId() }))
       );
     }
-  }, [isOpen, nodeId]);
+  }, [isOpen, blockId]);
 
   // --- Resize handle (matches ScriptEditorPanel pattern) ---
   const handleResize = useCallback((e: MouseEvent) => {
@@ -188,7 +188,7 @@ export const LibrarySignatureEditorPanel = ({
   // ---------------------------------------------------------------------------
   // Styles (inline to avoid polluting App.css with a single-use panel)
   // ---------------------------------------------------------------------------
-  const borderCol = 'var(--node-border, rgba(148,163,184,0.12))';
+  const borderCol = 'var(--block-border, rgba(148,163,184,0.12))';
   const textMuted = 'var(--text-muted, #64748b)';
   const textColor = 'var(--text-color, #e2e8f0)';
   const inputBg = 'var(--input-bg, rgba(2,6,23,0.6))';
@@ -239,10 +239,10 @@ export const LibrarySignatureEditorPanel = ({
               DLL/SO Signature Editor
             </h3>
             <span
-              className="script-editor-node-id"
+              className="script-editor-block-id"
               style={{ marginTop: '2px', fontFamily: 'monospace', fontSize: '0.7rem', color: textMuted }}
             >
-              {nodeName || nodeId}
+              {nodeName || blockId}
             </span>
           </div>
         </div>
@@ -257,7 +257,7 @@ export const LibrarySignatureEditorPanel = ({
         style={{ fontSize: '0.75rem', lineHeight: 1.5 }}
       >
         Define the C function's argument list in order. Each row becomes a
-        DataIn/DataOut pin on the node. For <strong>Output</strong> arrays,
+        DataIn/DataOut pin on the block. For <strong>Output</strong> arrays,
         specify a <strong>Size Arg</strong> matching the name of the input
         argument that holds the element count.
       </div>

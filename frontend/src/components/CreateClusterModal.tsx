@@ -29,8 +29,8 @@ interface DetectedPin {
   step?: number;
   options?: string[];
   optional?: boolean;
-  maps_to?: { node_id: string; pin: string };
-  maps_from?: { node_id: string; pin: string };
+  maps_to?: { block_id: string; pin: string };
+  maps_from?: { block_id: string; pin: string };
 }
 
 interface DetectedBoundary {
@@ -43,8 +43,8 @@ interface DetectedBoundary {
 interface CreateClusterModalProps {
   isOpen: boolean;
   detectedBoundary: DetectedBoundary;
-  selectedNodeIds: string[];
-  internalBlueprint: { nodes: any[]; links: any[] };
+  selectedBlockIds: string[];
+  internalBlueprint: { blocks: any[]; links: any[] };
   hasActiveWorkspace: boolean;
   onClose: () => void;
   onCreated: (typeName: string, clusterNodeData: any) => void;
@@ -53,7 +53,7 @@ interface CreateClusterModalProps {
 export const CreateClusterModal = ({
   isOpen,
   detectedBoundary,
-  selectedNodeIds,
+  selectedBlockIds,
   internalBlueprint,
   hasActiveWorkspace,
   onClose,
@@ -94,50 +94,50 @@ export const CreateClusterModal = ({
       });
     });
 
-    // If no boundary exec_ins but internal nodes have exec flow, create a synthetic entry
-    if (boundaryPins.exec_ins.length === 0 && internalBlueprint.nodes.length > 0) {
+    // If no boundary exec_ins but internal blocks have exec flow, create a synthetic entry
+    if (boundaryPins.exec_ins.length === 0 && internalBlueprint.blocks.length > 0) {
       const internalLinks: any[] = internalBlueprint.links || [];
       const execLinks = internalLinks.filter((l: any) => l.type === 'exec');
       if (execLinks.length > 0) {
-        const targetsWithExecIn = new Set(execLinks.map((l: any) => `${l.target_node}/${l.target_pin}`));
-        // Find the entry node: a node that sources exec links but is not a target of any exec link
+        const targetsWithExecIn = new Set(execLinks.map((l: any) => `${l.target_block}/${l.target_pin}`));
+        // Find the entry block: a block that sources exec links but is not a target of any exec link
         let entryNodeId: string | null = null;
         let entryPin = 'In';
         for (const link of execLinks) {
-          if (!targetsWithExecIn.has(`${link.source_node}/`)) {
-            // This source node is not a target of any exec link → it's an entry point
-            // But we need its ExecIn pin name. Find it from nodes that ARE targets.
+          if (!targetsWithExecIn.has(`${link.source_block}/`)) {
+            // This source block is not a target of any exec link → it's an entry point
+            // But we need its ExecIn pin name. Find it from blocks that ARE targets.
             // The source's exec out connects to a target. That target's ExecIn is the internal entry.
-            // Wait — the source node IS the entry point. We need to map the cluster's ExecIn
-            // to the first exec node's input.
+            // Wait — the source block IS the entry point. We need to map the cluster's ExecIn
+            // to the first exec block's input.
           }
         }
         // Simpler: find a target that is NOT a source of any exec link going further
-        // That's the real first exec node. Use it as the internal entry.
-        const sources = new Set(execLinks.map((l: any) => l.source_node));
+        // That's the real first exec block. Use it as the internal entry.
+        const sources = new Set(execLinks.map((l: any) => l.source_block));
         for (const link of execLinks) {
-          if (!sources.has(link.target_node)) {
+          if (!sources.has(link.target_block)) {
             // This target receives exec but doesn't forward it further → it might be the first
-            // Actually, we want the node that is NOT a target but IS a source → the real entry
+            // Actually, we want the block that is NOT a target but IS a source → the real entry
           }
         }
-        // Most reliable: find a source node that is never a target
-        const allTargets = new Set(execLinks.map((l: any) => `${l.target_node}`));
-        for (const node of internalBlueprint.nodes) {
-          if (sources.has(node.id) && !allTargets.has(node.id)) {
-            entryNodeId = node.id;
+        // Most reliable: find a source block that is never a target
+        const allTargets = new Set(execLinks.map((l: any) => `${l.target_block}`));
+        for (const block of internalBlueprint.blocks) {
+          if (sources.has(block.id) && !allTargets.has(block.id)) {
+            entryNodeId = block.id;
             break;
           }
         }
         // Fallback to first exec link's target
         if (!entryNodeId && execLinks.length > 0) {
-          entryNodeId = execLinks[0].target_node;
+          entryNodeId = execLinks[0].target_block;
           entryPin = execLinks[0].target_pin;
         }
         if (entryNodeId) {
           boundaryPins.exec_ins.push({
             name: 'In',
-            maps_to: { node_id: entryNodeId, pin: entryPin }
+            maps_to: { block_id: entryNodeId, pin: entryPin }
           });
         }
       }
@@ -149,29 +149,29 @@ export const CreateClusterModal = ({
       });
     });
 
-    // If no boundary exec_outs but internal nodes have exec flow, create a synthetic exit
+    // If no boundary exec_outs but internal blocks have exec flow, create a synthetic exit
     if (boundaryPins.exec_outs.length === 0) {
       const internalLinks: any[] = internalBlueprint.links || [];
       const execLinks = internalLinks.filter((l: any) => l.type === 'exec');
       if (execLinks.length > 0) {
-        const sources = new Set(execLinks.map((l: any) => l.source_node));
-        // Terminal node: a target that is never a source
+        const sources = new Set(execLinks.map((l: any) => l.source_block));
+        // Terminal block: a target that is never a source
         let exitNodeId: string | null = null;
         let exitPin = 'Out';
         for (const link of execLinks) {
-          if (!sources.has(link.target_node)) {
-            exitNodeId = link.target_node;
+          if (!sources.has(link.target_block)) {
+            exitNodeId = link.target_block;
             break;
           }
         }
         // Fallback: last exec link's source
         if (!exitNodeId) {
-          exitNodeId = execLinks[execLinks.length - 1].source_node;
+          exitNodeId = execLinks[execLinks.length - 1].source_block;
         }
         if (exitNodeId) {
           boundaryPins.exec_outs.push({
             name: 'Out',
-            maps_from: { node_id: exitNodeId, pin: exitPin }
+            maps_from: { block_id: exitNodeId, pin: exitPin }
           });
         }
       }
@@ -198,9 +198,9 @@ export const CreateClusterModal = ({
       });
     });
 
-    // Calculate bounding box of the nodes inside internalBlueprint
+    // Calculate bounding box of the blocks inside internalBlueprint
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    internalBlueprint.nodes.forEach((n: any) => {
+    internalBlueprint.blocks.forEach((n: any) => {
       minX = Math.min(minX, n.position?.x ?? 0);
       minY = Math.min(minY, n.position?.y ?? 0);
       maxX = Math.max(maxX, (n.position?.x ?? 0) + (n.style?.width ?? 210));
@@ -210,10 +210,10 @@ export const CreateClusterModal = ({
       minX = 0; minY = 0; maxX = 300; maxY = 300;
     }
 
-    const finalNodes = [...internalBlueprint.nodes];
+    const finalNodes = [...internalBlueprint.blocks];
     const finalLinks = [...internalBlueprint.links];
 
-    // Inject cluster/boundary/input nodes
+    // Inject cluster/boundary/input blocks
     boundaryPins.exec_ins.forEach((ein: any, idx: number) => {
       const inputNodeId = `input_${ein.name}`;
       finalNodes.push({
@@ -229,13 +229,13 @@ export const CreateClusterModal = ({
       finalLinks.push({
         id: `link_${inputNodeId}_Out`,
         type: 'exec',
-        source_node: inputNodeId,
+        source_block: inputNodeId,
         source_pin: 'Out',
-        target_node: ein.maps_to.node_id,
+        target_block: ein.maps_to.block_id,
         target_pin: ein.maps_to.pin
       });
-      // Re-map boundary pin to point to the input node itself!
-      ein.maps_to = { node_id: inputNodeId, pin: 'Out' };
+      // Re-map boundary pin to point to the input block itself!
+      ein.maps_to = { block_id: inputNodeId, pin: 'Out' };
     });
 
     boundaryPins.data_ins.forEach((din: any, idx: number) => {
@@ -253,16 +253,16 @@ export const CreateClusterModal = ({
       finalLinks.push({
         id: `link_${inputNodeId}_Value`,
         type: 'data',
-        source_node: inputNodeId,
+        source_block: inputNodeId,
         source_pin: 'Value',
-        target_node: din.maps_to.node_id,
+        target_block: din.maps_to.block_id,
         target_pin: din.maps_to.pin
       });
-      // Re-map boundary pin to point to the input node itself!
-      din.maps_to = { node_id: inputNodeId, pin: 'Value' };
+      // Re-map boundary pin to point to the input block itself!
+      din.maps_to = { block_id: inputNodeId, pin: 'Value' };
     });
 
-    // Inject cluster/boundary/output nodes
+    // Inject cluster/boundary/output blocks
     boundaryPins.exec_outs.forEach((eout: any, idx: number) => {
       const outputNodeId = `output_${eout.name}`;
       finalNodes.push({
@@ -277,13 +277,13 @@ export const CreateClusterModal = ({
       finalLinks.push({
         id: `link_${outputNodeId}_In`,
         type: 'exec',
-        source_node: eout.maps_from.node_id,
+        source_block: eout.maps_from.block_id,
         source_pin: eout.maps_from.pin,
-        target_node: outputNodeId,
+        target_block: outputNodeId,
         target_pin: 'In'
       });
-      // Re-map boundary pin to point to the output node itself!
-      eout.maps_from = { node_id: outputNodeId, pin: 'In' };
+      // Re-map boundary pin to point to the output block itself!
+      eout.maps_from = { block_id: outputNodeId, pin: 'In' };
     });
 
     boundaryPins.data_outs.forEach((dout: any, idx: number) => {
@@ -300,22 +300,22 @@ export const CreateClusterModal = ({
       finalLinks.push({
         id: `link_${outputNodeId}_Value`,
         type: 'data',
-        source_node: dout.maps_from.node_id,
+        source_block: dout.maps_from.block_id,
         source_pin: dout.maps_from.pin,
-        target_node: outputNodeId,
+        target_block: outputNodeId,
         target_pin: 'Value'
       });
-      // Re-map boundary pin to point to the output node itself!
-      dout.maps_from = { node_id: outputNodeId, pin: 'Value' };
+      // Re-map boundary pin to point to the output block itself!
+      dout.maps_from = { block_id: outputNodeId, pin: 'Value' };
     });
 
     try {
-      const res = await axios.post(`${BACKEND_URL}/nodes/publish_cluster`, {
+      const res = await axios.post(`${BACKEND_URL}/blocks/publish_cluster`, {
         display_name: form.displayName.trim(),
         category: form.category.trim() || 'User/Clusters',
         icon: form.icon.trim() || '📦',
         description: form.description.trim(),
-        internal_blueprint: { nodes: finalNodes, links: finalLinks },
+        internal_blueprint: { blocks: finalNodes, links: finalLinks },
         boundary_pins: boundaryPins,
         destination: form.destination
       });
@@ -358,7 +358,7 @@ export const CreateClusterModal = ({
 
         <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '16px 20px', overflowY: 'auto' }}>
           <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-            {selectedNodeIds.length} node{selectedNodeIds.length !== 1 ? 's' : ''} selected
+            {selectedBlockIds.length} block{selectedBlockIds.length !== 1 ? 's' : ''} selected
           </div>
 
           <div className="input-group">
@@ -368,7 +368,7 @@ export const CreateClusterModal = ({
               placeholder="e.g. Laser Calibrator"
               value={form.displayName}
               onChange={(e) => setForm({ ...form, displayName: e.target.value })}
-              style={{ background: 'var(--input-bg)', border: '1px solid var(--node-border)', color: 'var(--text-color)', padding: '8px', borderRadius: '6px' }}
+              style={{ background: 'var(--input-bg)', border: '1px solid var(--block-border)', color: 'var(--text-color)', padding: '8px', borderRadius: '6px' }}
             />
           </div>
 
@@ -379,7 +379,7 @@ export const CreateClusterModal = ({
                 type="text"
                 value={form.icon}
                 onChange={(e) => setForm({ ...form, icon: e.target.value })}
-                style={{ background: 'var(--input-bg)', border: '1px solid var(--node-border)', color: 'var(--text-color)', padding: '8px', borderRadius: '6px', textAlign: 'center' }}
+                style={{ background: 'var(--input-bg)', border: '1px solid var(--block-border)', color: 'var(--text-color)', padding: '8px', borderRadius: '6px', textAlign: 'center' }}
               />
             </div>
             <div className="input-group" style={{ flex: 2 }}>
@@ -389,7 +389,7 @@ export const CreateClusterModal = ({
                 placeholder="User/Clusters"
                 value={form.category}
                 onChange={(e) => setForm({ ...form, category: e.target.value })}
-                style={{ background: 'var(--input-bg)', border: '1px solid var(--node-border)', color: 'var(--text-color)', padding: '8px', borderRadius: '6px' }}
+                style={{ background: 'var(--input-bg)', border: '1px solid var(--block-border)', color: 'var(--text-color)', padding: '8px', borderRadius: '6px' }}
               />
             </div>
           </div>
@@ -401,7 +401,7 @@ export const CreateClusterModal = ({
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               rows={2}
-              style={{ background: 'var(--input-bg)', border: '1px solid var(--node-border)', color: 'var(--text-color)', padding: '8px', borderRadius: '6px', resize: 'vertical', fontFamily: 'inherit', fontSize: '0.85rem' }}
+              style={{ background: 'var(--input-bg)', border: '1px solid var(--block-border)', color: 'var(--text-color)', padding: '8px', borderRadius: '6px', resize: 'vertical', fontFamily: 'inherit', fontSize: '0.85rem' }}
             />
           </div>
 
@@ -410,7 +410,7 @@ export const CreateClusterModal = ({
             <select
               value={form.destination}
               onChange={(e) => setForm({ ...form, destination: e.target.value as 'global' | 'workspace' })}
-              style={{ background: 'var(--input-bg)', border: '1px solid var(--node-border)', color: 'var(--text-color)', padding: '8px', borderRadius: '6px' }}
+              style={{ background: 'var(--input-bg)', border: '1px solid var(--block-border)', color: 'var(--text-color)', padding: '8px', borderRadius: '6px' }}
             >
               <option value="global">Global Library (~/.comfylab/user_clusters)</option>
               {hasActiveWorkspace && (
@@ -419,7 +419,7 @@ export const CreateClusterModal = ({
             </select>
           </div>
 
-          <div style={{ background: 'var(--input-bg)', border: '1px solid var(--node-border)', borderRadius: '6px', padding: '10px', fontSize: '0.75rem' }}>
+          <div style={{ background: 'var(--input-bg)', border: '1px solid var(--block-border)', borderRadius: '6px', padding: '10px', fontSize: '0.75rem' }}>
             <div style={{ fontWeight: 600, marginBottom: '6px', color: 'var(--text-muted)' }}>Detected Boundary Pins</div>
             {detectedBoundary.data_ins.length === 0 && detectedBoundary.data_outs.length === 0 &&
              detectedBoundary.exec_ins.length === 0 && detectedBoundary.exec_outs.length === 0 && (

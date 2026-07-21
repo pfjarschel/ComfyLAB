@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from fastapi.testclient import TestClient
 from backend.main import app
-from comfylab.engine.registry import NODE_REGISTRY
+from comfylab.engine.registry import BLOCK_REGISTRY
 from comfylab.engine.config import get_global_user_clusters_dir, get_config
 from backend.workspace import set_workspace_path, get_workspace_path
 
@@ -34,12 +34,12 @@ def test_cluster_publish_authorize_reload_flow():
     
     # 1. Publish cluster (should automatically sign and authorize)
     payload = {
-        "display_name": "Test Cluster Node",
+        "display_name": "Test Cluster Block",
         "category": "Test",
         "icon": "📦",
         "description": "A test cluster",
         "internal_blueprint": {
-            "nodes": [],
+            "blocks": [],
             "links": []
         },
         "boundary_pins": {
@@ -52,17 +52,17 @@ def test_cluster_publish_authorize_reload_flow():
     }
     
     # Clear registry of any old clusters
-    to_remove = [k for k in NODE_REGISTRY if k.startswith("workspace/cluster/")]
+    to_remove = [k for k in BLOCK_REGISTRY if k.startswith("workspace/cluster/")]
     for k in to_remove:
-        NODE_REGISTRY.pop(k, None)
+        BLOCK_REGISTRY.pop(k, None)
         
-    res = client.post("/nodes/publish_cluster", json=payload)
+    res = client.post("/blocks/publish_cluster", json=payload)
     assert res.status_code == 200
     type_name = res.json()["type"]
     file_path = res.json()["file_path"]
     
-    assert type_name in NODE_REGISTRY
-    cls = NODE_REGISTRY[type_name]
+    assert type_name in BLOCK_REGISTRY
+    cls = BLOCK_REGISTRY[type_name]
     assert cls.unauthorized is False  # Now automatically signed and authorized on publish!
 
 def test_cluster_unauthorized_auth_reload_flow():
@@ -80,7 +80,7 @@ def test_cluster_unauthorized_auth_reload_flow():
         "icon": "❌",
         "display_name": "Unsigned Cluster",
         "description": "Unsigned cluster test",
-        "internal_blueprint": {"nodes": [], "links": []},
+        "internal_blueprint": {"blocks": [], "links": []},
         "boundary_pins": {"exec_ins": [], "exec_outs": [], "data_ins": [], "data_outs": []}
     }
     
@@ -89,38 +89,38 @@ def test_cluster_unauthorized_auth_reload_flow():
         json.dump(cluster_data, f, indent=2)
         
     # Clear registry of the cluster to force fresh loading
-    NODE_REGISTRY.pop("workspace/cluster/unsigned_cluster", None)
+    BLOCK_REGISTRY.pop("workspace/cluster/unsigned_cluster", None)
     
     # Trigger a reload to load the unsigned cluster
-    res_reload_init = client.post("/nodes/reload")
+    res_reload_init = client.post("/blocks/reload")
     assert res_reload_init.status_code == 200
     
-    assert "workspace/cluster/unsigned_cluster" in NODE_REGISTRY
-    cls = NODE_REGISTRY["workspace/cluster/unsigned_cluster"]
+    assert "workspace/cluster/unsigned_cluster" in BLOCK_REGISTRY
+    cls = BLOCK_REGISTRY["workspace/cluster/unsigned_cluster"]
     assert cls.unauthorized is True  # Manually written, unsigned cluster should be unauthorized!
     
-    # 2. Get unauthorized nodes list
-    res_unauth = client.get("/workspace/nodes/unauthorized")
+    # 2. Get unauthorized blocks list
+    res_unauth = client.get("/workspace/blocks/unauthorized")
     assert res_unauth.status_code == 200
     unauth_list = res_unauth.json()["unauthorized"]
     assert len(unauth_list) > 0
     assert any(item["filepath"] == str(file_path) for item in unauth_list)
     
     # 3. Authorize the cluster via the API
-    res_auth = client.post("/workspace/nodes/authorize", json={"filepath": str(file_path)})
+    res_auth = client.post("/workspace/blocks/authorize", json={"filepath": str(file_path)})
     assert res_auth.status_code == 200
     
     # Check registry after authorize (should be dynamically authorized)
-    assert "workspace/cluster/unsigned_cluster" in NODE_REGISTRY
-    cls = NODE_REGISTRY["workspace/cluster/unsigned_cluster"]
+    assert "workspace/cluster/unsigned_cluster" in BLOCK_REGISTRY
+    cls = BLOCK_REGISTRY["workspace/cluster/unsigned_cluster"]
     assert cls.unauthorized is False  # Should be authorized now!
     
     # 4. Call reload endpoint
-    res_reload = client.post("/nodes/reload")
+    res_reload = client.post("/blocks/reload")
     assert res_reload.status_code == 200
     
     # Check registry after reload (should persist authorized status because file was signed)
-    assert "workspace/cluster/unsigned_cluster" in NODE_REGISTRY
-    cls = NODE_REGISTRY["workspace/cluster/unsigned_cluster"]
+    assert "workspace/cluster/unsigned_cluster" in BLOCK_REGISTRY
+    cls = BLOCK_REGISTRY["workspace/cluster/unsigned_cluster"]
     assert cls.unauthorized is False
 

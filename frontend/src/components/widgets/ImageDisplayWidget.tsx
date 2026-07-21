@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 
 interface ImageDisplayWidgetProps {
-  nodeId: string;
+  blockId: string;
 }
 
 import { getBackendUrls } from '../../App';
 import { ResizablePlotContainer } from '../common/ResizablePlotContainer';
 
-export const ImageDisplayWidget: React.FC<ImageDisplayWidgetProps> = ({ nodeId }) => {
+export const ImageDisplayWidget: React.FC<ImageDisplayWidgetProps> = ({ blockId }) => {
   const [imagePath, setImagePath] = useState<string | null>(null);
   const BACKEND_URL = getBackendUrls().http;
 
@@ -22,10 +22,10 @@ export const ImageDisplayWidget: React.FC<ImageDisplayWidgetProps> = ({ nodeId }
       }
     };
 
-    const eventName = `telemetry-${nodeId}`;
+    const eventName = `telemetry-${blockId}`;
     window.addEventListener(eventName, handleTelemetry);
     return () => window.removeEventListener(eventName, handleTelemetry);
-  }, [nodeId, BACKEND_URL]);
+  }, [blockId, BACKEND_URL]);
 
   if (!imagePath) {
     return (
@@ -34,7 +34,7 @@ export const ImageDisplayWidget: React.FC<ImageDisplayWidgetProps> = ({ nodeId }
         background="var(--panel-bg)" 
         padding="0px" 
         borderRadius="4px"
-        border="1px dashed var(--node-border)"
+        border="1px dashed var(--block-border)"
       >
         {(width, height) => (
           <div style={{
@@ -58,7 +58,7 @@ export const ImageDisplayWidget: React.FC<ImageDisplayWidgetProps> = ({ nodeId }
       background="var(--panel-bg)" 
       padding="0px" 
       borderRadius="4px"
-      border="1px solid var(--node-border)"
+      border="1px solid var(--block-border)"
     >
       {(width, height) => (
         <div style={{
@@ -71,7 +71,7 @@ export const ImageDisplayWidget: React.FC<ImageDisplayWidgetProps> = ({ nodeId }
         }}>
           <img 
             src={imagePath} 
-            alt="Node Display" 
+            alt="Block Display" 
             style={{
               maxWidth: '100%',
               maxHeight: '100%',

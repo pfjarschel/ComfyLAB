@@ -24,7 +24,7 @@ export interface UseWhiteboardStateProps {
   snapToGrid: boolean;
   pushStateToHistory: (currentNodes?: any[], currentEdges?: any[], currentAnnotations?: any[]) => void;
   closeContextMenu: () => void;
-  nodes: any[];
+  blocks: any[];
   edges: any[];
   annotations: any[];
   setAnnotations: React.Dispatch<React.SetStateAction<any[]>>;
@@ -37,7 +37,7 @@ export function useWhiteboardState({
   snapToGrid,
   pushStateToHistory,
   closeContextMenu,
-  nodes,
+  blocks,
   edges,
   annotations,
   setAnnotations,
@@ -224,7 +224,7 @@ export function useWhiteboardState({
     }
 
     if (ann.points && ((ann.type === 'polyline' && ann.points.length >= 2) || (ann.type === 'polygon' && ann.points.length >= 3))) {
-      pushStateToHistory(nodes, edges, annotationsRef.current);
+      pushStateToHistory(blocks, edges, annotationsRef.current);
       const nextAnnotations = [...annotationsRef.current, ann];
       setAnnotations(nextAnnotations);
     }
@@ -235,7 +235,7 @@ export function useWhiteboardState({
     hoverPointRef.current = null;
     setIsDrawing(false);
     isDrawingRef.current = false;
-  }, [nodes, edges, setAnnotations, pushStateToHistory]);
+  }, [blocks, edges, setAnnotations, pushStateToHistory]);
 
   // Event handlers
   const handleSvgMouseDown = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
@@ -388,7 +388,7 @@ export function useWhiteboardState({
       };
       setIsDrawing(false);
       isDrawingRef.current = false;
-      pushStateToHistory(nodes, edges, annotationsRef.current);
+      pushStateToHistory(blocks, edges, annotationsRef.current);
       const nextAnnotations = [...annotationsRef.current, newAnn];
       setAnnotations(nextAnnotations);
       setEditingTextId(annotationId);
@@ -404,7 +404,7 @@ export function useWhiteboardState({
     pushStateToHistory,
     setAnnotations,
     setEditingTextId,
-    nodes,
+    blocks,
     edges,
     isLocked,
     reactFlowWrapperRef,
@@ -498,7 +498,7 @@ export function useWhiteboardState({
 
     if (eraserPathRef.current) {
       if (markedForDeletionRef.current.size > 0) {
-        pushStateToHistory(nodes, edges, annotationsRef.current);
+        pushStateToHistory(blocks, edges, annotationsRef.current);
         const nextAnnotations = annotationsRef.current.filter(
           (ann) => !markedForDeletionRef.current.has(ann.id)
         );
@@ -539,7 +539,7 @@ export function useWhiteboardState({
       }
 
       if (valid) {
-        pushStateToHistory(nodes, edges, annotationsRef.current);
+        pushStateToHistory(blocks, edges, annotationsRef.current);
         const nextAnnotations = [...annotationsRef.current, cleaned];
         setAnnotations(nextAnnotations);
       }
@@ -547,7 +547,7 @@ export function useWhiteboardState({
 
     currentAnnotationRef.current = null;
     setCurrentAnnotation(null);
-  }, [pushStateToHistory, setAnnotations, setCurrentAnnotation, nodes, edges, isLocked]);
+  }, [pushStateToHistory, setAnnotations, setCurrentAnnotation, blocks, edges, isLocked]);
 
   const handleSvgDoubleClick = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
     if (isLocked) return;

@@ -9,11 +9,11 @@ from comfylab.engine.config import (
     save_config,
     update_config,
     get_config_file_path,
-    get_global_user_nodes_dir
+    get_global_user_blocks_dir
 )
-from comfylab.nodes.loader import load_nodes_from_directory
-from comfylab.engine.registry import NODE_REGISTRY
-from backend.routers.settings import generate_node_class_code
+from comfylab.blocks.loader import load_blocks_from_directory
+from comfylab.engine.registry import BLOCK_REGISTRY
+from comfylab.blocks.publisher import generate_block_class_code
 
 @pytest.fixture
 def temp_comfylab_dir(tmp_path, monkeypatch):
@@ -33,7 +33,7 @@ def test_config_defaults_and_saving(temp_comfylab_dir):
     # Verify defaults are retrieved when no file exists
     config = get_config()
     assert config["script_timeout"] == 30.0
-    assert config["custom_node_dirs"] == []
+    assert config["custom_block_dirs"] == []
     
     # Verify file was created
     config_file = get_config_file_path()
@@ -50,7 +50,7 @@ def test_config_defaults_and_saving(temp_comfylab_dir):
         raw = json.load(f)
     assert raw["script_timeout"] == 45.0
 
-def test_dynamic_node_class_generation():
+def test_dynamic_block_class_generation():
     inputs = [
         {"name": "voltage", "type": "number", "default": 2.5, "widget": "slider", "min": 0.0, "max": 5.0},
         {"name": "label", "type": "text", "default": "test"}
@@ -61,9 +61,9 @@ def test_dynamic_node_class_generation():
     
     code = "result = voltage * 2.0"
     
-    class_code = generate_node_class_code(
+    class_code = generate_block_class_code(
         display_name="My Calculator",
-        class_name="MyCalculatorNode",
+        class_name="MyCalculatorBlock",
         type_name="user/my_calculator",
         category="Test",
         icon="📊",
@@ -74,8 +74,8 @@ def test_dynamic_node_class_generation():
     )
     
     # Assert code generation contains expected definitions
-    assert '@register_node("user/my_calculator")' in class_code
-    assert 'class MyCalculatorNode(BaseNode):' in class_code
+    assert '@register_block("user/my_calculator")' in class_code
+    assert 'class MyCalculatorBlock(BaseBlock):' in class_code
     assert 'category = "Test"' in class_code
     assert 'icon = "📊"' in class_code
     assert 'original_code = """result = voltage * 2.0"""' in class_code
@@ -87,18 +87,18 @@ def test_dynamic_node_class_generation():
     compiled = compile(class_code, "<test_compile>", "exec")
     assert compiled is not None
 
-def test_dynamic_node_loading(temp_comfylab_dir):
-    # Setup a dummy node file in a temporary folder
-    user_nodes_dir = get_global_user_nodes_dir()
-    dummy_node_code = """
-from comfylab.nodes.base import BaseNode, ExecIn, ExecOut, DataIn, DataOut, ExecutionContext
-from comfylab.engine.registry import register_node
+def test_dynamic_block_loading(temp_comfylab_dir):
+    # Setup a dummy block file in a temporary folder
+    user_blocks_dir = get_global_user_blocks_dir()
+    dummy_block_code = """
+from comfylab.blocks.base import BaseBlock, ExecIn, ExecOut, DataIn, DataOut, ExecutionContext
+from comfylab.engine.registry import register_block
 
-@register_node("user/test_dummy_node")
-class TestDummyNode(BaseNode):
+@register_block("user/test_dummy_block")
+class TestDummyBlock(BaseBlock):
     category = "Test"
     icon = "🧪"
-    display_name = "Dummy Node"
+    display_name = "Dummy Block"
     
     inputs_def = [ExecIn("In")]
     outputs_def = [ExecOut("Out")]
@@ -106,29 +106,29 @@ class TestDummyNode(BaseNode):
     async def execute(self, context, trigger_pin):
         return "Out"
 """
-    node_file = user_nodes_dir / "test_dummy_node.py"
-    with open(node_file, "w") as f:
-        f.write(dummy_node_code)
+    block_file = user_blocks_dir / "test_dummy_block.py"
+    with open(block_file, "w") as f:
+        f.write(dummy_block_code)
         
     # Check that it's not in registry yet
-    if "user/test_dummy_node" in NODE_REGISTRY:
-        del NODE_REGISTRY["user/test_dummy_node"]
+    if "user/test_dummy_block" in BLOCK_REGISTRY:
+        del BLOCK_REGISTRY["user/test_dummy_block"]
         
-    # Load nodes from directory
-    load_nodes_from_directory(str(user_nodes_dir))
+    # Load blocks from directory
+    load_blocks_from_directory(str(user_blocks_dir))
     
     # Verify it was successfully dynamically loaded and registered!
-    assert "user/test_dummy_node" in NODE_REGISTRY
-    node_class = NODE_REGISTRY["user/test_dummy_node"]
-    assert node_class.display_name == "Dummy Node"
-    assert node_class.category == "Test"
-    assert node_class.icon == "🧪"
+    assert "user/test_dummy_block" in BLOCK_REGISTRY
+    block_class = BLOCK_REGISTRY["user/test_dummy_block"]
+    assert block_class.display_name == "Dummy Block"
+    assert block_class.category == "Test"
+    assert block_class.icon == "🧪"
     
     # Cleanup registry for standard test consistency
-    del NODE_REGISTRY["user/test_dummy_node"]
+    del BLOCK_REGISTRY["user/test_dummy_block"]
 
 
-def test_publish_node_auto_signs(temp_comfylab_dir, tmp_path, monkeypatch):
+def test_publish_block_auto_signs(temp_comfylab_dir, tmp_path, monkeypatch):
     from fastapi.testclient import TestClient
     from backend.main import app
     from comfylab.engine.security import verify_python_file
@@ -146,10 +146,10 @@ def test_publish_node_auto_signs(temp_comfylab_dir, tmp_path, monkeypatch):
     client = TestClient(app)
     
     payload = {
-        "display_name": "Test Publish Node",
+        "display_name": "Test Publish Block",
         "category": "Test",
         "icon": "🚀",
-        "description": "A node published in test",
+        "description": "A block published in test",
         "code": "result = value * 3.0",
         "inputs": [
             {"name": "value", "type": "number", "default": 2.0}
@@ -161,9 +161,9 @@ def test_publish_node_auto_signs(temp_comfylab_dir, tmp_path, monkeypatch):
     }
     
     # Clear registry
-    NODE_REGISTRY.pop("workspace/test_publish_node", None)
+    BLOCK_REGISTRY.pop("workspace/test_publish_block", None)
     
-    res = client.post("/nodes/publish", json=payload)
+    res = client.post("/blocks/publish", json=payload)
     assert res.status_code == 200
     data = res.json()
     assert data["success"] is True
@@ -178,15 +178,15 @@ def test_publish_node_auto_signs(temp_comfylab_dir, tmp_path, monkeypatch):
     assert creator == identity
     
     # 3. Verify registry state
-    assert "workspace/test_publish_node" in NODE_REGISTRY
-    cls = NODE_REGISTRY["workspace/test_publish_node"]
+    assert "workspace/test_publish_block" in BLOCK_REGISTRY
+    cls = BLOCK_REGISTRY["workspace/test_publish_block"]
     assert cls.unauthorized is False
     
     # 4. Verify editing/updating works and keeps it signed
     payload_edit = payload.copy()
     payload_edit["code"] = "result = value * 5.0"
     
-    res_edit = client.post("/nodes/publish", json=payload_edit)
+    res_edit = client.post("/blocks/publish", json=payload_edit)
     assert res_edit.status_code == 200
     
     # Verify file is still signed and valid
@@ -195,6 +195,6 @@ def test_publish_node_auto_signs(temp_comfylab_dir, tmp_path, monkeypatch):
     assert creator_edit == identity
     
     # Verify updated registry class
-    cls_edit = NODE_REGISTRY["workspace/test_publish_node"]
+    cls_edit = BLOCK_REGISTRY["workspace/test_publish_block"]
     assert cls_edit.unauthorized is False
 

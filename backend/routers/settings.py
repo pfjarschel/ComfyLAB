@@ -22,23 +22,23 @@ from typing import List, Dict, Any, Optional
 
 from comfylab.engine.config import get_config, update_config
 from backend.workspace import get_workspace_path
-from comfylab.engine.registry import NODE_REGISTRY
+from comfylab.engine.registry import BLOCK_REGISTRY
 import importlib
 
 SCRIPTING_TOGGLES = {
-    "enable_lua_scripting": ("comfylab.nodes.script_lua", "LuaScriptNode", "script/lua"),
-    "enable_julia_scripting": ("comfylab.nodes.script_julia", "JuliaScriptNode", "script/julia"),
-    "enable_js_scripting": ("comfylab.nodes.script_js", ["JavaScriptScriptNode", "TypeScriptScriptNode"], ["script/javascript", "script/typescript"]),
-    "enable_rust_scripting": ("comfylab.nodes.script_rust", "RustScriptNode", "script/rust"),
-    "enable_r_scripting": ("comfylab.nodes.script_r", "RScriptNode", "script/r"),
-    "enable_octave_scripting": ("comfylab.nodes.script_octave", "OctaveScriptNode", "script/octave"),
-    "enable_wolfram_scripting": ("comfylab.nodes.script_wolfram", "WolframScriptNode", "script/wolfram"),
+    "enable_lua_scripting": ("comfylab.blocks.script_lua", "LuaScriptBlock", "script/lua"),
+    "enable_julia_scripting": ("comfylab.blocks.script_julia", "JuliaScriptBlock", "script/julia"),
+    "enable_js_scripting": ("comfylab.blocks.script_js", ["JavaScriptScriptBlock", "TypeScriptScriptBlock"], ["script/javascript", "script/typescript"]),
+    "enable_rust_scripting": ("comfylab.blocks.script_rust", "RustScriptBlock", "script/rust"),
+    "enable_r_scripting": ("comfylab.blocks.script_r", "RScriptBlock", "script/r"),
+    "enable_octave_scripting": ("comfylab.blocks.script_octave", "OctaveScriptBlock", "script/octave"),
+    "enable_wolfram_scripting": ("comfylab.blocks.script_wolfram", "WolframScriptBlock", "script/wolfram"),
 }
 
 router = APIRouter()
 
 class SettingsPayload(BaseModel):
-    custom_node_dirs: List[str]
+    custom_block_dirs: List[str]
     script_timeout: float
     visa_backend: str
     last_workspace: str
@@ -78,7 +78,7 @@ async def save_settings(payload: SettingsPayload):
     updated = update_config(dump)
 
     
-    # Selectively synchronize script node registrations to avoid breaking test-only nodes
+    # Selectively synchronize script block registrations to avoid breaking test-only blocks
     for key, (module_path, class_names, type_names) in SCRIPTING_TOGGLES.items():
         classes = class_names if isinstance(class_names, list) else [class_names]
         types = type_names if isinstance(type_names, list) else [type_names]
@@ -87,15 +87,15 @@ async def save_settings(payload: SettingsPayload):
             try:
                 mod = importlib.import_module(module_path)
                 for cls_name, t_name in zip(classes, types):
-                    NODE_REGISTRY[t_name] = getattr(mod, cls_name)
+                    BLOCK_REGISTRY[t_name] = getattr(mod, cls_name)
             except Exception as e:
                 import logging
                 logging.getLogger("backend.routers.settings").error(
-                    f"Failed to dynamically synchronize script node registry for {module_path}: {e}"
+                    f"Failed to dynamically synchronize script block registry for {module_path}: {e}"
                 )
         else:
             for t_name in types:
-                NODE_REGISTRY.pop(t_name, None)
+                BLOCK_REGISTRY.pop(t_name, None)
         
     return updated
 

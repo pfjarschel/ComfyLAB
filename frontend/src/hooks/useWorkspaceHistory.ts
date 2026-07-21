@@ -15,61 +15,61 @@
 import { useCallback, useRef } from 'react';
 
 export interface HistorySnapshot {
-  nodes: any[];
+  blocks: any[];
   edges: any[];
   annotations: any[];
 }
 
 export interface UseWorkspaceHistoryProps {
-  nodes: any[];
+  blocks: any[];
   edges: any[];
   annotations: any[];
-  setNodes: React.Dispatch<React.SetStateAction<any[]>>;
+  setBlocks: React.Dispatch<React.SetStateAction<any[]>>;
   setEdges: React.Dispatch<React.SetStateAction<any[]>>;
   setAnnotations: React.Dispatch<React.SetStateAction<any[]>>;
   setIsDirty: React.Dispatch<React.SetStateAction<boolean>>;
-  selectedNodeIds: Set<string>;
-  setSelectedNodeIds: React.Dispatch<React.SetStateAction<Set<string>>>;
+  selectedBlockIds: Set<string>;
+  setSelectedBlockIds: React.Dispatch<React.SetStateAction<Set<string>>>;
   reactFlowInstance: any;
   snapToGrid: boolean;
-  getBaseNodeData: (extra?: any) => any;
+  getBaseBlockData: (extra?: any) => any;
   pastRef: React.MutableRefObject<HistorySnapshot[]>;
   futureRef: React.MutableRefObject<HistorySnapshot[]>;
 }
 
 export function useWorkspaceHistory({
-  nodes,
+  blocks,
   edges,
   annotations,
-  setNodes,
+  setBlocks,
   setEdges,
   setAnnotations,
   setIsDirty,
-  selectedNodeIds,
-  setSelectedNodeIds,
+  selectedBlockIds,
+  setSelectedBlockIds,
   reactFlowInstance,
   snapToGrid,
-  getBaseNodeData,
+  getBaseBlockData,
   pastRef,
   futureRef,
 }: UseWorkspaceHistoryProps) {
-  const clipboardRef = useRef<{ nodes: any[]; edges: any[] }>({ nodes: [], edges: [] });
+  const clipboardRef = useRef<{ blocks: any[]; edges: any[] }>({ blocks: [], edges: [] });
 
-  const nodesRef = useRef<any[]>([]);
+  const blocksRef = useRef<any[]>([]);
   const edgesRef = useRef<any[]>([]);
   const annotationsRef = useRef<any[]>([]);
 
-  nodesRef.current = nodes;
+  blocksRef.current = blocks;
   edgesRef.current = edges;
   annotationsRef.current = annotations;
 
   const pushStateToHistory = useCallback((
-    currentNodes = nodesRef.current,
+    currentNodes = blocksRef.current,
     currentEdges = edgesRef.current,
     currentAnnotations = annotationsRef.current
   ) => {
     const snapshot = {
-      nodes: JSON.parse(JSON.stringify(currentNodes)),
+      blocks: JSON.parse(JSON.stringify(currentNodes)),
       edges: JSON.parse(JSON.stringify(currentEdges)),
       annotations: JSON.parse(JSON.stringify(currentAnnotations)),
     };
@@ -84,56 +84,56 @@ export function useWorkspaceHistory({
     if (pastRef.current.length === 0) return;
     const previous = pastRef.current.pop()!;
     const currentSnapshot = {
-      nodes: JSON.parse(JSON.stringify(nodesRef.current)),
+      blocks: JSON.parse(JSON.stringify(blocksRef.current)),
       edges: JSON.parse(JSON.stringify(edgesRef.current)),
       annotations: JSON.parse(JSON.stringify(annotationsRef.current)),
     };
     futureRef.current.push(currentSnapshot);
 
-    const restoredNodes = (previous.nodes || []).map((node: any) => ({
-      ...node,
-      data: getBaseNodeData(node.data)
+    const restoredNodes = (previous.blocks || []).map((block: any) => ({
+      ...block,
+      data: getBaseBlockData(block.data)
     }));
-    setNodes(restoredNodes);
+    setBlocks(restoredNodes);
     setEdges(previous.edges);
     setAnnotations(previous.annotations || []);
     setIsDirty(true);
-  }, [setNodes, setEdges, setAnnotations, getBaseNodeData, setIsDirty]);
+  }, [setBlocks, setEdges, setAnnotations, getBaseBlockData, setIsDirty]);
 
   const handleRedo = useCallback(() => {
     if (futureRef.current.length === 0) return;
     const next = futureRef.current.pop()!;
     const currentSnapshot = {
-      nodes: JSON.parse(JSON.stringify(nodesRef.current)),
+      blocks: JSON.parse(JSON.stringify(blocksRef.current)),
       edges: JSON.parse(JSON.stringify(edgesRef.current)),
       annotations: JSON.parse(JSON.stringify(annotationsRef.current)),
     };
     pastRef.current.push(currentSnapshot);
 
-    const restoredNodes = (next.nodes || []).map((node: any) => ({
-      ...node,
-      data: getBaseNodeData(node.data)
+    const restoredNodes = (next.blocks || []).map((block: any) => ({
+      ...block,
+      data: getBaseBlockData(block.data)
     }));
-    setNodes(restoredNodes);
+    setBlocks(restoredNodes);
     setEdges(next.edges);
     setAnnotations(next.annotations || []);
     setIsDirty(true);
-  }, [setNodes, setEdges, setAnnotations, getBaseNodeData, setIsDirty]);
+  }, [setBlocks, setEdges, setAnnotations, getBaseBlockData, setIsDirty]);
 
   const handleCopy = useCallback(() => {
-    const selectedNodes = nodesRef.current.filter(n => selectedNodeIds.has(n.id));
-    const selectedEdges = edgesRef.current.filter(e => selectedNodeIds.has(e.source) && selectedNodeIds.has(e.target));
+    const selectedNodes = blocksRef.current.filter(n => selectedBlockIds.has(n.id));
+    const selectedEdges = edgesRef.current.filter(e => selectedBlockIds.has(e.source) && selectedBlockIds.has(e.target));
     if (selectedNodes.length === 0) return;
 
     clipboardRef.current = {
-      nodes: JSON.parse(JSON.stringify(selectedNodes)),
+      blocks: JSON.parse(JSON.stringify(selectedNodes)),
       edges: JSON.parse(JSON.stringify(selectedEdges)),
     };
-  }, [selectedNodeIds]);
+  }, [selectedBlockIds]);
 
   const handlePaste = useCallback((clientCoords?: { x: number; y: number }) => {
     const clipboard = clipboardRef.current;
-    if (!clipboard || clipboard.nodes.length === 0) return;
+    if (!clipboard || clipboard.blocks.length === 0) return;
 
     pushStateToHistory();
     setIsDirty(true);
@@ -145,7 +145,7 @@ export function useWorkspaceHistory({
     if (clientCoords && reactFlowInstance) {
       const flowPos = reactFlowInstance.screenToFlowPosition(clientCoords);
       let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-      clipboard.nodes.forEach(n => {
+      clipboard.blocks.forEach(n => {
         if (n.position.x < minX) minX = n.position.x;
         if (n.position.y < minY) minY = n.position.y;
         if (n.position.x > maxX) maxX = n.position.x;
@@ -161,13 +161,13 @@ export function useWorkspaceHistory({
       dy = flowPos.y - centerY;
     }
 
-    const newNodes = clipboard.nodes.map(node => {
+    const newBlocks = clipboard.blocks.map(block => {
       const newId = `node_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-      idMap[node.id] = newId;
-      const cleanData = JSON.parse(JSON.stringify(node.data || {}));
+      idMap[block.id] = newId;
+      const cleanData = JSON.parse(JSON.stringify(block.data || {}));
       let newPos = {
-        x: node.position.x + dx,
-        y: node.position.y + dy,
+        x: block.position.x + dx,
+        y: block.position.y + dy,
       };
 
       if (snapToGrid) {
@@ -179,10 +179,10 @@ export function useWorkspaceHistory({
       }
 
       return {
-        ...node,
+        ...block,
         id: newId,
         position: newPos,
-        data: getBaseNodeData(cleanData),
+        data: getBaseBlockData(cleanData),
         selected: true,
       };
     });
@@ -197,32 +197,32 @@ export function useWorkspaceHistory({
       };
     });
 
-    setNodes(nds => nds.map(n => ({ ...n, selected: false })).concat(newNodes));
+    setBlocks(nds => nds.map(n => ({ ...n, selected: false })).concat(newBlocks));
     setEdges(eds => eds.map(e => ({ ...e, selected: false })).concat(newEdges));
-    setSelectedNodeIds(new Set(newNodes.map(n => n.id)));
-  }, [setNodes, setEdges, pushStateToHistory, getBaseNodeData, reactFlowInstance, snapToGrid, setSelectedNodeIds, setIsDirty]);
+    setSelectedBlockIds(new Set(newBlocks.map(n => n.id)));
+  }, [setBlocks, setEdges, pushStateToHistory, getBaseBlockData, reactFlowInstance, snapToGrid, setSelectedBlockIds, setIsDirty]);
 
   const handleDuplicate = useCallback(() => {
-    const selectedNodes = nodesRef.current.filter(n => selectedNodeIds.has(n.id));
-    const selectedEdges = edgesRef.current.filter(e => selectedNodeIds.has(e.source) && selectedNodeIds.has(e.target));
+    const selectedNodes = blocksRef.current.filter(n => selectedBlockIds.has(n.id));
+    const selectedEdges = edgesRef.current.filter(e => selectedBlockIds.has(e.source) && selectedBlockIds.has(e.target));
     if (selectedNodes.length === 0) return;
 
     pushStateToHistory();
     setIsDirty(true);
 
     const idMap: Record<string, string> = {};
-    const newNodes = selectedNodes.map(node => {
+    const newBlocks = selectedNodes.map(block => {
       const newId = `node_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-      idMap[node.id] = newId;
-      const cleanData = JSON.parse(JSON.stringify(node.data || {}));
+      idMap[block.id] = newId;
+      const cleanData = JSON.parse(JSON.stringify(block.data || {}));
       return {
-        ...node,
+        ...block,
         id: newId,
         position: {
-          x: node.position.x + 40,
-          y: node.position.y + 40,
+          x: block.position.x + 40,
+          y: block.position.y + 40,
         },
-        data: getBaseNodeData(cleanData),
+        data: getBaseBlockData(cleanData),
         selected: true,
       };
     });
@@ -237,10 +237,10 @@ export function useWorkspaceHistory({
       };
     });
 
-    setNodes(nds => nds.map(n => ({ ...n, selected: false })).concat(newNodes));
+    setBlocks(nds => nds.map(n => ({ ...n, selected: false })).concat(newBlocks));
     setEdges(eds => eds.map(e => ({ ...e, selected: false })).concat(newEdges));
-    setSelectedNodeIds(new Set(newNodes.map(n => n.id)));
-  }, [selectedNodeIds, setNodes, setEdges, pushStateToHistory, getBaseNodeData, setSelectedNodeIds, setIsDirty]);
+    setSelectedBlockIds(new Set(newBlocks.map(n => n.id)));
+  }, [selectedBlockIds, setBlocks, setEdges, pushStateToHistory, getBaseBlockData, setSelectedBlockIds, setIsDirty]);
 
   const clearHistory = useCallback(() => {
     pastRef.current = [];
@@ -255,6 +255,6 @@ export function useWorkspaceHistory({
     handlePaste,
     handleDuplicate,
     clearHistory,
-    clipboardNodesCount: clipboardRef.current.nodes.length,
+    clipboardBlocksCount: clipboardRef.current.blocks.length,
   };
 }

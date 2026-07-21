@@ -34,23 +34,23 @@ const getPlotlyColorscale = (colormapName: string) => {
 };
 
 interface HeatmapPlotWidgetProps {
-  nodeId: string;
+  blockId: string;
   xLabel?: string;
   yLabel?: string;
 }
 
-export const HeatmapPlotWidget = ({ nodeId, xLabel = 'X', yLabel = 'Y' }: HeatmapPlotWidgetProps) => {
+export const HeatmapPlotWidget = ({ blockId, xLabel = 'X', yLabel = 'Y' }: HeatmapPlotWidgetProps) => {
   return (
     <ResizablePlotContainer 
       minHeight="150px" 
       background="var(--input-bg)" 
       padding="6px" 
       borderRadius="6px"
-      border="1px solid var(--node-border)"
+      border="1px solid var(--block-border)"
     >
       {(width, height) => (
         <PlotlyHeatmapRenderer
-          nodeId={nodeId}
+          blockId={blockId}
           initialXLabel={xLabel}
           initialYLabel={yLabel}
           width={width}
@@ -62,14 +62,14 @@ export const HeatmapPlotWidget = ({ nodeId, xLabel = 'X', yLabel = 'Y' }: Heatma
 };
 
 interface PlotlyHeatmapRendererProps {
-  nodeId: string;
+  blockId: string;
   initialXLabel: string;
   initialYLabel: string;
   width: number;
   height: number;
 }
 
-const PlotlyHeatmapRenderer = ({ nodeId, initialXLabel, initialYLabel, width, height }: PlotlyHeatmapRendererProps) => {
+const PlotlyHeatmapRenderer = ({ blockId, initialXLabel, initialYLabel, width, height }: PlotlyHeatmapRendererProps) => {
   const { getNode } = useReactFlow();
   
   const [plotData, setPlotData] = useState<{ z: any[][], x?: any[], y?: any[] }>({ z: [] });
@@ -80,10 +80,10 @@ const PlotlyHeatmapRenderer = ({ nodeId, initialXLabel, initialYLabel, width, he
 
   useEffect(() => {
     const updateChart = (eventResults?: any) => {
-      const node = getNode(nodeId);
-      if (!node && !eventResults) return;
+      const block = getNode(blockId);
+      if (!block && !eventResults) return;
       
-      const results = eventResults || node?.data?.results;
+      const results = eventResults || block?.data?.results;
       if (!results) return;
 
       const z = results.z || [];
@@ -117,7 +117,7 @@ const PlotlyHeatmapRenderer = ({ nodeId, initialXLabel, initialYLabel, width, he
 
     updateChart();
 
-    const eventName = `telemetry-${nodeId}`;
+    const eventName = `telemetry-${blockId}`;
     const handleTelemetry = (e: any) => {
       updateChart(e.detail?.results);
     };
@@ -127,7 +127,7 @@ const PlotlyHeatmapRenderer = ({ nodeId, initialXLabel, initialYLabel, width, he
     return () => {
       window.removeEventListener(eventName, handleTelemetry);
     };
-  }, [nodeId, initialXLabel, initialYLabel, getNode]);
+  }, [blockId, initialXLabel, initialYLabel, getNode]);
 
   const isLight = document.documentElement.classList.contains('light-theme');
   const textColor = isLight ? '#475569' : '#94a3b8';

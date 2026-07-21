@@ -23,7 +23,7 @@ from backend.routers.settings import router as settings_router
 from backend.routers.diagnostics import router as diagnostics_router
 from backend.routers.workspace import router as workspace_router
 from backend.routers.packages import router as packages_router
-from backend.routers.nodes import router as nodes_router
+from backend.routers.blocks import router as blocks_router
 import comfylab.engine.config as config_module
 from comfylab.engine.config import get_config
 from backend.workspace import set_workspace_path
@@ -60,10 +60,10 @@ print("\033[0m")
 
 app = FastAPI(
     title="ComfyLAB Virtual Sandbox API",
-    description="Backend API serving the ComfyLAB push/pull node execution engine and WebSocket telemetry."
+    description="Backend API serving the ComfyLAB push/pull block execution engine and WebSocket telemetry."
 )
 
-API_PATHS = {"/run", "/pause", "/resume", "/abort", "/status", "/nodes", "/parse_script", "/validate_script", "/workspace", "/settings"}
+API_PATHS = {"/run", "/pause", "/resume", "/abort", "/status", "/blocks", "/parse_script", "/validate_script", "/workspace", "/settings"}
 
 @app.middleware("http")
 async def security_middleware(request: Request, call_next):
@@ -166,7 +166,7 @@ app.include_router(settings_router)
 app.include_router(diagnostics_router)
 app.include_router(workspace_router)
 app.include_router(packages_router)
-app.include_router(nodes_router)
+app.include_router(blocks_router)
 
 @app.on_event("startup")
 async def startup_event():
@@ -180,7 +180,7 @@ async def startup_event():
             
             # Clean up temporary package files on server startup
             import shutil
-            for subdir in ["blueprints", "nodes", "clusters"]:
+            for subdir in ["blueprints", "blocks", "clusters"]:
                 temp_dir = ws_path / subdir / ".temp"
                 if temp_dir.exists():
                     try:
@@ -200,8 +200,8 @@ async def startup_event():
     try:
         from comfylab.engine.registry import load_all_clusters_deferred
         load_all_clusters_deferred()
-        from comfylab.engine.registry import NODE_REGISTRY
-        logger.info(f"Cluster loading complete. Total registered nodes: {len(NODE_REGISTRY)}")
+        from comfylab.engine.registry import BLOCK_REGISTRY
+        logger.info(f"Cluster loading complete. Total registered blocks: {len(BLOCK_REGISTRY)}")
     except Exception as e:
         logger.error(f"Cluster loading skipped (will retry on reload): {e}")
 
