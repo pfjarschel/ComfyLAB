@@ -429,7 +429,7 @@ function Flow() {
   // Global Settings States
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settings, setSettings] = useState<{
-    custom_node_dirs: string[];
+    custom_block_dirs: string[];
     script_timeout: number;
     visa_backend: string;
     last_workspace: string;
@@ -445,7 +445,7 @@ function Flow() {
     trusted_origins: string[];
     custom_users: Record<string, string>;
   }>({
-    custom_node_dirs: [],
+    custom_block_dirs: [],
     script_timeout: 30,
     visa_backend: '@py',
     last_workspace: '',

@@ -16,7 +16,7 @@
 interface GlobalSettingsProps {
   isOpen: boolean;
   settings: {
-    custom_node_dirs: string[];
+    custom_block_dirs: string[];
     script_timeout: number;
     visa_backend: string;
     last_workspace: string;
@@ -172,17 +172,17 @@ export const GlobalSettingsModal = ({
               <div className="setting-group">
                 <label className="setting-label">Custom Discovery Folders</label>
                 <div className="directories-list">
-                  {settings.custom_node_dirs.length === 0 ? (
+                  {settings.custom_block_dirs.length === 0 ? (
                     <div className="no-directories">No custom folders added.</div>
                   ) : (
-                    settings.custom_node_dirs.map((dir, index) => (
+                    settings.custom_block_dirs.map((dir, index) => (
                       <div key={index} className="directory-item">
                         <span className="directory-path" title={dir}>{dir}</span>
                         <button
                           className="directory-delete-btn"
                           onClick={() => {
-                            const updatedDirs = settings.custom_node_dirs.filter((_, i) => i !== index);
-                            setSettings({ ...settings, custom_node_dirs: updatedDirs });
+                            const updatedDirs = settings.custom_block_dirs.filter((_, i) => i !== index);
+                            setSettings({ ...settings, custom_block_dirs: updatedDirs });
                           }}
                           title="Remove folder"
                         >
@@ -203,10 +203,10 @@ export const GlobalSettingsModal = ({
                       if (e.key === 'Enter') {
                         e.preventDefault();
                         const trimmed = newDirInput.trim();
-                        if (trimmed && !settings.custom_node_dirs.includes(trimmed)) {
+                        if (trimmed && !settings.custom_block_dirs.includes(trimmed)) {
                           setSettings({
                             ...settings,
-                            custom_node_dirs: [...settings.custom_node_dirs, trimmed]
+                            custom_block_dirs: [...settings.custom_block_dirs, trimmed]
                           });
                           setNewDirInput('');
                         }
@@ -219,10 +219,10 @@ export const GlobalSettingsModal = ({
                     className="button-secondary"
                     onClick={() => {
                       const trimmed = newDirInput.trim();
-                      if (trimmed && !settings.custom_node_dirs.includes(trimmed)) {
+                      if (trimmed && !settings.custom_block_dirs.includes(trimmed)) {
                         setSettings({
                           ...settings,
-                          custom_node_dirs: [...settings.custom_node_dirs, trimmed]
+                          custom_block_dirs: [...settings.custom_block_dirs, trimmed]
                         });
                         setNewDirInput('');
                       }
