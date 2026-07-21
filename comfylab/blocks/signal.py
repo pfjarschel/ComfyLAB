@@ -382,3 +382,75 @@ class Interpolate2DBlock(BaseBlock):
 
     async def clear_data(self) -> None:
         self._interpolated = np.array([])
+
+
+import time
+import math
+import random
+
+@register_block("utility/function_generator")
+class FunctionGeneratorBlock(BaseBlock):
+    """Generates an instantaneous signal value based on time."""
+    icon = "〰"
+    display_name = "Function Generator"
+    description = "Calculates the instantaneous value of a waveform based on the current system time."
+    
+    inputs_def = [
+        ExecIn("Generate"),
+        DataIn("Wave Type", type_hint=str, default="sine", options=["sine", "square", "triangle", "sawtooth", "dc"], widget="dropdown"),
+        DataIn("Amplitude", type_hint=float, default=1.0, widget="number"),
+        DataIn("Offset", type_hint=float, default=0.0, widget="number"),
+        DataIn("Frequency", type_hint=float, default=1.0, widget="number"),
+        DataIn("Phase (deg)", type_hint=float, default=0.0, widget="number"),
+        DataIn("Noise Amp", type_hint=float, default=0.0, widget="number")
+    ]
+    outputs_def = [
+        ExecOut("Out"),
+        DataOut("Value", type_hint=float)
+    ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._current_value = 0.0
+        self._start_time = time.time()
+
+    async def execute(self, context: ExecutionContext, pin_name: str):
+        if pin_name == "Generate":
+            wave_type = await context.pull(self.id, "Wave Type") or "sine"
+            amp = float(await context.pull(self.id, "Amplitude") or 1.0)
+            offset = float(await context.pull(self.id, "Offset") or 0.0)
+            freq = float(await context.pull(self.id, "Frequency") or 1.0)
+            phase_deg = float(await context.pull(self.id, "Phase (deg)") or 0.0)
+            noise_amp = float(await context.pull(self.id, "Noise Amp") or 0.0)
+            
+            t = time.time() - self._start_time
+            phase_rad = math.radians(phase_deg)
+            
+            wt = 2 * math.pi * freq * t + phase_rad
+            
+            val = 0.0
+            if wave_type == "sine":
+                val = math.sin(wt)
+            elif wave_type == "square":
+                val = 1.0 if math.sin(wt) >= 0 else -1.0
+            elif wave_type == "triangle":
+                val = 2.0 / math.pi * math.asin(math.sin(wt))
+            elif wave_type == "sawtooth":
+                # standard sawtooth from -1 to 1
+                val = 2.0 * (t * freq - math.floor(0.5 + t * freq))
+            elif wave_type == "dc":
+                val = 0.0
+                
+            val = (val * amp) + offset
+            
+            if noise_amp > 0:
+                val += random.uniform(-noise_amp, noise_amp)
+                
+            self._current_value = val
+            return "Out"
+        return None
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Value":
+            return self._current_value
+        return None

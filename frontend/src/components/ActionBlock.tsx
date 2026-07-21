@@ -24,6 +24,7 @@ import { XYPlotWidget } from './widgets/XYPlotWidget';
 import { HeatmapPlotWidget } from './widgets/HeatmapPlotWidget';
 import { DisplayScreenWidget } from './widgets/DisplayScreenWidget';
 import { ImageDisplayWidget } from './widgets/ImageDisplayWidget';
+import BeepWidget from './widgets/BeepWidget';
 
 // Re-export pin color resolver for compatibility with App.tsx and BlockInspectorPanel.tsx
 export { getPinColor };
@@ -1395,6 +1396,10 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
         )}
 
         {/* Render dynamic input parameter widgets dynamically based on Registry schema definitions */}
+        {registryLayout?.ui_behavior?.custom_widget === 'beep_widget' && (
+          <BeepWidget blockId={id} />
+        )}
+
         {(!registryLayout?.ui_behavior?.custom_widget || registryLayout?.ui_behavior?.render_standard_inputs) && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {visibleDataIns.map((pin: any) => {

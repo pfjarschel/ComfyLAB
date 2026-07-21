@@ -11,7 +11,6 @@
 # GNU General Public License for more details.
 
 import asyncio
-import math
 import random
 import logging
 import time
@@ -103,7 +102,7 @@ class CompareBlock(BaseBlock):
 class PrintBlock(BaseBlock):
     """Prints a pulled value to standard output and continues execution."""
     icon = " >_ "
-    display_name = "Print Block"
+    display_name = "Print"
     description = "Prints a pulled value to standard output and continues execution."
     
     inputs_def = [
@@ -119,8 +118,8 @@ class PrintBlock(BaseBlock):
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
         val = await context.pull(self.id, "Value")
         self.last_printed = val
-        logger.info(f"[ComfyLAB Print Block '{self.id}'] >>> {val}")
-        print(f"[ComfyLAB Print Block '{self.id}'] >>> {val}")
+        logger.info(f"[ComfyLAB Print '{self.id}'] >>> {val}")
+        print(f"[ComfyLAB Print '{self.id}'] >>> {val}")
         return "Out"
 
     async def clear_data(self) -> None:
@@ -1711,3 +1710,204 @@ class LEDBlock(BaseBlock):
         return None
 
 
+@register_block("utility/sample_and_hold")
+class SampleAndHoldBlock(BaseBlock):
+    """Latches and holds a value when triggered."""
+    icon = "📥"
+    display_name = "Sample & Hold"
+    description = "Latches onto a data value when triggered and holds that value steady until triggered again."
+    
+    inputs_def = [
+        ExecIn("Sample"),
+        DataIn("Data", type_hint=Any)
+    ]
+    outputs_def = [
+        ExecOut("Out"),
+        DataOut("Held Value", type_hint=Any)
+    ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._held_value = None
+
+    async def execute(self, context: ExecutionContext, pin_name: str):
+        if pin_name == "Sample":
+            self._held_value = await context.pull(self.id, "Data")
+            await context.send_telemetry(self.id, {"held_value": self._held_value})
+            return "Out"
+        return None
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Held Value":
+            return self._held_value
+        return None
+
+
+@register_block("utility/sequencer")
+class SequencerBlock(BaseBlock):
+    """Steps through a list sequence on each trigger."""
+    icon = "🪜"
+    display_name = "Sequencer"
+    description = "Steps through a sequence array on each trigger, outputting the current element. Wraps around when it reaches the end."
+    
+    inputs_def = [
+        ExecIn("Step"),
+        DataIn("Sequence", type_hint=list, default=[])
+    ]
+    outputs_def = [
+        ExecOut("Out"),
+        DataOut("Current", type_hint=Any),
+        DataOut("Index", type_hint=int)
+    ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._index = -1
+        self._current_value = None
+        self._seq_len = 0
+
+    async def execute(self, context: ExecutionContext, pin_name: str):
+        if pin_name == "Step":
+            seq = await context.pull(self.id, "Sequence")
+            
+            if isinstance(seq, str):
+                import ast
+                try:
+                    parsed = ast.literal_eval(seq)
+                    if isinstance(parsed, (list, tuple)):
+                        seq = parsed
+                    else:
+                        seq = [s.strip() for s in seq.split(",") if s.strip()]
+                except Exception:
+                    seq = [s.strip() for s in seq.split(",") if s.strip()]
+
+            if seq is not None and hasattr(seq, '__iter__') and not isinstance(seq, (str, bytes)):
+                try:
+                    seq = list(seq)
+                    self._seq_len = len(seq)
+                    if self._seq_len > 0:
+                        self._index = (self._index + 1) % self._seq_len
+                        self._current_value = seq[self._index]
+                        
+                        # # Convert to native types for telemetry to avoid JSON serialization errors
+                        # safe_index = int(self._index)
+                        # safe_value = self._current_value
+                        
+                        # if isinstance(safe_value, np.generic):
+                        #     safe_value = safe_value.item()
+                            
+                        await context.send_telemetry(self.id, {"index": self._index, "value": self._current_value})
+                except Exception as e:
+                    import logging
+                    logging.error(f"Sequencer iteration failed: {e}")
+            else:
+                import logging
+                logging.warning(f"Sequencer received invalid sequence: {type(seq)} - {seq}")
+            
+            return "Out"
+        return None
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Current":
+            return self._current_value
+        elif pin_name == "Index":
+            return self._index
+        return None
+
+
+import collections
+
+@register_block("Numeric Arrays/operations/moving_average")
+class MovingAverageBlock(BaseBlock):
+    """Calculates a moving average over a sliding window."""
+    icon = "📈"
+    display_name = "Moving Average"
+    description = "Maintains a sliding window of recent values and outputs their average."
+    
+    inputs_def = [
+        ExecIn("Update"),
+        DataIn("Data", type_hint=float),
+        DataIn("Window Size", type_hint=int, default=10, widget="number")
+    ]
+    outputs_def = [
+        ExecOut("Out"),
+        DataOut("Average", type_hint=float),
+        DataOut("Buffer", type_hint=list)
+    ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._buffer = collections.deque()
+        self._current_avg = 0.0
+
+    async def execute(self, context: ExecutionContext, pin_name: str):
+        if pin_name == "Update":
+            val = await context.pull(self.id, "Data")
+            window_size = await context.pull(self.id, "Window Size")
+            
+            try:
+                window_size = int(window_size) if window_size is not None else 10
+            except ValueError:
+                window_size = 10
+            
+            if val is not None:
+                try:
+                    self._buffer.append(float(val))
+                    while len(self._buffer) > window_size:
+                        self._buffer.popleft()
+                    
+                    if len(self._buffer) > 0:
+                        self._current_avg = sum(self._buffer) / len(self._buffer)
+                except (ValueError, TypeError):
+                    pass
+                    
+            return "Out"
+        return None
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Average":
+            return self._current_avg
+        elif pin_name == "Buffer":
+            return list(self._buffer)
+        return None
+
+
+import time
+
+@register_block("utility/beep")
+class BeepBlock(BaseBlock):
+    """Plays an audio beep in the UI."""
+    icon = "🔊"
+    display_name = "Beep / Alarm"
+    description = "Triggers a synthesized audio tone in the browser UI when executed."
+    ui_behavior = {"custom_widget": "beep_widget", "render_standard_inputs": True}
+    
+    inputs_def = [
+        ExecIn("Play"),
+        DataIn("Sound Type", type_hint=str, default="sine", options=["sine", "square", "sawtooth", "triangle"], widget="dropdown"),
+        DataIn("Frequency", type_hint=float, default=440.0, widget="number"),
+        DataIn("Duration (ms)", type_hint=float, default=200.0, widget="number"),
+        DataIn("Volume", type_hint=float, default=1.0, widget="number")
+    ]
+    outputs_def = [
+        ExecOut("Out")
+    ]
+
+    async def execute(self, context: ExecutionContext, pin_name: str):
+        if pin_name == "Play":
+            sound_type = await context.pull(self.id, "Sound Type")
+            freq = await context.pull(self.id, "Frequency")
+            dur = await context.pull(self.id, "Duration (ms)")
+            vol = await context.pull(self.id, "Volume")
+            
+            payload = {
+                "action": "play_beep",
+                "type": sound_type or "sine",
+                "frequency": float(freq) if freq is not None else 440.0,
+                "duration": float(dur) if dur is not None else 200.0,
+                "volume": float(vol) if vol is not None else 1.0,
+                "timestamp": time.time()
+            }
+            await context.send_telemetry(self.id, payload)
+            return "Out"
+        return None
