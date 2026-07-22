@@ -1,20 +1,39 @@
 # ComfyLAB — Visual Lab Automation Environment
 
-ComfyLAB (Comfortable Lab Automation Blocks) is a visual, block-based software platform for automating scientific and test & measurement laboratory experiments. It allows researchers, students, and engineers to connect instruments, run analysis code, and view live plots using an intuitive drag-and-drop workspace.
+ComfyLAB (**Comf**ortable **L**ab **A**utomation **B**locks) is a visual, block-based software platform for automating scientific and test & measurement laboratory experiments. It allows researchers, students, and engineers to connect instruments, run analysis code, and view live plots using an intuitive drag-and-drop workspace.
 
 ---
 
 ## ✨ Features
 
-- **Visual Block Programming**: Design automation procedures by connecting block nodes together. No complex programming required.
+- **Visual Block Programming**: Design automation procedures by connecting blocks together. No complex programming required.
+- **Rich Block Library**: Extensive set of built-in blocks covering math, curve fitting, signal processing, array manipulation, control flow, file I/O, live plotting, instrument drivers, and utility functions.
 - **Run Scripts in Other Languages**: Run code blocks written in Python, Rust, JavaScript, TypeScript, Julia, R, Lua, Octave, or Wolfram directly in your pipeline.
-- **Equipment Control**: Connect and control physical laboratory hardware.
+- **Equipment Control**: Connect and control physical laboratory hardware via VISA/SCPI protocol and dedicated instrument drivers.
 - **Built-in Laboratory Safety**: If an automation run fails, is stopped, or encounters an error, ComfyLAB automatically triggers safety shutdown routines on instruments (e.g. turning off lasers or signal generator outputs) to protect your hardware.
-- **Real-Time Live Graphs**: Watch data stream in real time with live plotting widgets.
-- **Whiteboard Canvas overlay**: Draw diagrams, write notes, and add shapes directly on top of your workspace.
+- **Real-Time Live & Multi-Trace Graphs**: Stream data in real time with single and multi-trace live plotting widgets, custom axis limits, and persistent settings.
+- **Whiteboard Canvas Overlay**: Draw diagrams, write notes, and add shapes directly on top of your workspace.
 - **Custom Cluster Blocks**: Group a set of connected blocks into a single custom cluster block to keep your workspace clean and organized.
 - **Security Protections**: Prevents untrusted blueprints from executing malicious scripts on your computer. You will be warned and asked for approval before running code from unknown sources.
-- **Secure Remote Access**: Remotely access your lab setup PC running ComfyLAB, protected by a simple two-word token (user/password also available if needed)
+- **Secure Remote Access**: Remotely access your lab setup PC running ComfyLAB, protected by a simple two-word token (user/password also available if needed).
+- **Application Info & About Modal**: Access application details, license info, and versioning directly from the UI toolbar.
+
+---
+
+## 🧩 Block Categories & Capabilities
+
+ComfyLAB provides a rich, modular ecosystem of blocks for building automation workflows:
+
+- **Math & Curve Fitting**: Basic arithmetic, trigonometric & logarithmic functions, polynomial, exponential, gaussian, and custom non-linear curve fitting.
+- **Logic & Control Flow**: Boolean operations (AND, OR, NOT, XOR), comparisons, execution branches (If/Else), For/While loops, and sequential execution blocks.
+- **Data Structures & Arrays**: Lists, Dictionaries, and multi-dimensional NDArrays (reshaping, slicing, linear algebra, statistics, and array-to-image conversion).
+- **Signal Processing**: FFT & power spectral analysis, bandpass/lowpass/highpass filtering, detrending, windowing, and peak finding algorithms.
+- **File I/O & Storage**: Read and write CSV files, JSON data, and raw text files with automatic path resolution.
+- **Visualization**: Interactive single and multi-trace line plots, scatter plots, and heatmaps/image viewers.
+- **Instruments & VISA**: Direct VISA SCPI command/query execution and built-in drivers for oscilloscopes and signal generators.
+- **Multi-Language Scripting**: Polyglot code execution blocks supporting 9 scripting languages (Python, Rust, JavaScript, TypeScript, Julia, R, Lua, Octave, Wolfram).
+- **Clusters**: Group complex sub-graphs into custom reusable cluster blocks with dynamic input/output boundaries.
+- **Utility & Timing**: Delays, timestamps, stopwatches, type conversion, console logging, and debugging inspectors.
 
 ---
 
@@ -25,13 +44,13 @@ The execution engine uses a **Hybrid State Machine (Push/Pull)** model inspired 
 ```mermaid
 graph TD
     subgraph Execution Wires [Push Token Flow]
-        Start[Entry Node] -->|Exec Token| NodeA[Execution Node]
-        NodeA -->|Exec Token| NodeB[Execution Node / Loops]
+        Start[Entry Block] -->|Exec Token| BlockA[Execution Block]
+        BlockA -->|Exec Token| BlockB[Execution Block / Loops]
       end
     
     subgraph Data Wires [Pull Lazy Evaluation]
-        NodeA -->|Pulls Data| MathAdd[Math Node]
-        MathAdd -->|Pulls Data| ConstNum[Number Node]
+        BlockA -->|Pulls Data| MathAdd[Math Block]
+        MathAdd -->|Pulls Data| ConstNum[Number Block]
       end
 ```
 
@@ -42,12 +61,12 @@ graph TD
 
 ### 2. Pull Wires (Lazy Evaluation Data Bus)
 * Defined by connections of type `data` between `DataOut` and `DataIn` pins.
-* Calculated **on demand (lazy evaluation)** when an execution node pulls data.
+* Calculated **on demand (lazy evaluation)** when an execution block pulls data.
 * Calculation results are cached *within a single execution step* to prevent redundant recalculation. Caching is cleared between execution steps.
 
 ### 3. VISA Concurrency (ResourceLockManager)
 * Automating hardware requires calling blocking VISA APIs. 
-* To prevent conflicts when multiple nodes access the same physical hardware concurrently, the `ResourceLockManager` manages async locks mapping `VISA address -> asyncio.Lock`.
+* To prevent conflicts when multiple blocks access the same physical hardware concurrently, the `ResourceLockManager` manages async locks mapping `VISA address -> asyncio.Lock`.
 * Safely resolves resource contentions with timeout/watchdog support to prevent deadlocks.
 
 ---
@@ -59,13 +78,14 @@ ComfyLAB/  (root)
 ├── LICENSE                     # Software license (GPLv3)
 ├── README.md                   # This document
 ├── requirements.txt            # Python package dependencies
+├── VERSION                     # Application version tracking
 ├── start.sh                    # Linux/macOS venv bootstrapper
 ├── start.bat                   # Windows venv bootstrapper
 ├── start.py                    # Cross-platform concurrent process coordinator
 ├── pyinstaller_entry.py        # PyInstaller application entry point
 ├── build_exe.py                # Builds the standalone single-file executable
 ├── build_release.py            # Builds the full release ZIP package
-├── ComfyLAB.spec               # PyInstaller spec (frozen core + external nodes)
+├── ComfyLAB.spec               # PyInstaller spec (frozen core + external blocks)
 ├── backend/                    # FastAPI API routers & WebSockets server
 ├── comfylab/                   # Core Python Engine
 │   ├── engine/                 # Models, executor, lock manager, registry, security, config
@@ -144,12 +164,20 @@ To compile the frontend React bundle, stage the required production files (exclu
 ```bash
 python3 build_release.py
 ```
+To automatically bump the version number before building:
+```bash
+python3 build_release.py --bump [patch|minor|major]
+```
 This generates `comfylab-release.zip` in your root directory.
 
 ### 2. Build Standalone Single-File Executable
 To compile and package the entire application (Python interpreter, FastAPI backend, core packages, and precompiled frontend UI assets) into a single, zero-dependency executable (`ComfyLAB` or `ComfyLAB.exe`):
 ```bash
 python3 build_exe.py
+```
+Optionally bump version before building:
+```bash
+python3 build_exe.py --bump [patch|minor|major]
 ```
 This installs `pyinstaller` if missing and generates the compiled standalone binary inside the `dist/` directory.
 
