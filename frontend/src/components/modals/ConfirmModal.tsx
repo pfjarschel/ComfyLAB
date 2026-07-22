@@ -39,7 +39,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
       }}
     >
       <div 
-        className="modal-content" 
+        className="modal-content glass-panel" 
         ref={modalRef}
         style={{
           maxWidth: '450px',
@@ -48,10 +48,10 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
       >
         <div className="modal-header">
           <h3>Confirmation</h3>
-          <button className="close-button" onClick={onCancel}>✕</button>
+          <button className="modal-close-btn" onClick={onCancel}>✕</button>
         </div>
         <div className="modal-body" style={{ padding: '24px 20px', lineHeight: '1.5' }}>
-          <p>{message}</p>
+          <p style={{ margin: 0, color: 'var(--text-color)' }}>{message}</p>
         </div>
         <div className="modal-footer" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
           <button 
