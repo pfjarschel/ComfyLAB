@@ -46,6 +46,8 @@ interface TopBarProps {
   onUploadBlueprintClick: () => void;
   onUploadFileClick: () => void;
   onOpenSettings: () => void;
+  onOpenSplash?: () => void;
+  onOpenAbout?: () => void;
   onGroupCluster: () => void;
   onRun: () => void;
   onPause: () => void;
@@ -84,6 +86,8 @@ export const TopBar = ({
   onUploadBlueprintClick,
   onUploadFileClick,
   onOpenSettings,
+  onOpenSplash,
+  onOpenAbout,
    
   onRun,
   onPause,
@@ -147,6 +151,11 @@ export const TopBar = ({
               <button onClick={onUploadFileClick}>
                 <span>📁</span> Upload File
               </button>
+              {onOpenSplash && (
+                <button onClick={() => { setMenuOpen(false); onOpenSplash(); }}>
+                  <span>⚡</span> Welcome Splash Screen
+                </button>
+              )}
             </div>
           )}
         </div>

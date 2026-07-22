@@ -53,6 +53,8 @@ import { PackageImportModal } from './components/modals/PackageImportModal';
 import { CanvasContextMenu } from './components/modals/CanvasContextMenu';
 import { UploadFileModal } from './components/modals/UploadFileModal';
 import { ConfirmModal } from './components/modals/ConfirmModal';
+import { AboutModal } from './components/modals/AboutModal';
+import { SplashScreenModal } from './components/modals/SplashScreenModal';
 import { WhiteboardOverlay } from './components/widgets/WhiteboardOverlay';
 import { WhiteboardSidebar } from './components/widgets/WhiteboardSidebar';
 import { useWorkspaceHistory } from './hooks/useWorkspaceHistory';
@@ -465,6 +467,12 @@ function Flow() {
   const [settingsTab, setSettingsTab] = useState<'general' | 'diagnostics'>('general');
   const [diagnosticsData, setDiagnosticsData] = useState<any>(null);
   const [loadingDiagnostics, setLoadingDiagnostics] = useState(false);
+
+  // Splash Screen & About Modal States
+  const [aboutModalOpen, setAboutModalOpen] = useState(false);
+  const [splashOpen, setSplashOpen] = useState<boolean>(() => {
+    return localStorage.getItem('comfylab_hide_splash') !== 'true';
+  });
 
   // Trust Warning Modal States
   const [trustWarningOpen, setTrustWarningOpen] = useState(false);
@@ -3410,6 +3418,8 @@ return {
           setUploadFileOpen(true);
         }}
           onOpenSettings={() => setSettingsOpen(true)}
+          onOpenSplash={() => setSplashOpen(true)}
+          onOpenAbout={() => setAboutModalOpen(true)}
           onGroupCluster={handleGroupIntoCluster}
           onRun={handleRun}
           onPause={handlePause}
@@ -4108,6 +4118,34 @@ return {
             onCancel={confirmDialog.onCancel}
           />
         )}
+
+        {/* --- ABOUT MODAL --- */}
+        {aboutModalOpen && (
+          <AboutModal onClose={() => setAboutModalOpen(false)} />
+        )}
+
+        {/* --- SPLASH SCREEN MODAL --- */}
+        <SplashScreenModal
+          isOpen={splashOpen}
+          onClose={() => setSplashOpen(false)}
+          onNewBlueprint={() => {
+            setBlocks([]);
+            setEdges([]);
+            setCurrentBlueprintName('');
+            setIsDirty(false);
+          }}
+          onLoadBlueprint={() => {
+            fetchWorkspaceBlueprints();
+            setLoadWorkspaceOpen(true);
+          }}
+          onOpenSettings={() => {
+            fetchSettings();
+            setSettingsOpen(true);
+          }}
+          onOpenAbout={() => {
+            setAboutModalOpen(true);
+          }}
+        />
       </div>
     </RegistryContext.Provider>
   );
