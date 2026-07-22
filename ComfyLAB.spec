@@ -118,7 +118,15 @@ a = Analysis(
         'comfylab.blocks.instruments.pfj_osc',
         'comfylab.blocks.instruments.pfj_siggen',
         'tests',
-        'frontend/node_modules'
+        'frontend/node_modules',
+        # Exclude unused GUI frameworks and optional heavy libraries
+        'matplotlib',
+        'PyQt6',
+        'PyQt5',
+        'PySide6',
+        'PySide2',
+        'tkinter',
+        'tcl',
     ],
     win_no_prefer_redirects=False,
     win_private_assemblies=False,
