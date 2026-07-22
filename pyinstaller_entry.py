@@ -13,11 +13,14 @@
 
 import os
 import sys
+import threading
 import time
 import argparse
 import webbrowser
 import multiprocessing
 from pathlib import Path
+
+import uvicorn
 
 # Ensure multiprocessing support works under frozen PyInstaller binary
 multiprocessing.freeze_support()
@@ -62,12 +65,10 @@ def main():
 
     print(f"\n[ComfyLAB Standalone] Launching application on {browser_url} ...")
     
-    # We load and import uvicorn dynamically
-    import uvicorn
+    # The app must be imported only after sys.path/_MEIPASS resolution above
     from backend.main import app
 
     # Spin up browser opening in a deferred thread/timer
-    import threading
     def open_browser():
         time.sleep(1.5)
         print(f"[ComfyLAB Standalone] Opening browser to {browser_url} ...")
@@ -77,8 +78,10 @@ def main():
     browser_thread.start()
 
     # Run the Uvicorn ASGI server
+    # proxy_headers=False: the localhost-trust check relies on the real client
+    # IP, so X-Forwarded-For spoofing must not be honored.
     try:
-        uvicorn.run(app, host=host, port=port, log_level="info")
+        uvicorn.run(app, host=host, port=port, log_level="info", proxy_headers=False)
     except KeyboardInterrupt:
         print("\n[ComfyLAB Standalone] Stopping server...")
     print("[ComfyLAB Standalone] Exited cleanly.")

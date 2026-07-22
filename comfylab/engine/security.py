@@ -26,11 +26,21 @@ _cached_private_key: Optional[ed25519.Ed25519PrivateKey] = None
 
 # Cache verify_python_file results keyed by (path, mtime, size) -> (creator_identity, is_valid)
 _sig_cache: Dict[tuple, Tuple[str, bool]] = {}
+_SIG_CACHE_MAX_SIZE = 512
 
 
 def clear_signature_cache() -> None:
     """Clears the cached file signature verifications. Call before a full reload."""
     _sig_cache.clear()
+
+
+def _sig_cache_set(key: tuple, value: Tuple[str, bool]) -> None:
+    """Adds an entry to the signature cache, evicting oldest entries if it grows too large."""
+    if len(_sig_cache) >= _SIG_CACHE_MAX_SIZE:
+        # Evict ~25% oldest entries (dicts preserve insertion order)
+        for old_key in list(_sig_cache.keys())[: _SIG_CACHE_MAX_SIZE // 4]:
+            del _sig_cache[old_key]
+    _sig_cache[key] = value
 
 def get_private_key_path() -> Path:
     """Returns the path to the private key pem file."""
@@ -172,14 +182,14 @@ def verify_python_file(filepath: Path) -> Tuple[str, bool]:
     if not creator_identity or not signature:
         result = ("", False)
         if cache_key is not None:
-            _sig_cache[cache_key] = result
+            _sig_cache_set(cache_key, result)
         return result
 
     clean_code = "\n".join(clean_lines).rstrip()
     is_valid = verify_data(clean_code.encode("utf-8"), signature, creator_identity)
     result = (creator_identity, is_valid)
     if cache_key is not None:
-        _sig_cache[cache_key] = result
+        _sig_cache_set(cache_key, result)
     return result
 
 def sign_json(data: dict) -> dict:

@@ -12,14 +12,19 @@
 
 import asyncio
 import json
+import logging
 import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+import comfylab
 from comfylab.engine.registry import register_block, BLOCK_REGISTRY
 from comfylab.blocks.base import BaseBlock, ExecIn, ExecOut, DataIn, DataOut, ExecutionContext, Pin
-from comfylab.engine.models import ClusterDefinitionModel, BoundaryPinsModel
-from comfylab.engine.locks import ResourceLockManager
+from comfylab.engine.models import ClusterDefinitionModel
+from comfylab.engine.config import get_config
+from comfylab.engine.security import verify_json
+
+logger = logging.getLogger("comfylab.blocks.cluster")
 
 MAX_CLUSTER_DEPTH = 10
 
@@ -220,12 +225,6 @@ def register_cluster_block(cluster_def: ClusterDefinitionModel, file_path: str =
                 bdo_map[dout.name] = (dout.maps_from.block_id, dout.maps_from.pin)
             return bdi_map, bdo_map
 
-        def _get_entry_point(self):
-            if boundary.exec_ins:
-                ein = boundary.exec_ins[0]
-                return ein.maps_to.block_id, ein.maps_to.pin
-            return None, None
-
         async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
             if self._depth > MAX_CLUSTER_DEPTH:
                 raise RuntimeError(f"Cluster nesting depth exceeded ({self._depth} > {MAX_CLUSTER_DEPTH})")
@@ -267,8 +266,7 @@ def register_cluster_block(cluster_def: ClusterDefinitionModel, file_path: str =
                 sub_engine.state = "RUNNING"
                 sub_engine.executed_blocks_order.clear()
 
-                import os as _os
-                original_cwd = _os.getcwd()
+                original_cwd = os.getcwd()
                 try:
                     if start_block_id and start_pin_name:
                         task = asyncio.create_task(sub_engine.trigger_exec(start_block_id, start_pin_name, cluster_ctx))
@@ -300,7 +298,7 @@ def register_cluster_block(cluster_def: ClusterDefinitionModel, file_path: str =
                                 task.cancel()
                         await asyncio.gather(*sub_engine._active_tasks, return_exceptions=True)
                         sub_engine._active_tasks.clear()
-                    _os.chdir(original_cwd)
+                    os.chdir(original_cwd)
 
                 # Collect boundary outputs — sub_engine stays alive, no teardown here
                 self._computed_outputs = {}
@@ -389,15 +387,12 @@ def register_cluster_block(cluster_def: ClusterDefinitionModel, file_path: str =
             continue
         missing_regular.append(nt)
 
-    import logging
-    _cluster_logger = logging.getLogger("comfylab.blocks.cluster")
-
     if missing_regular:
         DynamicClusterBlock.broken = True
         DynamicClusterBlock.broken_reason = (
             "Cluster references unregistered block types: " + ", ".join(sorted(set(missing_regular)))
         )
-        _cluster_logger.error(
+        logger.error(
             "Cluster '%s' is broken (missing inner block types: %s). Source: %s",
             type_name, missing_regular, file_path or "<unknown>"
         )
@@ -407,7 +402,7 @@ def register_cluster_block(cluster_def: ClusterDefinitionModel, file_path: str =
 
     existing = BLOCK_REGISTRY.get(type_name)
     if missing_regular and existing is not None and not getattr(existing, "broken", False):
-        _cluster_logger.warning(
+        logger.warning(
             "Skipping registration of broken cluster '%s' from '%s'; keeping existing working registration.",
             type_name, file_path or "<unknown>"
         )
@@ -425,15 +420,13 @@ def load_cluster_from_file(filepath: str):
         data = json.load(f)
         
     # Security/Signature check
-    import comfylab
     core_dir = Path(comfylab.__file__).parent.resolve()
     abs_path = path.resolve()
     is_core = core_dir in abs_path.parents or abs_path == core_dir
-    
+
     unauthorized = False
     creator = "system"
     if not is_core:
-        from comfylab.engine.security import verify_json, get_config
         creator, is_valid = verify_json(data)
         
         config = get_config()
@@ -468,8 +461,6 @@ def load_clusters_from_directory(directory_path: str) -> int:
                     load_cluster_from_file(str(full_path))
                     count += 1
                 except Exception as e:
-                    import logging
-                    logger = logging.getLogger("comfylab.blocks.cluster")
                     logger.error(f"Failed to load cluster from {full_path}: {e}")
     return count
 

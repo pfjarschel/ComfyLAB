@@ -107,8 +107,8 @@ class TestMultilangExecution:
 
     @pytest.mark.asyncio
     async def test_js_execution(self):
-        if not shutil.which("block"):
-            pytest.skip("block executable is not available in PATH.")
+        if not shutil.which("node"):
+            pytest.skip("node executable is not available in PATH.")
 
         blueprint = {
             "blocks": [

@@ -12,13 +12,12 @@
 
 import asyncio
 import re
-import json
+import shutil
 from typing import Any, Dict, List, Optional, Tuple
 
 from comfylab.engine.registry import register_block
-from comfylab.blocks.base import ExecutionContext, ExecIn, ExecOut, DataIn, DataOut
+from comfylab.blocks.base import ExecutionContext
 from comfylab.blocks.base_script import BaseSubprocessScriptBlock, parse_decorators
-from backend.workspace import get_temp_dir
 
 # Lupa import fallback
 try:
@@ -210,7 +209,6 @@ end
 
 async def validate_code(code: str) -> dict:
     """Validates Lua script syntax using Lupa or fallback command line assert(load())."""
-    import shutil
     try:
         from lupa import LuaRuntime
         lua = LuaRuntime()
@@ -235,9 +233,3 @@ async def validate_code(code: str) -> dict:
         except Exception as e:
             return {"valid": False, "error": str(e)}
     return {"valid": True}
-
-
-from comfylab.engine.config import get_config
-if get_config().get("enable_lua_scripting", False):
-    register_block("script/lua")(LuaScriptBlock)
-

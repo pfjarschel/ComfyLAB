@@ -11,7 +11,10 @@
 # GNU General Public License for more details.
 
 import logging
-from typing import Any, Optional, Dict, List
+import math
+import random
+import time
+from typing import Any, Optional, Dict
 
 import numpy as np
 import scipy.signal as signal
@@ -383,10 +386,6 @@ class Interpolate2DBlock(BaseBlock):
     async def clear_data(self) -> None:
         self._interpolated = np.array([])
 
-
-import time
-import math
-import random
 
 @register_block("utility/function_generator")
 class FunctionGeneratorBlock(BaseBlock):

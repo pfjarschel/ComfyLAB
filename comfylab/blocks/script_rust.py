@@ -13,11 +13,8 @@
 import asyncio
 import re
 import json
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
-
+from typing import Any, Dict, List, Tuple
 from comfylab.engine.registry import register_block
-from comfylab.blocks.base import ExecutionContext, ExecIn, ExecOut, DataIn, DataOut
 from comfylab.blocks.base_script import BaseSubprocessScriptBlock, parse_decorators
 from backend.workspace import get_temp_dir, get_workspace_path
 
@@ -207,8 +204,3 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {{
                 input_file.unlink()
             if output_file.exists():
                 output_file.unlink()
-
-
-from comfylab.engine.config import get_config
-if get_config().get("enable_rust_scripting", False):
-    register_block("script/rust")(RustScriptBlock)

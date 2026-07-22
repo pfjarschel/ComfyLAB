@@ -1,6 +1,6 @@
 # Copyright (C) 2026 Paulo Felipe Jarschel
 
-from typing import Any, Dict, Optional
+from typing import Any
 from comfylab.engine.registry import register_block
 from comfylab.blocks.base import BaseBlock, DataIn, DataOut, ExecutionContext
 

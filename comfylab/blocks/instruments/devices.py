@@ -14,7 +14,6 @@ import asyncio
 import logging
 from typing import Any, Dict, Optional
 
-from comfylab.engine.registry import register_block
 from comfylab.blocks.base import BaseBlock, ExecIn, ExecOut, DataIn, DataOut, ExecutionContext
 from comfylab.blocks.visa import visa_rm_wrapper
 

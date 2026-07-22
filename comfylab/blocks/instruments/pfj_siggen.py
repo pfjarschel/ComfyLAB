@@ -11,7 +11,7 @@
 # GNU General Public License for more details.
 
 import asyncio
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from comfylab.engine.registry import register_block
 from comfylab.blocks.base import BaseBlock, ExecIn, ExecOut, DataIn, DataOut, ExecutionContext

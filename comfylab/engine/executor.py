@@ -133,14 +133,13 @@ class ExecutionEngine:
 
                 # Check if parameters changed (ignoring isPersistent and autoClearPersistent)
                 properties_changed = False
-                ignored_keys = {"isPersistent", "autoClearPersistent"}
                 for k, v in block_model.properties.items():
-                    if k not in ignored_keys and cached_block.properties.get(k) != v:
+                    if k not in PERSISTENT_IGNORED_KEYS and cached_block.properties.get(k) != v:
                         properties_changed = True
                         break
                 # Also check if any old property was deleted
                 for k in cached_block.properties:
-                    if k not in ignored_keys and k not in block_model.properties:
+                    if k not in PERSISTENT_IGNORED_KEYS and k not in block_model.properties:
                         properties_changed = True
                         break
 
@@ -172,7 +171,15 @@ class ExecutionEngine:
         for block in blocks_to_teardown:
             try:
                 loop = asyncio.get_running_loop()
-                loop.create_task(block.teardown())
+                task = loop.create_task(block.teardown())
+                # Log teardown failures instead of letting them vanish into the event loop
+                def _log_teardown_result(t, block_id=block.id):
+                    if t.cancelled():
+                        return
+                    exc = t.exception()
+                    if exc is not None:
+                        logger.error(f"Teardown failed for block '{block_id}': {exc}")
+                task.add_done_callback(_log_teardown_result)
             except RuntimeError:
                 try:
                     asyncio.run(block.teardown())
@@ -241,7 +248,7 @@ class ExecutionEngine:
         except Exception as e:
             self.state = "ABORTED"
             logger.error(f"Execution run {run_id} failed with error: {e}")
-            raise e
+            raise
         finally:
             if self._active_tasks:
                 for task in list(self._active_tasks):
@@ -364,7 +371,7 @@ class ExecutionEngine:
                     logger.error(f"Block '{current_block_id}' execution failed: {e}")
                     if isinstance(e, asyncio.TimeoutError):
                         raise TimeoutError(f"Block '{current_block_id}' exceeded execution timeout of {timeout}s.")
-                    raise e
+                    raise
             finally:
                 reset_block_context(block_tokens)
 
@@ -408,8 +415,7 @@ class ExecutionEngine:
                 # Check if we can skip pulling (memoization)
                 is_persistent = source_block.properties.get("isPersistent", False)
                 skip_pull = False
-                ignored_keys = {"isPersistent", "autoClearPersistent"}
-                
+
                 if is_persistent and getattr(source_block, "_has_pulled", False):
                     has_changes, current_inputs = await _detect_persistent_changes(source_block, context)
                     if not has_changes:
@@ -681,6 +687,9 @@ def summarize_value(val: Any) -> str:
     if hasattr(val, "shape") and hasattr(val, "dtype"):
         return f"ndarray{list(val.shape)} {val.dtype}"
         
+    # bool must be checked before int/float (bool is a subclass of int)
+    if isinstance(val, bool):
+        return "True" if val else "False"
     if isinstance(val, (int, float)):
         if isinstance(val, float):
             if math.isnan(val) or math.isinf(val):
@@ -691,8 +700,6 @@ def summarize_value(val: Any) -> str:
                 return f"{val:.4e}"
             return f"{val:.4f}".rstrip('0').rstrip('.')
         return str(val)
-    if isinstance(val, bool):
-        return "True" if val else "False"
     if isinstance(val, str):
         if len(val) > 40:
             return f'"{val[:37]}..."'

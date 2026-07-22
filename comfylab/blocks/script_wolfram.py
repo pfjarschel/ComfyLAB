@@ -12,10 +12,10 @@
 
 import re
 import json
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 from comfylab.engine.registry import register_block
-from comfylab.blocks.base import ExecutionContext, ExecIn, ExecOut, DataIn, DataOut
+from comfylab.blocks.base import ExecutionContext
 from comfylab.blocks.base_script import BaseSubprocessScriptBlock, parse_decorators
 
 DECORATOR_PATTERN = re.compile(
@@ -130,8 +130,3 @@ class WolframScriptBlock(BaseSubprocessScriptBlock):
         if out_type == 'list': return []
         if out_type == 'boolean': return False
         return None
-
-
-from comfylab.engine.config import get_config
-if get_config().get("enable_wolfram_scripting", False):
-    register_block("script/wolfram")(WolframScriptBlock)

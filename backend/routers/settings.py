@@ -10,20 +10,16 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 
-import datetime
-import re
-import json
-import sys
-import asyncio
-from pathlib import Path
-from fastapi import APIRouter, HTTPException
+import importlib
+import logging
+from fastapi import APIRouter
 from pydantic import BaseModel
-from typing import List, Dict, Any, Optional
+from typing import List, Dict
 
 from comfylab.engine.config import get_config, update_config
-from backend.workspace import get_workspace_path
 from comfylab.engine.registry import BLOCK_REGISTRY
-import importlib
+
+logger = logging.getLogger("backend.routers.settings")
 
 SCRIPTING_TOGGLES = {
     "enable_lua_scripting": ("comfylab.blocks.script_lua", "LuaScriptBlock", "script/lua"),
@@ -89,8 +85,7 @@ async def save_settings(payload: SettingsPayload):
                 for cls_name, t_name in zip(classes, types):
                     BLOCK_REGISTRY[t_name] = getattr(mod, cls_name)
             except Exception as e:
-                import logging
-                logging.getLogger("backend.routers.settings").error(
+                logger.error(
                     f"Failed to dynamically synchronize script block registry for {module_path}: {e}"
                 )
         else:

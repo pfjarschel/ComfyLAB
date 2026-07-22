@@ -25,7 +25,7 @@ Examples included:
 """
 
 import logging
-from typing import Any, Optional, Dict, List
+from typing import Any, Optional, Dict
 import numpy as np
 
 logger = logging.getLogger("comfylab.blocks.examples")

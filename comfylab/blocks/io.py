@@ -12,6 +12,7 @@
 
 import os
 import csv
+import json
 from datetime import datetime
 import logging
 from typing import Any, Optional, Dict, List
@@ -21,9 +22,10 @@ logger = logging.getLogger("comfylab.blocks.io")
 
 from comfylab.engine.registry import register_block
 from comfylab.blocks.base import BaseBlock, ExecIn, ExecOut, DataIn, DataOut, ExecutionContext
+from backend.workspace import get_workspace_path
 
 
-@register_block("File I\/O/path_generator")
+@register_block(r"File I\/O/path_generator")
 class FilePathGeneratorBlock(BaseBlock):
     """Generates file names dynamically using timestamps to prevent overwriting."""
     icon = "📂"
@@ -93,7 +95,7 @@ class ImageDisplayBlock(BaseBlock):
         return "Out"
 
 
-@register_block("File I\/O/image_to_array")
+@register_block(r"File I\/O/image_to_array")
 class ImageToArrayBlock(BaseBlock):
     """Loads an image from the workspace and converts it to a numeric array."""
     icon = "🖼️"
@@ -116,9 +118,7 @@ class ImageToArrayBlock(BaseBlock):
                 
             try:
                 from PIL import Image, ImageFile
-                from backend.workspace import get_workspace_path
-                import os
-                
+
                 ImageFile.LOAD_TRUNCATED_IMAGES = True
                 
                 ws_path = get_workspace_path()
@@ -142,7 +142,7 @@ class ImageToArrayBlock(BaseBlock):
         return None
 
 
-@register_block("File I\/O/save_csv")
+@register_block(r"File I\/O/save_csv")
 class SaveDataBlock(BaseBlock):
     """Saves experimental data (scalars, lists, or dictionaries) to a CSV file."""
     icon = "📝"
@@ -256,7 +256,7 @@ class SaveDataBlock(BaseBlock):
         return "Out"
 
 
-@register_block("File I\/O/save_parquet")
+@register_block(r"File I\/O/save_parquet")
 class SaveParquetBlock(BaseBlock):
     """Saves experimental data (scalars, lists, or dictionaries) to a Parquet file."""
     icon = "📝"
@@ -334,7 +334,7 @@ class SaveParquetBlock(BaseBlock):
         return "Out"
 
 
-@register_block("File I\/O/load_csv")
+@register_block(r"File I\/O/load_csv")
 class LoadCSVBlock(BaseBlock):
     """Reads a CSV file into data arrays."""
     icon = "📂"
@@ -388,7 +388,7 @@ class LoadCSVBlock(BaseBlock):
         return "Out"
 
 
-@register_block("File I\/O/load_parquet")
+@register_block(r"File I\/O/load_parquet")
 class LoadParquetBlock(BaseBlock):
     """Reads a Parquet file into data arrays."""
     icon = "📂"
@@ -458,7 +458,7 @@ def _make_serializable(obj: Any) -> Any:
     return obj
 
 
-@register_block("File I\/O/save_json")
+@register_block(r"File I\/O/save_json")
 class SaveJSONBlock(BaseBlock):
     """Saves structured data (dictionaries, lists) to a JSON file."""
     icon = "📝"
@@ -479,10 +479,7 @@ class SaveJSONBlock(BaseBlock):
         if not filepath:
             logger.error("SaveJSONBlock: FilePath cannot be empty.")
             return None
-            
-        from backend.workspace import get_workspace_path
-        import os, json
-        
+
         ws_path = get_workspace_path()
         full_path = os.path.join(ws_path, filepath) if ws_path else filepath
         
@@ -500,7 +497,7 @@ class SaveJSONBlock(BaseBlock):
         return "Out"
 
 
-@register_block("File I\/O/load_json")
+@register_block(r"File I\/O/load_json")
 class LoadJSONBlock(BaseBlock):
     """Reads a JSON file into structured data."""
     icon = "📂"
@@ -531,10 +528,7 @@ class LoadJSONBlock(BaseBlock):
         if not filepath:
             logger.error("LoadJSONBlock: FilePath cannot be empty.")
             return None
-            
-        from backend.workspace import get_workspace_path
-        import os, json
-        
+
         ws_path = get_workspace_path()
         full_path = os.path.join(ws_path, filepath) if ws_path else filepath
         
@@ -548,7 +542,7 @@ class LoadJSONBlock(BaseBlock):
         return "Out"
 
 
-@register_block("File I\/O/array_to_image")
+@register_block(r"File I\/O/array_to_image")
 class ArrayToImageBlock(BaseBlock):
     """Saves a numeric array to an image file."""
     icon = "🖼️"
@@ -572,9 +566,7 @@ class ArrayToImageBlock(BaseBlock):
             logger.error("ArrayToImageBlock: Data and FileName cannot be empty.")
             return None
 
-        import os
         from PIL import Image
-        from backend.workspace import get_workspace_path
 
         # Determine extension and append .png if needed
         valid_extensions = {".png", ".jpg", ".jpeg", ".bmp", ".tiff", ".webp"}

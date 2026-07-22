@@ -10,7 +10,6 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 
-import os
 from pathlib import Path
 from typing import Optional
 
@@ -47,3 +46,14 @@ def set_workspace_path(path: str | Path) -> Path:
 
 def _ensure_directory_exists(path: Path) -> None:
     path.mkdir(parents=True, exist_ok=True)
+
+
+def resolve_within(base_dir: Path, filename: str) -> Path:
+    """
+    Safely resolves a user-supplied filename inside base_dir.
+    Raises ValueError if the result would escape base_dir (path traversal).
+    """
+    resolved = (base_dir / filename).resolve()
+    if not resolved.is_relative_to(base_dir.resolve()):
+        raise ValueError(f"Path '{filename}' escapes the allowed directory.")
+    return resolved

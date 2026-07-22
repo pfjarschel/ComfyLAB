@@ -1,17 +1,31 @@
+# Copyright (C) 2026 Paulo Felipe Jarschel
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+
 import re
 import json
-from pathlib import Path
 from typing import List, Dict, Any, Optional
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from starlette.concurrency import run_in_threadpool
 
 from comfylab.engine.config import get_global_user_blocks_dir, get_global_user_clusters_dir
 from backend.workspace import get_workspace_path
-from comfylab.blocks.loader import load_module_from_filepath
+from comfylab.blocks.loader import load_module_from_filepath, reload_registry
 from comfylab.blocks.publisher import generate_block_class_code
-from comfylab.blocks.cluster import parse_cluster_boundary_pins
-from comfylab.engine.registry import get_all_blocks_schema
+from comfylab.blocks.cluster import load_cluster_from_file, parse_cluster_boundary_pins
+from comfylab.engine.models import ClusterDefinitionModel
+from comfylab.engine.registry import get_all_blocks_schema, invalidate_schema_cache
+from comfylab.engine.security import sign_json, sign_python_file
 
 router = APIRouter()
 
@@ -33,14 +47,8 @@ async def reload_block_registry():
     """
     Rescans the filesystem for blocks and returns the updated schema.
     """
-    from comfylab.blocks.loader import load_all_blocks
-    from comfylab.engine.registry import BLOCK_REGISTRY, load_all_clusters_deferred, invalidate_schema_cache
-    from comfylab.engine.security import clear_signature_cache
-    BLOCK_REGISTRY.clear()
-    invalidate_schema_cache()
-    clear_signature_cache()
-    load_all_blocks()
-    load_all_clusters_deferred(force=True)
+    # A full registry reload walks the filesystem and re-imports modules (blocking)
+    await run_in_threadpool(reload_registry)
     return get_all_blocks_schema()
 
 # ----------------------------------------------------------------------------
@@ -123,7 +131,6 @@ async def publish_block(payload: PublishBlockPayload):
 
     # Sign file
     try:
-        from comfylab.engine.security import sign_python_file
         sign_python_file(filepath)
     except Exception as e:
         if filepath.exists():
@@ -207,14 +214,12 @@ async def publish_cluster(payload: PublishClusterPayload):
         "boundary_pins": boundary_pins
     }
 
-    from comfylab.engine.models import ClusterDefinitionModel
     try:
         ClusterDefinitionModel.model_validate(cluster_json)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid cluster definition: {e}")
 
     try:
-        from comfylab.engine.security import sign_json
         signed_cluster = sign_json(cluster_json)
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(signed_cluster, f, indent=2)
@@ -222,7 +227,6 @@ async def publish_cluster(payload: PublishClusterPayload):
         raise HTTPException(status_code=500, detail=f"Failed to write cluster file: {e}")
 
     try:
-        from comfylab.blocks.cluster import load_cluster_from_file
         load_cluster_from_file(str(filepath))
     except Exception as e:
         if filepath.exists():
@@ -238,10 +242,6 @@ async def publish_cluster(payload: PublishClusterPayload):
 
 @router.get("/cluster/{type_name:path}")
 async def get_cluster_definition(type_name: str):
-    from pathlib import Path
-    from comfylab.engine.config import get_global_user_clusters_dir
-    from backend.workspace import get_workspace_path
-
     slug = type_name.split("/")[-1] if "/" in type_name else type_name
     candidates = []
     candidates.append(get_global_user_clusters_dir() / f"{slug}.cluster.json")
@@ -268,10 +268,6 @@ class UpdateClusterPayload(BaseModel):
 
 @router.put("/blocks/update_cluster/{type_name:path}")
 async def update_cluster(type_name: str, payload: UpdateClusterPayload):
-    from pathlib import Path
-    from comfylab.engine.config import get_global_user_clusters_dir
-    from backend.workspace import get_workspace_path
-
     slug = type_name.split("/")[-1] if "/" in type_name else type_name
     candidates = []
     candidates.append(get_global_user_clusters_dir() / f"{slug}.cluster.json")
@@ -297,13 +293,10 @@ async def update_cluster(type_name: str, payload: UpdateClusterPayload):
         data["icon"] = payload.icon
         data["description"] = payload.description
 
-        from comfylab.engine.security import sign_json
         signed_cluster = sign_json(data)
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(signed_cluster, f, indent=2)
-            
-        from comfylab.blocks.cluster import load_cluster_from_file
-        from comfylab.engine.registry import invalidate_schema_cache
+
         load_cluster_from_file(str(filepath))
         invalidate_schema_cache()
     except Exception as e:

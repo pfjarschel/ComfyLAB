@@ -143,8 +143,3 @@ if fid ~= -1
 end
 """
         return injection_code + code + "\n" + output_script
-
-
-from comfylab.engine.config import get_config
-if get_config().get("enable_octave_scripting", False):
-    register_block("script/octave")(OctaveScriptBlock)

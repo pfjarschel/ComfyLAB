@@ -11,7 +11,7 @@
 # GNU General Public License for more details.
 
 import logging
-from typing import Any, Optional, Dict, List
+from typing import Optional
 import time
 import numpy as np
 import scipy.ndimage as ndimage
@@ -19,7 +19,7 @@ import scipy.ndimage as ndimage
 logger = logging.getLogger("comfylab.blocks.plots")
 
 from comfylab.engine.registry import register_block
-from comfylab.blocks.base import BaseBlock, ExecIn, ExecOut, DataIn, DataOut, ExecutionContext
+from comfylab.blocks.base import BaseBlock, ExecIn, ExecOut, DataIn, ExecutionContext
 
 
 @register_block("outputs/plots/xy_plot")

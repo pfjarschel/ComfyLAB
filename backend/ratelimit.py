@@ -20,10 +20,29 @@ MAX_FAILURES = 6
 WINDOW_SECONDS = 30
 BLOCK_BASE_SECONDS = 120
 BLOCK_EXTRA_PER_ATTEMPT = 30
+MAX_TRACKED_IPS = 10000
 
 _failures = defaultdict(list)
 _blocks = {}
 _extra_blocks = {}
+
+
+def _prune(now):
+    """Drops stale entries so spoofed/rotating IPs can't grow the dicts unboundedly."""
+    if len(_failures) + len(_blocks) <= MAX_TRACKED_IPS:
+        return
+    for ip in list(_failures.keys()):
+        _failures[ip] = [t for t in _failures[ip] if now - t < WINDOW_SECONDS]
+        if not _failures[ip]:
+            del _failures[ip]
+    for ip in list(_blocks.keys()):
+        if now >= _blocks[ip]:
+            del _blocks[ip]
+            _extra_blocks.pop(ip, None)
+    # Still over capacity: drop the oldest tracked failures outright
+    if len(_failures) > MAX_TRACKED_IPS:
+        for ip in list(_failures.keys())[: len(_failures) - MAX_TRACKED_IPS]:
+            del _failures[ip]
 
 def is_blocked(ip):
     now = time.time()
@@ -54,6 +73,7 @@ def remaining_attempts(ip):
 
 def record_failure(ip):
     now = time.time()
+    _prune(now)
 
     if ip in _blocks:
         # Already blocked — reset timer and increase penalty
@@ -61,9 +81,7 @@ def record_failure(ip):
         extra = _extra_blocks[ip] * BLOCK_EXTRA_PER_ATTEMPT
         total = BLOCK_BASE_SECONDS + extra
         _blocks[ip] = now + total
-        msg = f"\033[1;31m[ComfyLAB Rate Limiter] IP {ip} block reset: {total}s (retry #{_extra_blocks[ip]} while blocked)\033[0m"
-        print(msg)
-        logger.warning(f"Rate-limit block extended for IP {ip} ({total}s)")
+        logger.warning(f"Rate-limit block extended for IP {ip}: {total}s (retry #{_extra_blocks[ip]} while blocked)")
         return
 
     _failures[ip].append(now)
@@ -73,9 +91,7 @@ def record_failure(ip):
         _blocks[ip] = now + BLOCK_BASE_SECONDS
         _extra_blocks.pop(ip, None)
         del _failures[ip]
-        msg = f"\033[1;31m[ComfyLAB Rate Limiter] IP {ip} blocked for {BLOCK_BASE_SECONDS}s after {MAX_FAILURES} failed attempts\033[0m"
-        print(msg)
-        logger.warning(f"Rate-limit block activated for IP {ip} ({BLOCK_BASE_SECONDS}s)")
+        logger.warning(f"Rate-limit block activated for IP {ip} ({BLOCK_BASE_SECONDS}s after {MAX_FAILURES} failed attempts)")
     else:
         attempts_left = MAX_FAILURES - count
         logger.info(f"Auth failure from IP {ip}: {attempts_left} attempt(s) remaining before block")

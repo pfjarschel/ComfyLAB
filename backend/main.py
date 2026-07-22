@@ -11,8 +11,11 @@
 # GNU General Public License for more details.
 
 import logging
-import random
+import hmac
+import secrets
 import base64
+import shutil
+import sys
 from pathlib import Path
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
@@ -26,6 +29,7 @@ from backend.routers.packages import router as packages_router
 from backend.routers.blocks import router as blocks_router
 import comfylab.engine.config as config_module
 from comfylab.engine.config import get_config
+from comfylab.engine.registry import BLOCK_REGISTRY, load_all_clusters_deferred
 from backend.workspace import set_workspace_path
 from backend.ratelimit import is_blocked, record_failure, record_success, block_remaining, remaining_attempts, is_first_attempt
 from comfylab.engine.logging import setup_logging
@@ -46,7 +50,8 @@ def _load_wordlist(filename):
 def generate_server_token():
     adjectives = _load_wordlist("adjectives.txt")
     nouns = _load_wordlist("nouns.txt")
-    return f"{random.choice(adjectives)}-{random.choice(nouns)}"
+    # secrets.choice: token is a security credential, so use a CSPRNG
+    return f"{secrets.choice(adjectives)}-{secrets.choice(nouns)}"
 
 
 SERVER_TOKEN = generate_server_token()
@@ -73,8 +78,7 @@ async def security_middleware(request: Request, call_next):
         
     path = request.url.path
     is_api = any(path == p or path.startswith(p + "/") for p in API_PATHS)
-    
-    import sys
+
     client_host = request.client.host if request.client else "127.0.0.1"
     is_testing = "pytest" in sys.modules or "unittest" in sys.modules
     is_local = is_testing or client_host in ("127.0.0.1", "::1", "localhost", "testserver")
@@ -103,7 +107,8 @@ async def security_middleware(request: Request, call_next):
                 username, password = decoded.split(":", 1)
                 config = get_config()
                 custom_users = config.get("custom_users", {})
-                if custom_users.get(username) == password:
+                stored = custom_users.get(username)
+                if stored is not None and hmac.compare_digest(stored, password):
                     record_success(client_host)
                     return await call_next(request)
             except Exception:
@@ -117,7 +122,8 @@ async def security_middleware(request: Request, call_next):
             
         # Validate token against SESSION_TOKEN or custom_users
         is_valid = False
-        if token == config_module.SESSION_TOKEN:
+        session_token = config_module.SESSION_TOKEN or ""
+        if token and hmac.compare_digest(token, session_token):
             is_valid = True
         elif ":" in token:
             parts = token.split(":", 1)
@@ -125,7 +131,8 @@ async def security_middleware(request: Request, call_next):
                 u, p = parts
                 config = get_config()
                 custom_users = config.get("custom_users", {})
-                if custom_users.get(u) == p:
+                stored = custom_users.get(u)
+                if stored is not None and hmac.compare_digest(stored, p):
                     is_valid = True
                     
         if not is_valid:
@@ -179,7 +186,6 @@ async def startup_event():
             logger.info(f"Auto-restored last workspace: {last_ws}")
             
             # Clean up temporary package files on server startup
-            import shutil
             for subdir in ["blueprints", "blocks", "clusters"]:
                 temp_dir = ws_path / subdir / ".temp"
                 if temp_dir.exists():
@@ -198,14 +204,11 @@ async def startup_event():
         except Exception as e:
             logger.error(f"Failed to auto-restore last workspace {last_ws}: {e}")
     try:
-        from comfylab.engine.registry import load_all_clusters_deferred
         load_all_clusters_deferred()
-        from comfylab.engine.registry import BLOCK_REGISTRY
         logger.info(f"Cluster loading complete. Total registered blocks: {len(BLOCK_REGISTRY)}")
     except Exception as e:
         logger.error(f"Cluster loading skipped (will retry on reload): {e}")
 
-import sys
 IS_TESTING = "pytest" in sys.modules or "unittest" in sys.modules
 
 # Serve frontend static assets if they are pre-compiled in production

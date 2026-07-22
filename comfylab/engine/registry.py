@@ -10,17 +10,25 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 
-from typing import Dict, Type, Any, List
-import re
+from typing import Dict, Optional, Type, Any
+import inspect
 import logging
+import re
+import sys
+from pathlib import Path
+
+import numpy as np
+
+import comfylab
 from comfylab.blocks.base import BaseBlock, ExecIn, ExecOut, DataIn, DataOut
+from comfylab.engine.config import get_config
+from comfylab.engine.security import verify_python_file
 
 logger = logging.getLogger("comfylab.engine.registry")
 
 
 def _safe_getfile(cls: Type[BaseBlock]) -> str:
     try:
-        import inspect
         return inspect.getfile(cls)
     except Exception:
         return ""
@@ -34,7 +42,7 @@ def _is_verification_test(type_name: str) -> bool:
 BLOCK_REGISTRY: Dict[str, Type[BaseBlock]] = {}
 
 # Cached serialized block schema (invalidated on any new registration)
-_schema_cache: Dict[str, Any] = None
+_schema_cache: Optional[Dict[str, Any]] = None
 
 
 def invalidate_schema_cache() -> None:
@@ -56,11 +64,6 @@ def register_block(type_name: str):
         
         # Security/Signature check
         try:
-            import inspect
-            from pathlib import Path
-            import comfylab
-            
-            import sys
             abs_path = Path(inspect.getfile(cls)).resolve()
             if getattr(sys, 'frozen', False):
                 ext_core_dir = Path(sys.executable).parent / "comfylab"
@@ -70,15 +73,13 @@ def register_block(type_name: str):
                 is_core = core_dir in abs_path.parents or abs_path == core_dir
             if not hasattr(cls, "unauthorized"):
                 if not is_core:
-                    import sys
                     is_test_env = any("pytest" in arg or "py.test" in arg for arg in sys.argv) or "pytest" in sys.modules
-                    
+
                     if is_test_env and not _is_verification_test(type_name):
                         cls.unauthorized = False
                         cls.creator_identity = "test"
                     else:
 
-                        from comfylab.engine.security import verify_python_file, get_config
                         creator, is_valid = verify_python_file(abs_path)
                         
                         config = get_config()
@@ -96,10 +97,13 @@ def register_block(type_name: str):
                     cls.unauthorized = False
                     cls.creator_identity = "system"
 
-        except Exception:
+        except Exception as e:
             if not hasattr(cls, "unauthorized"):
-                cls.unauthorized = False
-                cls.creator_identity = "system"
+                # Fail closed: a block whose trust cannot be verified must be
+                # treated as unauthorized, never silently as trusted system code.
+                logger.warning(f"Trust verification failed for block '{type_name}', marking as unauthorized: {e}")
+                cls.unauthorized = True
+                cls.creator_identity = "unknown"
 
         # Derive category from type_name if not explicitly set on the class dict
         if "category" not in cls.__dict__:
@@ -113,11 +117,9 @@ def register_block(type_name: str):
 
         # Prepend "Temporary/" to category if block is loaded from a temp directory
         try:
-            from pathlib import Path
             if hasattr(cls, "_cluster_file_path") and cls._cluster_file_path:
                 source_path = Path(cls._cluster_file_path).resolve()
             else:
-                import inspect
                 source_path = Path(inspect.getfile(cls)).resolve()
             
             if ".temp" in source_path.parts:
@@ -184,7 +186,6 @@ def get_block_class(type_name: str) -> Type[BaseBlock]:
 
 def _map_type_hint_to_str(type_hint: Any) -> str:
     """Maps a Python type hint class to a frontend-compatible type string."""
-    import numpy as np
     if type_hint is float or type_hint is int:
         return "number"
     elif type_hint is bool:
@@ -266,8 +267,6 @@ def get_all_blocks_schema() -> Dict[str, Any]:
             display_name = display_name[:-4]  # Strip "Block" suffix for presentation
 
         # Resolve relative source file path
-        import inspect
-        from pathlib import Path
         filepath = ""
         try:
             abs_path = inspect.getfile(cls)

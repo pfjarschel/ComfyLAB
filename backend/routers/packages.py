@@ -20,9 +20,15 @@ from pathlib import Path
 from typing import Dict, Any, List, Tuple
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from starlette.concurrency import run_in_threadpool
 
 import comfylab
-from backend.workspace import get_workspace_path
+from backend.workspace import get_workspace_path, resolve_within
+from comfylab.blocks.cluster import load_clusters_from_directory
+from comfylab.blocks.loader import load_blocks_from_directory, reload_registry
+from comfylab.engine.config import get_config, get_global_user_blocks_dir, get_global_user_clusters_dir
+from comfylab.engine.registry import BLOCK_REGISTRY
+from comfylab.engine.security import sign_json, sign_python_file, verify_json, verify_python_file
 
 logger = logging.getLogger("backend.routers.packages")
 
@@ -68,8 +74,6 @@ def find_blueprint_dependencies(blueprint: dict) -> Tuple[List[Path], List[Path]
     Scans a blueprint dict for custom blocks and clusters.
     Returns (custom_block_files: List[Path], cluster_files: List[Path]).
     """
-    from comfylab.engine.registry import BLOCK_REGISTRY
-    
     core_dir = Path(comfylab.__file__).parent.resolve()
     
     custom_block_files = set()
@@ -147,7 +151,10 @@ async def delete_package(filename: str):
     if not filename.endswith(".cfy"):
         filename += ".cfy"
 
-    file_path = packages_dir / filename
+    try:
+        file_path = resolve_within(packages_dir, filename)
+    except ValueError:
+        raise HTTPException(status_code=403, detail="Access denied: invalid filename.")
 
     if file_path.exists():
         try:
@@ -169,69 +176,76 @@ async def export_package(payload: PackageExportPayload):
     filename = payload.filename
     if not filename.endswith(".cfy"):
         filename += ".cfy"
-        
-    package_path = packages_dir / filename
+
+    try:
+        package_path = resolve_within(packages_dir, filename)
+    except ValueError:
+        raise HTTPException(status_code=403, detail="Access denied: invalid filename.")
     
     # 1. Scan for dependencies
     custom_blocks, clusters = find_blueprint_dependencies(payload.blueprint)
-    
-    # 2. Automatically sign them using local host key before bundling
-    from comfylab.engine.security import sign_python_file, sign_json
-    
-    temp_dir = Path(tempfile.mkdtemp())
-    try:
-        # Save signed blueprint
-        signed_bp = sign_json(payload.blueprint)
-        bp_file = temp_dir / "blueprint.json"
-        bp_file.write_text(json.dumps(signed_bp, indent=2), encoding="utf-8")
-        
-        # Save signed custom blocks
-        blocks_temp_dir = temp_dir / "blocks"
-        if custom_blocks:
-            blocks_temp_dir.mkdir()
-            for block_path in custom_blocks:
-                target_block_path = blocks_temp_dir / block_path.name
-                shutil.copy2(block_path, target_block_path)
-                sign_python_file(target_block_path)
-                
-        # Save signed clusters
-        clusters_temp_dir = temp_dir / "clusters"
-        if clusters:
-            clusters_temp_dir.mkdir()
-            for cluster_path in clusters:
-                with open(cluster_path, "r", encoding="utf-8") as f:
-                    cluster_data = json.load(f)
-                signed_cluster = sign_json(cluster_data)
-                target_cluster_path = clusters_temp_dir / cluster_path.name
-                target_cluster_path.write_text(json.dumps(signed_cluster, indent=2), encoding="utf-8")
-                
-        # 3. Create zip archive
-        with zipfile.ZipFile(package_path, "w", zipfile.ZIP_DEFLATED) as zip_ref:
-            zip_ref.write(bp_file, "blueprint.json")
+
+    def _write_package_archive():
+        # 2. Automatically sign them using local host key before bundling
+        temp_dir = Path(tempfile.mkdtemp())
+        try:
+            # Save signed blueprint
+            signed_bp = sign_json(payload.blueprint)
+            bp_file = temp_dir / "blueprint.json"
+            bp_file.write_text(json.dumps(signed_bp, indent=2), encoding="utf-8")
+
+            # Save signed custom blocks
+            blocks_temp_dir = temp_dir / "blocks"
             if custom_blocks:
-                for f in blocks_temp_dir.iterdir():
-                    zip_ref.write(f, f"blocks/{f.name}")
+                blocks_temp_dir.mkdir()
+                for block_path in custom_blocks:
+                    target_block_path = blocks_temp_dir / block_path.name
+                    shutil.copy2(block_path, target_block_path)
+                    sign_python_file(target_block_path)
+
+            # Save signed clusters
+            clusters_temp_dir = temp_dir / "clusters"
             if clusters:
-                for f in clusters_temp_dir.iterdir():
-                    zip_ref.write(f, f"clusters/{f.name}")
-                    
-        return {"path": str(package_path), "filename": filename}
-    finally:
-        shutil.rmtree(temp_dir)
+                clusters_temp_dir.mkdir()
+                for cluster_path in clusters:
+                    with open(cluster_path, "r", encoding="utf-8") as f:
+                        cluster_data = json.load(f)
+                    signed_cluster = sign_json(cluster_data)
+                    target_cluster_path = clusters_temp_dir / cluster_path.name
+                    target_cluster_path.write_text(json.dumps(signed_cluster, indent=2), encoding="utf-8")
+
+            # 3. Create zip archive
+            with zipfile.ZipFile(package_path, "w", zipfile.ZIP_DEFLATED) as zip_ref:
+                zip_ref.write(bp_file, "blueprint.json")
+                if custom_blocks:
+                    for f in blocks_temp_dir.iterdir():
+                        zip_ref.write(f, f"blocks/{f.name}")
+                if clusters:
+                    for f in clusters_temp_dir.iterdir():
+                        zip_ref.write(f, f"clusters/{f.name}")
+        finally:
+            shutil.rmtree(temp_dir)
+
+    # Signing + zip I/O are blocking; keep them off the event loop
+    await run_in_threadpool(_write_package_archive)
+    return {"path": str(package_path), "filename": filename}
 
 
 @router.post("/workspace/packages/load")
 async def load_package_preview(payload: PackageLoadPayload):
     """Safely extracts a package temporarily to inspect contents and check signatures."""
     ws_path = get_workspace_path()
-    package_path = ws_path / "packages" / payload.filename
+    try:
+        package_path = resolve_within(ws_path / "packages", payload.filename)
+    except ValueError:
+        raise HTTPException(status_code=403, detail="Access denied: invalid filename.")
     if not package_path.exists():
         raise HTTPException(status_code=404, detail=f"Package '{payload.filename}' not found.")
         
     temp_dir = Path(tempfile.mkdtemp())
     try:
-        extract_zip_safely(package_path, temp_dir)
-        
+        await run_in_threadpool(extract_zip_safely, package_path, temp_dir)
+
         bp_path = temp_dir / "blueprint.json"
         if not bp_path.exists():
             raise HTTPException(status_code=400, detail="Invalid package: blueprint.json is missing.")
@@ -240,7 +254,6 @@ async def load_package_preview(payload: PackageLoadPayload):
             blueprint = json.load(f)
             
         # Verify custom blocks signatures
-        from comfylab.engine.security import verify_python_file, verify_json, get_config
         config = get_config()
         trusted_origins = config.get("trusted_origins", [])
         local_identity = config.get("creator_identity", "")
@@ -296,7 +309,10 @@ async def load_package_preview(payload: PackageLoadPayload):
 async def import_package(payload: PackageImportPayload):
     """Imports package contents into either workspace or local user folders."""
     ws_path = get_workspace_path()
-    package_path = ws_path / "packages" / payload.package_filename
+    try:
+        package_path = resolve_within(ws_path / "packages", payload.package_filename)
+    except ValueError:
+        raise HTTPException(status_code=403, detail="Access denied: invalid filename.")
     if not package_path.exists():
         raise HTTPException(status_code=404, detail=f"Package '{payload.package_filename}' not found.")
         
@@ -315,7 +331,6 @@ async def import_package(payload: PackageImportPayload):
             target_blocks_dir = ws_path / "blocks"
             target_clusters_dir = ws_path / "clusters"
         elif payload.destination == "user":
-            from comfylab.engine.config import get_global_user_blocks_dir, get_global_user_clusters_dir
             target_bp_dir = ws_path / "blueprints"
             target_blocks_dir = get_global_user_blocks_dir()
             target_clusters_dir = get_global_user_clusters_dir()
@@ -328,62 +343,62 @@ async def import_package(payload: PackageImportPayload):
     
     temp_dir = Path(tempfile.mkdtemp())
     try:
-        extract_zip_safely(package_path, temp_dir)
-        
-        from comfylab.engine.security import sign_python_file, sign_json
-        
-        # 1. Blueprint JSON file
-        bp_src = temp_dir / "blueprint.json"
-        if bp_src.exists():
-            bp_dest_filename = payload.package_filename.rsplit(".", 1)[0] + ".json"
-            bp_dest = target_bp_dir / bp_dest_filename
-            
-            with open(bp_src, "r", encoding="utf-8") as f:
-                bp_data = json.load(f)
-            if payload.trust_and_sign:
-                bp_data = sign_json(bp_data)
-                
-            bp_dest.write_text(json.dumps(bp_data, indent=2), encoding="utf-8")
-            
-        # 2. Blocks
-        blocks_dir = temp_dir / "blocks"
-        if blocks_dir.exists() and blocks_dir.is_dir():
-            for f in blocks_dir.glob("*.py"):
-                dest_file = target_blocks_dir / f.name
-                shutil.copy2(f, dest_file)
+        await run_in_threadpool(extract_zip_safely, package_path, temp_dir)
+
+        def _import_contents():
+            # 1. Blueprint JSON file
+            bp_src = temp_dir / "blueprint.json"
+            if bp_src.exists():
+                bp_dest_filename = payload.package_filename.rsplit(".", 1)[0] + ".json"
+                bp_dest = target_bp_dir / bp_dest_filename
+
+                with open(bp_src, "r", encoding="utf-8") as f:
+                    bp_data = json.load(f)
                 if payload.trust_and_sign:
-                    sign_python_file(dest_file)
-                    
-        # 3. Clusters
-        clusters_dir = temp_dir / "clusters"
-        if clusters_dir.exists() and clusters_dir.is_dir():
-            for f in clusters_dir.glob("*.cluster.json"):
-                dest_file = target_clusters_dir / f.name
-                if payload.trust_and_sign:
-                    with open(f, "r", encoding="utf-8") as file:
-                        cluster_data = json.load(file)
-                    signed_cluster = sign_json(cluster_data)
-                    dest_file.write_text(json.dumps(signed_cluster, indent=2), encoding="utf-8")
-                else:
+                    bp_data = sign_json(bp_data)
+
+                bp_dest.write_text(json.dumps(bp_data, indent=2), encoding="utf-8")
+
+            # 2. Blocks
+            blocks_dir = temp_dir / "blocks"
+            if blocks_dir.exists() and blocks_dir.is_dir():
+                for f in blocks_dir.glob("*.py"):
+                    dest_file = target_blocks_dir / f.name
                     shutil.copy2(f, dest_file)
-                    
+                    if payload.trust_and_sign:
+                        sign_python_file(dest_file)
+
+            # 3. Clusters
+            clusters_dir = temp_dir / "clusters"
+            if clusters_dir.exists() and clusters_dir.is_dir():
+                for f in clusters_dir.glob("*.cluster.json"):
+                    dest_file = target_clusters_dir / f.name
+                    if payload.trust_and_sign:
+                        with open(f, "r", encoding="utf-8") as file:
+                            cluster_data = json.load(file)
+                        signed_cluster = sign_json(cluster_data)
+                        dest_file.write_text(json.dumps(signed_cluster, indent=2), encoding="utf-8")
+                    else:
+                        shutil.copy2(f, dest_file)
+
+        # File copies + signing are blocking; keep them off the event loop
+        await run_in_threadpool(_import_contents)
+
         # 4. Optional package deletion
         if payload.import_permanent and payload.delete_package:
             try:
                 package_path.unlink()
             except Exception as e:
                 logger.error(f"Failed to delete package file: {e}")
-                
+
         # Trigger hot-reload
-        from comfylab.blocks.loader import reload_registry, load_blocks_from_directory
-        from comfylab.blocks.cluster import load_clusters_from_directory
-        reload_registry()
-        
+        await run_in_threadpool(reload_registry)
+
         if not payload.import_permanent:
             # Explicitly load temporary blocks and clusters which are otherwise excluded!
-            load_blocks_from_directory(str(target_blocks_dir))
-            load_clusters_from_directory(str(target_clusters_dir))
-        
+            await run_in_threadpool(load_blocks_from_directory, str(target_blocks_dir))
+            await run_in_threadpool(load_clusters_from_directory, str(target_clusters_dir))
+
         return {"success": True}
     finally:
         shutil.rmtree(temp_dir)
@@ -401,8 +416,7 @@ async def clear_temporary_package_files():
         tmp_dir = ws_path / ".tmp"
         if tmp_dir.exists():
             shutil.rmtree(tmp_dir)
-        from comfylab.blocks.loader import reload_registry
-        reload_registry()
+        await run_in_threadpool(reload_registry)
         return {"success": True}
     except Exception as e:
         logger.error(f"Failed to clear temporary package files: {e}")

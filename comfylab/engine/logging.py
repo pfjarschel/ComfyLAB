@@ -139,6 +139,9 @@ def setup_logging():
         f"(Console level: {logging.getLevelName(console_level)}, File level: {logging.getLevelName(file_level)})"
     )
 
+# Cache of inspect.getfile() results per block class (invariant per class)
+_class_file_cache: dict = {}
+
 def set_block_context(block):
     """
     Sets block context variables for logging from the given block instance.
@@ -153,16 +156,22 @@ def set_block_context(block):
     
     block_id = getattr(block, "id", "")
     block_name = getattr(block, "display_name", "") or block.__class__.__name__
-    
-    # Resolve block python file path
+
+    # Resolve block python file path (inspect.getfile is cached per class —
+    # it does source-file resolution on every block execution otherwise)
     file_path = "Unknown"
     if hasattr(block, "_cluster_file_path") and block._cluster_file_path:
         file_path = block._cluster_file_path
     else:
-        try:
-            file_path = inspect.getfile(block.__class__)
-        except Exception:
-            pass
+        cls = block.__class__
+        cached = _class_file_cache.get(cls)
+        if cached is None:
+            try:
+                cached = inspect.getfile(cls)
+            except Exception:
+                cached = "Unknown"
+            _class_file_cache[cls] = cached
+        file_path = cached
             
     # Normalize path relative to project root
     if file_path and file_path != "Unknown":

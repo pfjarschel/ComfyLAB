@@ -11,11 +11,15 @@
 # GNU General Public License for more details.
 
 import asyncio
+import math
 import re
+import sys
 from typing import Any, Dict, List, Optional, Tuple
 
+import numpy as np
+
 from comfylab.engine.registry import register_block
-from comfylab.blocks.base import ExecutionContext, ExecIn, ExecOut, DataIn, DataOut
+from comfylab.blocks.base import ExecutionContext
 from comfylab.blocks.base_script import BaseScriptBlock, parse_decorators
 from backend.workspace import get_workspace_path, get_temp_dir
 
@@ -65,14 +69,8 @@ class PythonScriptBlock(BaseScriptBlock):
         namespace['workspace'] = str(workspace_path)
         namespace['__file__'] = str(get_temp_dir() / f"script_{self.id}.py")
 
-        try:
-            import numpy as np
-            namespace['np'] = np
-            namespace['numpy'] = np
-        except ImportError:
-            pass
-
-        import math
+        namespace['np'] = np
+        namespace['numpy'] = np
         namespace['math'] = math
 
         try:
@@ -85,7 +83,6 @@ class PythonScriptBlock(BaseScriptBlock):
         def run_script():
             exec(compiled, namespace)
 
-        import sys
         workspace_str = str(workspace_path)
         sys.path.insert(0, workspace_str)
 

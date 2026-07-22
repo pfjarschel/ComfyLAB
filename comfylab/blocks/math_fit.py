@@ -4,7 +4,7 @@ import logging
 import math
 import numpy as np
 from scipy.optimize import curve_fit
-from typing import Any, Optional, Dict
+from typing import Any
 
 from comfylab.engine.registry import register_block
 from comfylab.blocks.base import BaseBlock, DataIn, DataOut, ExecutionContext
@@ -44,19 +44,29 @@ class CurveFitBlock(BaseBlock):
         DataOut("FitY", type_hint=np.ndarray)
     ]
 
-    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+    # Cache key for the per-step shared fit result (both output pins reuse it)
+    _FIT_CACHE_KEY = "__curve_fit_result__"
+
+    async def _compute_fit(self, context: ExecutionContext):
+        """Runs the fit once per execution step and caches (params, y_fit) on the context."""
+        cached, result = context.get_cached(self.id, self._FIT_CACHE_KEY)
+        if cached:
+            return result
+
         x = await context.pull(self.id, "X")
         y = await context.pull(self.id, "Y")
-        
-        if x is None or y is None:
-            return [] if pin_name == "Parameters" else []
-            
-        x_np = np.asarray(x, dtype=float)
-        y_np = np.asarray(y, dtype=float)
-        
-        if x_np.size == 0 or y_np.size == 0 or x_np.size != y_np.size:
-            return [] if pin_name == "Parameters" else []
-            
+
+        result = None
+        if x is not None and y is not None:
+            x_np = np.asarray(x, dtype=float)
+            y_np = np.asarray(y, dtype=float)
+            if x_np.size > 0 and y_np.size > 0 and x_np.size == y_np.size:
+                result = await self._fit_arrays(context, x_np, y_np)
+
+        context.cache_value(self.id, self._FIT_CACHE_KEY, result)
+        return result
+
+    async def _fit_arrays(self, context: ExecutionContext, x_np, y_np):
         func_type = await context.pull(self.id, "FunctionType")
         poly_degree = int(await context.pull(self.id, "PolyDegree"))
         p0_input = await context.pull(self.id, "InitialGuesses")
@@ -137,6 +147,14 @@ class CurveFitBlock(BaseBlock):
                 params = np.zeros(num_params)
             y_fit = np.zeros_like(x_np)
 
+        return params, y_fit
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        result = await self._compute_fit(context)
+        if result is None:
+            return []
+        params, y_fit = result
+
         if pin_name == "Parameters":
             return params
         elif pin_name == "FitY":
@@ -164,34 +182,41 @@ class CustomFunctionFitBlock(BaseBlock):
         DataOut("FitY", type_hint=np.ndarray)
     ]
     
-    def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
-        super().__init__(block_id, properties)
+    # Cache key for the per-step shared fit result (both output pins reuse it)
+    _FIT_CACHE_KEY = "__custom_fit_result__"
 
-    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+    async def _compute_fit(self, context: ExecutionContext):
+        """Runs the fit once per execution step and caches (params, y_fit) on the context."""
+        cached, result = context.get_cached(self.id, self._FIT_CACHE_KEY)
+        if cached:
+            return result
+
         x = await context.pull(self.id, "X")
         y = await context.pull(self.id, "Y")
-        
-        if x is None or y is None:
-            return [] if pin_name == "Parameters" else []
-            
-        x_np = np.asarray(x, dtype=float)
-        y_np = np.asarray(y, dtype=float)
-        
-        if x_np.size == 0 or y_np.size == 0 or x_np.size != y_np.size:
-            return [] if pin_name == "Parameters" else []
 
+        result = None
+        if x is not None and y is not None:
+            x_np = np.asarray(x, dtype=float)
+            y_np = np.asarray(y, dtype=float)
+            if x_np.size > 0 and y_np.size > 0 and x_np.size == y_np.size:
+                result = await self._fit_arrays(context, x_np, y_np)
+
+        context.cache_value(self.id, self._FIT_CACHE_KEY, result)
+        return result
+
+    async def _fit_arrays(self, context: ExecutionContext, x_np, y_np):
         expression = self.properties.get("expression", self.properties.get("Expression", "a * x + b"))
         if not expression:
-            return [] if pin_name == "Parameters" else []
+            return None
 
         expr_processed = expression.replace("^", "**")
 
         variables = self.properties.get("variables", ["a", "b"])
         if isinstance(variables, str):
             variables = [v.strip() for v in variables.split(",") if v.strip()]
-            
+
         if len(variables) == 0:
-            return [] if pin_name == "Parameters" else []
+            return None
 
         p0_input = await context.pull(self.id, "InitialGuesses")
         p0 = None
@@ -232,6 +257,14 @@ class CustomFunctionFitBlock(BaseBlock):
             logger.error(f"Custom curve fitting failed for expression '{expression}': {e}")
             params = np.zeros(num_params)
             y_fit = np.zeros_like(x_np)
+
+        return params, y_fit
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        result = await self._compute_fit(context)
+        if result is None:
+            return []
+        params, y_fit = result
 
         if pin_name == "Parameters":
             return params

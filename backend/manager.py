@@ -10,8 +10,11 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 
+import logging
 from typing import Dict, List, Any
 from fastapi import WebSocket
+
+logger = logging.getLogger("backend.manager")
 
 class TelemetryConnectionManager:
     """
@@ -26,7 +29,7 @@ class TelemetryConnectionManager:
         if run_id not in self.active_connections:
             self.active_connections[run_id] = []
         self.active_connections[run_id].append(websocket)
-        print(f"[TelemetryManager] WebSocket client connected to run_id: {run_id}")
+        logger.info(f"WebSocket client connected to run_id: {run_id}")
 
     def disconnect(self, run_id: str, websocket: WebSocket):
         if run_id in self.active_connections:
@@ -34,7 +37,7 @@ class TelemetryConnectionManager:
                 self.active_connections[run_id].remove(websocket)
             if not self.active_connections[run_id]:
                 del self.active_connections[run_id]
-        print(f"[TelemetryManager] WebSocket client disconnected from run_id: {run_id}")
+        logger.info(f"WebSocket client disconnected from run_id: {run_id}")
 
     async def broadcast(self, run_id: str, message: Any):
         """Sends a JSON or binary message to all active WebSocket clients for a run_id."""

@@ -13,14 +13,17 @@
 import json
 import os
 import platform
+import shutil
 import subprocess
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Dict, Any
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
+from starlette.concurrency import run_in_threadpool
 
-from backend.workspace import get_workspace_path, set_workspace_path
+from backend.workspace import get_workspace_path, set_workspace_path, resolve_within
+from comfylab.blocks.loader import reload_registry
 from comfylab.engine.config import get_config, update_config, get_global_user_blocks_dir, get_global_user_clusters_dir
 from comfylab.engine.security import (
     get_creator_identity,
@@ -79,8 +82,11 @@ async def save_blueprint_to_workspace(payload: BlueprintSavePayload):
     if not filename.endswith(".json"):
         filename += ".json"
 
-    file_path = blueprints_dir / filename
-    
+    try:
+        file_path = resolve_within(blueprints_dir, filename)
+    except ValueError:
+        raise HTTPException(status_code=403, detail="Access denied: invalid filename.")
+
     # Inject current machine's creator_identity into blueprint
     current_identity = get_creator_identity()
     blueprint = payload.blueprint.copy()
@@ -119,7 +125,10 @@ async def delete_blueprint_from_workspace(filename: str):
     if not filename.endswith(".json"):
         filename += ".json"
 
-    file_path = blueprints_dir / filename
+    try:
+        file_path = resolve_within(blueprints_dir, filename)
+    except ValueError:
+        raise HTTPException(status_code=403, detail="Access denied: invalid filename.")
 
     if file_path.exists():
         try:
@@ -149,8 +158,6 @@ async def open_blueprints_explorer():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to open explorer: {str(e)}")
 
-
-import shutil
 
 @router.post("/workspace/uploads")
 async def upload_file(
@@ -198,9 +205,12 @@ async def upload_file(
             counter += 1
             
     try:
-        with open(target_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-        
+        def _write_upload():
+            with open(target_path, "wb") as buffer:
+                shutil.copyfileobj(file.file, buffer)
+        # Copying the uploaded file is blocking I/O; keep it off the event loop
+        await run_in_threadpool(_write_upload)
+
         # Calculate relative path from workspace root
         rel_path = target_path.relative_to(ws_path)
         return {"status": "success", "filepath": str(rel_path).replace("\\", "/"), "filename": final_filename}
@@ -231,7 +241,10 @@ async def load_blueprint_from_workspace(filename: str):
     if not filename.endswith(".json"):
         filename += ".json"
 
-    file_path = blueprints_dir / filename
+    try:
+        file_path = resolve_within(blueprints_dir, filename)
+    except ValueError:
+        raise HTTPException(status_code=403, detail="Access denied: invalid filename.")
 
     try:
         data = json.loads(file_path.read_text(encoding="utf-8"))
@@ -285,8 +298,7 @@ async def trust_origin(payload: TrustOriginPayload):
         update_config({"trusted_origins": trusted})
         
         # Trigger dynamic reload so that previously unauthorized blocks/clusters from this origin are authorized immediately
-        from comfylab.blocks.loader import reload_registry
-        reload_registry()
+        await run_in_threadpool(reload_registry)
         
     return {"status": "success", "trusted_origins": trusted}
 
@@ -385,8 +397,7 @@ async def authorize_blocks(payload: AuthorizeBlockPayload):
         if not payload.filepath:
             raise HTTPException(status_code=400, detail="Missing filepath.")
         authorize_single_file(Path(payload.filepath))
-        
-    from comfylab.blocks.loader import reload_registry
-    reload_registry()
-    
+
+    await run_in_threadpool(reload_registry)
+
     return {"success": True}

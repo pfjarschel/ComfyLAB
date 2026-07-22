@@ -15,9 +15,10 @@ import json
 import asyncio
 import logging
 from typing import Any, Dict, List, Optional, Tuple
-from pathlib import Path
 
-from comfylab.blocks.base import BaseBlock, ExecIn, ExecOut, DataIn, DataOut, ExecutionContext
+import numpy as np
+
+from comfylab.blocks.base import BaseBlock, ExecIn, ExecOut, DataIn, ExecutionContext
 from backend.workspace import get_temp_dir
 
 logger = logging.getLogger("comfylab.blocks.base_script")
@@ -85,7 +86,6 @@ class BaseScriptBlock(BaseBlock):
         self._sync_dynamic_pins()
 
     def _sync_dynamic_pins(self):
-        import numpy as np
         type_map = {
             'number': float, 'boolean': bool, 'text': str,
             'string': str, 'list': list, 'ndarray': np.ndarray, 'any': None
@@ -109,7 +109,6 @@ class BaseScriptBlock(BaseBlock):
         val = self._computed_outputs.get(pin_name)
         out_info = next((o for o in self._parsed_outputs if o.get('name') == pin_name), None)
         if out_info and out_info.get('type') == 'ndarray' and isinstance(val, list):
-            import numpy as np
             return np.array(val)
         return val
 
@@ -131,7 +130,6 @@ class BaseSubprocessScriptBlock(BaseScriptBlock):
         for inp in self._parsed_inputs:
             name = inp['name']
             val = await context.pull(self.id, name)
-            import numpy as np
             if isinstance(val, np.ndarray):
                 val = val.tolist()
             inputs[name] = val

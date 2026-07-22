@@ -11,20 +11,19 @@
 # GNU General Public License for more details.
 
 import asyncio
+import hmac
+import inspect
 import json
 import uuid
 import logging
-from pathlib import Path
-from typing import Dict, Any, List
+from typing import Dict, Any
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException
 from pydantic import BaseModel
 from comfylab.engine.logging import run_id_var, block_id_var
+import comfylab.engine.config as config_module
 from comfylab.engine.config import get_config
-
-
-logger = logging.getLogger("backend.routers.execution")
-
 from comfylab.engine.executor import ExecutionEngine
+from comfylab.engine.models import BlueprintModel
 
 from comfylab.blocks.script import parse_script_decorators, validate_code as validate_python
 from comfylab.blocks.script_lua import parse_lua_decorators, validate_code as validate_lua
@@ -34,11 +33,10 @@ from comfylab.blocks.script_r import validate_code as validate_r
 from comfylab.blocks.script_rust import parse_rust_decorators
 from comfylab.blocks.script_octave import parse_octave_decorators
 from comfylab.blocks.script_wolfram import parse_wolfram_decorators
-import shutil
-import tempfile
-import os
-import inspect
 from backend.manager import TelemetryConnectionManager
+from backend.ratelimit import is_blocked, record_failure, record_success, block_remaining
+
+logger = logging.getLogger("backend.routers.execution")
 
 PARSER_REGISTRY = {
     "python": parse_script_decorators,
@@ -110,7 +108,6 @@ async def run_graph(payload: BlueprintPayload):
                 await asyncio.sleep(0.1)
 
             await manager.broadcast(run_id, {"type": "run_status", "status": "running"})
-            from comfylab.engine.models import BlueprintModel
             blueprint_model = BlueprintModel.model_validate(payload.model_dump())
             engine.load_blueprint(blueprint_model)
             await engine.run(run_id=run_id)
@@ -219,16 +216,16 @@ async def validate_script(payload: ScriptCodePayload):
     """
     lang = payload.language.lower()
     validator = VALIDATOR_REGISTRY.get(lang)
-    if validator:
-        try:
-            if inspect.iscoroutinefunction(validator):
-                res = await validator(payload.code)
-            else:
-                res = validator(payload.code)
-            return res
-        except Exception as e:
-            return {"valid": False, "error": str(e)}
-    return {"valid": True}
+    if validator is None:
+        raise HTTPException(status_code=400, detail=f"No validator available for language '{payload.language}'.")
+    try:
+        if inspect.iscoroutinefunction(validator):
+            res = await validator(payload.code)
+        else:
+            res = validator(payload.code)
+        return res
+    except Exception as e:
+        return {"valid": False, "error": str(e)}
 
 
 @router.websocket("/telemetry/{run_id}")
@@ -238,8 +235,6 @@ async def telemetry_websocket(websocket: WebSocket, run_id: str):
     is_local = client_host in ("127.0.0.1", "::1", "localhost", "testserver")
     
     if not is_local:
-        from backend.ratelimit import is_blocked, record_failure, record_success, block_remaining
-
         if is_blocked(client_host):
             record_failure(client_host)
             retry = block_remaining(client_host)
@@ -247,17 +242,18 @@ async def telemetry_websocket(websocket: WebSocket, run_id: str):
             return
 
         token = websocket.query_params.get("token", "").strip()
-        from comfylab.engine.config import SESSION_TOKEN, get_config
-        
+
         is_valid = False
-        if token == SESSION_TOKEN:
+        session_token = config_module.SESSION_TOKEN or ""
+        if token and hmac.compare_digest(token, session_token):
             is_valid = True
         elif ":" in token:
             parts = token.split(":", 1)
             if len(parts) == 2:
                 u, p = parts
                 custom_users = get_config().get("custom_users", {})
-                if custom_users.get(u) == p:
+                stored = custom_users.get(u)
+                if stored is not None and hmac.compare_digest(stored, p):
                     is_valid = True
                     
         if not is_valid:
@@ -279,7 +275,6 @@ async def telemetry_websocket(websocket: WebSocket, run_id: str):
             # Keep the connection alive and listen for optional incoming client heartbeats or property updates
             msg_text = await websocket.receive_text()
             try:
-                import json
                 data = json.loads(msg_text)
                 if isinstance(data, dict) and data.get("type") == "update_property":
                     block_id = data.get("block_id")

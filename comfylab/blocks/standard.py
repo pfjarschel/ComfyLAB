@@ -10,9 +10,12 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 
+import ast
 import asyncio
-import random
+import collections
 import logging
+import math
+import random
 import time
 from typing import Any, Optional, Dict, List
 import numpy as np
@@ -174,7 +177,7 @@ class ForLoopBlock(BaseBlock):
         for i in range(int(count)):
             if context.engine.state == "ABORTED":
                 break
-            await asyncio.sleep(0.01) # Yield to event loop to prevent CPU blocking
+            await asyncio.sleep(0) # Yield to event loop to prevent CPU blocking (no artificial delay)
             self._index = i
             # Trigger execution of the LoopBody sub-graph
             await context.engine.trigger_exec(self.id, "LoopBody", context)
@@ -210,7 +213,7 @@ class WhileLoopBlock(BaseBlock):
         while True:
             if context.engine.state == "ABORTED":
                 break
-            await asyncio.sleep(0.01) # Yield to event loop to prevent CPU blocking
+            await asyncio.sleep(0) # Yield to event loop to prevent CPU blocking (no artificial delay)
             context.clear_cache()
             cond = await context.pull(self.id, "Condition")
             if not bool(cond):
@@ -1533,7 +1536,6 @@ class HasChangedBlock(BaseBlock):
             self._has_run = True
         else:
             # NumPy array cycles / comparison
-            import numpy as np
             if isinstance(val, (list, np.ndarray)) or isinstance(self._last_value, (list, np.ndarray)):
                 self._changed = not np.array_equal(val, self._last_value)
             else:
@@ -1594,7 +1596,6 @@ class CalculatorBlock(BaseBlock):
                 except (ValueError, TypeError):
                     local_vars[var] = 0.0
 
-            import math
             math_namespace = {
                 'sin': math.sin, 'cos': math.cos, 'tan': math.tan,
                 'asin': math.asin, 'acos': math.acos, 'atan': math.atan, 'atan2': math.atan2,
@@ -1679,7 +1680,6 @@ class LinspaceBlock(BaseBlock):
             if steps == 1:
                 return np.array([start], dtype=float)
 
-            import numpy as np
             return np.linspace(start, stop, steps)
         return None
 
@@ -1771,7 +1771,6 @@ class SequencerBlock(BaseBlock):
             seq = await context.pull(self.id, "Sequence")
             
             if isinstance(seq, str):
-                import ast
                 try:
                     parsed = ast.literal_eval(seq)
                     if isinstance(parsed, (list, tuple)):
@@ -1788,21 +1787,12 @@ class SequencerBlock(BaseBlock):
                     if self._seq_len > 0:
                         self._index = (self._index + 1) % self._seq_len
                         self._current_value = seq[self._index]
-                        
-                        # # Convert to native types for telemetry to avoid JSON serialization errors
-                        # safe_index = int(self._index)
-                        # safe_value = self._current_value
-                        
-                        # if isinstance(safe_value, np.generic):
-                        #     safe_value = safe_value.item()
-                            
+
                         await context.send_telemetry(self.id, {"index": self._index, "value": self._current_value})
                 except Exception as e:
-                    import logging
-                    logging.error(f"Sequencer iteration failed: {e}")
+                    logger.error(f"Sequencer iteration failed: {e}")
             else:
-                import logging
-                logging.warning(f"Sequencer received invalid sequence: {type(seq)} - {seq}")
+                logger.warning(f"Sequencer received invalid sequence: {type(seq)} - {seq}")
             
             return "Out"
         return None
@@ -1814,8 +1804,6 @@ class SequencerBlock(BaseBlock):
             return self._index
         return None
 
-
-import collections
 
 @register_block("Numeric Arrays/operations/moving_average")
 class MovingAverageBlock(BaseBlock):
@@ -1838,29 +1826,32 @@ class MovingAverageBlock(BaseBlock):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._buffer = collections.deque()
+        self._buffer_sum = 0.0
         self._current_avg = 0.0
 
     async def execute(self, context: ExecutionContext, pin_name: str):
         if pin_name == "Update":
             val = await context.pull(self.id, "Data")
             window_size = await context.pull(self.id, "Window Size")
-            
+
             try:
                 window_size = int(window_size) if window_size is not None else 10
             except ValueError:
                 window_size = 10
-            
+
             if val is not None:
                 try:
-                    self._buffer.append(float(val))
+                    fval = float(val)
+                    self._buffer.append(fval)
+                    self._buffer_sum += fval
                     while len(self._buffer) > window_size:
-                        self._buffer.popleft()
-                    
+                        self._buffer_sum -= self._buffer.popleft()
+
                     if len(self._buffer) > 0:
-                        self._current_avg = sum(self._buffer) / len(self._buffer)
+                        self._current_avg = self._buffer_sum / len(self._buffer)
                 except (ValueError, TypeError):
                     pass
-                    
+
             return "Out"
         return None
 
@@ -1871,8 +1862,6 @@ class MovingAverageBlock(BaseBlock):
             return list(self._buffer)
         return None
 
-
-import time
 
 @register_block("utility/beep")
 class BeepBlock(BaseBlock):

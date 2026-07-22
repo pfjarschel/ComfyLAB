@@ -56,10 +56,14 @@ def copy_ignore(path, names):
 
 def assemble_release(script_dir):
     print("\n[Build 2/3] Assembling release file structure...")
-    release_dir = script_dir / "comfylab"
-    
-    if release_dir.exists():
-        shutil.rmtree(release_dir)
+    # Stage inside a dedicated hidden folder. NEVER stage directly at
+    # script_dir / "comfylab": that is the real source package, and the
+    # cleanup below would delete the engine source tree.
+    staging_root = script_dir / ".release_staging"
+    release_dir = staging_root / "comfylab"
+
+    if staging_root.exists():
+        shutil.rmtree(staging_root)
     release_dir.mkdir(parents=True, exist_ok=True)
     
     # 1. Copy Backend python files (excluding pycache)
@@ -107,12 +111,12 @@ def compress_release(script_dir, release_dir, version):
     shutil.make_archive(
         base_name=str(script_dir / release_name),
         format='zip',
-        root_dir=str(script_dir),
+        root_dir=str(release_dir.parent),
         base_dir=release_dir.name
     )
-    
+
     print(" -> Cleaning up temporary staging folder...")
-    shutil.rmtree(release_dir)
+    shutil.rmtree(release_dir.parent)
     
     print(f"\n\033[1;32m=========================================================\033[0m")
     print(f"\033[1;32m  Build Success! Created: {zip_file.name}\033[0m")

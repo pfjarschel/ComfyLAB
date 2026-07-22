@@ -10,7 +10,11 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 
-from typing import Any, Dict, Optional
+import asyncio
+import os
+import shutil
+import tempfile
+from typing import Any, Dict
 
 from comfylab.engine.registry import register_block
 from comfylab.blocks.base_script import BaseSubprocessScriptBlock
@@ -103,10 +107,6 @@ end
 
 async def validate_code(code: str) -> dict:
     """Validates Julia script syntax using julia parser check."""
-    import shutil
-    import tempfile
-    import os
-    import asyncio
     if shutil.which("julia"):
         with tempfile.NamedTemporaryFile(suffix=".jl", delete=False, mode="w", encoding="utf-8") as f:
             f.write(code)
@@ -129,9 +129,3 @@ async def validate_code(code: str) -> dict:
             except:
                 pass
     return {"valid": True}
-
-
-from comfylab.engine.config import get_config
-if get_config().get("enable_julia_scripting", False):
-    register_block("script/julia")(JuliaScriptBlock)
-

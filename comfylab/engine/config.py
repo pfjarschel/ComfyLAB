@@ -10,12 +10,18 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 
-import os
+import copy
 import json
+import os
 from pathlib import Path
 import logging
 
 logger = logging.getLogger("comfylab.engine.config")
+
+# Remote access token for the current server process.
+# Assigned by backend.main at startup (kept here so any module can read it
+# without import-order tricks or monkey-patching).
+SESSION_TOKEN: str = None
 
 DEFAULT_CONFIG = {
     "custom_block_dirs": [],
@@ -58,10 +64,29 @@ def get_config_file_path() -> Path:
     """Returns the path to ~/.comfylab/config.json."""
     return get_comfylab_base_dir() / "config.json"
 
+# In-memory cache of the parsed config, keyed by (path, mtime_ns, size).
+# A stat() call is ~100x cheaper than open+read+json.loads, and the key means
+# external edits to config.json are still picked up on the very next call.
+_config_cache: dict = None
+_config_cache_key: tuple = None
+
+
 def get_config() -> dict:
     """Loads and returns the configuration dictionary, merging defaults for any missing keys."""
+    global _config_cache, _config_cache_key
     path = get_config_file_path()
-    config = DEFAULT_CONFIG.copy()
+    try:
+        st = path.stat()
+        key = (str(path), st.st_mtime_ns, st.st_size)
+    except OSError:
+        key = (str(path), None, None)
+
+    if _config_cache is not None and key == _config_cache_key:
+        # Return a deep copy so callers can never mutate the cached dict
+        return copy.deepcopy(_config_cache)
+
+    # Deep copy so callers can never mutate the shared DEFAULT_CONFIG nested values
+    config = copy.deepcopy(DEFAULT_CONFIG)
     if path.exists():
         try:
             with open(path, "r", encoding="utf-8") as f:
@@ -74,16 +99,35 @@ def get_config() -> dict:
     else:
         # Save defaults if no file exists
         save_config(config)
-    return config
+
+    _config_cache = config
+    _config_cache_key = key
+    return copy.deepcopy(config)
 
 def save_config(config: dict):
-    """Saves the configuration dictionary to ~/.comfylab/config.json."""
+    """Saves the configuration dictionary to ~/.comfylab/config.json (atomically)."""
+    global _config_cache, _config_cache_key
     path = get_config_file_path()
+    tmp_path = path.with_suffix(".json.tmp")
     try:
-        with open(path, "w", encoding="utf-8") as f:
+        with open(tmp_path, "w", encoding="utf-8") as f:
             json.dump(config, f, indent=2)
+        os.replace(tmp_path, path)
+        _config_cache = copy.deepcopy(config)
+        try:
+            st = path.stat()
+            _config_cache_key = (str(path), st.st_mtime_ns, st.st_size)
+        except OSError:
+            _config_cache_key = None
     except Exception as e:
         logger.error(f"Error saving config file {path}: {e}")
+        _config_cache = None
+        _config_cache_key = None
+        try:
+            if tmp_path.exists():
+                tmp_path.unlink()
+        except Exception:
+            pass
 
 def update_config(updates: dict) -> dict:
     """Updates specific keys in the configuration file and returns the updated config."""

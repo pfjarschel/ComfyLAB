@@ -15,7 +15,7 @@ import json
 from typing import Any, Dict, List, Optional
 
 from comfylab.engine.registry import register_block
-from comfylab.blocks.script import parse_script_decorators
+from comfylab.blocks.script import DECORATOR_PATTERN
 from comfylab.blocks.base_script import BaseSubprocessScriptBlock
 from comfylab.engine.config import get_config
 
@@ -37,7 +37,6 @@ class ExternalPythonScriptBlock(BaseSubprocessScriptBlock):
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         # We need the Python comment pattern from script.py
-        from comfylab.blocks.script import DECORATOR_PATTERN
         self.comment_pattern = DECORATOR_PATTERN
         super().__init__(block_id, properties)
 

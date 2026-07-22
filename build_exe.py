@@ -11,11 +11,14 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 
+import argparse
 import os
 import sys
 import shutil
 import subprocess
 from pathlib import Path
+
+from build_release import check_prerequisites as check_node, build_frontend, bump_version
 
 def check_symlink_support(script_dir):
     # Test symlink creation to detect FUSE cloud mount limitations
@@ -74,12 +77,12 @@ def run_pyinstaller(script_dir):
         binary_name = "ComfyLAB.exe" if os.name == 'nt' else "ComfyLAB"
         output_binary = dist_dir / binary_name
         
-        # Copy comfylab/nodes next to the compiled binary
-        dest_nodes_dir = dist_dir / "comfylab" / "nodes"
-        if dest_nodes_dir.exists():
-            shutil.rmtree(dest_nodes_dir)
-        shutil.copytree(script_dir / "comfylab" / "nodes", dest_nodes_dir, ignore=copy_ignore_stage)
-        print(f" -> Copied core node source modules next to binary: {dest_nodes_dir}")
+        # Copy comfylab/blocks next to the compiled binary
+        dest_blocks_dir = dist_dir / "comfylab" / "blocks"
+        if dest_blocks_dir.exists():
+            shutil.rmtree(dest_blocks_dir)
+        shutil.copytree(script_dir / "comfylab" / "blocks", dest_blocks_dir, ignore=copy_ignore_stage)
+        print(f" -> Copied core block source modules next to binary: {dest_blocks_dir}")
 
         if output_binary.exists():
             print(f"\n\033[1;32m[Build Finished] Standalone binary compiled: {output_binary.name}\033[0m")
@@ -89,8 +92,6 @@ def run_pyinstaller(script_dir):
     except subprocess.CalledProcessError as e:
         print(f"\033[1;31mError: PyInstaller exited with a non-zero exit code: {e}\033[0m")
         sys.exit(1)
-
-# copy_ignore_stage has been moved to the top of the file
 
 def run_staged_build(script_dir):
     # Resolve local home staging directory to avoid cloud drive FUSE errors
@@ -120,7 +121,6 @@ def run_staged_build(script_dir):
     else:
         # Run node compile inside local staging folder where symlinks work!
         print(" -> Compiled frontend not found. Staging Node packages and compiling...")
-        from build_release import check_prerequisites as check_node, build_frontend
         check_node()
         build_frontend(stage_dir)
         
@@ -130,27 +130,27 @@ def run_staged_build(script_dir):
     # 4. Run PyInstaller inside staged directory
     run_pyinstaller(stage_dir)
     
-    # 5. Copy the final executable and external nodes folder back to cloud directory
+    # 5. Copy the final executable and external blocks folder back to cloud directory
     binary_name = "ComfyLAB.exe" if os.name == 'nt' else "ComfyLAB"
     staged_binary = stage_dir / "dist" / binary_name
-    staged_nodes = stage_dir / "dist" / "comfylab" / "nodes"
-    
+    staged_blocks = stage_dir / "dist" / "comfylab" / "blocks"
+
     dest_dist_dir = script_dir / "dist"
     dest_dist_dir.mkdir(parents=True, exist_ok=True)
     dest_binary = dest_dist_dir / binary_name
-    dest_nodes = dest_dist_dir / "comfylab" / "nodes"
-    
+    dest_blocks = dest_dist_dir / "comfylab" / "blocks"
+
     if staged_binary.exists():
         print(f" -> Copying compiled standalone binary back to: {dest_binary}")
         shutil.copy2(staged_binary, dest_binary)
         if os.name != 'nt':
             os.chmod(dest_binary, 0o755)
-            
-        if staged_nodes.exists():
-            print(f" -> Copying core nodes folder back to: {dest_nodes}")
-            if dest_nodes.exists():
-                shutil.rmtree(dest_nodes)
-            shutil.copytree(staged_nodes, dest_nodes)
+
+        if staged_blocks.exists():
+            print(f" -> Copying core blocks folder back to: {dest_blocks}")
+            if dest_blocks.exists():
+                shutil.rmtree(dest_blocks)
+            shutil.copytree(staged_blocks, dest_blocks)
             
         print(f"\n\033[1;32m=========================================================\033[0m")
         print(f"\033[1;32m  Standalone Binary Compiled Successfully!\033[0m")
@@ -169,15 +169,13 @@ def run_staged_build(script_dir):
         pass
 
 def main():
-    import argparse
     parser = argparse.ArgumentParser(description="ComfyLAB PyInstaller Builder")
     parser.add_argument("--bump", choices=["major", "minor", "patch"], help="Auto-increment the version number before building")
     args = parser.parse_args()
 
     script_dir = Path(__file__).parent.resolve()
-    
+
     if args.bump:
-        from build_release import bump_version
         bump_version(script_dir, args.bump)
 
     
@@ -193,7 +191,6 @@ def main():
         if not dist_dir.exists():
             print("[Build] Compiled frontend assets not found at 'frontend/dist'.")
             print("Running frontend production build first...")
-            from build_release import check_prerequisites as check_node, build_frontend
             check_node()
             build_frontend(script_dir)
 

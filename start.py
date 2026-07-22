@@ -13,6 +13,7 @@
 
 import os
 import sys
+import json
 import time
 import shutil
 import argparse
@@ -117,7 +118,9 @@ def main():
             browser_url = f"http://127.0.0.1:{port}" if host in ("0.0.0.0", "::") else f"http://{host}:{port}"
             
             print(f"[ComfyLAB] Starting FastAPI Backend on {host}:{port}...")
-            backend_cmd = [sys.executable, "-m", "uvicorn", "backend.main:app", "--host", host, "--port", str(port), "--log-level", "info"]
+            # --no-proxy-headers: ComfyLAB's localhost-trust check relies on the real
+            # client IP, so X-Forwarded-For spoofing must not be honored.
+            backend_cmd = [sys.executable, "-m", "uvicorn", "backend.main:app", "--host", host, "--port", str(port), "--log-level", "info", "--no-proxy-headers"]
             backend_proc = subprocess.Popen(backend_cmd, cwd=str(script_dir), env=env)
             
             # Wait for backend to initialize before opening browser
@@ -150,7 +153,6 @@ def main():
                 print("[ComfyLAB] Frontend dependencies installed successfully!")
 
             # In development, write the backend port configuration for the frontend to read
-            import json
             public_dir = frontend_dir / "public"
             public_dir.mkdir(parents=True, exist_ok=True)
             port_file = public_dir / "backend_port.json"
@@ -165,7 +167,7 @@ def main():
 
             # Start backend (FastAPI) on the configured port
             print(f"[ComfyLAB] Starting FastAPI Backend on {host}:{port}...")
-            backend_cmd = [sys.executable, "-m", "uvicorn", "backend.main:app", "--host", host, "--port", str(port), "--reload", "--log-level", "info"]
+            backend_cmd = [sys.executable, "-m", "uvicorn", "backend.main:app", "--host", host, "--port", str(port), "--reload", "--log-level", "info", "--no-proxy-headers"]
             backend_proc = subprocess.Popen(backend_cmd, cwd=str(script_dir), env=env)
 
             # Start frontend (Vite) on the configured vite_port

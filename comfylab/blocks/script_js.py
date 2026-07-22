@@ -11,14 +11,17 @@
 # GNU General Public License for more details.
 
 import asyncio
+import os
 import re
 import json
 import shutil
+import tempfile
 from typing import Any, Dict, List, Optional, Tuple
 
 from comfylab.engine.registry import register_block
-from comfylab.blocks.base import ExecutionContext, ExecIn, ExecOut, DataIn, DataOut
+from comfylab.blocks.base import ExecutionContext
 from comfylab.blocks.base_script import BaseSubprocessScriptBlock, parse_decorators
+from comfylab.engine.config import get_config
 
 DECORATOR_PATTERN = re.compile(
     r'^//\s*@(input|output)\s+(.*)',
@@ -48,7 +51,7 @@ class BaseJavaScriptBlock(BaseSubprocessScriptBlock):
     comment_pattern = DECORATOR_PATTERN
     default_code = DEFAULT_JS_CODE
     file_extension = ".js"
-    executable_name = "block"
+    executable_name = "node"
     is_ts = False
 
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
@@ -58,14 +61,14 @@ class BaseJavaScriptBlock(BaseSubprocessScriptBlock):
 
     def _get_subprocess_args(self, script_file_path: str) -> List[str]:
         is_typescript = self.properties.get("language") == "typescript" or self.id.endswith("typescript") or "typescript" in self.category.lower() or getattr(self, "is_ts", False)
-        cmd = ["block"]
+        cmd = ["node"]
         if is_typescript:
             if shutil.which("tsx"):
                 cmd = ["tsx"]
-            elif shutil.which("ts-block"):
-                cmd = ["ts-block"]
+            elif shutil.which("ts-node"):
+                cmd = ["ts-node"]
             else:
-                cmd = ["block", "--experimental-strip-types"]
+                cmd = ["node", "--experimental-strip-types"]
         cmd.append(script_file_path)
         return cmd
 
@@ -128,17 +131,13 @@ async def validate_code(code: str, language: str = "javascript") -> dict:
     """Validates JavaScript/TypeScript script syntax using block compilation check."""
     if language == "typescript":
         return {"valid": True}
-    import shutil
-    import tempfile
-    import os
-    import asyncio
-    if shutil.which("block"):
+    if shutil.which("node"):
         with tempfile.NamedTemporaryFile(suffix=".js", delete=False, mode="w", encoding="utf-8") as f:
             f.write(code)
             temp_name = f.name
         try:
             process = await asyncio.create_subprocess_exec(
-                "block", "-c", temp_name,
+                "node", "-c", temp_name,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE
             )
@@ -156,7 +155,6 @@ async def validate_code(code: str, language: str = "javascript") -> dict:
     return {"valid": True}
 
 
-from comfylab.engine.config import get_config
 if get_config().get("enable_js_scripting", False):
     register_block("script/javascript")(JavaScriptScriptBlock)
     register_block("script/typescript")(TypeScriptScriptBlock)

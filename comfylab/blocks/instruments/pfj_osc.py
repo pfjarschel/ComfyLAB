@@ -12,7 +12,7 @@
 
 import asyncio
 import struct
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, Optional
 import numpy as np
 
 from comfylab.engine.registry import register_block
