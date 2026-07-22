@@ -168,7 +168,7 @@ To automatically bump the version number before building:
 ```bash
 python3 build_release.py --bump [patch|minor|major]
 ```
-This generates `comfylab-release.zip` in your root directory.
+This generates `comfylab-release.zip` in the `dist/` directory.
 
 > **Note for cloud drives:** if the repository lives on a cloud/FUSE mount (e.g. pCloud, Dropbox), the build automatically stages everything to `~/.comfylab/release_stage` on your local disk — including the npm/vite frontend build — and only copies the finished `.zip` back to the repo. This avoids sync churn and npm flakiness on cloud filesystems.
 
@@ -181,7 +181,7 @@ Optionally bump version before building:
 ```bash
 python3 build_exe.py --bump [patch|minor|major]
 ```
-This installs `pyinstaller` if missing and generates the compiled standalone binary inside the `dist/` directory.
+This installs `pyinstaller` if missing and generates the compiled standalone binary inside the `dist/standalone/` directory, alongside the external `comfylab/blocks` folder (which must stay next to the executable — keep them together when distributing).
 
 ---
 

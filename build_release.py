@@ -135,12 +135,14 @@ def assemble_release(script_dir):
 def compress_release(script_dir, release_dir, version):
     print(f"\n[Build 3/3] Compressing release package (v{version})...")
     release_name = f"comfylab-release-v{version}"
-    zip_file = script_dir / f"{release_name}.zip"
+    dist_dir = script_dir / "dist"
+    dist_dir.mkdir(parents=True, exist_ok=True)
+    zip_file = dist_dir / f"{release_name}.zip"
     if zip_file.exists():
         zip_file.unlink()
-        
+
     shutil.make_archive(
-        base_name=str(script_dir / release_name),
+        base_name=str(dist_dir / release_name),
         format='zip',
         root_dir=str(release_dir.parent),
         base_dir=release_dir.name
@@ -148,9 +150,9 @@ def compress_release(script_dir, release_dir, version):
 
     print(" -> Cleaning up temporary staging folder...")
     shutil.rmtree(release_dir.parent)
-    
+
     print(f"\n\033[1;32m=========================================================\033[0m")
-    print(f"\033[1;32m  Build Success! Created: {zip_file.name}\033[0m")
+    print(f"\033[1;32m  Build Success! Created: dist/{zip_file.name}\033[0m")
     print(f"\033[1;32m=========================================================\033[0m\n")
 
 def bump_version(script_dir, bump_type):

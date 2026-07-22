@@ -47,16 +47,17 @@ def run_pyinstaller(script_dir):
         sys.exit(1)
 
     print(f"\n[Build] Starting PyInstaller compilation using spec: {spec_file.name} ...")
-    cmd = [sys.executable, "-m", "PyInstaller", str(spec_file), "--clean", "--noconfirm"]
-    
+    dist_dir = script_dir / "dist" / "standalone"
+    cmd = [sys.executable, "-m", "PyInstaller", str(spec_file), "--clean", "--noconfirm",
+           "--distpath", str(dist_dir)]
+
     try:
         subprocess.run(cmd, cwd=str(script_dir), check=True)
-        
+
         # Verify output binary
-        dist_dir = script_dir / "dist"
         binary_name = "ComfyLAB.exe" if os.name == 'nt' else "ComfyLAB"
         output_binary = dist_dir / binary_name
-        
+
         # Copy comfylab/blocks next to the compiled binary
         dest_blocks_dir = dist_dir / "comfylab" / "blocks"
         if dest_blocks_dir.exists():
@@ -65,9 +66,9 @@ def run_pyinstaller(script_dir):
         print(f" -> Copied core block source modules next to binary: {dest_blocks_dir}")
 
         if output_binary.exists():
-            print(f"\n\033[1;32m[Build Finished] Standalone binary compiled: {output_binary.name}\033[0m")
+            print(f"\n\033[1;32m[Build Finished] Standalone binary compiled: dist/standalone/{output_binary.name}\033[0m")
         else:
-            print("\033[1;33mWarning: Compilation finished, but target binary was not found in 'dist/'.\033[0m")
+            print("\033[1;33mWarning: Compilation finished, but target binary was not found in 'dist/standalone/'.\033[0m")
             
     except subprocess.CalledProcessError as e:
         print(f"\033[1;31mError: PyInstaller exited with a non-zero exit code: {e}\033[0m")
@@ -112,10 +113,10 @@ def run_staged_build(script_dir):
     
     # 5. Copy the final executable and external blocks folder back to cloud directory
     binary_name = "ComfyLAB.exe" if os.name == 'nt' else "ComfyLAB"
-    staged_binary = stage_dir / "dist" / binary_name
-    staged_blocks = stage_dir / "dist" / "comfylab" / "blocks"
+    staged_binary = stage_dir / "dist" / "standalone" / binary_name
+    staged_blocks = stage_dir / "dist" / "standalone" / "comfylab" / "blocks"
 
-    dest_dist_dir = script_dir / "dist"
+    dest_dist_dir = script_dir / "dist" / "standalone"
     dest_dist_dir.mkdir(parents=True, exist_ok=True)
     dest_binary = dest_dist_dir / binary_name
     dest_blocks = dest_dist_dir / "comfylab" / "blocks"
