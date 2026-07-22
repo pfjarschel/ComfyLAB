@@ -49,6 +49,17 @@ def main():
 
     # Auto-open the web browser pointing to the server
     browser_url = f"http://127.0.0.1:{port}" if host in ("0.0.0.0", "::") else f"http://{host}:{port}"
+    
+    version_file = base_dir / "VERSION"
+    version_str = f" v{version_file.read_text().strip()}" if version_file.exists() else ""
+    title_str = f"ComfyLAB{version_str} Standalone"
+    
+    print("\033[1;35m")
+    print("  ============================================")
+    print("  " + title_str.center(42))
+    print("  ============================================")
+    print("\033[0m")
+
     print(f"\n[ComfyLAB Standalone] Launching application on {browser_url} ...")
     
     # We load and import uvicorn dynamically

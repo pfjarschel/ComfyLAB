@@ -12,7 +12,8 @@
  * GNU General Public License for more details.
  */
 
-import React from 'react';
+import React, { useState } from 'react';
+import { AboutModal } from './modals/AboutModal';
 
 interface TopBarProps {
   menuOpen: boolean;
@@ -90,8 +91,12 @@ export const TopBar = ({
   onAbort,
   onImportPackage,
 }: TopBarProps) => {
+  const [showAboutModal, setShowAboutModal] = useState(false);
+
   return (
-    <div className="top-bar">
+    <>
+      {showAboutModal && <AboutModal onClose={() => setShowAboutModal(false)} />}
+      <div className="top-bar">
       {/* Left section: Hamburger, Settings, Sidebar toggle, Workspace */}
       <div className="top-bar-left">
         <div className="hamburger-menu-container" ref={menuContainerRef as any}>
@@ -306,8 +311,39 @@ export const TopBar = ({
         >
           {theme === 'dark' ? '🌙' : '☀️'}
         </button>
-        <h1 className="logo-title">ComfyLAB proto-01</h1>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+          <h1 className="logo-title" style={{ margin: 0 }}>
+            <a href="https://github.com/pfjarschel/ComfyLAB" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} title="Visit ComfyLAB on GitHub">
+              ComfyLAB
+            </a> <span style={{ fontSize: '0.8em', opacity: 0.8 }}>v{import.meta.env.VITE_APP_VERSION}</span>
+          </h1>
+          <button
+            onClick={() => setShowAboutModal(true)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '24px',
+              height: '24px',
+              borderRadius: '50%',
+              padding: '0',
+              border: 'none',
+              background: 'transparent',
+              color: 'var(--text-secondary)',
+              cursor: 'pointer',
+              opacity: 0.8
+            }}
+            title="About ComfyLAB"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+          </button>
+        </div>
       </div>
     </div>
+    </>
   );
 };

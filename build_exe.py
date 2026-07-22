@@ -169,7 +169,17 @@ def run_staged_build(script_dir):
         pass
 
 def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="ComfyLAB PyInstaller Builder")
+    parser.add_argument("--bump", choices=["major", "minor", "patch"], help="Auto-increment the version number before building")
+    args = parser.parse_args()
+
     script_dir = Path(__file__).parent.resolve()
+    
+    if args.bump:
+        from build_release import bump_version
+        bump_version(script_dir, args.bump)
+
     
     # Check if filesystem supports symlinks. If not, run local staged build.
     if not check_symlink_support(script_dir):

@@ -2,12 +2,17 @@
 
 block_cipher = None
 
+import os
+
 # Define files to collect
 added_files = [
     ('frontend/dist', 'frontend/dist'),
     ('backend/adjectives.txt', 'backend'),
     ('backend/nouns.txt', 'backend')
 ]
+
+if os.path.exists('VERSION'):
+    added_files.append(('VERSION', '.'))
 
 a = Analysis(
     ['pyinstaller_entry.py'],

@@ -11,6 +11,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 
+import argparse
 import os
 import sys
 import shutil
@@ -83,6 +84,9 @@ def assemble_release(script_dir):
     shutil.copy2(script_dir / "LICENSE", release_dir / "LICENSE")
     shutil.copy2(script_dir / "README.md", release_dir / "README.md")
     
+    if (script_dir / "VERSION").exists():
+        shutil.copy2(script_dir / "VERSION", release_dir / "VERSION")
+    
     # 5. Enforce executable permissions on start.sh inside the package
     if os.name != 'nt':
         try:
@@ -93,14 +97,15 @@ def assemble_release(script_dir):
 
     return release_dir
 
-def compress_release(script_dir, release_dir):
-    print("\n[Build 3/3] Compressing release package...")
-    zip_file = script_dir / "comfylab-release.zip"
+def compress_release(script_dir, release_dir, version):
+    print(f"\n[Build 3/3] Compressing release package (v{version})...")
+    release_name = f"comfylab-release-v{version}"
+    zip_file = script_dir / f"{release_name}.zip"
     if zip_file.exists():
         zip_file.unlink()
         
     shutil.make_archive(
-        base_name=str(script_dir / "comfylab-release"),
+        base_name=str(script_dir / release_name),
         format='zip',
         root_dir=str(script_dir),
         base_dir=release_dir.name
@@ -113,13 +118,61 @@ def compress_release(script_dir, release_dir):
     print(f"\033[1;32m  Build Success! Created: {zip_file.name}\033[0m")
     print(f"\033[1;32m=========================================================\033[0m\n")
 
+def bump_version(script_dir, bump_type):
+    version_file = script_dir / "VERSION"
+    version_str = "0.0.0"
+    if version_file.exists():
+        version_str = version_file.read_text().strip()
+    
+    parts = version_str.split(".")
+    while len(parts) < 3:
+        parts.append("0")
+    
+    try:
+        major, minor, patch = map(int, parts[:3])
+    except ValueError:
+        print(f"\033[1;31mError: VERSION file contains invalid semver '{version_str}'. Cannot bump.\033[0m")
+        sys.exit(1)
+
+    if bump_type == "major":
+        major += 1
+        minor = 0
+        patch = 0
+    elif bump_type == "minor":
+        minor += 1
+        patch = 0
+    elif bump_type == "patch":
+        patch += 1
+        
+    new_version = f"{major}.{minor}.{patch}"
+    version_file.write_text(new_version)
+    print(f"\033[1;36m[Version] Bumped {bump_type} version: {version_str} -> {new_version}\033[0m")
+    return new_version
+
+def get_version(script_dir):
+    version_file = script_dir / "VERSION"
+    if version_file.exists():
+        return version_file.read_text().strip()
+    return "0.0.0"
+
 def main():
+    parser = argparse.ArgumentParser(description="ComfyLAB Release Builder")
+    parser.add_argument("--bump", choices=["major", "minor", "patch"], help="Auto-increment the version number before building")
+    args = parser.parse_args()
+
     script_dir = Path(__file__).parent.resolve()
+    
+    if args.bump:
+        version = bump_version(script_dir, args.bump)
+    else:
+        version = get_version(script_dir)
+        
+    print(f"\n[Build Init] Starting ComfyLAB build for v{version}...")
     
     check_prerequisites()
     build_frontend(script_dir)
     release_dir = assemble_release(script_dir)
-    compress_release(script_dir, release_dir)
+    compress_release(script_dir, release_dir, version)
 
 if __name__ == "__main__":
     main()

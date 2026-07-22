@@ -85,9 +85,13 @@ def main():
     frontend_dist = frontend_dir / "dist"
     frontend_node_modules = frontend_dir / "node_modules"
 
+    version_file = script_dir / "VERSION"
+    version_str = f" v{version_file.read_text().strip()}" if version_file.exists() else ""
+    title_str = f"ComfyLAB{version_str} Process Coordinator"
+
     print("\033[1;35m")
     print("  ============================================")
-    print("         ComfyLAB Process Coordinator         ")
+    print("  " + title_str.center(42))
     print("  ============================================")
     print("\033[0m")
 
