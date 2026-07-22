@@ -3,6 +3,7 @@
 block_cipher = None
 
 import os
+from PyInstaller.utils.hooks import collect_submodules, collect_data_files
 
 # Define files to collect
 added_files = [
@@ -14,37 +15,75 @@ added_files = [
 if os.path.exists('VERSION'):
     added_files.append(('VERSION', '.'))
 
+# Collect data files for packages that require them at runtime
+for pkg in ['pyvisa_py', 'scipy', 'pandas', 'pyarrow', 'fastparquet', 'PIL']:
+    try:
+        added_files += collect_data_files(pkg)
+    except Exception:
+        pass
+
+hidden_imports = [
+    'pyvisa',
+    'pyvisa_py',
+    'uvicorn',
+    'fastapi',
+    'websockets',
+    'httpx',
+    'cryptography',
+    'multipart',
+    'python_multipart',
+    'numpy',
+    'pydantic',
+    'scipy',
+    'scipy.optimize',
+    'scipy.signal',
+    'scipy.fft',
+    'scipy.interpolate',
+    'scipy.stats',
+    'pandas',
+    'pyarrow',
+    'fastparquet',
+    'PIL',
+    'PIL.Image',
+    'backend.main',
+    'backend.workspace',
+    'backend.routers.execution',
+    'backend.routers.settings',
+    'backend.routers.diagnostics',
+    'backend.routers.workspace',
+    'backend.routers.packages',
+    'comfylab.engine.config',
+    'comfylab.engine.executor',
+    'comfylab.engine.lock_manager',
+    'comfylab.engine.logging',
+    'comfylab.engine.models',
+    'comfylab.engine.registry',
+    'comfylab.engine.security',
+    'comfylab.blocks.base',
+    'comfylab.blocks.base_script',
+    'comfylab.blocks.loader',
+    'comfylab.blocks.cluster'
+]
+
+# Ensure all submodules for key data science/hardware packages are collected
+for pkg in ['scipy', 'pandas', 'pyvisa_py', 'uvicorn', 'PIL', 'pyarrow', 'fastparquet']:
+    try:
+        hidden_imports += collect_submodules(pkg)
+    except Exception:
+        pass
+
 a = Analysis(
     ['pyinstaller_entry.py'],
     pathex=[],
     binaries=[],
     datas=added_files,
-    hiddenimports=[
-        'pyvisa',
-        'pyvisa_py',
-        'uvicorn',
-        'fastapi',
-        'websockets',
-        'cryptography',
-        'numpy',
-        'pydantic',
-        'backend.main',
-        'backend.routers.execution',
-        'backend.routers.settings',
-        'backend.routers.diagnostics',
-        'backend.routers.workspace',
-        'backend.routers.packages',
-        'comfylab.blocks.base',
-        'comfylab.blocks.loader',
-        'comfylab.blocks.cluster'
-    ],
+    hiddenimports=list(set(hidden_imports)),
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
     excludes=[
         # Block modules are shipped as external source next to the binary
         # (copied by build_exe.py) so they remain extensible at runtime.
-        'comfylab.blocks.base_script',
         'comfylab.blocks.basic_math',
         'comfylab.blocks.cluster_boundary',
         'comfylab.blocks.constants',

@@ -10,6 +10,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 
+import os
 import logging
 import secrets
 import base64
@@ -70,6 +71,38 @@ app = FastAPI(
 
 API_PATHS = {"/run", "/pause", "/resume", "/abort", "/status", "/blocks", "/parse_script", "/validate_script", "/workspace", "/settings"}
 
+def is_test_environment() -> bool:
+    """Checks if the application is running under an active test runner (pytest/unittest)."""
+    return (
+        os.getenv("COMFYLAB_TESTING") == "1"
+        or os.getenv("PYTEST_CURRENT_TEST") is not None
+        or any("pytest" in arg.lower() for arg in sys.argv)
+    )
+
+def get_frontend_dist_path() -> Path:
+    """Resolves the pre-compiled frontend assets directory across development, production, and frozen standalone modes."""
+    if getattr(sys, 'frozen', False):
+        meipass = getattr(sys, '_MEIPASS', None)
+        if meipass:
+            dist = Path(meipass) / "frontend" / "dist"
+            if dist.exists():
+                return dist
+        exe_dist = Path(sys.executable).parent / "frontend" / "dist"
+        if exe_dist.exists():
+            return exe_dist
+
+    current_dir = Path(__file__).parent.resolve()
+    source_dist = current_dir.parent / "frontend" / "dist"
+    if source_dist.exists():
+        return source_dist
+
+    cwd_dist = Path.cwd() / "frontend" / "dist"
+    if cwd_dist.exists():
+        return cwd_dist
+
+    return source_dist
+
+# Security middleware to enforce remote access token verification
 @app.middleware("http")
 async def security_middleware(request: Request, call_next):
     # Bypass OPTIONS (CORS preflight)
@@ -80,7 +113,7 @@ async def security_middleware(request: Request, call_next):
     is_api = any(path == p or path.startswith(p + "/") for p in API_PATHS)
 
     client_host = request.client.host if request.client else "127.0.0.1"
-    is_testing = "pytest" in sys.modules or "unittest" in sys.modules
+    is_testing = is_test_environment()
     is_local = is_testing or client_host in ("127.0.0.1", "::1", "localhost", "testserver")
     
     if is_api and not is_local:
@@ -194,11 +227,8 @@ async def startup_event():
     except Exception as e:
         logger.error(f"Cluster loading skipped (will retry on reload): {e}")
 
-IS_TESTING = "pytest" in sys.modules or "unittest" in sys.modules
-
-# Serve frontend static assets if they are pre-compiled in production
-CURRENT_DIR = Path(__file__).parent.resolve()
-FRONTEND_DIST = CURRENT_DIR.parent / "frontend" / "dist"
+IS_TESTING = is_test_environment()
+FRONTEND_DIST = get_frontend_dist_path()
 
 if FRONTEND_DIST.exists() and not IS_TESTING:
     logger.info(f"Serving pre-compiled frontend from: {FRONTEND_DIST}")

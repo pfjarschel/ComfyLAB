@@ -16,12 +16,15 @@ import os
 import sys
 import shutil
 import subprocess
+import platform
+import zipfile
 from pathlib import Path
 
 from build_release import (
     check_prerequisites as check_node,
     build_frontend,
     bump_version,
+    get_version,
     check_symlink_support,
     copy_ignore_stage,
 )
@@ -39,6 +42,46 @@ def check_prerequisites():
         except Exception as e:
             print(f"\033[1;31mError: Failed to install pyinstaller: {e}\033[0m")
             sys.exit(1)
+
+def get_platform_tag():
+    os_name = platform.system().lower()
+    if os_name == "darwin":
+        os_name = "macos"
+    elif os_name == "windows":
+        os_name = "windows"
+        
+    arch = platform.machine().lower()
+    if arch in ["amd64", "x86_64", "x64"]:
+        arch = "x86_64"
+    elif arch in ["arm64", "aarch64"]:
+        arch = "arm64"
+        
+    return f"{os_name}-{arch}"
+
+def compress_standalone(script_dir, version):
+    platform_tag = get_platform_tag()
+    zip_filename = f"comfylab-executable-v{version}-{platform_tag}.zip"
+    dist_dir = script_dir / "dist"
+    standalone_dir = dist_dir / "standalone"
+    zip_path = dist_dir / zip_filename
+    
+    print(f"\n[Packaging] Compressing standalone executable package into '{zip_filename}'...")
+    if not standalone_dir.exists():
+        print(f"\033[1;31mError: Standalone output directory '{standalone_dir}' does not exist!\033[0m")
+        return None
+
+    with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        for root, dirs, files in os.walk(standalone_dir):
+            for file in files:
+                abs_file = Path(root) / file
+                rel_file = abs_file.relative_to(standalone_dir)
+                zipf.write(abs_file, arcname=rel_file)
+
+    print(f"\033[1;32m=========================================================\033[0m")
+    print(f"\033[1;32m  Standalone ZIP Package Created Successfully!\033[0m")
+    print(f"\033[1;32m  Location: {zip_path}\033[0m")
+    print(f"\033[1;32m=========================================================\033[0m\n")
+    return zip_path
 
 def run_pyinstaller(script_dir):
     spec_file = script_dir / "ComfyLAB.spec"
@@ -157,9 +200,10 @@ def main():
     script_dir = Path(__file__).parent.resolve()
 
     if args.bump:
-        bump_version(script_dir, args.bump)
+        version = bump_version(script_dir, args.bump)
+    else:
+        version = get_version(script_dir)
 
-    
     # Check if filesystem supports symlinks. If not, run local staged build.
     if not check_symlink_support(script_dir):
         run_staged_build(script_dir)
@@ -176,6 +220,9 @@ def main():
             build_frontend(script_dir)
 
         run_pyinstaller(script_dir)
+
+    # Package into ZIP archive with OS/architecture and version tag
+    compress_standalone(script_dir, version)
 
 if __name__ == "__main__":
     main()
