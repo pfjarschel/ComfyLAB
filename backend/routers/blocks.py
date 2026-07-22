@@ -240,8 +240,8 @@ async def publish_cluster(payload: PublishClusterPayload):
     }
 
 
-@router.get("/cluster/{type_name:path}")
-async def get_cluster_definition(type_name: str):
+def _find_cluster_file(type_name: str):
+    """Resolves a cluster type name to its definition file, searching global, workspace, and temp dirs."""
     slug = type_name.split("/")[-1] if "/" in type_name else type_name
     candidates = []
     candidates.append(get_global_user_clusters_dir() / f"{slug}.cluster.json")
@@ -252,13 +252,21 @@ async def get_cluster_definition(type_name: str):
 
     for candidate in candidates:
         if candidate.exists():
-            with open(candidate, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                if ".temp" in candidate.parts:
-                    data["_is_temp"] = True
-                return data
+            return candidate
+    return None
 
-    raise HTTPException(status_code=404, detail=f"Cluster definition not found for type '{type_name}'")
+
+@router.get("/cluster/{type_name:path}")
+async def get_cluster_definition(type_name: str):
+    candidate = _find_cluster_file(type_name)
+    if candidate is None:
+        raise HTTPException(status_code=404, detail=f"Cluster definition not found for type '{type_name}'")
+
+    with open(candidate, "r", encoding="utf-8") as f:
+        data = json.load(f)
+        if ".temp" in candidate.parts:
+            data["_is_temp"] = True
+        return data
 
 
 class UpdateClusterPayload(BaseModel):
@@ -268,19 +276,7 @@ class UpdateClusterPayload(BaseModel):
 
 @router.put("/blocks/update_cluster/{type_name:path}")
 async def update_cluster(type_name: str, payload: UpdateClusterPayload):
-    slug = type_name.split("/")[-1] if "/" in type_name else type_name
-    candidates = []
-    candidates.append(get_global_user_clusters_dir() / f"{slug}.cluster.json")
-    ws = get_workspace_path()
-    if ws:
-        candidates.append(ws / "clusters" / f"{slug}.cluster.json")
-        candidates.append(ws / "clusters" / ".temp" / f"{slug}.cluster.json")
-
-    filepath = None
-    for candidate in candidates:
-        if candidate.exists():
-            filepath = candidate
-            break
+    filepath = _find_cluster_file(type_name)
 
     if not filepath:
         raise HTTPException(status_code=404, detail=f"Cluster definition not found for type '{type_name}'")

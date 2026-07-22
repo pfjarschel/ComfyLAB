@@ -21,8 +21,7 @@ import numpy as np
 
 import comfylab
 from comfylab.blocks.base import BaseBlock, ExecIn, ExecOut, DataIn, DataOut
-from comfylab.engine.config import get_config
-from comfylab.engine.security import verify_python_file
+from comfylab.engine.security import evaluate_trust, verify_python_file
 
 logger = logging.getLogger("comfylab.engine.registry")
 
@@ -81,12 +80,7 @@ def register_block(type_name: str):
                     else:
 
                         creator, is_valid = verify_python_file(abs_path)
-                        
-                        config = get_config()
-                        trusted_origins = config.get("trusted_origins", [])
-                        local_identity = config.get("creator_identity", "")
-                        
-                        is_trusted = is_valid and (creator == local_identity or creator in trusted_origins)
+                        is_trusted = evaluate_trust(creator, is_valid)
                         if not is_trusted:
                             cls.unauthorized = True
                             cls.creator_identity = creator

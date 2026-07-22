@@ -10,17 +10,14 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 
-import asyncio
-import os
 import re
 import json
 import shutil
-import tempfile
 from typing import Any, Dict, List, Optional, Tuple
 
 from comfylab.engine.registry import register_block
 from comfylab.blocks.base import ExecutionContext
-from comfylab.blocks.base_script import BaseSubprocessScriptBlock, parse_decorators
+from comfylab.blocks.base_script import BaseSubprocessScriptBlock, parse_decorators, validate_via_external_parser
 from comfylab.engine.config import get_config
 
 DECORATOR_PATTERN = re.compile(
@@ -128,31 +125,10 @@ class TypeScriptScriptBlock(BaseJavaScriptBlock):
 
 
 async def validate_code(code: str, language: str = "javascript") -> dict:
-    """Validates JavaScript/TypeScript script syntax using block compilation check."""
+    """Validates JavaScript/TypeScript script syntax using node compilation check."""
     if language == "typescript":
         return {"valid": True}
-    if shutil.which("node"):
-        with tempfile.NamedTemporaryFile(suffix=".js", delete=False, mode="w", encoding="utf-8") as f:
-            f.write(code)
-            temp_name = f.name
-        try:
-            process = await asyncio.create_subprocess_exec(
-                "node", "-c", temp_name,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
-            )
-            stdout, stderr = await process.communicate()
-            if process.returncode == 0:
-                return {"valid": True}
-            return {"valid": False, "error": stderr.decode().strip() or stdout.decode().strip()}
-        except Exception as e:
-            return {"valid": False, "error": str(e)}
-        finally:
-            try:
-                os.unlink(temp_name)
-            except:
-                pass
-    return {"valid": True}
+    return await validate_via_external_parser("node", ["-c", "{temp}"], code, ".js")
 
 
 if get_config().get("enable_js_scripting", False):

@@ -1,27 +1,14 @@
 # Copyright (C) 2026 Paulo Felipe Jarschel
 
 import logging
-import math
 import numpy as np
 from scipy.optimize import curve_fit
 from typing import Any
 
 from comfylab.engine.registry import register_block
-from comfylab.blocks.base import BaseBlock, DataIn, DataOut, ExecutionContext
+from comfylab.blocks.base import BaseBlock, DataIn, DataOut, ExecutionContext, format_output
 
 logger = logging.getLogger("comfylab.blocks.math_fit")
-
-def format_output(res: Any) -> Any:
-    if isinstance(res, np.ndarray):
-        res = np.nan_to_num(res, nan=0.0, posinf=1e99, neginf=-1e99)
-        if res.ndim == 0:
-            return float(res)
-        return res
-    elif isinstance(res, float):
-        if math.isnan(res): return 0.0
-        if math.isinf(res): return 1e99 if res > 0 else -1e99
-        return res
-    return res
 
 @register_block("math/analysis/curve_fit")
 class CurveFitBlock(BaseBlock):

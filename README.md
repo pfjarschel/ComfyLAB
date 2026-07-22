@@ -68,8 +68,10 @@ ComfyLAB/  (root)
 ├── ComfyLAB.spec               # PyInstaller spec (frozen core + external nodes)
 ├── backend/                    # FastAPI API routers & WebSockets server
 ├── comfylab/                   # Core Python Engine
-│   ├── engine/                 # Models, executor, lock manager, registry
-│   └── nodes/                  # Base Node protocol, scripting layers, VISA instruments
+│   ├── engine/                 # Models, executor, lock manager, registry, security, config
+│   └── blocks/                 # Block protocol (base), category modules (math, lists,
+│                               #   ndarrays, logic, strings, io, signal, plots, visa, ...),
+│                               #   scripting layers, cluster support, VISA instruments/
 ├── frontend/                   # Vite + React + React Flow web UI
 └── tests/                      # Automated pytest integration & unit tests
 ```

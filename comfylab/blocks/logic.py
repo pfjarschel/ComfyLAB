@@ -1,6 +1,6 @@
 # Copyright (C) 2026 Paulo Felipe Jarschel
 
-from typing import Any
+from typing import Any, Dict, Optional
 import numpy as np
 
 from comfylab.engine.registry import register_block
@@ -193,3 +193,89 @@ class FlipFlopBlock(BaseBlock):
                 self._state = bool(initial) if initial is not None else False
             return self._state
         return None
+
+
+@register_block("logic/compare")
+class CompareBlock(BaseBlock):
+    """Pulls two values and compares them based on the operator property."""
+    icon = "⚖️"
+    display_name = "Compare"
+    description = "Pulls two values and compares them based on an operator."
+    
+    inputs_def = [
+        DataIn("A", type_hint=float, default=0.0, widget="number"),
+        DataIn("B", type_hint=float, default=0.0, widget="number"),
+        DataIn("Operator", type_hint=str, default="==", widget="dropdown", options=["==", "!=", ">", "<", ">=", "<="])
+    ]
+
+    outputs_def = [DataOut("Result", type_hint=bool)]
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Result":
+            a = await context.pull(self.id, "A")
+            b = await context.pull(self.id, "B")
+            op = await context.pull(self.id, "Operator")
+
+            try:
+                # Attempt numerical conversion
+                v1, v2 = float(a), float(b)
+            except (ValueError, TypeError):
+                # Fallback to string
+                v1, v2 = str(a), str(b)
+
+            if op == "==": return v1 == v2
+            elif op == "!=": return v1 != v2
+            elif op == ">": return v1 > v2
+            elif op == "<": return v1 < v2
+            elif op == ">=": return v1 >= v2
+            elif op == "<=": return v1 <= v2
+            return False
+        return None
+
+
+@register_block("logic/has_changed")
+class HasChangedBlock(BaseBlock):
+    """Stateful block that triggers when a value changes since the last execution."""
+    icon = "🔄"
+    display_name = "Has Changed"
+    description = "Compares an input value to its previous execution value, and outputs whether it has changed."
+
+    inputs_def = [
+        ExecIn("In"),
+        DataIn("Value", type_hint=Any)
+    ]
+    outputs_def = [
+        ExecOut("Out"),
+        DataOut("Changed", type_hint=bool)
+    ]
+
+    def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
+        super().__init__(block_id, properties)
+        self._last_value = None
+        self._has_run = False
+        self._changed = False
+
+    async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
+        val = await context.pull(self.id, "Value")
+        
+        # If first run, check if last_value is different
+        if not self._has_run:
+            self._changed = True
+            self._has_run = True
+        else:
+            # NumPy array cycles / comparison
+            if isinstance(val, (list, np.ndarray)) or isinstance(self._last_value, (list, np.ndarray)):
+                self._changed = not np.array_equal(val, self._last_value)
+            else:
+                self._changed = (val != self._last_value)
+
+        self._last_value = val
+        return "Out"
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Changed":
+            return self._changed
+        return None
+
+    async def clear_data(self) -> None:
+        self._changed = False

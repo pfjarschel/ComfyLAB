@@ -26,6 +26,7 @@ from backend.workspace import get_workspace_path, set_workspace_path, resolve_wi
 from comfylab.blocks.loader import reload_registry
 from comfylab.engine.config import get_config, update_config, get_global_user_blocks_dir, get_global_user_clusters_dir
 from comfylab.engine.security import (
+    evaluate_trust,
     get_creator_identity,
     verify_json,
     verify_python_file,
@@ -262,8 +263,8 @@ async def load_blueprint_from_workspace(filename: str):
             
         # Ensure origin_uuid is populated in response for the UI warning dialog
         data["origin_uuid"] = origin_uuid
-        
-        is_trusted = is_valid and (origin_uuid == current_identity or origin_uuid in trusted_origins)
+
+        is_trusted = evaluate_trust(origin_uuid, is_valid, config)
         # If it was saved with old unsigned metadata but matches our local machine or trusted list, trust it
         if not is_trusted and not is_valid:
             is_trusted = bool(origin_uuid and (origin_uuid == current_identity or origin_uuid in trusted_origins))
@@ -325,7 +326,7 @@ async def list_unauthorized_blocks():
             for f in dir_path.glob(pattern):
                 if file_type == "python":
                     creator, is_valid = verify_python_file(f)
-                    is_trusted = is_valid and (creator == local_identity or creator in trusted_origins)
+                    is_trusted = evaluate_trust(creator, is_valid, config)
                     if not is_trusted:
                         unauthorized_files.append({
                             "filepath": str(f),
@@ -339,7 +340,7 @@ async def list_unauthorized_blocks():
                         with open(f, "r", encoding="utf-8") as file:
                             cluster_data = json.load(file)
                         creator, is_valid = verify_json(cluster_data)
-                        is_trusted = is_valid and (creator == local_identity or creator in trusted_origins)
+                        is_trusted = evaluate_trust(creator, is_valid, config)
                         if not is_trusted:
                             unauthorized_files.append({
                                 "filepath": str(f),

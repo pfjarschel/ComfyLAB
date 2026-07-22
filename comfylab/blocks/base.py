@@ -11,7 +11,56 @@
 # GNU General Public License for more details.
 
 import contextvars
+import math
 from typing import Any, Dict, List, Optional
+
+
+def format_output(res: Any) -> Any:
+    """Sanitizes numeric block outputs: NaN/inf are clamped to JSON-safe values."""
+    import numpy as np
+    if isinstance(res, np.ndarray):
+        res = np.nan_to_num(res, nan=0.0, posinf=1e99, neginf=-1e99)
+        if res.ndim == 0:
+            return float(res)
+        return res
+    elif isinstance(res, float):
+        if math.isnan(res): return 0.0
+        if math.isinf(res): return 1e99 if res > 0 else -1e99
+        return res
+    return res
+
+
+def make_dynamic_item_inputs(block: "BaseBlock", prefix: str, default_count: int,
+                             type_hint: Any = None, default: Any = None) -> None:
+    """
+    Populates a block's inputs with numbered dynamic item pins ("<prefix> 0..N")
+    driven by the block's "itemCount" property.
+    """
+    item_count = int(block.properties.get("itemCount", default_count))
+    for i in range(item_count):
+        block.inputs[f"{prefix} {i}"] = DataIn(f"{prefix} {i}", type_hint=type_hint, default=default)
+
+
+def parse_shape(shape_raw: Any) -> List[int]:
+    """
+    Parses an array shape from a string ("100,100"), a list/tuple/ndarray, or a scalar.
+    Falls back to [100] for empty/invalid input.
+    """
+    import numpy as np
+    shape = []
+    if isinstance(shape_raw, str):
+        try:
+            shape = [int(x.strip()) for x in shape_raw.split(',') if x.strip()]
+        except Exception:
+            shape = [100]
+    elif isinstance(shape_raw, (list, tuple, np.ndarray)):
+        shape = [int(x) for x in shape_raw]
+    elif isinstance(shape_raw, (int, float)):
+        shape = [int(shape_raw)]
+
+    if not shape:
+        shape = [100]
+    return shape
 
 
 class Pin:

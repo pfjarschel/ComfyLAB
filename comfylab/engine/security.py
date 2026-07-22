@@ -34,6 +34,20 @@ def clear_signature_cache() -> None:
     _sig_cache.clear()
 
 
+def evaluate_trust(creator: str, is_valid: bool, config: dict = None) -> bool:
+    """
+    Decides whether a signed artifact is trusted: the signature must be valid AND
+    the creator must be the local machine identity or a configured trusted origin.
+    """
+    if not is_valid or not creator:
+        return False
+    if config is None:
+        config = get_config()
+    local_identity = config.get("creator_identity", "")
+    trusted_origins = config.get("trusted_origins", [])
+    return creator == local_identity or creator in trusted_origins
+
+
 def _sig_cache_set(key: tuple, value: Tuple[str, bool]) -> None:
     """Adds an entry to the signature cache, evicting oldest entries if it grows too large."""
     if len(_sig_cache) >= _SIG_CACHE_MAX_SIZE:

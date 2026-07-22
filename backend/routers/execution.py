@@ -11,7 +11,6 @@
 # GNU General Public License for more details.
 
 import asyncio
-import hmac
 import inspect
 import json
 import uuid
@@ -20,8 +19,6 @@ from typing import Dict, Any
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException
 from pydantic import BaseModel
 from comfylab.engine.logging import run_id_var, block_id_var
-import comfylab.engine.config as config_module
-from comfylab.engine.config import get_config
 from comfylab.engine.executor import ExecutionEngine
 from comfylab.engine.models import BlueprintModel
 
@@ -34,6 +31,7 @@ from comfylab.blocks.script_rust import parse_rust_decorators
 from comfylab.blocks.script_octave import parse_octave_decorators
 from comfylab.blocks.script_wolfram import parse_wolfram_decorators
 from backend.manager import TelemetryConnectionManager
+from backend.auth import verify_access_token
 from backend.ratelimit import is_blocked, record_failure, record_success, block_remaining
 
 logger = logging.getLogger("backend.routers.execution")
@@ -242,19 +240,7 @@ async def telemetry_websocket(websocket: WebSocket, run_id: str):
             return
 
         token = websocket.query_params.get("token", "").strip()
-
-        is_valid = False
-        session_token = config_module.SESSION_TOKEN or ""
-        if token and hmac.compare_digest(token, session_token):
-            is_valid = True
-        elif ":" in token:
-            parts = token.split(":", 1)
-            if len(parts) == 2:
-                u, p = parts
-                custom_users = get_config().get("custom_users", {})
-                stored = custom_users.get(u)
-                if stored is not None and hmac.compare_digest(stored, p):
-                    is_valid = True
+        is_valid = verify_access_token(token)
                     
         if not is_valid:
             record_failure(client_host)

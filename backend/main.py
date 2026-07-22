@@ -11,7 +11,6 @@
 # GNU General Public License for more details.
 
 import logging
-import hmac
 import secrets
 import base64
 import shutil
@@ -31,6 +30,7 @@ import comfylab.engine.config as config_module
 from comfylab.engine.config import get_config
 from comfylab.engine.registry import BLOCK_REGISTRY, load_all_clusters_deferred
 from backend.workspace import set_workspace_path
+from backend.auth import verify_access_token, verify_user_password
 from backend.ratelimit import is_blocked, record_failure, record_success, block_remaining, remaining_attempts, is_first_attempt
 from comfylab.engine.logging import setup_logging
 
@@ -105,10 +105,7 @@ async def security_middleware(request: Request, call_next):
             try:
                 decoded = base64.b64decode(auth_header[6:]).decode("utf-8")
                 username, password = decoded.split(":", 1)
-                config = get_config()
-                custom_users = config.get("custom_users", {})
-                stored = custom_users.get(username)
-                if stored is not None and hmac.compare_digest(stored, password):
+                if verify_user_password(username, password):
                     record_success(client_host)
                     return await call_next(request)
             except Exception:
@@ -121,19 +118,7 @@ async def security_middleware(request: Request, call_next):
             token = request.query_params.get("token", "").strip()
             
         # Validate token against SESSION_TOKEN or custom_users
-        is_valid = False
-        session_token = config_module.SESSION_TOKEN or ""
-        if token and hmac.compare_digest(token, session_token):
-            is_valid = True
-        elif ":" in token:
-            parts = token.split(":", 1)
-            if len(parts) == 2:
-                u, p = parts
-                config = get_config()
-                custom_users = config.get("custom_users", {})
-                stored = custom_users.get(u)
-                if stored is not None and hmac.compare_digest(stored, p):
-                    is_valid = True
+        is_valid = verify_access_token(token)
                     
         if not is_valid:
             if is_first_attempt(client_host):

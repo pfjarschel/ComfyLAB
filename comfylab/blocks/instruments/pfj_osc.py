@@ -18,6 +18,7 @@ import numpy as np
 from comfylab.engine.registry import register_block
 from comfylab.blocks.base import BaseBlock, ExecIn, ExecOut, DataIn, DataOut, ExecutionContext
 from comfylab.blocks.instruments.devices import BaseDeviceConnectBlock
+from comfylab.blocks.visa import locked_device
 
 
 @register_block("visa/oscilloscope/connect")
@@ -62,15 +63,12 @@ class PFJOscTimebaseBlock(BaseBlock):
 
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
         device = await context.pull(self.id, "Device")
-        if not device:
-            raise ValueError("No device connection handle supplied to PFJOsc Timebase block.")
 
         scale = await context.pull(self.id, "Scale")
         offset = await context.pull(self.id, "Offset")
         points = await context.pull(self.id, "Points")
 
-        address = getattr(device, "resource_name", str(device))
-        async with context.lock_manager.acquire(address):
+        async with locked_device(context, device, "PFJOsc Timebase"):
             if scale is not None:
                 await asyncio.to_thread(device.write, f"horiz:scale {scale}")
             if offset is not None:
@@ -108,8 +106,6 @@ class PFJOscChannelBlock(BaseBlock):
 
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
         device = await context.pull(self.id, "Device")
-        if not device:
-            raise ValueError("No device connection handle supplied to PFJOsc Channel block.")
 
         channel = await context.pull(self.id, "Channel")
         enable = await context.pull(self.id, "Enable")
@@ -119,8 +115,7 @@ class PFJOscChannelBlock(BaseBlock):
         if not (1 <= int(channel) <= 4):
             raise ValueError(f"Invalid channel selection for PFJOsc: {channel}. Must be 1-4.")
 
-        address = getattr(device, "resource_name", str(device))
-        async with context.lock_manager.acquire(address):
+        async with locked_device(context, device, "PFJOsc Channel Config"):
             # Set enable state
             await asyncio.to_thread(device.write, f"c{channel}:enable {bool(enable)}")
 
@@ -157,13 +152,10 @@ class PFJOscTriggerBlock(BaseBlock):
 
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
         device = await context.pull(self.id, "Device")
-        if not device:
-            raise ValueError("No device connection handle supplied to PFJOsc Trigger block.")
 
         mode = await context.pull(self.id, "Mode")
 
-        address = getattr(device, "resource_name", str(device))
-        async with context.lock_manager.acquire(address):
+        async with locked_device(context, device, "PFJOsc Trigger"):
             await asyncio.to_thread(device.write, f"trig:{mode}")
 
         return "Out"
@@ -193,13 +185,10 @@ class PFJOscStateBlock(BaseBlock):
 
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
         device = await context.pull(self.id, "Device")
-        if not device:
-            raise ValueError("No device connection handle supplied to PFJOsc State block.")
 
         state = await context.pull(self.id, "State")
 
-        address = getattr(device, "resource_name", str(device))
-        async with context.lock_manager.acquire(address):
+        async with locked_device(context, device, "PFJOsc State"):
             if state == "run":
                 await asyncio.to_thread(device.write, "run")
             elif state == "stop":
@@ -234,15 +223,12 @@ class PFJOscAcquireBlock(BaseBlock):
 
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
         device = await context.pull(self.id, "Device")
-        if not device:
-            raise ValueError("No device connection handle supplied to PFJOsc Acquire block.")
 
         channel = await context.pull(self.id, "Channel")
         if not (1 <= int(channel) <= 4):
             raise ValueError(f"Invalid channel selection for PFJOsc: {channel}. Must be 1-4.")
 
-        address = getattr(device, "resource_name", str(device))
-        async with context.lock_manager.acquire(address):
+        async with locked_device(context, device, "PFJOsc Acquire"):
             # Query horizontal time data
             time_str = await asyncio.to_thread(device.query, "horiz:data?")
             # Query vertical voltage data

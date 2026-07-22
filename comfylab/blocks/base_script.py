@@ -12,6 +12,9 @@
 
 import re
 import json
+import os
+import shutil
+import tempfile
 import asyncio
 import logging
 from typing import Any, Dict, List, Optional, Tuple
@@ -190,3 +193,36 @@ class BaseSubprocessScriptBlock(BaseScriptBlock):
                 script_file.unlink()
             if output_file.exists():
                 output_file.unlink()
+
+
+async def validate_via_external_parser(executable: str, args: List[str], code: str, suffix: str) -> dict:
+    """
+    Shared script syntax validator for subprocess-based languages.
+    Writes the code to a temp file and runs `executable` with `args`
+    (any occurrence of "{temp}" in args is replaced by the temp file path).
+    Returns {"valid": True} when the executable is not installed (validation skipped).
+    """
+    if not shutil.which(executable):
+        return {"valid": True}
+
+    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False, mode="w", encoding="utf-8") as f:
+        f.write(code)
+        temp_name = f.name
+    try:
+        cmd = [executable] + [a.replace("{temp}", temp_name) for a in args]
+        process = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+        stdout, stderr = await process.communicate()
+        if process.returncode == 0:
+            return {"valid": True}
+        return {"valid": False, "error": stderr.decode().strip() or stdout.decode().strip()}
+    except Exception as e:
+        return {"valid": False, "error": str(e)}
+    finally:
+        try:
+            os.unlink(temp_name)
+        except OSError:
+            pass

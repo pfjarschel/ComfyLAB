@@ -28,7 +28,7 @@ from comfylab.blocks.cluster import load_clusters_from_directory
 from comfylab.blocks.loader import load_blocks_from_directory, reload_registry
 from comfylab.engine.config import get_config, get_global_user_blocks_dir, get_global_user_clusters_dir
 from comfylab.engine.registry import BLOCK_REGISTRY
-from comfylab.engine.security import sign_json, sign_python_file, verify_json, verify_python_file
+from comfylab.engine.security import evaluate_trust, sign_json, sign_python_file, verify_json, verify_python_file
 
 logger = logging.getLogger("backend.routers.packages")
 
@@ -263,7 +263,7 @@ async def load_package_preview(payload: PackageLoadPayload):
         if blocks_dir.exists() and blocks_dir.is_dir():
             for f in blocks_dir.glob("*.py"):
                 creator, is_valid = verify_python_file(f)
-                is_trusted = is_valid and (creator == local_identity or creator in trusted_origins)
+                is_trusted = evaluate_trust(creator, is_valid, config)
                 blocks_list.append({
                     "filename": f.name,
                     "creator_identity": creator,
@@ -279,7 +279,7 @@ async def load_package_preview(payload: PackageLoadPayload):
                 with open(f, "r", encoding="utf-8") as file:
                     cluster_data = json.load(file)
                 creator, is_valid = verify_json(cluster_data)
-                is_trusted = is_valid and (creator == local_identity or creator in trusted_origins)
+                is_trusted = evaluate_trust(creator, is_valid, config)
                 clusters_list.append({
                     "filename": f.name,
                     "creator_identity": creator,

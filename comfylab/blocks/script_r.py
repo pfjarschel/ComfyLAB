@@ -10,14 +10,10 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 
-import asyncio
-import os
-import shutil
-import tempfile
 from typing import Any, Dict
 
 from comfylab.engine.registry import register_block
-from comfylab.blocks.base_script import BaseSubprocessScriptBlock
+from comfylab.blocks.base_script import BaseSubprocessScriptBlock, validate_via_external_parser
 from comfylab.blocks.script import DECORATOR_PATTERN
 
 DEFAULT_R_CODE = """# @input name="value" type="number" default=1.0
@@ -122,25 +118,6 @@ writeLines(out_str, "{output_file_path}")
 
 async def validate_code(code: str) -> dict:
     """Validates R script syntax using Rscript parse()."""
-    if shutil.which("Rscript"):
-        with tempfile.NamedTemporaryFile(suffix=".R", delete=False, mode="w", encoding="utf-8") as f:
-            f.write(code)
-            temp_name = f.name
-        try:
-            process = await asyncio.create_subprocess_exec(
-                "Rscript", "-e", f"parse(file='{temp_name}')",
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
-            )
-            stdout, stderr = await process.communicate()
-            if process.returncode == 0:
-                return {"valid": True}
-            return {"valid": False, "error": stderr.decode().strip() or stdout.decode().strip()}
-        except Exception as e:
-            return {"valid": False, "error": str(e)}
-        finally:
-            try:
-                os.unlink(temp_name)
-            except:
-                pass
-    return {"valid": True}
+    return await validate_via_external_parser(
+        "Rscript", ["-e", "parse(file='{temp}')"], code, ".R"
+    )

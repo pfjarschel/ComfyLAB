@@ -185,3 +185,32 @@ class StringTrimBlock(BaseBlock):
             text = str(await context.pull(self.id, "Text") or "")
             return text.strip()
         return None
+
+
+@register_block("string/format")
+class FormatStringBlock(BaseBlock):
+    """Templates a string replacing {0}, {1}, {2} etc. placeholders."""
+    icon = "🖹"
+    display_name = "Format String"
+    description = "Templates a string replacing {0} style placeholders."
+    
+    inputs_def = [
+        DataIn("Template", type_hint=str, default="Value is {0}", widget="text"),
+        DataIn("Arg0", type_hint=Any, default="", widget="text", optional=True),
+        DataIn("Arg1", type_hint=Any, default="", widget="text", optional=True),
+        DataIn("Arg2", type_hint=Any, default="", widget="text", optional=True)
+    ]
+    outputs_def = [DataOut("Result", type_hint=str)]
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Result":
+            template = str(await context.pull(self.id, "Template"))
+            arg0 = await context.pull(self.id, "Arg0")
+            arg1 = await context.pull(self.id, "Arg1")
+            arg2 = await context.pull(self.id, "Arg2")
+            
+            try:
+                return template.format(arg0, arg1, arg2, arg0=arg0, arg1=arg1, arg2=arg2)
+            except Exception as e:
+                return f"[Format Error: {e}]"
+        return None

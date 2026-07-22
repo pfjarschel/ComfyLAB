@@ -12,6 +12,7 @@
 
 import asyncio
 import logging
+from contextlib import asynccontextmanager
 from typing import Any, Dict, Optional
 
 import pyvisa
@@ -20,6 +21,21 @@ from comfylab.engine.registry import register_block
 from comfylab.blocks.base import BaseBlock, ExecIn, ExecOut, DataIn, DataOut, ExecutionContext
 
 logger = logging.getLogger("comfylab.blocks.visa")
+
+
+@asynccontextmanager
+async def locked_device(context: ExecutionContext, device: Any, block_name: str = "VISA"):
+    """
+    Validates a pulled device handle and yields it under its per-address resource lock.
+    Shared by all VISA/instrument blocks to avoid repeating the
+    validate -> resolve address -> acquire lock preamble.
+    """
+    if not device:
+        raise ValueError(f"No device connection handle supplied to {block_name} block.")
+    address = getattr(device, "resource_name", str(device))
+    async with context.lock_manager.acquire(address):
+        yield device
+
 
 # Create singleton resource manager wrapper
 class VISAResourceManagerWrapper:
@@ -165,16 +181,12 @@ class VISAWriteBlock(BaseBlock):
         device = await context.pull(self.id, "Device")
         command = await context.pull(self.id, "Command")
 
-        if not device:
-            raise ValueError("No device connection handle supplied to VISA Write block.")
         if not command:
             raise ValueError("No command string supplied to VISA Write block.")
 
-        # Extract address for resource locking
-        address = getattr(device, "resource_name", str(device))
-        async with context.lock_manager.acquire(address):
-            logger.info(f"VISA Write on {address}: {command}")
-            await asyncio.to_thread(device.write, command)
+        async with locked_device(context, device, "VISA Write") as dev:
+            logger.info(f"VISA Write on {getattr(dev, 'resource_name', dev)}: {command}")
+            await asyncio.to_thread(dev.write, command)
 
         return "Out"
 
@@ -207,14 +219,10 @@ class VISAReadBlock(BaseBlock):
 
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
         device = await context.pull(self.id, "Device")
-        if not device:
-            raise ValueError("No device connection handle supplied to VISA Read block.")
 
-        # Extract address for resource locking
-        address = getattr(device, "resource_name", str(device))
-        async with context.lock_manager.acquire(address):
-            logger.info(f"VISA Read on {address}")
-            self._last_response = await asyncio.to_thread(device.read)
+        async with locked_device(context, device, "VISA Read") as dev:
+            logger.info(f"VISA Read on {getattr(dev, 'resource_name', dev)}")
+            self._last_response = await asyncio.to_thread(dev.read)
 
         return "Out"
 
@@ -252,16 +260,12 @@ class VISAQueryBlock(BaseBlock):
         device = await context.pull(self.id, "Device")
         command = await context.pull(self.id, "Command")
 
-        if not device:
-            raise ValueError("No device connection handle supplied to VISA Query block.")
         if not command:
             raise ValueError("No command string supplied to VISA Query block.")
 
-        # Extract address for resource locking
-        address = getattr(device, "resource_name", str(device))
-        async with context.lock_manager.acquire(address):
-            logger.info(f"VISA Query on {address}: {command}")
-            self._last_response = await asyncio.to_thread(device.query, command)
+        async with locked_device(context, device, "VISA Query") as dev:
+            logger.info(f"VISA Query on {getattr(dev, 'resource_name', dev)}: {command}")
+            self._last_response = await asyncio.to_thread(dev.query, command)
 
         return "Out"
 

@@ -16,6 +16,7 @@ from typing import Any, Optional
 from comfylab.engine.registry import register_block
 from comfylab.blocks.base import BaseBlock, ExecIn, ExecOut, DataIn, DataOut, ExecutionContext
 from comfylab.blocks.instruments.devices import BaseDeviceConnectBlock
+from comfylab.blocks.visa import locked_device
 
 
 @register_block("visa/signal_generator/connect")
@@ -63,8 +64,6 @@ class PFJSigGenConfigWaveBlock(BaseBlock):
 
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
         device = await context.pull(self.id, "Device")
-        if not device:
-            raise ValueError("No device connection handle supplied to PFJSigGen Config Wave block.")
 
         wave_type = await context.pull(self.id, "WaveType")
         frequency = await context.pull(self.id, "Frequency")
@@ -73,8 +72,7 @@ class PFJSigGenConfigWaveBlock(BaseBlock):
         phase = await context.pull(self.id, "Phase")
         duty_cycle = await context.pull(self.id, "DutyCycle")
 
-        address = getattr(device, "resource_name", str(device))
-        async with context.lock_manager.acquire(address):
+        async with locked_device(context, device, "PFJSigGen Config Wave"):
             # Configure WaveType
             if wave_type:
                 await asyncio.to_thread(device.write, f"wave:wave {wave_type}")
@@ -128,15 +126,12 @@ class PFJSigGenConfigChirpBlock(BaseBlock):
 
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
         device = await context.pull(self.id, "Device")
-        if not device:
-            raise ValueError("No device connection handle supplied to PFJSigGen Config Chirp block.")
 
         chirp = await context.pull(self.id, "Chirp")
         variation = await context.pull(self.id, "Variation")
         period = await context.pull(self.id, "Period")
 
-        address = getattr(device, "resource_name", str(device))
-        async with context.lock_manager.acquire(address):
+        async with locked_device(context, device, "PFJSigGen Config Chirp"):
             # Send chirp command
             await asyncio.to_thread(device.write, f"freq:chrp {bool(chirp)}")
 
@@ -173,13 +168,10 @@ class PFJSigGenSetOutputBlock(BaseBlock):
 
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
         device = await context.pull(self.id, "Device")
-        if not device:
-            raise ValueError("No device connection handle supplied to PFJSigGen Set Output block.")
 
         output = await context.pull(self.id, "Output")
 
-        address = getattr(device, "resource_name", str(device))
-        async with context.lock_manager.acquire(address):
+        async with locked_device(context, device, "PFJSigGen Output"):
             await asyncio.to_thread(device.write, f"out {bool(output)}")
 
         return "Out"
