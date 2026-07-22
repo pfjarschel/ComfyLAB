@@ -170,6 +170,8 @@ python3 build_release.py --bump [patch|minor|major]
 ```
 This generates `comfylab-release.zip` in your root directory.
 
+> **Note for cloud drives:** if the repository lives on a cloud/FUSE mount (e.g. pCloud, Dropbox), the build automatically stages everything to `~/.comfylab/release_stage` on your local disk — including the npm/vite frontend build — and only copies the finished `.zip` back to the repo. This avoids sync churn and npm flakiness on cloud filesystems.
+
 ### 2. Build Standalone Single-File Executable
 To compile and package the entire application (Python interpreter, FastAPI backend, core packages, and precompiled frontend UI assets) into a single, zero-dependency executable (`ComfyLAB` or `ComfyLAB.exe`):
 ```bash

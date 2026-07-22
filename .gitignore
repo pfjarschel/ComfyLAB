@@ -17,6 +17,7 @@ build/
 dist/
 *.egg-info/
 .eggs/
+.release_staging/
 
 # Node / Frontend
 frontend/node_modules/

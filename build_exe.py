@@ -18,33 +18,13 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from build_release import check_prerequisites as check_node, build_frontend, bump_version
-
-def check_symlink_support(script_dir):
-    # Test symlink creation to detect FUSE cloud mount limitations
-    test_link = script_dir / "test_symlink_probe"
-    try:
-        if test_link.exists():
-            test_link.unlink()
-        os.symlink("nonexistent_target", test_link)
-        test_link.unlink()
-        return True
-    except OSError:
-        if test_link.exists():
-            try:
-                test_link.unlink()
-            except Exception:
-                pass
-        return False
-
-def copy_ignore_stage(path, names):
-    ignored = []
-    for name in names:
-        if name in ("__pycache__", ".pytest_cache", ".venv", "tests", "node_modules", ".git", "build", "dist"):
-            ignored.append(name)
-        elif name.endswith(".pyc") or name.endswith(".pyo") or name.endswith(".pyd"):
-            ignored.append(name)
-    return ignored
+from build_release import (
+    check_prerequisites as check_node,
+    build_frontend,
+    bump_version,
+    check_symlink_support,
+    copy_ignore_stage,
+)
 
 def check_prerequisites():
     # Check if PyInstaller is installed in the active environment

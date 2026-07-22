@@ -24,6 +24,37 @@ def check_prerequisites():
         print("Node.js and npm are required to compile the React frontend bundle.")
         sys.exit(1)
 
+def check_symlink_support(script_dir):
+    # Test symlink creation to detect FUSE cloud mount limitations
+    test_link = script_dir / "test_symlink_probe"
+    try:
+        if test_link.exists():
+            test_link.unlink()
+        os.symlink("nonexistent_target", test_link)
+        test_link.unlink()
+        return True
+    except OSError:
+        if test_link.exists():
+            try:
+                test_link.unlink()
+            except Exception:
+                pass
+        return False
+
+def copy_ignore_stage(path, names):
+    # Exclude caches, virtual environments, VCS data, build artifacts,
+    # previous release packages, and any leftover in-repo staging folder
+    ignored = []
+    for name in names:
+        if name in ("__pycache__", ".pytest_cache", ".venv", "tests", "node_modules",
+                    ".git", "build", "dist", ".release_staging"):
+            ignored.append(name)
+        elif name.endswith(".pyc") or name.endswith(".pyo") or name.endswith(".pyd"):
+            ignored.append(name)
+        elif name.endswith(".zip"):
+            ignored.append(name)
+    return ignored
+
 def build_frontend(script_dir):
     frontend_dir = script_dir / "frontend"
     print("\n[Build 1/3] Compiling React frontend...")
@@ -159,6 +190,46 @@ def get_version(script_dir):
         return version_file.read_text().strip()
     return "0.0.0"
 
+def run_staged_build(script_dir, version):
+    """
+    Cloud/FUSE-safe release build: stages everything to a local home directory,
+    compiles the frontend and assembles/compresses the package there, then copies
+    only the final .zip back to the repo directory.
+    """
+    stage_dir = Path.home() / ".comfylab" / "release_stage"
+    print(f"\n[Build] Unsupported filesystem (FUSE/cloud mount). Staging build to local directory: {stage_dir}")
+
+    if stage_dir.exists():
+        try:
+            shutil.rmtree(stage_dir)
+        except Exception as e:
+            print(f"\033[1;31mError: Failed to clean staging directory {stage_dir}: {e}\033[0m")
+            sys.exit(1)
+
+    stage_dir.mkdir(parents=True, exist_ok=True)
+
+    try:
+        # 1. Stage the source tree to local disk (excluding artifacts and leftovers)
+        print(" -> Staging source files to local disk...")
+        shutil.copytree(script_dir, stage_dir, dirs_exist_ok=True, ignore=copy_ignore_stage)
+
+        # 2. Compile the frontend locally (npm/vite are unreliable on cloud drives)
+        check_prerequisites()
+        build_frontend(stage_dir)
+
+        # 3. Assemble the release structure locally
+        release_dir = assemble_release(stage_dir)
+
+        # 4. Compress, writing the final .zip back to the repo directory
+        compress_release(script_dir, release_dir, version)
+    finally:
+        # Always clean up the local staging area, even on failure
+        print(" -> Cleaning up local staging files...")
+        try:
+            shutil.rmtree(stage_dir)
+        except Exception:
+            pass
+
 def main():
     parser = argparse.ArgumentParser(description="ComfyLAB Release Builder")
     parser.add_argument("--bump", choices=["major", "minor", "patch"], help="Auto-increment the version number before building")
@@ -172,11 +243,16 @@ def main():
         version = get_version(script_dir)
         
     print(f"\n[Build Init] Starting ComfyLAB build for v{version}...")
-    
-    check_prerequisites()
-    build_frontend(script_dir)
-    release_dir = assemble_release(script_dir)
-    compress_release(script_dir, release_dir, version)
+
+    # On cloud/FUSE drives (no symlink support), stage the whole build locally
+    # to avoid sync churn and npm/vite flakiness; otherwise build in place.
+    if not check_symlink_support(script_dir):
+        run_staged_build(script_dir, version)
+    else:
+        check_prerequisites()
+        build_frontend(script_dir)
+        release_dir = assemble_release(script_dir)
+        compress_release(script_dir, release_dir, version)
 
 if __name__ == "__main__":
     main()
