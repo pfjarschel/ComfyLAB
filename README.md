@@ -2,6 +2,8 @@
 
 ComfyLAB (**Comf**ortable **L**ab **A**utomation **B**locks) is a visual, block-based software platform for automating scientific and test & measurement laboratory experiments. It allows researchers, students, and engineers to connect instruments, run analysis code, and view live plots using an intuitive drag-and-drop workspace.
 
+![ComfyLAB Main Interface](etc/landing_page.png)
+
 ---
 
 ## ✨ Features
@@ -34,6 +36,14 @@ ComfyLAB provides a rich, modular ecosystem of blocks for building automation wo
 - **Multi-Language Scripting**: Polyglot code execution blocks supporting 9 scripting languages (Python, Rust, JavaScript, TypeScript, Julia, R, Lua, Octave, Wolfram).
 - **Clusters**: Group complex sub-graphs into custom reusable cluster blocks with dynamic input/output boundaries.
 - **Utility & Timing**: Delays, timestamps, stopwatches, type conversion, console logging, and debugging inspectors.
+
+---
+
+## 📸 Example Workflows
+
+| Experiment Automation Pipeline | Interactive Data Analysis & Plotting |
+| :---: | :---: |
+| ![ComfyLAB Example Workflow 1](etc/example_1.png) | ![ComfyLAB Example Workflow 2](etc/example_2.png) |
 
 ---
 
