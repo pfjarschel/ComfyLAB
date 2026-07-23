@@ -11,6 +11,7 @@
 # GNU General Public License for more details.
 
 from typing import Any, Optional, Dict, List
+import numpy as np
 from comfylab.engine.registry import register_block
 from comfylab.blocks.base import BaseBlock, ExecIn, ExecOut, DataIn, DataOut, ExecutionContext, make_dynamic_item_inputs
 
@@ -147,23 +148,53 @@ class GetListItemBlock(BaseBlock):
     
     inputs_def = [
         DataIn("List", type_hint=list),
-        DataIn("Index", type_hint=int, default=0, widget="number")
+        DataIn("Index", type_hint=Any, default=0, widget="number")
     ]
     outputs_def = [DataOut("Item", type_hint=Any)]
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Item":
             arr = await context.pull(self.id, "List")
-            idx = int(await context.pull(self.id, "Index"))
-            
-            if not arr or not isinstance(arr, list):
+            if arr is None:
                 return None
-                
-            if 0 <= idx < len(arr):
-                return arr[idx]
-            elif -len(arr) <= idx < 0:
-                return arr[idx]
-            return None
+            raw_idx = await context.pull(self.id, "Index")
+            if raw_idx is None:
+                return None
+
+            if isinstance(arr, np.ndarray):
+                arr = arr.tolist()
+            elif not isinstance(arr, (list, tuple)):
+                return None
+
+            try:
+                if isinstance(raw_idx, str) and "," in raw_idx:
+                    indices = [int(x.strip()) for x in raw_idx.split(",") if x.strip()]
+                    curr = arr
+                    for i in indices:
+                        curr = curr[i]
+                    if isinstance(curr, np.generic):
+                        return curr.item()
+                    return curr
+                elif isinstance(raw_idx, (list, tuple)):
+                    curr = arr
+                    for i in raw_idx:
+                        curr = curr[int(i)]
+                    if isinstance(curr, np.generic):
+                        return curr.item()
+                    return curr
+                else:
+                    idx = int(raw_idx)
+                    if 0 <= idx < len(arr):
+                        res = arr[idx]
+                    elif -len(arr) <= idx < 0:
+                        res = arr[idx]
+                    else:
+                        return None
+                    if isinstance(res, np.generic):
+                        return res.item()
+                    return res
+            except Exception:
+                return None
         return None
 
 
@@ -182,9 +213,11 @@ class ListLengthBlock(BaseBlock):
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Length":
             arr = await context.pull(self.id, "List")
-            if not arr or not isinstance(arr, list):
+            if arr is None:
                 return 0
-            return len(arr)
+            if isinstance(arr, (list, tuple, np.ndarray)):
+                return len(arr)
+            return 0
         return None
 
 
@@ -309,7 +342,11 @@ class SliceListBlock(BaseBlock):
             stop = await context.pull(self.id, "Stop")
             step = await context.pull(self.id, "Step")
 
-            if not isinstance(lst, list):
+            if lst is None:
+                return []
+            if isinstance(lst, np.ndarray):
+                lst = lst.tolist()
+            elif not isinstance(lst, (list, tuple)):
                 return []
 
             start_val = int(start) if start is not None else 0
@@ -338,7 +375,16 @@ class TakeListBlock(BaseBlock):
             lst = await context.pull(self.id, "List")
             indices = await context.pull(self.id, "Indices")
 
-            if not isinstance(lst, list) or not isinstance(indices, list):
+            if lst is None or indices is None:
+                return []
+            if isinstance(lst, np.ndarray):
+                lst = lst.tolist()
+            elif not isinstance(lst, (list, tuple)):
+                return []
+
+            if isinstance(indices, np.ndarray):
+                indices = indices.tolist()
+            elif not isinstance(indices, (list, tuple)):
                 return []
 
             result = []

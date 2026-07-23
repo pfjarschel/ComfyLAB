@@ -252,21 +252,37 @@ class GetNdarrayItemBlock(BaseBlock):
     
     inputs_def = [
         DataIn("Array", type_hint=np.ndarray),
-        DataIn("Index", type_hint=int, default=0, widget="number")
+        DataIn("Index", type_hint=Any, default=0, widget="number")
     ]
     outputs_def = [DataOut("Item", type_hint=Any)]
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Item":
             arr = await context.pull(self.id, "Array")
-            idx = int(await context.pull(self.id, "Index"))
+            if arr is None:
+                return None
+            raw_idx = await context.pull(self.id, "Index")
+            if raw_idx is None:
+                return None
             
             if not isinstance(arr, np.ndarray):
-                return None
-                
+                try:
+                    arr = np.asarray(arr)
+                except Exception:
+                    return None
+
             try:
+                if isinstance(raw_idx, str) and "," in raw_idx:
+                    idx = tuple(int(x.strip()) for x in raw_idx.split(",") if x.strip())
+                elif isinstance(raw_idx, (list, tuple)):
+                    idx = tuple(int(x) for x in raw_idx)
+                else:
+                    idx = int(raw_idx)
+
                 val = arr[idx]
-                if hasattr(val, "item"):
+                if isinstance(val, np.generic):
+                    return val.item()
+                if isinstance(val, np.ndarray) and val.ndim == 0:
                     return val.item()
                 return val
             except Exception:
@@ -289,9 +305,11 @@ class NdarrayLengthBlock(BaseBlock):
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Length":
             arr = await context.pull(self.id, "Array")
-            if not isinstance(arr, np.ndarray):
+            if arr is None:
                 return 0
-            return len(arr)
+            if isinstance(arr, (list, tuple, np.ndarray)):
+                return len(arr)
+            return 0
         return None
 
 
@@ -310,8 +328,13 @@ class SortNdarrayBlock(BaseBlock):
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Sorted":
             arr = await context.pull(self.id, "Array")
-            if not isinstance(arr, np.ndarray):
+            if arr is None:
                 return np.array([])
+            if not isinstance(arr, np.ndarray):
+                try:
+                    arr = np.asarray(arr)
+                except Exception:
+                    return np.array([])
             return np.sort(arr)
         return None
 
@@ -338,8 +361,13 @@ class SliceNdarrayBlock(BaseBlock):
             stop = await context.pull(self.id, "Stop")
             step = await context.pull(self.id, "Step")
 
-            if not isinstance(arr, np.ndarray):
+            if arr is None:
                 return np.array([])
+            if not isinstance(arr, np.ndarray):
+                try:
+                    arr = np.asarray(arr)
+                except Exception:
+                    return np.array([])
 
             start_val = int(start) if start is not None else 0
             stop_val = int(stop) if stop is not None else len(arr)
@@ -367,8 +395,13 @@ class TakeNdarrayBlock(BaseBlock):
             arr = await context.pull(self.id, "Array")
             indices = await context.pull(self.id, "Indices")
 
-            if not isinstance(arr, np.ndarray):
+            if arr is None:
                 return np.array([])
+            if not isinstance(arr, np.ndarray):
+                try:
+                    arr = np.asarray(arr)
+                except Exception:
+                    return np.array([])
 
             try:
                 # Support list of ints or np.ndarray of ints
