@@ -108,6 +108,13 @@ def run_pyinstaller(script_dir):
         shutil.copytree(script_dir / "comfylab" / "blocks", dest_blocks_dir, ignore=copy_ignore_stage)
         print(f" -> Copied core block source modules next to binary: {dest_blocks_dir}")
 
+        # Copy comfylab/devices next to the compiled binary
+        dest_devices_dir = dist_dir / "comfylab" / "devices"
+        if dest_devices_dir.exists():
+            shutil.rmtree(dest_devices_dir)
+        shutil.copytree(script_dir / "comfylab" / "devices", dest_devices_dir, ignore=copy_ignore_stage)
+        print(f" -> Copied device driver source modules next to binary: {dest_devices_dir}")
+
         if output_binary.exists():
             print(f"\n\033[1;32m[Build Finished] Standalone binary compiled: dist/standalone/{output_binary.name}\033[0m")
         else:
@@ -154,15 +161,17 @@ def run_staged_build(script_dir):
     # 4. Run PyInstaller inside staged directory
     run_pyinstaller(stage_dir)
     
-    # 5. Copy the final executable and external blocks folder back to cloud directory
+    # 5. Copy the final executable and external blocks/devices folders back to cloud directory
     binary_name = "ComfyLAB.exe" if os.name == 'nt' else "ComfyLAB"
     staged_binary = stage_dir / "dist" / "standalone" / binary_name
     staged_blocks = stage_dir / "dist" / "standalone" / "comfylab" / "blocks"
+    staged_devices = stage_dir / "dist" / "standalone" / "comfylab" / "devices"
 
     dest_dist_dir = script_dir / "dist" / "standalone"
     dest_dist_dir.mkdir(parents=True, exist_ok=True)
     dest_binary = dest_dist_dir / binary_name
     dest_blocks = dest_dist_dir / "comfylab" / "blocks"
+    dest_devices = dest_dist_dir / "comfylab" / "devices"
 
     if staged_binary.exists():
         print(f" -> Copying compiled standalone binary back to: {dest_binary}")
@@ -175,6 +184,12 @@ def run_staged_build(script_dir):
             if dest_blocks.exists():
                 shutil.rmtree(dest_blocks)
             shutil.copytree(staged_blocks, dest_blocks)
+
+        if staged_devices.exists():
+            print(f" -> Copying device drivers folder back to: {dest_devices}")
+            if dest_devices.exists():
+                shutil.rmtree(dest_devices)
+            shutil.copytree(staged_devices, dest_devices)
             
         print(f"\n\033[1;32m=========================================================\033[0m")
         print(f"\033[1;32m  Standalone Binary Compiled Successfully!\033[0m")

@@ -10,5 +10,15 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 
+import sys
+import os
+
 # ComfyLAB Core Package
 __version__ = "0.1.0"
+
+# Allow standalone executables to load external modules from comfylab/ next to sys.executable
+if getattr(sys, 'frozen', False):
+    ext_comfylab_dir = os.path.join(os.path.dirname(sys.executable), "comfylab")
+    if os.path.exists(ext_comfylab_dir) and ext_comfylab_dir not in __path__:
+        __path__.append(ext_comfylab_dir)
+

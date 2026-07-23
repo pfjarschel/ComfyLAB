@@ -68,7 +68,7 @@ hidden_imports = [
 ]
 
 # Ensure all submodules for key data science/hardware packages are collected
-for pkg in ['scipy', 'pandas', 'pyvisa_py', 'uvicorn', 'PIL', 'pyarrow', 'fastparquet', 'cv2']:
+for pkg in ['scipy', 'pandas', 'pyvisa_py', 'uvicorn', 'PIL', 'pyarrow', 'fastparquet', 'cv2', 'comfylab.engine', 'backend']:
     try:
         hidden_imports += collect_submodules(pkg)
     except Exception:
@@ -84,8 +84,9 @@ a = Analysis(
     hooksconfig={},
     runtime_hooks=[],
     excludes=[
-        # Block modules are shipped as external source next to the binary
+        # Device driver and block modules are shipped as external source next to the binary
         # (copied by build_exe.py) so they remain extensible at runtime.
+        'comfylab.devices',
         'comfylab.blocks.basic_math',
         'comfylab.blocks.cluster_boundary',
         'comfylab.blocks.constants',
@@ -116,9 +117,7 @@ a = Analysis(
         'comfylab.blocks.timing',
         'comfylab.blocks.utility',
         'comfylab.blocks.visa',
-        'comfylab.blocks.instruments.devices',
-        'comfylab.blocks.instruments.pfj_osc',
-        'comfylab.blocks.instruments.pfj_siggen',
+        'comfylab.blocks.devices',
         'tests',
         'frontend/node_modules',
         # Exclude unused GUI frameworks, deep learning, and optional heavy libraries

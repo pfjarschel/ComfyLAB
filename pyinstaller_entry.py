@@ -40,6 +40,9 @@ def main():
     # If running as PyInstaller executable, sys._MEIPASS holds the temp directory
     if getattr(sys, 'frozen', False):
         base_dir = Path(sys._MEIPASS)
+        exe_dir = Path(sys.executable).parent.resolve()
+        if str(exe_dir) not in sys.path:
+            sys.path.insert(0, str(exe_dir))
     else:
         base_dir = Path(__file__).parent.resolve()
 
