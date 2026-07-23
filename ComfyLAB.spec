@@ -17,7 +17,7 @@ if os.path.exists('VERSION'):
     added_files.append(('VERSION', '.'))
 
 # Collect data files for packages that require them at runtime
-for pkg in ['pyvisa_py', 'scipy', 'pandas', 'pyarrow', 'fastparquet', 'PIL']:
+for pkg in ['pyvisa_py', 'scipy', 'pandas', 'pyarrow', 'fastparquet', 'PIL', 'cv2']:
     try:
         added_files += collect_data_files(pkg)
     except Exception:
@@ -46,6 +46,7 @@ hidden_imports = [
     'fastparquet',
     'PIL',
     'PIL.Image',
+    'cv2',
     'backend.main',
     'backend.workspace',
     'backend.routers.execution',
@@ -67,7 +68,7 @@ hidden_imports = [
 ]
 
 # Ensure all submodules for key data science/hardware packages are collected
-for pkg in ['scipy', 'pandas', 'pyvisa_py', 'uvicorn', 'PIL', 'pyarrow', 'fastparquet']:
+for pkg in ['scipy', 'pandas', 'pyvisa_py', 'uvicorn', 'PIL', 'pyarrow', 'fastparquet', 'cv2']:
     try:
         hidden_imports += collect_submodules(pkg)
     except Exception:
