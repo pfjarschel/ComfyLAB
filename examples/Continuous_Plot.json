@@ -1,0 +1,355 @@
+{
+  "blocks": [
+    {
+      "id": "block_1784748556279_0",
+      "type": "actionNode",
+      "position": {
+        "x": 290,
+        "y": 591
+      },
+      "data": {
+        "action": "Numeric Arrays/manipulation/linspace",
+        "Start": 0,
+        "Stop": 10,
+        "Steps": 101,
+        "pinValues": {
+          "Array": "ndarray[101] float64"
+        }
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "239px"
+      }
+    },
+    {
+      "id": "block_1784748644513_2",
+      "type": "actionNode",
+      "position": {
+        "x": 1242.4719827586207,
+        "y": 541.0912356321838
+      },
+      "data": {
+        "action": "outputs/plots/xy_plot",
+        "X": null,
+        "Y": null,
+        "XLabel": "X",
+        "YLabel": "Y",
+        "Labels": null,
+        "XMin": null,
+        "XMax": null,
+        "YMin": null,
+        "YMax": null
+      },
+      "style": {
+        "width": 300,
+        "height": 300,
+        "minHeight": "363px"
+      },
+      "width": 491,
+      "height": 489
+    },
+    {
+      "id": "block_1784748678166_3",
+      "type": "actionNode",
+      "position": {
+        "x": 580,
+        "y": 552
+      },
+      "data": {
+        "action": "math/functions/triangle",
+        "X": 0,
+        "Frequency": 1,
+        "Amplitude": 1,
+        "Phase": 0,
+        "Offset": 0,
+        "pinValues": {
+          "Result": "ndarray[101] float64"
+        }
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "319px"
+      }
+    },
+    {
+      "id": "block_1784748737344_4",
+      "type": "actionNode",
+      "position": {
+        "x": 868.3829022988506,
+        "y": 618.3347701149426
+      },
+      "data": {
+        "action": "control_flow/loops/while_loop",
+        "Condition": true
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "133px"
+      }
+    },
+    {
+      "id": "block_1784748756858_5",
+      "type": "actionNode",
+      "position": {
+        "x": 580,
+        "y": 233
+      },
+      "data": {
+        "action": "math/random/random_array",
+        "Shape": "100",
+        "Min": -0.5,
+        "Max": 0.5,
+        "IntegerMode": false,
+        "pinValues": {
+          "Array": "ndarray[101] float64"
+        }
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "277px"
+      }
+    },
+    {
+      "id": "block_1784748762751_6",
+      "type": "actionNode",
+      "position": {
+        "x": 0,
+        "y": 280
+      },
+      "data": {
+        "action": "constants/number",
+        "value": 101,
+        "customName": "N. Points",
+        "pinValues": {
+          "Value": "101"
+        }
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "185px"
+      }
+    },
+    {
+      "id": "block_1784748797131_7",
+      "type": "actionNode",
+      "position": {
+        "x": 1300.5,
+        "y": 0
+      },
+      "data": {
+        "action": "outputs/basic/display",
+        "Value": ""
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "231px"
+      }
+    },
+    {
+      "id": "block_1784748815264_8",
+      "type": "actionNode",
+      "position": {
+        "x": 870,
+        "y": 23
+      },
+      "data": {
+        "action": "constants/string",
+        "value": "Done!",
+        "pinValues": {
+          "Value": "\"Done!\""
+        }
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "185px"
+      }
+    },
+    {
+      "id": "block_1784748838417_9",
+      "type": "actionNode",
+      "position": {
+        "x": 870,
+        "y": 248
+      },
+      "data": {
+        "action": "Numeric Arrays/operations/add_subtract",
+        "Array": null,
+        "Operand": 1,
+        "Operation": "add",
+        "pinValues": {
+          "Result": "ndarray[101] float64"
+        }
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "249px"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "block_1784748556279_0",
+      "sourceHandle": "Array",
+      "target": "block_1784748678166_3",
+      "targetHandle": "X",
+      "style": {
+        "stroke": "#e5a50a",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#e5a50a"
+      },
+      "id": "xy-edge__block_1784748556279_0Array-block_1784748678166_3X"
+    },
+    {
+      "source": "block_1784748556279_0",
+      "sourceHandle": "Array",
+      "target": "block_1784748644513_2",
+      "targetHandle": "X",
+      "style": {
+        "stroke": "#e5a50a",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#e5a50a"
+      },
+      "id": "xy-edge__block_1784748556279_0Array-block_1784748644513_2X"
+    },
+    {
+      "source": "block_1784748762751_6",
+      "sourceHandle": "Value",
+      "target": "block_1784748556279_0",
+      "targetHandle": "Steps",
+      "style": {
+        "stroke": "#f97316",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#f97316"
+      },
+      "id": "xy-edge__block_1784748762751_6Value-block_1784748556279_0Steps"
+    },
+    {
+      "source": "block_1784748762751_6",
+      "sourceHandle": "Value",
+      "target": "block_1784748756858_5",
+      "targetHandle": "Shape",
+      "style": {
+        "stroke": "#f97316",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#f97316"
+      },
+      "id": "xy-edge__block_1784748762751_6Value-block_1784748756858_5Shape"
+    },
+    {
+      "source": "block_1784748737344_4",
+      "sourceHandle": "LoopBody",
+      "target": "block_1784748644513_2",
+      "targetHandle": "Plot",
+      "style": {
+        "stroke": "#a78bfa",
+        "strokeWidth": 2,
+        "animated": true
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#a78bfa"
+      },
+      "id": "xy-edge__block_1784748737344_4LoopBody-block_1784748644513_2Plot",
+      "selected": false
+    },
+    {
+      "source": "block_1784748737344_4",
+      "sourceHandle": "Done",
+      "target": "block_1784748797131_7",
+      "targetHandle": "In",
+      "style": {
+        "stroke": "#a78bfa",
+        "strokeWidth": 2,
+        "animated": true
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#a78bfa"
+      },
+      "id": "xy-edge__block_1784748737344_4Done-block_1784748797131_7In"
+    },
+    {
+      "id": "edge_1784748816435_tjrtuk",
+      "source": "block_1784748815264_8",
+      "sourceHandle": "Value",
+      "target": "block_1784748797131_7",
+      "targetHandle": "Value",
+      "style": {
+        "stroke": "#ec4899",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#ec4899"
+      },
+      "type": "default"
+    },
+    {
+      "source": "block_1784748678166_3",
+      "sourceHandle": "Result",
+      "target": "block_1784748838417_9",
+      "targetHandle": "Array",
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#64748b"
+      },
+      "id": "xy-edge__block_1784748678166_3Result-block_1784748838417_9Array"
+    },
+    {
+      "source": "block_1784748756858_5",
+      "sourceHandle": "Array",
+      "target": "block_1784748838417_9",
+      "targetHandle": "Operand",
+      "style": {
+        "stroke": "#e5a50a",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#e5a50a"
+      },
+      "id": "xy-edge__block_1784748756858_5Array-block_1784748838417_9Operand"
+    },
+    {
+      "source": "block_1784748838417_9",
+      "sourceHandle": "Result",
+      "target": "block_1784748644513_2",
+      "targetHandle": "Y",
+      "style": {
+        "stroke": "#e5a50a",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#e5a50a"
+      },
+      "id": "xy-edge__block_1784748838417_9Result-block_1784748644513_2Y"
+    }
+  ],
+  "annotations": [],
+  "origin_uuid": "a15f7feb04b799d69f0ecadbc988fa3f91578e6d97eef6d871c299c97ce9069c"
+}

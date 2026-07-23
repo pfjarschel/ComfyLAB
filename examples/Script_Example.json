@@ -1,0 +1,200 @@
+{
+  "blocks": [
+    {
+      "id": "block_1784750420906_20",
+      "type": "actionNode",
+      "position": {
+        "x": 580,
+        "y": 306
+      },
+      "data": {
+        "action": "script/python",
+        "code": "# @input name=\"norm_to\" type=\"number\" default=1.0\n# @input name=\"data\" type=\"ndarray\" default=[1.0]\n# @output name=\"result\" type=\"ndarray\"\nprint(data.shape)\nresult = norm_to*data/np.max(data)\n",
+        "customInputs": [
+          {
+            "name": "norm_to",
+            "type": "number",
+            "default": 1
+          },
+          {
+            "name": "data",
+            "type": "ndarray",
+            "default": [
+              1
+            ]
+          }
+        ],
+        "customOutputs": [
+          {
+            "name": "result",
+            "type": "ndarray"
+          }
+        ],
+        "pinValues": {
+          "result": "ndarray[101] float64"
+        },
+        "norm_to": 2
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "243px"
+      }
+    },
+    {
+      "id": "block_1784750569460_23",
+      "type": "actionNode",
+      "position": {
+        "x": 0,
+        "y": 116
+      },
+      "data": {
+        "action": "Numeric Arrays/manipulation/linspace",
+        "Start": 0,
+        "Stop": 10,
+        "Steps": 101,
+        "pinValues": {
+          "Array": "ndarray[101] float64"
+        }
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "247px"
+      }
+    },
+    {
+      "id": "block_1784750575874_24",
+      "type": "actionNode",
+      "position": {
+        "x": 290,
+        "y": 269.5
+      },
+      "data": {
+        "action": "math/functions/sine",
+        "X": 0,
+        "Frequency": 1,
+        "Amplitude": 0.56,
+        "Phase": 0,
+        "Offset": 0,
+        "pinValues": {
+          "Result": "ndarray[101] float64"
+        }
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "319px"
+      }
+    },
+    {
+      "id": "block_1784750591097_25",
+      "type": "actionNode",
+      "position": {
+        "x": 870,
+        "y": 0
+      },
+      "data": {
+        "action": "outputs/plots/xy_plot",
+        "X": null,
+        "Y": null,
+        "XLabel": "X",
+        "YLabel": "Y",
+        "Labels": null,
+        "XMin": null,
+        "XMax": null,
+        "YMin": null,
+        "YMax": null
+      },
+      "style": {
+        "width": 300,
+        "height": 300,
+        "minHeight": "363px"
+      },
+      "width": 511,
+      "height": 479
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_1784750578324_bptuce",
+      "source": "block_1784750569460_23",
+      "sourceHandle": "Array",
+      "target": "block_1784750575874_24",
+      "targetHandle": "X",
+      "style": {
+        "stroke": "#e5a50a",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#e5a50a"
+      },
+      "type": "default"
+    },
+    {
+      "source": "block_1784750575874_24",
+      "sourceHandle": "Result",
+      "target": "block_1784750420906_20",
+      "targetHandle": "data",
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#64748b"
+      },
+      "id": "xy-edge__block_1784750575874_24Result-block_1784750420906_20data"
+    },
+    {
+      "source": "block_1784750420906_20",
+      "sourceHandle": "result",
+      "target": "block_1784750591097_25",
+      "targetHandle": "Y",
+      "style": {
+        "stroke": "#e5a50a",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#e5a50a"
+      },
+      "id": "xy-edge__block_1784750420906_20result-block_1784750591097_25Y"
+    },
+    {
+      "source": "block_1784750569460_23",
+      "sourceHandle": "Array",
+      "target": "block_1784750591097_25",
+      "targetHandle": "X",
+      "style": {
+        "stroke": "#e5a50a",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#e5a50a"
+      },
+      "id": "xy-edge__block_1784750569460_23Array-block_1784750591097_25X"
+    },
+    {
+      "source": "block_1784750420906_20",
+      "sourceHandle": "Out",
+      "target": "block_1784750591097_25",
+      "targetHandle": "Plot",
+      "style": {
+        "stroke": "#a78bfa",
+        "strokeWidth": 2,
+        "animated": true
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#a78bfa"
+      },
+      "id": "xy-edge__block_1784750420906_20Out-block_1784750591097_25Plot"
+    }
+  ],
+  "annotations": [],
+  "origin_uuid": "a15f7feb04b799d69f0ecadbc988fa3f91578e6d97eef6d871c299c97ce9069c"
+}

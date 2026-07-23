@@ -14,16 +14,16 @@
 
 import { useState } from 'react';
 
-interface SidebarNode {
+export interface SidebarNode {
   type: string;
   name: string;
   icon: string;
   description: string;
 }
 
-interface SidebarCategory {
+export interface SidebarCategoryNode {
   directNodes: SidebarNode[];
-  subcategories: Record<string, SidebarNode[]>;
+  children: Record<string, SidebarCategoryNode>;
 }
 
 interface SidebarProps {
@@ -31,31 +31,105 @@ interface SidebarProps {
   setSidebarOpen: (open: boolean) => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
-  filteredGrouped: Record<string, SidebarCategory>;
+  filteredTree: Record<string, SidebarCategoryNode>;
   onReloadRegistry: () => void;
 }
+
+interface CategoryTreeItemProps {
+  catName: string;
+  path: string;
+  node: SidebarCategoryNode;
+  level: number;
+  searchQuery: string;
+  expandedMap: Record<string, boolean>;
+  toggleExpand: (path: string) => void;
+}
+
+const CategoryTreeItem = ({
+  catName,
+  path,
+  node,
+  level,
+  searchQuery,
+  expandedMap,
+  toggleExpand,
+}: CategoryTreeItemProps) => {
+  const isExpanded = searchQuery.trim() !== '' || expandedMap[path];
+  const isTopLevel = level === 0;
+  const isUserCat = isTopLevel && catName.toLowerCase() === 'user';
+
+  const childEntries = Object.entries(node.children).sort((a, b) => a[0].localeCompare(b[0]));
+  const sortedDirectNodes = [...node.directNodes].sort((a, b) => a.name.localeCompare(b.name));
+
+  return (
+    <div>
+      {isUserCat && <div className="sidebar-category-separator" />}
+      <div className={isTopLevel ? "sidebar-category-group" : "sidebar-subcategory-group"}>
+        <div 
+          className={isTopLevel ? "sidebar-category-header" : "sidebar-subcategory-header"}
+          onClick={() => toggleExpand(path)}
+        >
+          <span className="expand-icon">{isExpanded ? '▼' : '▶'}</span>
+          <span className={isTopLevel ? "category-title" : "subcategory-title"}>{catName}</span>
+        </div>
+
+        {isExpanded && (
+          <div className={isTopLevel ? "sidebar-category-content" : "sidebar-subcategory-content"}>
+            {/* Direct Blocks at this level */}
+            {sortedDirectNodes.map((block) => (
+              <div 
+                key={block.type} 
+                className="dndblock" 
+                onDragStart={(e) => { e.dataTransfer.setData('application/reactflow', block.type); }} 
+                draggable
+                title={block.description}
+              >
+                <span style={{ fontSize: '0.95rem' }}>{block.icon || '⚙️'}</span> 
+                <span>{block.name}</span>
+              </div>
+            ))}
+
+            {/* Child subcategories */}
+            {childEntries.map(([childName, childNode]) => (
+              <CategoryTreeItem
+                key={childName}
+                catName={childName}
+                path={`${path}/${childName}`}
+                node={childNode}
+                level={level + 1}
+                searchQuery={searchQuery}
+                expandedMap={expandedMap}
+                toggleExpand={toggleExpand}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 export const Sidebar = ({
   sidebarOpen,
   setSidebarOpen,
   searchQuery,
   setSearchQuery,
-  filteredGrouped,
+  filteredTree,
   onReloadRegistry,
 }: SidebarProps) => {
-  const [expandedCats, setExpandedCats] = useState<Record<string, boolean>>({});
-  const [expandedSubcats, setExpandedSubcats] = useState<Record<string, boolean>>({});
+  const [expandedMap, setExpandedMap] = useState<Record<string, boolean>>({});
 
-  const toggleCat = (catName: string) => {
-    setExpandedCats((prev) => ({ ...prev, [catName]: !prev[catName] }));
-  };
-
-  const toggleSubcat = (catName: string, subcatName: string) => {
-    const key = `${catName}/${subcatName}`;
-    setExpandedSubcats((prev) => ({ ...prev, [key]: !prev[key] }));
+  const toggleExpand = (path: string) => {
+    setExpandedMap((prev) => ({ ...prev, [path]: !prev[path] }));
   };
 
   if (!sidebarOpen) return null;
+
+  const topLevelEntries = Object.entries(filteredTree).sort((a, b) => {
+    if (a[0].toLowerCase() === 'user') return 1;
+    if (b[0].toLowerCase() === 'user') return -1;
+    return a[0].localeCompare(b[0]);
+  });
 
   return (
     <div className="sidebar-container glass-panel nodrag nowheel">
@@ -100,93 +174,25 @@ export const Sidebar = ({
         )}
       </div>
       <div className="sidebar-content">
-        {Object.entries(filteredGrouped).length === 0 && (
+        {topLevelEntries.length === 0 && (
           <div style={{ color: '#64748b', fontSize: '0.85rem', textAlign: 'center', marginTop: '20px' }}>
             No blocks match your search.
           </div>
         )}
-        {Object.entries(filteredGrouped)
-          .sort((a, b) => {
-            if (a[0].toLowerCase() === 'user') return 1;
-            if (b[0].toLowerCase() === 'user') return -1;
-            return a[0].localeCompare(b[0]);
-          })
-          .map(([mainCat, catData]) => {
-          const isCatExpanded = searchQuery.trim() !== '' || expandedCats[mainCat];
-          return (
-            <div key={mainCat}>
-              {mainCat.toLowerCase() === 'user' && <div className="sidebar-category-separator" />}
-              <div className="sidebar-category-group">
-              <div 
-                className="sidebar-category-header"
-                onClick={() => toggleCat(mainCat)}
-              >
-                <span className="expand-icon">{isCatExpanded ? '▼' : '▶'}</span>
-                <span className="category-title">{mainCat}</span>
-              </div>
-              
-              {isCatExpanded && (
-                <div className="sidebar-category-content">
-                  {/* Direct Blocks */}
-                  {[...catData.directNodes]
-                    .sort((a, b) => a.name.localeCompare(b.name))
-                    .map((block) => (
-                    <div 
-                      key={block.type} 
-                      className="dndblock" 
-                      onDragStart={(e) => { e.dataTransfer.setData('application/reactflow', block.type); }} 
-                      draggable
-                      title={block.description}
-                    >
-                      <span style={{ fontSize: '0.95rem' }}>{block.icon || '⚙️'}</span> 
-                      <span>{block.name}</span>
-                    </div>
-                  ))}
-
-                  {/* Subcategories */}
-                  {Object.entries(catData.subcategories)
-                    .sort((a, b) => a[0].localeCompare(b[0]))
-                    .map(([subCat, subNodes]) => {
-                    const subcatKey = `${mainCat}/${subCat}`;
-                    const isSubExpanded = searchQuery.trim() !== '' || expandedSubcats[subcatKey];
-                    return (
-                      <div key={subCat} className="sidebar-subcategory-group">
-                        <div 
-                          className="sidebar-subcategory-header"
-                          onClick={() => toggleSubcat(mainCat, subCat)}
-                        >
-                          <span className="expand-icon">{isSubExpanded ? '▼' : '▶'}</span>
-                          <span className="subcategory-title">{subCat}</span>
-                        </div>
-
-                        {isSubExpanded && (
-                          <div className="sidebar-subcategory-content">
-                            {[...subNodes]
-                              .sort((a, b) => a.name.localeCompare(b.name))
-                              .map((block) => (
-                              <div 
-                                key={block.type} 
-                                className="dndblock" 
-                                onDragStart={(e) => { e.dataTransfer.setData('application/reactflow', block.type); }} 
-                                draggable
-                                title={block.description}
-                              >
-                                <span style={{ fontSize: '0.95rem' }}>{block.icon || '⚙️'}</span> 
-                                <span>{block.name}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-            </div>
-          );
-        })}
+        {topLevelEntries.map(([catName, node]) => (
+          <CategoryTreeItem
+            key={catName}
+            catName={catName}
+            path={catName}
+            node={node}
+            level={0}
+            searchQuery={searchQuery}
+            expandedMap={expandedMap}
+            toggleExpand={toggleExpand}
+          />
+        ))}
       </div>
     </div>
   );
 };
+

@@ -19,6 +19,7 @@ interface SplashScreenModalProps {
   onClose: () => void;
   onNewBlueprint: () => void;
   onLoadBlueprint: () => void;
+  onLoadExample?: () => void;
   onOpenSettings: () => void;
   onOpenAbout: () => void;
 }
@@ -28,6 +29,7 @@ export const SplashScreenModal: React.FC<SplashScreenModalProps> = ({
   onClose,
   onNewBlueprint,
   onLoadBlueprint,
+  onLoadExample,
   onOpenSettings,
   onOpenAbout,
 }) => {
@@ -187,6 +189,39 @@ export const SplashScreenModal: React.FC<SplashScreenModalProps> = ({
               <div>
                 <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-color)' }}>Open Blueprint</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Browse workspace files</div>
+              </div>
+            </div>
+
+            <div
+              className="splash-card"
+              onClick={() => {
+                if (onLoadExample) onLoadExample();
+                onClose();
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '14px',
+                borderRadius: '8px',
+                background: 'var(--dnd-bg)',
+                border: '1px solid var(--block-border)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'var(--accent-color)';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'var(--block-border)';
+                e.currentTarget.style.transform = 'none';
+              }}
+            >
+              <span style={{ fontSize: '1.6rem' }}>🧪</span>
+              <div>
+                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-color)' }}>Load Example</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Pre-configured workflows</div>
               </div>
             </div>
 

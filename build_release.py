@@ -119,6 +119,10 @@ def assemble_release(script_dir):
     shutil.copy2(script_dir / "LICENSE", release_dir / "LICENSE")
     shutil.copy2(script_dir / "README.md", release_dir / "README.md")
     
+    if (script_dir / "examples").exists():
+        print(" -> Copying example blueprints...")
+        shutil.copytree(script_dir / "examples", release_dir / "examples", ignore=copy_ignore)
+
     if (script_dir / "VERSION").exists():
         shutil.copy2(script_dir / "VERSION", release_dir / "VERSION")
     

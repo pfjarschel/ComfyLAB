@@ -1,0 +1,475 @@
+{
+  "blocks": [
+    {
+      "id": "block_1784748556279_0",
+      "type": "actionNode",
+      "position": {
+        "x": 290,
+        "y": 0
+      },
+      "data": {
+        "action": "Numeric Arrays/manipulation/linspace",
+        "Start": 0,
+        "Stop": 10,
+        "Steps": 101,
+        "pinValues": {
+          "Array": "ndarray[101] float64"
+        }
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "239px"
+      }
+    },
+    {
+      "id": "block_1784748644513_2",
+      "type": "actionNode",
+      "position": {
+        "x": 2069.941441441442,
+        "y": 359.86936936936934
+      },
+      "data": {
+        "action": "outputs/plots/xy_plot",
+        "X": null,
+        "Y": null,
+        "XLabel": "X",
+        "YLabel": "Y",
+        "Labels": null,
+        "XMin": null,
+        "XMax": null,
+        "YMin": null,
+        "YMax": null
+      },
+      "style": {
+        "width": 300,
+        "height": 300,
+        "minHeight": "395px"
+      },
+      "width": 491,
+      "height": 489
+    },
+    {
+      "id": "block_1784748678166_3",
+      "type": "actionNode",
+      "position": {
+        "x": 580,
+        "y": 390
+      },
+      "data": {
+        "action": "math/functions/polynom",
+        "X": 0,
+        "Frequency": 1,
+        "Amplitude": 1,
+        "Phase": 0,
+        "Offset": 0,
+        "pinValues": {
+          "Result": "ndarray[101] float64"
+        },
+        "customName": "Polynomial"
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "191px"
+      }
+    },
+    {
+      "id": "block_1784748756858_5",
+      "type": "actionNode",
+      "position": {
+        "x": 580,
+        "y": 621
+      },
+      "data": {
+        "action": "math/random/random_array",
+        "Shape": "100",
+        "Min": -2,
+        "Max": 2,
+        "IntegerMode": false,
+        "pinValues": {
+          "Array": "ndarray[101] float64"
+        }
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "277px"
+      }
+    },
+    {
+      "id": "block_1784748762751_6",
+      "type": "actionNode",
+      "position": {
+        "x": 0,
+        "y": 28
+      },
+      "data": {
+        "action": "constants/number",
+        "value": 101,
+        "customName": "N. Points",
+        "pinValues": {
+          "Value": "101"
+        }
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "185px"
+      }
+    },
+    {
+      "id": "block_1784748838417_9",
+      "type": "actionNode",
+      "position": {
+        "x": 870,
+        "y": 361
+      },
+      "data": {
+        "action": "Numeric Arrays/operations/add_subtract",
+        "Array": null,
+        "Operand": 1,
+        "Operation": "add",
+        "pinValues": {
+          "Result": "ndarray[101] float64"
+        }
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "249px"
+      }
+    },
+    {
+      "id": "block_1784749807192_12",
+      "type": "actionNode",
+      "position": {
+        "x": 124.21171171171173,
+        "y": 462.6666666666667
+      },
+      "data": {
+        "action": "Numeric Arrays/manipulation/create",
+        "ParseNumbers": true,
+        "customName": "Create NDArray",
+        "Row 0": "0.76,3.45,-0.267",
+        "pinValues": {
+          "Array": "ndarray[3] float64"
+        }
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "167px"
+      }
+    },
+    {
+      "id": "block_1784750152198_15",
+      "type": "actionNode",
+      "position": {
+        "x": 1185.355855855856,
+        "y": -23.09009009009018
+      },
+      "data": {
+        "action": "math/analysis/curve_fit",
+        "X": null,
+        "Y": null,
+        "FunctionType": "Polynomial",
+        "PolyDegree": 2,
+        "InitialGuesses": null,
+        "pinValues": {
+          "Parameters": "ndarray[3] float64",
+          "FitY": "ndarray[101] float64"
+        }
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "361px"
+      }
+    },
+    {
+      "id": "block_1784750158945_16",
+      "type": "actionNode",
+      "position": {
+        "x": 1672.509009009009,
+        "y": 388.9774774774775
+      },
+      "data": {
+        "action": "Numeric Arrays/manipulation/pack",
+        "pinValues": {
+          "Array": "ndarray[2, 101] float64"
+        }
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "191px"
+      }
+    },
+    {
+      "id": "block_1784750168902_17",
+      "type": "actionNode",
+      "position": {
+        "x": 1526.0675675675677,
+        "y": 77.01801801801798
+      },
+      "data": {
+        "action": "outputs/basic/display",
+        "Value": ""
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "231px"
+      },
+      "width": 577,
+      "height": 231
+    },
+    {
+      "id": "block_1784750243888_18",
+      "type": "actionNode",
+      "position": {
+        "x": 1584.738738738739,
+        "y": 691.7387387387388
+      },
+      "data": {
+        "action": "Lists/manipulation/create",
+        "ParseNumbers": false,
+        "Row 0": "Data, Fit",
+        "pinValues": {
+          "List": "List(2) [\"Data\", \"Fit\"]"
+        }
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "205px"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "block_1784748556279_0",
+      "sourceHandle": "Array",
+      "target": "block_1784748644513_2",
+      "targetHandle": "X",
+      "style": {
+        "stroke": "#e5a50a",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#e5a50a"
+      },
+      "id": "xy-edge__block_1784748556279_0Array-block_1784748644513_2X",
+      "selected": false
+    },
+    {
+      "source": "block_1784748762751_6",
+      "sourceHandle": "Value",
+      "target": "block_1784748556279_0",
+      "targetHandle": "Steps",
+      "style": {
+        "stroke": "#f97316",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#f97316"
+      },
+      "id": "xy-edge__block_1784748762751_6Value-block_1784748556279_0Steps",
+      "selected": false
+    },
+    {
+      "source": "block_1784748762751_6",
+      "sourceHandle": "Value",
+      "target": "block_1784748756858_5",
+      "targetHandle": "Shape",
+      "style": {
+        "stroke": "#f97316",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#f97316"
+      },
+      "id": "xy-edge__block_1784748762751_6Value-block_1784748756858_5Shape",
+      "selected": false
+    },
+    {
+      "source": "block_1784748678166_3",
+      "sourceHandle": "Result",
+      "target": "block_1784748838417_9",
+      "targetHandle": "Array",
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#64748b"
+      },
+      "id": "xy-edge__block_1784748678166_3Result-block_1784748838417_9Array",
+      "selected": false
+    },
+    {
+      "source": "block_1784748756858_5",
+      "sourceHandle": "Array",
+      "target": "block_1784748838417_9",
+      "targetHandle": "Operand",
+      "style": {
+        "stroke": "#e5a50a",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#e5a50a"
+      },
+      "id": "xy-edge__block_1784748756858_5Array-block_1784748838417_9Operand",
+      "selected": false
+    },
+    {
+      "source": "block_1784749807192_12",
+      "sourceHandle": "Array",
+      "target": "block_1784748678166_3",
+      "targetHandle": "Coefficients",
+      "style": {
+        "stroke": "#e5a50a",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#e5a50a"
+      },
+      "id": "xy-edge__block_1784749807192_12Array-block_1784748678166_3Coefficients"
+    },
+    {
+      "source": "block_1784748556279_0",
+      "sourceHandle": "Array",
+      "target": "block_1784748678166_3",
+      "targetHandle": "X",
+      "style": {
+        "stroke": "#e5a50a",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#e5a50a"
+      },
+      "id": "xy-edge__block_1784748556279_0Array-block_1784748678166_3X"
+    },
+    {
+      "id": "edge_1784750169032_jy9sbk",
+      "source": "block_1784750152198_15",
+      "sourceHandle": "Parameters",
+      "target": "block_1784750168902_17",
+      "targetHandle": "Value",
+      "style": {
+        "stroke": "#e5a50a",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#e5a50a"
+      },
+      "type": "default"
+    },
+    {
+      "source": "block_1784750152198_15",
+      "sourceHandle": "FitY",
+      "target": "block_1784750158945_16",
+      "targetHandle": "Item 1",
+      "style": {
+        "stroke": "#e5a50a",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#e5a50a"
+      },
+      "id": "xy-edge__block_1784750152198_15FitY-block_1784750158945_16Item 1"
+    },
+    {
+      "source": "block_1784748838417_9",
+      "sourceHandle": "Result",
+      "target": "block_1784750158945_16",
+      "targetHandle": "Item 0",
+      "style": {
+        "stroke": "#e5a50a",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#e5a50a"
+      },
+      "id": "xy-edge__block_1784748838417_9Result-block_1784750158945_16Item 0"
+    },
+    {
+      "source": "block_1784748556279_0",
+      "sourceHandle": "Array",
+      "target": "block_1784750152198_15",
+      "targetHandle": "X",
+      "style": {
+        "stroke": "#e5a50a",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#e5a50a"
+      },
+      "id": "xy-edge__block_1784748556279_0Array-block_1784750152198_15X"
+    },
+    {
+      "source": "block_1784748838417_9",
+      "sourceHandle": "Result",
+      "target": "block_1784750152198_15",
+      "targetHandle": "Y",
+      "style": {
+        "stroke": "#e5a50a",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#e5a50a"
+      },
+      "id": "xy-edge__block_1784748838417_9Result-block_1784750152198_15Y"
+    },
+    {
+      "source": "block_1784750158945_16",
+      "sourceHandle": "Array",
+      "target": "block_1784748644513_2",
+      "targetHandle": "Y",
+      "style": {
+        "stroke": "#e5a50a",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#e5a50a"
+      },
+      "id": "xy-edge__block_1784750158945_16Array-block_1784748644513_2Y"
+    },
+    {
+      "id": "edge_1784750243989_6evzmt",
+      "source": "block_1784750243888_18",
+      "sourceHandle": "List",
+      "target": "block_1784748644513_2",
+      "targetHandle": "Labels",
+      "style": {
+        "stroke": "#06b6d4",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#06b6d4"
+      },
+      "type": "default"
+    }
+  ],
+  "annotations": [],
+  "origin_uuid": "a15f7feb04b799d69f0ecadbc988fa3f91578e6d97eef6d871c299c97ce9069c"
+}

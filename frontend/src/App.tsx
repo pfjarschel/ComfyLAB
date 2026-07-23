@@ -55,6 +55,7 @@ import { UploadFileModal } from './components/modals/UploadFileModal';
 import { ConfirmModal } from './components/modals/ConfirmModal';
 import { AboutModal } from './components/modals/AboutModal';
 import { SplashScreenModal } from './components/modals/SplashScreenModal';
+import { LoadExampleModal } from './components/modals/LoadExampleModal';
 import { WhiteboardOverlay } from './components/widgets/WhiteboardOverlay';
 import { WhiteboardSidebar } from './components/widgets/WhiteboardSidebar';
 import { useWorkspaceHistory } from './hooks/useWorkspaceHistory';
@@ -147,21 +148,7 @@ interface NodeSchema {
   dataOuts: any[];
 }
 
-interface GroupedCategory {
-  subcategories: Record<string, NodeSchema[]>;
-  directNodes: NodeSchema[];
-  hasMatches: boolean;
-}
-
-const getCategoryHierarchy = (_type: string, backendCategory: string): { main: string; sub: string } => {
-  // Split categories by '/' unless escaped with '\'
-  const parts = backendCategory.split(/(?<!\\)\//).map(p => p.replace(/\\(\/)/g, '$1'));
-  
-  return {
-    main: parts[0] || 'OTHER',
-    sub: parts[1] || ''
-  };
-};
+import type { SidebarCategoryNode } from './components/Sidebar';
 
 const rewriteEdgeStyles = (eds: any[]) => {
   return eds.map((edge: any) => {
@@ -468,8 +455,10 @@ function Flow() {
   const [diagnosticsData, setDiagnosticsData] = useState<any>(null);
   const [loadingDiagnostics, setLoadingDiagnostics] = useState(false);
 
-  // Splash Screen & About Modal States
+  // Splash Screen, Example & About Modal States
   const [aboutModalOpen, setAboutModalOpen] = useState(false);
+  const [loadExampleOpen, setLoadExampleOpen] = useState(false);
+  const [isExampleBlueprint, setIsExampleBlueprint] = useState(false);
   const [splashOpen, setSplashOpen] = useState<boolean>(() => {
     return localStorage.getItem('comfylab_hide_splash') !== 'true';
   });
@@ -2635,7 +2624,7 @@ return {
     URL.revokeObjectURL(url);
     setIsDirty(false);
   }, [currentBlueprintName, getSavePayload, saveCurrentClusterEdits]);
-  const loadBlueprintData = (payload: any, filename: string) => {
+  const loadBlueprintData = (payload: any, filename: string, isExample: boolean = false) => {
     const restoredNodes = payload.blocks.map((block: any) => ({
       ...block,
       data: getBaseBlockData({
@@ -2649,6 +2638,7 @@ return {
     setLoadWorkspaceOpen(false);
     const nameWithoutExt = filename.replace(/\.json$/, '');
     setCurrentBlueprintName(nameWithoutExt);
+    setIsExampleBlueprint(isExample);
     setIsDirty(false);
     setShouldFitView(true);
     fetchRegistry();
@@ -2764,6 +2754,21 @@ return {
       }
     } catch (err: any) {
       setErrorMessage(err.response?.data?.detail || 'Failed to load blueprint from workspace.');
+    }
+  };
+
+  const handleLoadExampleByName = async (filename: string) => {
+    try {
+      const loadRes = await axios.get(`${BACKEND_URL}/workspace/examples/${encodeURIComponent(filename)}`);
+      const payload = loadRes.data;
+      const bpData = payload.blueprint || payload;
+      if (bpData.blocks && Array.isArray(bpData.blocks) && bpData.edges && Array.isArray(bpData.edges)) {
+        loadBlueprintData(bpData, `[Example] ${filename}`, true);
+      } else {
+        alert('Invalid example blueprint format.');
+      }
+    } catch (err: any) {
+      setErrorMessage(err.response?.data?.detail || 'Failed to load example blueprint.');
     }
   };
 
@@ -3213,8 +3218,8 @@ return {
 
 
 
-  // Group and filter categories with subcategories
-  const filteredGrouped: Record<string, GroupedCategory> = {};
+  // Group and filter categories into a recursive tree structure
+  const filteredTree: Record<string, SidebarCategoryNode> = {};
 
   if (blockRegistry) {
     const query = searchQuery.toLowerCase().trim();
@@ -3223,32 +3228,26 @@ return {
       const desc = (nodeSchema.description || '').toLowerCase();
       const catString = nodeSchema.category || 'Other';
       
-      const { main, sub } = getCategoryHierarchy(type, catString);
+      const parts = catString.split(/(?<!\\)\//).map(p => p.replace(/\\(\/)/g, '$1'));
       
       const isMatch = !query || 
                       name.includes(query) || 
                       desc.includes(query) || 
-                      main.toLowerCase().includes(query) || 
-                      sub.toLowerCase().includes(query);
+                      parts.some(p => p.toLowerCase().includes(query));
       
       if (!isMatch) return;
 
-      if (!filteredGrouped[main]) {
-        filteredGrouped[main] = {
-          subcategories: {},
-          directNodes: [],
-          hasMatches: true
-        };
-      }
-
-      if (sub) {
-        if (!filteredGrouped[main].subcategories[sub]) {
-          filteredGrouped[main].subcategories[sub] = [];
+      let currentLevel = filteredTree;
+      parts.forEach((part, idx) => {
+        if (!currentLevel[part]) {
+          currentLevel[part] = { directNodes: [], children: {} };
         }
-        filteredGrouped[main].subcategories[sub].push({ type, ...nodeSchema });
-      } else {
-        filteredGrouped[main].directNodes.push({ type, ...nodeSchema });
-      }
+        if (idx === parts.length - 1) {
+          currentLevel[part].directNodes.push({ type, ...nodeSchema });
+        } else {
+          currentLevel = currentLevel[part].children;
+        }
+      });
     });
   }
 
@@ -3420,6 +3419,7 @@ return {
           onOpenSettings={() => setSettingsOpen(true)}
           onOpenSplash={() => setSplashOpen(true)}
           onOpenAbout={() => setAboutModalOpen(true)}
+          onLoadExample={() => setLoadExampleOpen(true)}
           onGroupCluster={handleGroupIntoCluster}
           onRun={handleRun}
           onPause={handlePause}
@@ -3487,7 +3487,7 @@ return {
             setSidebarOpen={setSidebarOpen}
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
-            filteredGrouped={filteredGrouped}
+            filteredTree={filteredTree}
             onReloadRegistry={handleReloadRegistry}
           />
 
@@ -4138,6 +4138,9 @@ return {
             fetchWorkspaceBlueprints();
             setLoadWorkspaceOpen(true);
           }}
+          onLoadExample={() => {
+            setLoadExampleOpen(true);
+          }}
           onOpenSettings={() => {
             fetchSettings();
             setSettingsOpen(true);
@@ -4145,6 +4148,14 @@ return {
           onOpenAbout={() => {
             setAboutModalOpen(true);
           }}
+        />
+
+        {/* --- LOAD EXAMPLE MODAL --- */}
+        <LoadExampleModal
+          isOpen={loadExampleOpen}
+          onClose={() => setLoadExampleOpen(false)}
+          onLoadExampleByName={handleLoadExampleByName}
+          BACKEND_URL={BACKEND_URL}
         />
       </div>
     </RegistryContext.Provider>

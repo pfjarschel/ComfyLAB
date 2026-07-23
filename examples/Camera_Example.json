@@ -1,0 +1,166 @@
+{
+  "blocks": [
+    {
+      "id": "block_1784776001428_0",
+      "type": "actionNode",
+      "position": {
+        "x": 0,
+        "y": 178.5
+      },
+      "data": {
+        "action": "devices/generic/camera/connect",
+        "CameraIndex": "0",
+        "Width": 640,
+        "Height": 480,
+        "pinValues": {
+          "Camera": "<comfylab.devices.generic.camera.GenericCamera ..."
+        }
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "250px"
+      }
+    },
+    {
+      "id": "block_1784776004607_1",
+      "type": "actionNode",
+      "position": {
+        "x": 570.3453453453453,
+        "y": 220.60210210210212
+      },
+      "data": {
+        "action": "devices/generic/camera/capture",
+        "Camera": null,
+        "pinValues": {
+          "Frame": "ndarray[360, 640, 3] uint8",
+          "Camera": "<comfylab.devices.generic.camera.GenericCamera ..."
+        }
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "191px"
+      }
+    },
+    {
+      "id": "block_1784777213239_0",
+      "type": "actionNode",
+      "position": {
+        "x": 884.481981981982,
+        "y": 0
+      },
+      "data": {
+        "action": "outputs/basic/array_display",
+        "Data": null,
+        "Quality": 80,
+        "ColorFormat": "BGR"
+      },
+      "style": {
+        "width": 320,
+        "height": 300,
+        "minHeight": "363px"
+      },
+      "width": 416,
+      "height": 582
+    },
+    {
+      "id": "block_1784777279944_1",
+      "type": "actionNode",
+      "position": {
+        "x": 283.24174174174175,
+        "y": 90.3003003003003
+      },
+      "data": {
+        "action": "control_flow/loops/while_loop",
+        "Condition": true
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "133px"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "block_1784776001428_0",
+      "sourceHandle": "Camera",
+      "target": "block_1784776004607_1",
+      "targetHandle": "Camera",
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#64748b"
+      },
+      "id": "xy-edge__block_1784776001428_0Camera-block_1784776004607_1Camera"
+    },
+    {
+      "source": "block_1784776004607_1",
+      "sourceHandle": "Frame",
+      "target": "block_1784777213239_0",
+      "targetHandle": "Data",
+      "style": {
+        "stroke": "#e5a50a",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#e5a50a"
+      },
+      "id": "xy-edge__block_1784776004607_1Frame-block_1784777213239_0Data"
+    },
+    {
+      "source": "block_1784776004607_1",
+      "sourceHandle": "Out",
+      "target": "block_1784777213239_0",
+      "targetHandle": "Display",
+      "style": {
+        "stroke": "#a78bfa",
+        "strokeWidth": 2,
+        "animated": true
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#a78bfa"
+      },
+      "id": "xy-edge__block_1784776004607_1Out-block_1784777213239_0Display"
+    },
+    {
+      "source": "block_1784776001428_0",
+      "sourceHandle": "Out",
+      "target": "block_1784777279944_1",
+      "targetHandle": "Start",
+      "style": {
+        "stroke": "#a78bfa",
+        "strokeWidth": 2,
+        "animated": true
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#a78bfa"
+      },
+      "id": "xy-edge__block_1784776001428_0Out-block_1784777279944_1Start"
+    },
+    {
+      "source": "block_1784777279944_1",
+      "sourceHandle": "LoopBody",
+      "target": "block_1784776004607_1",
+      "targetHandle": "In",
+      "style": {
+        "stroke": "#a78bfa",
+        "strokeWidth": 2,
+        "animated": true
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#a78bfa"
+      },
+      "id": "xy-edge__block_1784777279944_1LoopBody-block_1784776004607_1In"
+    }
+  ],
+  "annotations": [],
+  "origin_uuid": "a15f7feb04b799d69f0ecadbc988fa3f91578e6d97eef6d871c299c97ce9069c"
+}

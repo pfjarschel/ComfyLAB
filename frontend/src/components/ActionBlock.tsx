@@ -24,6 +24,7 @@ import { XYPlotWidget } from './widgets/XYPlotWidget';
 import { HeatmapPlotWidget } from './widgets/HeatmapPlotWidget';
 import { DisplayScreenWidget } from './widgets/DisplayScreenWidget';
 import { ImageDisplayWidget } from './widgets/ImageDisplayWidget';
+import { ArrayDisplayWidget } from './widgets/ArrayDisplayWidget';
 import BeepWidget from './widgets/BeepWidget';
 
 // Re-export pin color resolver for compatibility with App.tsx and BlockInspectorPanel.tsx
@@ -329,7 +330,7 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
       bodyHeight += 138;
     } else if (registryLayout?.ui_behavior?.custom_widget === 'display_area') {
       bodyHeight += 104;
-    } else if (registryLayout?.ui_behavior?.custom_widget === 'time_plot' || registryLayout?.ui_behavior?.custom_widget === 'xy_plot' || registryLayout?.ui_behavior?.custom_widget === 'heatmap_plot' || registryLayout?.ui_behavior?.custom_widget === 'image_display') {
+    } else if (registryLayout?.ui_behavior?.custom_widget === 'time_plot' || registryLayout?.ui_behavior?.custom_widget === 'xy_plot' || registryLayout?.ui_behavior?.custom_widget === 'heatmap_plot' || registryLayout?.ui_behavior?.custom_widget === 'image_display' || registryLayout?.ui_behavior?.custom_widget === 'array_display') {
       bodyHeight += 164;
     } else if (registryLayout?.ui_behavior?.custom_widget === 'calculator') {
       bodyHeight += 130;
@@ -357,7 +358,7 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
     }
 
     // Visual Override connection label rows (checks both showOptional and connected optional pins)
-    if (!registryLayout?.ui_behavior?.render_standard_inputs && (registryLayout?.ui_behavior?.custom_widget === 'display_area' || registryLayout?.ui_behavior?.custom_widget === 'time_plot' || registryLayout?.ui_behavior?.custom_widget === 'xy_plot' || registryLayout?.ui_behavior?.custom_widget === 'heatmap_plot' || registryLayout?.ui_behavior?.custom_widget === 'image_display' || registryLayout?.ui_behavior?.custom_widget === 'calculator')) {
+    if (!registryLayout?.ui_behavior?.render_standard_inputs && (registryLayout?.ui_behavior?.custom_widget === 'display_area' || registryLayout?.ui_behavior?.custom_widget === 'time_plot' || registryLayout?.ui_behavior?.custom_widget === 'xy_plot' || registryLayout?.ui_behavior?.custom_widget === 'heatmap_plot' || registryLayout?.ui_behavior?.custom_widget === 'image_display' || registryLayout?.ui_behavior?.custom_widget === 'array_display' || registryLayout?.ui_behavior?.custom_widget === 'calculator')) {
       const visiblePins = (layout.dataIns || []).filter((pin: any) => !pin.optional || showOptional || edges.some(e => e.target === id && e.targetHandle === pin.name));
       bodyHeight += visiblePins.length * 32;
     }
@@ -1391,6 +1392,12 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
 
         {registryLayout?.ui_behavior?.custom_widget === 'image_display' && (
           <ImageDisplayWidget 
+            blockId={id} 
+          />
+        )}
+
+        {registryLayout?.ui_behavior?.custom_widget === 'array_display' && (
+          <ArrayDisplayWidget 
             blockId={id} 
           />
         )}

@@ -96,7 +96,7 @@ class VISADeviceBlock(BaseBlock):
         ExecIn("Open"),
         DataIn("Address", type_hint=str, default="GPIB0::2::INSTR", widget="text"),
         DataIn("ReadTermination", type_hint=str, default="\n", optional=True),
-        DataIn("WriteTermination", type_hint=str, default="\r\n", optional=True),
+        DataIn("WriteTermination", type_hint=str, default="\n", optional=True),
         DataIn("Timeout", type_hint=float, default=2.0, optional=True)
     ]
     outputs_def = [

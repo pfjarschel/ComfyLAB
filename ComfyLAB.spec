@@ -9,7 +9,8 @@ from PyInstaller.utils.hooks import collect_submodules, collect_data_files
 added_files = [
     ('frontend/dist', 'frontend/dist'),
     ('backend/adjectives.txt', 'backend'),
-    ('backend/nouns.txt', 'backend')
+    ('backend/nouns.txt', 'backend'),
+    ('examples', 'examples')
 ]
 
 if os.path.exists('VERSION'):
@@ -119,14 +120,31 @@ a = Analysis(
         'comfylab.blocks.instruments.pfj_siggen',
         'tests',
         'frontend/node_modules',
-        # Exclude unused GUI frameworks and optional heavy libraries
+        # Exclude unused GUI frameworks, deep learning, and optional heavy libraries
+        'torch',
+        'torchvision',
+        'torchaudio',
+        'tensorflow',
+        'jax',
+        'jaxlib',
+        'cupy',
+        'numba',
+        'cython',
+        'IPython',
+        'ipykernel',
+        'notebook',
+        'jupyter',
         'matplotlib',
+        'seaborn',
+        'bokeh',
         'PyQt6',
         'PyQt5',
         'PySide6',
         'PySide2',
+        'wx',
         'tkinter',
         'tcl',
+        'curses',
     ],
     win_no_prefer_redirects=False,
     win_private_assemblies=False,

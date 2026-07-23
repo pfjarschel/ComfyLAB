@@ -40,6 +40,7 @@ interface TopBarProps {
   onSaveBlueprint: () => void;
   onOverwriteBlueprint?: () => void;
   onLoadBlueprint: () => void;
+  onLoadExample?: () => void;
   onClearTemporaryFiles: () => void;
   onClearPersistentStates: () => void;
   onDownloadBlueprint: () => void;
@@ -80,6 +81,7 @@ export const TopBar = ({
   onSaveBlueprint,
   onOverwriteBlueprint,
   onLoadBlueprint,
+  onLoadExample,
   onClearTemporaryFiles,
   onClearPersistentStates,
   onDownloadBlueprint,
@@ -136,6 +138,11 @@ export const TopBar = ({
               <button onClick={onLoadBlueprint}>
                 <span>📂</span> Load Blueprint
               </button>
+              {onLoadExample && (
+                <button onClick={() => { setMenuOpen(false); onLoadExample(); }}>
+                  <span>🧪</span> Load Example
+                </button>
+              )}
               <button onClick={onClearTemporaryFiles}>
                 <span>🧹</span> Clear Temporary Files
               </button>

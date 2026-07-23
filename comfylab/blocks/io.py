@@ -10,6 +10,8 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 
+import base64
+import io
 import os
 import csv
 import json
@@ -93,6 +95,93 @@ class ImageDisplayBlock(BaseBlock):
         }
         await context.send_telemetry(self.id, payload)
         return "Out"
+
+
+@register_block("outputs/basic/array_display")
+class ArrayDisplayBlock(BaseBlock):
+    """Displays a numeric array (2D grayscale or 3D color) directly as an image in the UI without saving to disk."""
+    icon = "🖼️"
+    display_name = "Array Display"
+    description = "Displays a numeric array (2D grayscale or 3D BGR/RGB) directly as an image in the UI."
+    default_width = 320
+    default_height = 300
+    ui_behavior = {"custom_widget": "array_display", "render_standard_inputs": True}
+
+    inputs_def = [
+        ExecIn("Display"),
+        DataIn("Data", type_hint=np.ndarray),
+        DataIn("Quality", type_hint=int, default=80, optional=True, widget="slider", options={"min": 10, "max": 100, "step": 5}),
+        DataIn("ColorFormat", type_hint=str, default="BGR", widget="dropdown", options=["BGR", "RGB", "Grayscale"], optional=True)
+    ]
+    outputs_def = [
+        ExecOut("Out"),
+        DataOut("Data", type_hint=np.ndarray)
+    ]
+
+    def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
+        super().__init__(block_id, properties)
+        self._last_data: Optional[np.ndarray] = None
+
+    async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
+        data = await context.pull(self.id, "Data")
+        quality = await context.pull(self.id, "Quality")
+        color_fmt = await context.pull(self.id, "ColorFormat")
+
+        if data is None:
+            return "Out"
+
+        self._last_data = data
+        quality_val = int(quality) if quality is not None else 80
+        quality_val = max(10, min(100, quality_val))
+
+        try:
+            from PIL import Image
+            arr = np.asarray(data)
+            if np.issubdtype(arr.dtype, np.floating):
+                if np.min(arr) >= 0.0 and np.max(arr) <= 1.0:
+                    arr = arr * 255.0
+            arr = np.clip(arr, 0, 255).astype(np.uint8)
+
+            img = None
+            if arr.ndim == 2:
+                img = Image.fromarray(arr, mode='L')
+            elif arr.ndim == 3:
+                channels = arr.shape[2]
+                if channels == 1:
+                    img = Image.fromarray(arr.squeeze(axis=2), mode='L')
+                elif channels == 3:
+                    if color_fmt == "BGR":
+                        arr_rgb = arr[:, :, ::-1]
+                        img = Image.fromarray(arr_rgb, mode='RGB')
+                    else:
+                        img = Image.fromarray(arr, mode='RGB')
+                elif channels == 4:
+                    img = Image.fromarray(arr, mode='RGBA')
+
+            if img is not None:
+                buf = io.BytesIO()
+                if img.mode == 'RGBA':
+                    img = img.convert('RGB')
+                img.save(buf, format="JPEG", quality=quality_val)
+                b64_str = base64.b64encode(buf.getvalue()).decode('ascii')
+                img.close()
+                buf.close()
+
+                payload = {
+                    "image_data": f"data:image/jpeg;base64,{b64_str}"
+                }
+                await context.send_telemetry(self.id, payload)
+        except Exception as e:
+            logger.error(f"ArrayDisplayBlock error: {e}")
+
+        return "Out"
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Data":
+            if self._last_data is not None:
+                return self._last_data
+            return await context.pull(self.id, "Data")
+        return None
 
 
 @register_block(r"File I\/O/image_to_array")

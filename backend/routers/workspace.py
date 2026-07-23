@@ -12,6 +12,7 @@
 
 import json
 import os
+import sys
 import platform
 import shutil
 import subprocess
@@ -115,6 +116,65 @@ async def list_workspace_blueprints():
             "modified": f.stat().st_mtime
         })
     return {"blueprints": blueprints}
+
+
+def get_examples_dir() -> Path:
+    """Returns the path to the built-in examples directory."""
+    if hasattr(sys, "_MEIPASS"):
+        base_dir = Path(getattr(sys, "_MEIPASS"))
+    else:
+        base_dir = Path(__file__).resolve().parent.parent.parent
+    
+    examples_dir = base_dir / "examples"
+    examples_dir.mkdir(parents=True, exist_ok=True)
+    return examples_dir
+
+
+@router.get("/workspace/examples")
+async def list_example_blueprints():
+    """Lists all built-in example blueprint JSON files."""
+    examples_dir = get_examples_dir()
+
+    if not examples_dir.exists():
+        return {"examples": []}
+
+    examples = []
+    for f in sorted(examples_dir.glob("*.json")):
+        examples.append({
+            "filename": f.name,
+            "path": str(f),
+            "size": f.stat().st_size,
+            "modified": f.stat().st_mtime
+        })
+    return {"examples": examples}
+
+
+@router.get("/workspace/examples/{filename:path}")
+async def load_example_blueprint(filename: str):
+    """Loads a specific built-in example blueprint JSON file."""
+    examples_dir = get_examples_dir()
+
+    if not filename.endswith(".json"):
+        filename += ".json"
+
+    try:
+        file_path = resolve_within(examples_dir, filename)
+    except ValueError:
+        raise HTTPException(status_code=403, detail="Access denied: invalid filename.")
+
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Example blueprint not found")
+
+    try:
+        data = json.loads(file_path.read_text(encoding="utf-8"))
+        return {
+            "blueprint": data,
+            "filename": filename,
+            "is_trusted": True,
+            "is_example": True
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read example blueprint: {str(e)}")
 
 
 @router.delete("/workspace/blueprints/{filename:path}")
