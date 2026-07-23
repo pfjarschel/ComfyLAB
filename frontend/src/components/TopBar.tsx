@@ -14,6 +14,7 @@
 
 import React, { useState } from 'react';
 import { AboutModal } from './modals/AboutModal';
+import { QuickStartModal } from './modals/QuickStartModal';
 
 interface TopBarProps {
   menuOpen: boolean;
@@ -49,6 +50,7 @@ interface TopBarProps {
   onOpenSettings: () => void;
   onOpenSplash?: () => void;
   onOpenAbout?: () => void;
+  onOpenQuickStart?: () => void;
   onGroupCluster: () => void;
   onRun: () => void;
   onPause: () => void;
@@ -90,6 +92,7 @@ export const TopBar = ({
   onOpenSettings,
   onOpenSplash,
   onOpenAbout,
+  onOpenQuickStart,
    
   onRun,
   onPause,
@@ -98,10 +101,12 @@ export const TopBar = ({
   onImportPackage,
 }: TopBarProps) => {
   const [showAboutModal, setShowAboutModal] = useState(false);
+  const [showQuickStartModal, setShowQuickStartModal] = useState(false);
 
   return (
     <>
       {showAboutModal && <AboutModal onClose={() => setShowAboutModal(false)} />}
+      {showQuickStartModal && <QuickStartModal onClose={() => setShowQuickStartModal(false)} />}
       <div className="top-bar">
       {/* Left section: Hamburger, Settings, Sidebar toggle, Workspace */}
       <div className="top-bar-left">
@@ -157,6 +162,9 @@ export const TopBar = ({
               </button>
               <button onClick={onUploadFileClick}>
                 <span>📁</span> Upload File
+              </button>
+              <button onClick={() => { setMenuOpen(false); onOpenQuickStart ? onOpenQuickStart() : setShowQuickStartModal(true); }}>
+                <span>📖</span> Quick Start Guide
               </button>
               {onOpenSplash && (
                 <button onClick={() => { setMenuOpen(false); onOpenSplash(); }}>
@@ -333,6 +341,30 @@ export const TopBar = ({
               ComfyLAB
             </a> <span style={{ fontSize: '0.8em', opacity: 0.8 }}>v{import.meta.env.VITE_APP_VERSION}</span>
           </h1>
+          <button
+            onClick={() => onOpenQuickStart ? onOpenQuickStart() : setShowQuickStartModal(true)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '24px',
+              height: '24px',
+              borderRadius: '50%',
+              padding: '0',
+              border: 'none',
+              background: 'transparent',
+              color: 'var(--text-secondary)',
+              cursor: 'pointer',
+              opacity: 0.8
+            }}
+            title="Quick Start Guide"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+          </button>
           <button
             onClick={() => onOpenAbout ? onOpenAbout() : setShowAboutModal(true)}
             style={{

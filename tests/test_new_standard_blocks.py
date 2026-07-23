@@ -231,3 +231,34 @@ async def test_string_blocks():
 
     cased = await engine.blocks["str_case"].pull_data(context, "Result")
     assert cased == "comfylab"
+
+
+@pytest.mark.asyncio
+async def test_string_contains_block():
+    blueprint = {
+        "blocks": [
+            {"id": "str_contains_1", "type": "string/contains", "properties": {"Text": "Hello world from ComfyLAB", "Search": "world"}},
+            {"id": "str_contains_2", "type": "string/contains", "properties": {"Text": "Hello world from ComfyLAB", "Search": "missing"}},
+            {"id": "str_contains_3", "type": "string/contains", "properties": {"Text": "Hello world from ComfyLAB", "Search": ""}}
+        ],
+        "links": []
+    }
+    engine = ExecutionEngine()
+    engine.load_blueprint(blueprint)
+    context = ExecutionContext(engine, "test_run", engine.lock_manager)
+
+    found1 = await engine.blocks["str_contains_1"].pull_data(context, "Found")
+    idx1 = await engine.blocks["str_contains_1"].pull_data(context, "Index")
+    assert found1 is True
+    assert idx1 == 6
+
+    found2 = await engine.blocks["str_contains_2"].pull_data(context, "Found")
+    idx2 = await engine.blocks["str_contains_2"].pull_data(context, "Index")
+    assert found2 is False
+    assert idx2 == -1
+
+    found3 = await engine.blocks["str_contains_3"].pull_data(context, "Found")
+    idx3 = await engine.blocks["str_contains_3"].pull_data(context, "Index")
+    assert found3 is False
+    assert idx3 == -1
+

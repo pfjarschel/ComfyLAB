@@ -22,6 +22,7 @@ interface SplashScreenModalProps {
   onLoadExample?: () => void;
   onOpenSettings: () => void;
   onOpenAbout: () => void;
+  onOpenQuickStart?: () => void;
 }
 
 export const SplashScreenModal: React.FC<SplashScreenModalProps> = ({
@@ -32,6 +33,7 @@ export const SplashScreenModal: React.FC<SplashScreenModalProps> = ({
   onLoadExample,
   onOpenSettings,
   onOpenAbout,
+  onOpenQuickStart,
 }) => {
   const [dontShowAgain, setDontShowAgain] = useState(() => {
     return localStorage.getItem('comfylab_hide_splash') === 'true';
@@ -257,6 +259,41 @@ export const SplashScreenModal: React.FC<SplashScreenModalProps> = ({
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>VISA & Scripting options</div>
               </div>
             </div>
+
+            {onOpenQuickStart && (
+              <div
+                className="splash-card"
+                onClick={() => {
+                  onOpenQuickStart();
+                  onClose();
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '14px',
+                  borderRadius: '8px',
+                  background: 'var(--dnd-bg)',
+                  border: '1px solid var(--block-border)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--accent-color)';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--block-border)';
+                  e.currentTarget.style.transform = 'none';
+                }}
+              >
+                <span style={{ fontSize: '1.6rem' }}>📖</span>
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-color)' }}>Quick Start Guide</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Complete feature walkthrough</div>
+                </div>
+              </div>
+            )}
 
             <div
               className="splash-card"

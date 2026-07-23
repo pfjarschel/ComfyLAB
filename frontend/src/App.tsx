@@ -54,6 +54,7 @@ import { CanvasContextMenu } from './components/modals/CanvasContextMenu';
 import { UploadFileModal } from './components/modals/UploadFileModal';
 import { ConfirmModal } from './components/modals/ConfirmModal';
 import { AboutModal } from './components/modals/AboutModal';
+import { QuickStartModal } from './components/modals/QuickStartModal';
 import { SplashScreenModal } from './components/modals/SplashScreenModal';
 import { LoadExampleModal } from './components/modals/LoadExampleModal';
 import { WhiteboardOverlay } from './components/widgets/WhiteboardOverlay';
@@ -455,8 +456,9 @@ function Flow() {
   const [diagnosticsData, setDiagnosticsData] = useState<any>(null);
   const [loadingDiagnostics, setLoadingDiagnostics] = useState(false);
 
-  // Splash Screen, Example & About Modal States
+  // Splash Screen, Example, About & Quick Start Modal States
   const [aboutModalOpen, setAboutModalOpen] = useState(false);
+  const [quickStartModalOpen, setQuickStartModalOpen] = useState(false);
   const [loadExampleOpen, setLoadExampleOpen] = useState(false);
   const [isExampleBlueprint, setIsExampleBlueprint] = useState(false);
   const [splashOpen, setSplashOpen] = useState<boolean>(() => {
@@ -3431,6 +3433,7 @@ return {
           onOpenSettings={() => setSettingsOpen(true)}
           onOpenSplash={() => setSplashOpen(true)}
           onOpenAbout={() => setAboutModalOpen(true)}
+          onOpenQuickStart={() => setQuickStartModalOpen(true)}
           onLoadExample={() => setLoadExampleOpen(true)}
           onGroupCluster={handleGroupIntoCluster}
           onRun={handleRun}
@@ -4141,6 +4144,11 @@ return {
           <AboutModal onClose={() => setAboutModalOpen(false)} />
         )}
 
+        {/* --- QUICK START MODAL --- */}
+        {quickStartModalOpen && (
+          <QuickStartModal onClose={() => setQuickStartModalOpen(false)} />
+        )}
+
         {/* --- SPLASH SCREEN MODAL --- */}
         <SplashScreenModal
           isOpen={splashOpen}
@@ -4165,6 +4173,9 @@ return {
           }}
           onOpenAbout={() => {
             setAboutModalOpen(true);
+          }}
+          onOpenQuickStart={() => {
+            setQuickStartModalOpen(true);
           }}
         />
 

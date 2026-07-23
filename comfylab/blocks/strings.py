@@ -214,3 +214,31 @@ class FormatStringBlock(BaseBlock):
             except Exception as e:
                 return f"[Format Error: {e}]"
         return None
+
+
+@register_block("string/contains")
+class StringContainsBlock(BaseBlock):
+    """Searches for occurrences of a substring within a string."""
+    icon = "🔍"
+    display_name = "String Contains"
+    description = "Searches a string for occurrences of another string, returning whether it was found and the index of its last appearance."
+    
+    inputs_def = [
+        DataIn("Text", type_hint=str, default="", widget="text"),
+        DataIn("Search", type_hint=str, default="", widget="text")
+    ]
+    outputs_def = [
+        DataOut("Found", type_hint=bool),
+        DataOut("Index", type_hint=int)
+    ]
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        text = str(await context.pull(self.id, "Text") or "")
+        search = str(await context.pull(self.id, "Search") or "")
+        
+        if pin_name == "Found":
+            return (search in text) if search else False
+        elif pin_name == "Index":
+            return text.find(search) if search else -1
+        return None
+
