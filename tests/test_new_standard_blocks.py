@@ -262,3 +262,56 @@ async def test_string_contains_block():
     assert found3 is False
     assert idx3 == -1
 
+
+@pytest.mark.asyncio
+async def test_table_view_block():
+    import numpy as np
+    from comfylab.blocks.outputs_basic import format_table_data
+
+    # 1. 2D ndarray
+    arr_2d = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]])
+    res_2d = format_table_data(arr_2d, custom_headers="X, Y")
+    assert res_2d["headers"] == ["X", "Y"]
+    assert res_2d["total_rows"] == 3
+    assert res_2d["total_cols"] == 2
+    assert res_2d["rows"] == [[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]
+    assert res_2d["truncated"] is False
+
+    # 2. Large ndarray (truncation test > 1000 rows)
+    arr_large = np.zeros((1200, 5))
+    res_large = format_table_data(arr_large)
+    assert res_large["total_rows"] == 1200
+    assert len(res_large["rows"]) == 1000
+    assert res_large["truncated"] is True
+
+    # 3. List of dicts
+    data_dicts = [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 25}]
+    res_dicts = format_table_data(data_dicts)
+    assert res_dicts["headers"] == ["name", "age"]
+    assert res_dicts["rows"] == [["Alice", 30], ["Bob", 25]]
+
+    # 4. Engine execution test
+    blueprint = {
+        "blocks": [
+            {"id": "tbl", "type": "outputs/basic/table", "properties": {"Data": [[10, 20], [30, 40]], "Headers": "ColA, ColB"}}
+        ],
+        "links": []
+    }
+    engine = ExecutionEngine()
+    engine.load_blueprint(blueprint)
+    context = ExecutionContext(engine, "test_run", engine.lock_manager)
+
+    telemetry_received = []
+    async def mock_telemetry(block_id, payload):
+        telemetry_received.append((block_id, payload))
+
+    context.send_telemetry = mock_telemetry
+    await engine.blocks["tbl"].execute(context, "In")
+
+    assert len(telemetry_received) == 1
+    t_id, t_payload = telemetry_received[0]
+    assert t_id == "tbl"
+    assert t_payload["headers"] == ["ColA", "ColB"]
+    assert t_payload["rows"] == [[10, 20], [30, 40]]
+
+
