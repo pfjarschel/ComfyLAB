@@ -86,15 +86,15 @@ def setup_logging():
         if arg == "--log-level" and i + 1 < len(sys.argv):
             uvicorn_level_name = sys.argv[i + 1].upper()
 
-    default_base_level = uvicorn_level_name or os.environ.get("COMFYLAB_LOG_LEVEL", "INFO").upper()
+    default_base_level = uvicorn_level_name or os.environ.get("COMFYLAB_LOG_LEVEL", "WARNING").upper()
     default_console_level = uvicorn_level_name or os.environ.get("COMFYLAB_CONSOLE_LEVEL", "WARNING").upper()
-    default_file_level = os.environ.get("COMFYLAB_FILE_LEVEL", "INFO").upper()
+    default_file_level = os.environ.get("COMFYLAB_FILE_LEVEL", "WARNING").upper()
 
     valid_levels = ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL")
     
-    base_level = getattr(logging, default_base_level) if default_base_level in valid_levels else logging.INFO
+    base_level = getattr(logging, default_base_level) if default_base_level in valid_levels else logging.WARNING
     console_level = getattr(logging, default_console_level) if default_console_level in valid_levels else logging.WARNING
-    file_level = getattr(logging, default_file_level) if default_file_level in valid_levels else logging.INFO
+    file_level = getattr(logging, default_file_level) if default_file_level in valid_levels else logging.WARNING
 
     root_logger = logging.getLogger()
     # Force base level to lowest of requested levels to allow proper filtering at handlers

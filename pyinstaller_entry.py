@@ -49,6 +49,8 @@ def main():
 
     # Set PYTHONPATH environment variable to ensure child processes can resolve imports
     os.environ["PYTHONPATH"] = str(base_dir)
+    os.environ["COMFYLAB_FRONTEND_PORT"] = str(port)
+    os.environ["COMFYLAB_BACKEND_PORT"] = str(port)
 
     # Auto-open the web browser pointing to the server
     browser_url = f"http://127.0.0.1:{port}" if host in ("0.0.0.0", "::") else f"http://{host}:{port}"
@@ -81,7 +83,7 @@ def main():
     # proxy_headers=False: the localhost-trust check relies on the real client
     # IP, so X-Forwarded-For spoofing must not be honored.
     try:
-        uvicorn.run(app, host=host, port=port, log_level="info", proxy_headers=False)
+        uvicorn.run(app, host=host, port=port, log_level="warning", proxy_headers=False)
     except KeyboardInterrupt:
         print("\n[ComfyLAB Standalone] Stopping server...")
     print("[ComfyLAB Standalone] Exited cleanly.")

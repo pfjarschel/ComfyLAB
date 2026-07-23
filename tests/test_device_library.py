@@ -39,9 +39,7 @@ from comfylab.devices.thorlabs.mdt69x import ThorlabsMDT69X
 from comfylab.devices.ni.nidaqmx_device import NIDAQmxDevice
 from comfylab.devices.mcc.mcdaq1208ls import MCCDAQ1208LS
 
-# Test block discovery & registration
-from comfylab.blocks.loader import load_blocks_from_directory
-from comfylab.engine.registry import get_registered_blocks
+from comfylab.engine.registry import BLOCK_REGISTRY
 
 
 def test_tbs1062_driver_mock():
@@ -200,7 +198,7 @@ def test_block_registration_discovery():
     devices_dir = str(Path(devices_pkg.__file__).parent)
     loader.load_blocks_from_directory(devices_dir)
 
-    registered = get_registered_blocks()
+    registered = BLOCK_REGISTRY
     
     # Check block discovery for newly added devices
     assert "devices/keysight/dsox_series/connect" in registered

@@ -11,6 +11,9 @@
 # GNU General Public License for more details.
 
 import os
+import socket
+import struct
+import subprocess
 import logging
 import secrets
 import base64
@@ -58,12 +61,6 @@ def generate_server_token():
 SERVER_TOKEN = generate_server_token()
 config_module.SESSION_TOKEN = SERVER_TOKEN
 
-print("\033[1;35m")
-print("  ========================================================")
-print(f"   [ComfyLAB Security] Remote Access Token: {SERVER_TOKEN}  ")
-print("  ========================================================")
-print("\033[0m")
-
 app = FastAPI(
     title="ComfyLAB Virtual Sandbox API",
     description="Backend API serving the ComfyLAB push/pull block execution engine and WebSocket telemetry."
@@ -97,10 +94,233 @@ def get_frontend_dist_path() -> Path:
         return source_dist
 
     cwd_dist = Path.cwd() / "frontend" / "dist"
-    if cwd_dist.exists():
-        return cwd_dist
-
     return source_dist
+
+def get_frontend_port() -> int:
+    """Returns the port through which users access the frontend UI."""
+    if "COMFYLAB_FRONTEND_PORT" in os.environ:
+        try:
+            return int(os.environ["COMFYLAB_FRONTEND_PORT"])
+        except ValueError:
+            pass
+    frontend_dist = get_frontend_dist_path()
+    if frontend_dist.exists() and not is_test_environment():
+        return int(os.environ.get("COMFYLAB_PORT", 8000))
+    else:
+        return 5173
+
+def get_system_search_domains() -> list:
+    """Extracts system DNS search domains from /etc/resolv.conf (Unix) or Windows Registry (Windows)."""
+    domains = []
+    if sys.platform == "win32":
+        try:
+            import winreg
+            with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Services\Tcpip\Parameters") as key:
+                for val_name in ("Domain", "DhcpDomain"):
+                    try:
+                        val, _ = winreg.QueryValueEx(key, val_name)
+                        if val and val.strip() and val.strip() not in domains:
+                            domains.append(val.strip())
+                    except Exception:
+                        pass
+                try:
+                    search_list, _ = winreg.QueryValueEx(key, "SearchList")
+                    if search_list:
+                        for s in search_list.split(","):
+                            s = s.strip()
+                            if s and s not in domains:
+                                domains.append(s)
+                except Exception:
+                    pass
+        except Exception:
+            pass
+    else:
+        resolv_file = Path("/etc/resolv.conf")
+        if resolv_file.exists():
+            try:
+                for line in resolv_file.read_text().splitlines():
+                    line = line.strip()
+                    if line.startswith("domain ") or line.startswith("search "):
+                        for part in line.split()[1:]:
+                            part = part.strip()
+                            if part and part not in domains:
+                                domains.append(part)
+            except Exception:
+                pass
+    return domains
+
+def get_dns_nameservers() -> list:
+    """Returns a list of active system DNS server IP addresses."""
+    servers = []
+    if sys.platform != "win32":
+        resolv_file = Path("/etc/resolv.conf")
+        if resolv_file.exists():
+            try:
+                for line in resolv_file.read_text().splitlines():
+                    line = line.strip()
+                    if line.startswith("nameserver "):
+                        parts = line.split()
+                        if len(parts) > 1 and parts[1] not in servers:
+                            servers.append(parts[1])
+            except Exception:
+                pass
+    if not servers:
+        servers = ["127.0.0.53", "127.0.0.1", "1.1.1.1", "8.8.8.8"]
+    return servers
+
+def query_dns_ptr_raw(ip: str, dns_server: str, timeout: float = 0.4) -> str:
+    """Performs a direct UDP DNS PTR query for an IPv4 address to a specific DNS server."""
+    parts = ip.split(".")
+    if len(parts) != 4:
+        return ""
+    arpa_domain = ".".join(reversed(parts)) + ".in-addr.arpa"
+
+    packet = b"\x12\x34\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00"
+    for part in arpa_domain.split("."):
+        packet += bytes([len(part)]) + part.encode("ascii")
+    packet += b"\x00"
+    packet += struct.pack(">HH", 12, 1)
+
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.settimeout(timeout)
+            s.sendto(packet, (dns_server, 53))
+            data, _ = s.recvfrom(512)
+
+        idx = 12
+        while idx < len(data) and data[idx] != 0:
+            if (data[idx] & 0xC0) == 0xC0:
+                idx += 2
+                break
+            idx += data[idx] + 1
+        if idx < len(data) and data[idx] == 0:
+            idx += 1
+        idx += 4
+
+        while idx < len(data):
+            if (data[idx] & 0xC0) == 0xC0:
+                idx += 2
+            else:
+                while idx < len(data) and data[idx] != 0:
+                    idx += data[idx] + 1
+                idx += 1
+            if idx + 10 > len(data):
+                break
+            rtype, rclass, ttl, rdlength = struct.unpack(">HHIH", data[idx:idx+10])
+            idx += 10
+            if rtype == 12:  # PTR record
+                ptr_labels = []
+                r_end = idx + rdlength
+                curr = idx
+                while curr < r_end:
+                    length = data[curr]
+                    if length == 0:
+                        break
+                    if (length & 0xC0) == 0xC0:
+                        ptr_offset = struct.unpack(">H", data[curr:curr+2])[0] & 0x3FFF
+                        curr_ptr = ptr_offset
+                        while curr_ptr < len(data) and data[curr_ptr] != 0:
+                            l = data[curr_ptr]
+                            ptr_labels.append(data[curr_ptr+1:curr_ptr+1+l].decode("ascii", errors="ignore"))
+                            curr_ptr += l + 1
+                        break
+                    else:
+                        ptr_labels.append(data[curr+1:curr+1+length].decode("ascii", errors="ignore"))
+                        curr += length + 1
+                if ptr_labels:
+                    return ".".join(ptr_labels).rstrip(".")
+    except Exception:
+        pass
+    return ""
+
+def get_network_fqdn_for_ip(ip: str, is_primary: bool = False) -> str:
+    """Queries DNS PTR records and system search domains to find the true network-assigned FQDN for an IP."""
+    # 1. Try system CLI utilities (host / nslookup) if available
+    if shutil.which("host"):
+        try:
+            proc = subprocess.run(["host", "-W", "1", ip], capture_output=True, text=True, timeout=1.0)
+            if proc.returncode == 0 and "domain name pointer " in proc.stdout:
+                name = proc.stdout.split("domain name pointer ")[-1].strip().rstrip(".")
+                if name and name != ip and "." in name and not name.endswith(".local"):
+                    return name
+        except Exception:
+            pass
+
+    if shutil.which("nslookup"):
+        try:
+            proc = subprocess.run(["nslookup", "-timeout=1", ip], capture_output=True, text=True, timeout=1.0)
+            if proc.returncode == 0 and "name = " in proc.stdout:
+                name = proc.stdout.split("name = ")[-1].splitlines()[0].strip().rstrip(".")
+                if name and name != ip and "." in name and not name.endswith(".local"):
+                    return name
+        except Exception:
+            pass
+
+    # 2. Direct UDP DNS PTR query to system DNS servers
+    for ns in get_dns_nameservers():
+        ptr_name = query_dns_ptr_raw(ip, ns)
+        if ptr_name and ptr_name != ip and "." in ptr_name and not ptr_name.endswith(".local"):
+            return ptr_name
+
+    # 3. Fallback to system search domains
+    search_domains = get_system_search_domains()
+    hostname = socket.gethostname()
+    if search_domains:
+        for sd in search_domains:
+            candidate = f"{hostname}.{sd}"
+            try:
+                if socket.gethostbyname(candidate) == ip:
+                    return candidate
+            except Exception:
+                pass
+        if is_primary:
+            return f"{hostname}.{search_domains[0]}"
+
+    return ""
+
+def get_local_ip_addresses() -> list:
+    """
+    Retrieves all non-loopback IPv4 addresses assigned to local network interfaces
+    and resolves network-assigned FQDN hostnames for each interface.
+    Returns a list of tuples: (ip_address, fqdn_hostname).
+    """
+    ips = []
+    # Primary outbound IP
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.settimeout(0.2)
+            s.connect(("10.255.255.255", 1))
+            ip = s.getsockname()[0]
+            if ip and not ip.startswith("127.") and ip not in ips:
+                ips.append(ip)
+    except Exception:
+        pass
+
+    # Hostname resolution
+    try:
+        hostname = socket.gethostname()
+        for ip in socket.gethostbyname_ex(hostname)[2]:
+            if ip and not ip.startswith("127.") and ip not in ips:
+                ips.append(ip)
+    except Exception:
+        pass
+
+    # Addrinfo fallback
+    try:
+        for item in socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET):
+            ip = item[4][0]
+            if ip and not ip.startswith("127.") and ip not in ips:
+                ips.append(ip)
+    except Exception:
+        pass
+
+    results = []
+    for idx, ip in enumerate(ips):
+        is_primary = (idx == 0)
+        fqdn = get_network_fqdn_for_ip(ip, is_primary=is_primary)
+        results.append((ip, fqdn))
+
+    return results
 
 # Security middleware to enforce remote access token verification
 @app.middleware("http")
@@ -226,6 +446,31 @@ async def startup_event():
         logger.info(f"Cluster loading complete. Total registered blocks: {len(BLOCK_REGISTRY)}")
     except Exception as e:
         logger.error(f"Cluster loading skipped (will retry on reload): {e}")
+
+    if not is_test_environment():
+        port = get_frontend_port()
+        remote_ips = get_local_ip_addresses()
+
+        max_target_len = max(
+            [len(f"http://{ip}:{port} ({fqdn})") if fqdn else len(f"http://{ip}:{port}") for ip, fqdn in remote_ips]
+            + [len(f"http://127.0.0.1:{port}")]
+        )
+        width = max(64, max_target_len + 26)
+
+        print("\033[1;35m")
+        print("  " + "=" * width)
+        print(f"   [ComfyLAB Security] Remote Access Token: {SERVER_TOKEN}")
+        print("  " + "-" * width)
+        print(f"   Local browser access: http://127.0.0.1:{port}")
+        if remote_ips:
+            first_ip, first_host = remote_ips[0]
+            first_target = f"http://{first_ip}:{port}" + (f" ({first_host})" if first_host else "")
+            print(f"   Remote access:        {first_target}")
+            for ip, host in remote_ips[1:]:
+                target = f"http://{ip}:{port}" + (f" ({host})" if host else "")
+                print(f"                         {target}")
+        print("  " + "=" * width)
+        print("\033[0m")
 
 IS_TESTING = is_test_environment()
 FRONTEND_DIST = get_frontend_dist_path()

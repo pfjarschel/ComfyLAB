@@ -63,7 +63,7 @@ interface PlotlyXYRendererProps {
 
 const PlotlyXYRenderer = ({ blockId, xLabel, yLabel, width, height, onChange, savedLayout }: PlotlyXYRendererProps) => {
   const { getNode } = useReactFlow();
-  const [plotData, setPlotData] = useState<{x: any[], y: any[]}>({ x: [], y: [] });
+  const [plotData, setPlotData] = useState<{x: any[], y: any[], labels?: any[]}>({ x: [], y: [] });
   const [labels, setLabels] = useState({ x: xLabel, y: yLabel });
   const [limits, setLimits] = useState<{x_min?: number, x_max?: number, y_min?: number, y_max?: number}>({});
 

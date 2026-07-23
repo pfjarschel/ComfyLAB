@@ -334,7 +334,7 @@ export const TopBar = ({
             </a> <span style={{ fontSize: '0.8em', opacity: 0.8 }}>v{import.meta.env.VITE_APP_VERSION}</span>
           </h1>
           <button
-            onClick={() => setShowAboutModal(true)}
+            onClick={() => onOpenAbout ? onOpenAbout() : setShowAboutModal(true)}
             style={{
               display: 'flex',
               alignItems: 'center',

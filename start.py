@@ -114,13 +114,15 @@ def main():
 
     try:
         if mode == "production":
+            env["COMFYLAB_FRONTEND_PORT"] = str(port)
+            env["COMFYLAB_BACKEND_PORT"] = str(port)
             # In production, FastAPI serves the compiled files directly on the configured port
             browser_url = f"http://127.0.0.1:{port}" if host in ("0.0.0.0", "::") else f"http://{host}:{port}"
             
             print(f"[ComfyLAB] Starting FastAPI Backend on {host}:{port}...")
             # --no-proxy-headers: ComfyLAB's localhost-trust check relies on the real
             # client IP, so X-Forwarded-For spoofing must not be honored.
-            backend_cmd = [sys.executable, "-m", "uvicorn", "backend.main:app", "--host", host, "--port", str(port), "--log-level", "info", "--no-proxy-headers"]
+            backend_cmd = [sys.executable, "-m", "uvicorn", "backend.main:app", "--host", host, "--port", str(port), "--log-level", "warning", "--no-proxy-headers"]
             backend_proc = subprocess.Popen(backend_cmd, cwd=str(script_dir), env=env)
             
             # Wait for backend to initialize before opening browser
@@ -129,6 +131,9 @@ def main():
             webbrowser.open(browser_url)
 
         else:
+            env["COMFYLAB_FRONTEND_PORT"] = str(vite_port)
+            env["COMFYLAB_BACKEND_PORT"] = str(port)
+            env["COMFYLAB_DEV_MODE"] = "1"
             # In development, Vite runs on port 5173 and proxy requests to FastAPI on port 8000
             # Validate that Node.js / NPM is installed
             if not is_npm_installed():
@@ -167,7 +172,7 @@ def main():
 
             # Start backend (FastAPI) on the configured port
             print(f"[ComfyLAB] Starting FastAPI Backend on {host}:{port}...")
-            backend_cmd = [sys.executable, "-m", "uvicorn", "backend.main:app", "--host", host, "--port", str(port), "--reload", "--log-level", "info", "--no-proxy-headers"]
+            backend_cmd = [sys.executable, "-m", "uvicorn", "backend.main:app", "--host", host, "--port", str(port), "--reload", "--log-level", "warning", "--no-proxy-headers"]
             backend_proc = subprocess.Popen(backend_cmd, cwd=str(script_dir), env=env)
 
             # Start frontend (Vite) on the configured vite_port

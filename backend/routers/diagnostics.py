@@ -141,3 +141,31 @@ async def check_dependencies() -> Dict[str, Any]:
         },
         "instructions": instructions
     }
+
+@router.get("/server_info")
+async def get_server_info() -> Dict[str, Any]:
+    """
+    Returns server network access information, local/remote access URLs, and active session token.
+    """
+    from backend.main import SERVER_TOKEN, get_frontend_port, get_local_ip_addresses
+    port = get_frontend_port()
+    remote_entries = get_local_ip_addresses()
+
+    local_url = f"http://127.0.0.1:{port}"
+    remote_urls = []
+    for ip, fqdn in remote_entries:
+        target = f"http://{ip}:{port}" + (f" ({fqdn})" if fqdn else "")
+        remote_urls.append({
+            "ip": ip,
+            "fqdn": fqdn,
+            "display": target,
+            "raw_url": f"http://{ip}:{port}"
+        })
+
+    return {
+        "status": "success",
+        "port": port,
+        "token": SERVER_TOKEN,
+        "local_url": local_url,
+        "remote_urls": remote_urls
+    }
