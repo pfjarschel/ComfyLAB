@@ -804,12 +804,15 @@ function Flow() {
         return {
           ...t,
           name: currentBlueprintName || 'Untitled',
+          blocks: blocks,
+          edges: edges,
+          annotations: annotations,
           isDirty: isDirty
         };
       }
       return t;
     }));
-  }, [currentBlueprintName, isDirty, activeTabId]);
+  }, [currentBlueprintName, isDirty, activeTabId, blocks, edges, annotations]);
 
   // Automatically close script editor if the editing block is deleted/removed
   useEffect(() => {
@@ -3307,6 +3310,7 @@ return {
             if (await confirmAsync('Are you sure you want to clear the canvas and start a new blueprint?')) {
               setBlocks([]);
               setEdges([]);
+              setAnnotations([]);
               setCurrentBlueprintName('');
               setIsDirty(false);
               pastRef.current = [];
@@ -3795,8 +3799,10 @@ return {
               onToggleAnnotations={() => setShowAnnotations(prev => !prev)}
               onClearCanvas={async () => {
                 if (await confirmAsync('Clear canvas?')) {
+                  pushStateToHistory(blocksRef.current, edgesRef.current, annotationsRef.current);
                   setBlocks([]);
                   setEdges([]);
+                  setAnnotations([]);
                 }
               }}
               onInspectBlock={(id) => {
@@ -4142,6 +4148,7 @@ return {
           onNewBlueprint={() => {
             setBlocks([]);
             setEdges([]);
+            setAnnotations([]);
             setCurrentBlueprintName('');
             setIsDirty(false);
           }}

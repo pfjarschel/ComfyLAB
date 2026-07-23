@@ -78,7 +78,8 @@ export function useWorkspaceHistory({
       pastRef.current.shift();
     }
     futureRef.current = []; // Clear redo stack on new action
-  }, []);
+    setIsDirty(true);
+  }, [setIsDirty]);
 
   const handleUndo = useCallback(() => {
     if (pastRef.current.length === 0) return;
