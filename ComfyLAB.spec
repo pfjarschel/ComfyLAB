@@ -47,7 +47,10 @@ hidden_imports = [
     'PIL',
     'PIL.Image',
     'cv2',
+    'backend.auth',
     'backend.main',
+    'backend.manager',
+    'backend.ratelimit',
     'backend.workspace',
     'backend.routers.execution',
     'backend.routers.settings',
@@ -57,6 +60,7 @@ hidden_imports = [
     'comfylab.engine.config',
     'comfylab.engine.executor',
     'comfylab.engine.lock_manager',
+    'comfylab.engine.locks',
     'comfylab.engine.logging',
     'comfylab.engine.models',
     'comfylab.engine.registry',
@@ -68,7 +72,7 @@ hidden_imports = [
 ]
 
 # Ensure all submodules for key data science/hardware packages are collected
-for pkg in ['scipy', 'pandas', 'pyvisa_py', 'uvicorn', 'PIL', 'pyarrow', 'fastparquet', 'cv2', 'comfylab.engine', 'backend']:
+for pkg in ['scipy', 'pandas', 'pyvisa_py', 'uvicorn', 'PIL', 'pyarrow', 'fastparquet', 'cv2']:
     try:
         hidden_imports += collect_submodules(pkg)
     except Exception:
