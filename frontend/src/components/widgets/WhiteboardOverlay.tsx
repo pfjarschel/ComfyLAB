@@ -58,6 +58,7 @@ interface WhiteboardOverlayProps {
   markedForDeletion: Set<string>;
   hoverPoint: Point | null;
   editingTextId: string | null;
+  selectedAnnotationId?: string | null;
   blocks: any[];
   edges: any[];
   pushStateToHistory: (blocks: any[], edges: any[], annotations: any[]) => void;
@@ -68,6 +69,7 @@ interface WhiteboardOverlayProps {
   onMouseUp: (e: React.MouseEvent<SVGSVGElement>) => void;
   onDoubleClick: (e: React.MouseEvent<SVGSVGElement>) => void;
   onWheel: (e: React.WheelEvent<SVGSVGElement>) => void;
+  onStartResize?: (handle: string, e: React.MouseEvent) => void;
 }
 
 export const WhiteboardOverlay = ({
@@ -81,6 +83,7 @@ export const WhiteboardOverlay = ({
   markedForDeletion,
   hoverPoint,
   editingTextId,
+  selectedAnnotationId,
   blocks,
   edges,
   pushStateToHistory,
@@ -91,6 +94,7 @@ export const WhiteboardOverlay = ({
   onMouseUp,
   onDoubleClick,
   onWheel,
+  onStartResize,
 }: WhiteboardOverlayProps) => {
 
 
@@ -185,10 +189,19 @@ export const WhiteboardOverlay = ({
     const isEraser = drawTool === 'eraser';
     const isMarked = markedForDeletion.has(ann.id);
 
+    const isCurrentPreview = ann.id === currentAnnotation?.id;
+
     const commonProps = {
       className: `annotation-element ${isEraser ? 'hoverable-eraser' : ''}`,
       onMouseDown: (e: React.MouseEvent) => {
-        e.stopPropagation();
+        if (drawTool === 'select') {
+          return;
+        }
+        if (isEraser) {
+          e.stopPropagation();
+          return;
+        }
+        // When drawing (polyline, polygon, pen, etc.), do NOT stop propagation so handleSvgMouseDown gets the click!
       },
       onClick: (e: React.MouseEvent) => {
         if (isEraser) {
@@ -214,6 +227,8 @@ export const WhiteboardOverlay = ({
       strokeWidth: strokeWidth,
       strokeLinecap: 'round' as const,
       strokeLinejoin: 'round' as const,
+      cursor: isEraser ? 'cell' : (drawTool === 'select' ? 'grab' : 'pointer'),
+      pointerEvents: isCurrentPreview ? ('none' as const) : undefined,
       strokeDasharray: isDashed
         ? `${strokeWidth * (isNeon ? 4 : 3)} ${strokeWidth * (isNeon ? 4 : 2)}`
         : undefined,
@@ -277,11 +292,12 @@ export const WhiteboardOverlay = ({
                 fill: fillColorVal,
                 fillOpacity: fillOpacityVal,
                 stroke: 'none',
+                cursor: strokeStyle.cursor,
                 '--annotation-fill': fillColorVal,
                 '--annotation-fill-opacity': fillOpacityVal,
               } as any}
               className="annotation-element fill-element"
-              onMouseDown={(e) => e.stopPropagation()}
+              onMouseDown={(e) => { if (drawTool === 'select') return; if (isEraser) e.stopPropagation(); }}
             />
           );
           polyElement = (
@@ -506,11 +522,12 @@ export const WhiteboardOverlay = ({
                 fill: fillColorVal,
                 fillOpacity: fillOpacityVal,
                 stroke: 'none',
+                cursor: strokeStyle.cursor,
                 '--annotation-fill': fillColorVal,
                 '--annotation-fill-opacity': fillOpacityVal,
               } as any}
               className="annotation-element fill-element"
-              onMouseDown={(e) => e.stopPropagation()}
+              onMouseDown={(e) => { if (drawTool === 'select') return; if (isEraser) e.stopPropagation(); }}
             />
           );
           return (
@@ -523,12 +540,15 @@ export const WhiteboardOverlay = ({
         return strokeRect;
       }
       case 'circle': {
+        const rx = ann.rx !== undefined ? ann.rx : (ann.r || 0);
+        const ry = ann.ry !== undefined ? ann.ry : (ann.r || 0);
         const strokeCircle = (
-          <circle
+          <ellipse
             key={ann.id}
             cx={ann.cx}
             cy={ann.cy}
-            r={ann.r}
+            rx={rx}
+            ry={ry}
             {...commonProps}
             className={`${commonProps.className} stroke-element`}
             style={{
@@ -543,19 +563,21 @@ export const WhiteboardOverlay = ({
           const fillColorVal = isMarked ? '#ef4444' : ann.fillColor;
           const fillOpacityVal = isMarked ? 0.2 : ann.fillOpacity;
           const fillCircle = (
-            <circle
+            <ellipse
               cx={ann.cx}
               cy={ann.cy}
-              r={ann.r}
+              rx={rx}
+              ry={ry}
               style={{
                 fill: fillColorVal,
                 fillOpacity: fillOpacityVal,
                 stroke: 'none',
+                cursor: strokeStyle.cursor,
                 '--annotation-fill': fillColorVal,
                 '--annotation-fill-opacity': fillOpacityVal,
               } as any}
               className="annotation-element fill-element"
-              onMouseDown={(e) => e.stopPropagation()}
+              onMouseDown={(e) => { if (drawTool === 'select') return; if (isEraser) e.stopPropagation(); }}
             />
           );
           return (
@@ -566,6 +588,114 @@ export const WhiteboardOverlay = ({
           );
         }
         return strokeCircle;
+      }
+      case 'note': {
+        const isSelected = selectedAnnotationId === ann.id;
+        const width = Math.max(ann.width || 180, 80);
+        const height = Math.max(ann.height || 140, 60);
+        const x = ann.x || 0;
+        const y = ann.y || 0;
+
+        if (isEditing) {
+          return (
+            <foreignObject
+              key={ann.id}
+              x={x}
+              y={y}
+              width={width}
+              height={height}
+              style={{ overflow: 'visible' }}
+              onMouseDown={(e) => e.stopPropagation()}
+              onMouseUp={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                className="annotation-note-container editing"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  borderColor: isMarked ? '#ef4444' : ann.color,
+                  backgroundColor: isMarked ? 'rgba(239,68,68,0.2)' : (ann.fillColor || 'rgba(15, 23, 42, 0.85)'),
+                  filter: strokeStyle.filter,
+                }}
+              >
+                <textarea
+                  defaultValue={ann.text || ''}
+                  placeholder="Type note..."
+                  ref={(el) => {
+                    if (el && document.activeElement !== el) {
+                      el.focus();
+                    }
+                  }}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    const nextAnnotations = annotations.map(a => a.id === ann.id ? { ...a, text: val } : a);
+                    setAnnotations(nextAnnotations);
+                  }}
+                  onBlur={() => {
+                    setEditingTextId(null);
+                    pushStateToHistory(blocks, edges, annotations);
+                  }}
+                  onKeyDown={(e) => {
+                    e.stopPropagation();
+                    if (e.key === 'Escape') {
+                      e.preventDefault();
+                      e.currentTarget.blur();
+                    }
+                  }}
+                  className="annotation-note-textarea"
+                  style={{
+                    color: '#e2e8f0',
+                    fontSize: `${ann.fontSize || 14}px`,
+                  }}
+                />
+              </div>
+            </foreignObject>
+          );
+        }
+
+        return (
+          <foreignObject
+            key={ann.id}
+            x={x}
+            y={y}
+            width={width}
+            height={height}
+            style={{ overflow: 'visible' }}
+            onMouseDown={(e) => {
+              if (drawTool !== 'select') {
+                e.stopPropagation();
+              }
+            }}
+            onClick={(e) => {
+              if (isEraser) {
+                e.stopPropagation();
+                pushStateToHistory(blocks, edges, annotations);
+                setAnnotations(annotations.filter(a => a.id !== ann.id));
+              } else if (canvasMode === 'draw' && drawTool === 'note') {
+                e.stopPropagation();
+                setEditingTextId(ann.id);
+              }
+            }}
+          >
+            <div
+              className={`annotation-note-container ${isSelected ? 'selected' : ''} ${isEraser ? 'hoverable-eraser' : ''}`}
+              style={{
+                width: '100%',
+                height: '100%',
+                borderColor: isMarked ? '#ef4444' : (isSelected ? '#3b82f6' : ann.color),
+                backgroundColor: isMarked ? 'rgba(239,68,68,0.2)' : (ann.fillColor || 'rgba(15, 23, 42, 0.85)'),
+                filter: strokeStyle.filter,
+                opacity: isMarked ? 0.4 : undefined,
+                cursor: isEraser ? 'cell' : (drawTool === 'select' ? 'grab' : 'pointer'),
+              }}
+            >
+              <div className="annotation-note-content" style={{ color: isMarked ? '#ef4444' : '#e2e8f0', fontSize: `${ann.fontSize || 14}px` }}>
+                {ann.text || <span className="annotation-note-placeholder">Empty Sticky Note...</span>}
+              </div>
+            </div>
+          </foreignObject>
+        );
       }
       case 'text': {
         if (isEditing) {
@@ -582,23 +712,24 @@ export const WhiteboardOverlay = ({
               onClick={(e) => e.stopPropagation()}
             >
               <textarea
-                defaultValue={ann.text === 'Text Note' ? '' : ann.text}
-                placeholder="Type note..."
+                defaultValue={ann.text === 'Text Label' || ann.text === 'Text Note' ? '' : ann.text}
+                placeholder="Type text..."
                 ref={(el) => {
                   if (el && document.activeElement !== el) {
                     el.focus();
-                    if (el.value === 'Text Note') {
+                    if (el.value === 'Text Label' || el.value === 'Text Note') {
                       el.select();
                     }
                   }
                 }}
-                onBlur={(e) => {
-                  const val = e.target.value.trim() || 'Text Note';
-                  setEditingTextId(null);
-                  if (val === ann.text) return;
-                  pushStateToHistory(blocks, edges, annotations);
+                onChange={(e) => {
+                  const val = e.target.value.trim() || 'Text Label';
                   const nextAnnotations = annotations.map(a => a.id === ann.id ? { ...a, text: val } : a);
                   setAnnotations(nextAnnotations);
+                }}
+                onBlur={() => {
+                  setEditingTextId(null);
+                  pushStateToHistory(blocks, edges, annotations);
                 }}
                 onKeyDown={(e) => {
                   e.stopPropagation();
@@ -629,16 +760,23 @@ export const WhiteboardOverlay = ({
             fontFamily="'Outfit', 'Inter', sans-serif"
             fontWeight="600"
             style={{
-              cursor: isEraser ? 'cell' : (canvasMode === 'draw' ? 'pointer' : 'default'),
+              cursor: isEraser ? 'cell' : (drawTool === 'select' ? 'grab' : (canvasMode === 'draw' ? 'pointer' : 'default')),
               userSelect: 'none',
               filter: strokeStyle.filter,
               opacity: isMarked ? 0.4 : undefined,
             }}
             onClick={(e) => {
-              e.stopPropagation();
               if (isEraser) {
+                e.stopPropagation();
                 if (commonOnClick) commonOnClick(e);
-              } else if (canvasMode === 'draw') {
+              } else if (canvasMode === 'draw' && drawTool === 'text') {
+                e.stopPropagation();
+                setEditingTextId(ann.id);
+              }
+            }}
+            onDoubleClick={(e) => {
+              if (canvasMode === 'draw' && drawTool === 'select') {
+                e.stopPropagation();
                 setEditingTextId(ann.id);
               }
             }}
@@ -655,7 +793,155 @@ export const WhiteboardOverlay = ({
       default:
         return null;
     }
-  }, [editingTextId, drawTool, canvasMode, pushStateToHistory, annotations, blocks, edges, setAnnotations, setEditingTextId, hoverPoint, markedForDeletion]);
+  }, [editingTextId, drawTool, canvasMode, pushStateToHistory, annotations, blocks, edges, setAnnotations, setEditingTextId, hoverPoint, markedForDeletion, selectedAnnotationId]);
+
+  const renderSelectionBox = useCallback(() => {
+    if (!selectedAnnotationId || drawTool !== 'select') return null;
+    const ann = annotations.find((a) => a.id === selectedAnnotationId);
+    if (!ann) return null;
+
+    let minX = 0, minY = 0, maxX = 0, maxY = 0;
+
+    if (ann.type === 'rectangle' || ann.type === 'note') {
+      minX = ann.x ?? 0;
+      minY = ann.y ?? 0;
+      maxX = minX + (ann.width ?? 0);
+      maxY = minY + (ann.height ?? 0);
+    } else if (ann.type === 'circle') {
+      const cx = ann.cx ?? 0, cy = ann.cy ?? 0;
+      const rx = ann.rx !== undefined ? ann.rx : (ann.r ?? 0);
+      const ry = ann.ry !== undefined ? ann.ry : (ann.r ?? 0);
+      minX = cx - rx;
+      minY = cy - ry;
+      maxX = cx + rx;
+      maxY = cy + ry;
+    } else if (ann.type === 'line') {
+      minX = Math.min(ann.x1 ?? 0, ann.x2 ?? 0);
+      minY = Math.min(ann.y1 ?? 0, ann.y2 ?? 0);
+      maxX = Math.max(ann.x1 ?? 0, ann.x2 ?? 0);
+      maxY = Math.max(ann.y1 ?? 0, ann.y2 ?? 0);
+    } else if (ann.type === 'pen' || ann.type === 'polyline' || ann.type === 'polygon') {
+      if (!ann.points || ann.points.length === 0) return null;
+      const xs = ann.points.map((p: Point) => p.x);
+      const ys = ann.points.map((p: Point) => p.y);
+      minX = Math.min(...xs);
+      minY = Math.min(...ys);
+      maxX = Math.max(...xs);
+      maxY = Math.max(...ys);
+    } else if (ann.type === 'text') {
+      const fontSize = ann.fontSize || 16;
+      const lines = (ann.text || '').split('\n');
+      const w = Math.max(...lines.map((l: string) => l.length), 1) * fontSize * 0.6;
+      const h = lines.length * fontSize * 1.2;
+      minX = ann.x ?? 0;
+      minY = (ann.y ?? 0) - fontSize;
+      maxX = minX + w;
+      maxY = minY + h;
+    } else {
+      return null;
+    }
+
+    if (ann.type === 'line') {
+      const p1x = ann.x1 ?? 0;
+      const p1y = ann.y1 ?? 0;
+      const p2x = ann.x2 ?? 0;
+      const p2y = ann.y2 ?? 0;
+      return (
+        <g key="selection-overlay" className="annotation-selection-overlay">
+          <line
+            x1={p1x}
+            y1={p1y}
+            x2={p2x}
+            y2={p2y}
+            stroke="#3b82f6"
+            strokeWidth="2"
+            strokeDasharray="4 4"
+            style={{ pointerEvents: 'none' }}
+          />
+          <circle
+            cx={p1x}
+            cy={p1y}
+            r="6"
+            fill="#ffffff"
+            stroke="#3b82f6"
+            strokeWidth="2"
+            style={{ cursor: 'crosshair', pointerEvents: 'auto' }}
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              if (onStartResize) onStartResize('p1', e);
+            }}
+          />
+          <circle
+            cx={p2x}
+            cy={p2y}
+            r="6"
+            fill="#ffffff"
+            stroke="#3b82f6"
+            strokeWidth="2"
+            style={{ cursor: 'crosshair', pointerEvents: 'auto' }}
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              if (onStartResize) onStartResize('p2', e);
+            }}
+          />
+        </g>
+      );
+    }
+
+    const pad = 6;
+    const boxX = minX - pad;
+    const boxY = minY - pad;
+    const boxW = Math.max(maxX - minX + pad * 2, 20);
+    const boxH = Math.max(maxY - minY + pad * 2, 20);
+
+    const handles = [
+      { key: 'nw', cx: boxX, cy: boxY, cursor: 'nwse-resize' },
+      { key: 'n', cx: boxX + boxW / 2, cy: boxY, cursor: 'ns-resize' },
+      { key: 'ne', cx: boxX + boxW, cy: boxY, cursor: 'nesw-resize' },
+      { key: 'e', cx: boxX + boxW, cy: boxY + boxH / 2, cursor: 'ew-resize' },
+      { key: 'se', cx: boxX + boxW, cy: boxY + boxH, cursor: 'nwse-resize' },
+      { key: 's', cx: boxX + boxW / 2, cy: boxY + boxH, cursor: 'ns-resize' },
+      { key: 'sw', cx: boxX, cy: boxY + boxH, cursor: 'nesw-resize' },
+      { key: 'w', cx: boxX, cy: boxY + boxH / 2, cursor: 'ew-resize' },
+    ];
+
+    return (
+      <g key="selection-overlay" className="annotation-selection-overlay">
+        <rect
+          x={boxX}
+          y={boxY}
+          width={boxW}
+          height={boxH}
+          fill="rgba(59, 130, 246, 0.08)"
+          stroke="#3b82f6"
+          strokeWidth="2"
+          strokeDasharray="5 5"
+          rx="6"
+          ry="6"
+          style={{
+            pointerEvents: 'none',
+            filter: 'drop-shadow(0 0 8px rgba(59, 130, 246, 0.6))',
+          }}
+        />
+        {handles.map((h) => (
+          <circle
+            key={h.key}
+            cx={h.cx}
+            cy={h.cy}
+            r="5"
+            fill="#ffffff"
+            stroke="#3b82f6"
+            strokeWidth="2"
+            style={{ cursor: h.cursor, pointerEvents: 'auto' }}
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              if (onStartResize) onStartResize(h.key, e);
+            }}
+          />
+        ))}
+      </g>
+    );
+  }, [selectedAnnotationId, drawTool, annotations, onStartResize]);
 
   if (!showAnnotations) return null;
 
@@ -690,6 +976,7 @@ export const WhiteboardOverlay = ({
       <g transform={`translate(${viewport.x}, ${viewport.y}) scale(${viewport.zoom})`}>
         {annotations.map((ann) => renderAnnotation(ann))}
         {currentAnnotation && renderAnnotation(currentAnnotation)}
+        {renderSelectionBox()}
 
         {/* Eraser path visual guide */}
         {eraserPath && eraserPath.length > 1 && (

@@ -36,6 +36,7 @@ interface WhiteboardSidebarProps {
   onClearAll: () => void;
   onDone: () => void;
   setEditingTextId: (id: string | null) => void;
+  commitActivePolyshape?: () => void;
 }
 
 export const WhiteboardSidebar = ({
@@ -61,6 +62,7 @@ export const WhiteboardSidebar = ({
   onClearAll,
   onDone,
   setEditingTextId,
+  commitActivePolyshape,
 }: WhiteboardSidebarProps) => {
   if (!isOpen) return null;
 
@@ -90,11 +92,13 @@ export const WhiteboardSidebar = ({
           <span className="sidebar-label">Drawing Tools</span>
           <div className="tools-grid">
             {[
-              { id: 'pen', label: 'Pen', icon: '✏️' },
+              { id: 'select', label: 'Select / Move', icon: '👆' },
               { id: 'eraser', label: 'Eraser', icon: '🧹' },
-              { id: 'text', label: 'Text Note', icon: '🔤' },
+              { id: 'pen', label: 'Pen', icon: '✏️' },
               { id: 'line', label: 'Line', icon: '➖' },
-              { id: 'circle', label: 'Circle', icon: '⚪' },
+              { id: 'text', label: 'Text Label', icon: '🔤' },
+              { id: 'note', label: 'Sticky Note', icon: '📝' },
+              { id: 'circle', label: 'Ellipse', icon: '⭕' },
               { id: 'rectangle', label: 'Rectangle', icon: '⬜' },
               { id: 'polyline', label: 'Polyline', icon: '📈' },
               { id: 'polygon', label: 'Polygon', icon: '⬟' },
@@ -102,7 +106,11 @@ export const WhiteboardSidebar = ({
               <button
                 key={t.id}
                 className={`tool-grid-btn ${drawTool === t.id ? 'active' : ''}`}
-                onClick={() => { setDrawTool(t.id as any); setEditingTextId(null); }}
+                onClick={() => {
+                  if (commitActivePolyshape) commitActivePolyshape();
+                  setDrawTool(t.id as any);
+                  setEditingTextId(null);
+                }}
                 title={t.label}
               >
                 <span className="tool-icon">{t.icon}</span>
@@ -112,7 +120,7 @@ export const WhiteboardSidebar = ({
           </div>
         </div>
 
-        {drawTool !== 'eraser' && (
+        {drawTool !== 'eraser' && drawTool !== 'select' && (
           <>
             <div className="sidebar-divider" />
 
@@ -203,8 +211,8 @@ export const WhiteboardSidebar = ({
                     <option value="neon-dashed">Neon Dashed</option>
                   </select>
                 </div>
-                <div className="sidebar-flex-item" style={{ flexGrow: 1.2 }}>
-                  <span className="sidebar-label">Width: {drawWidth}px</span>
+                <div className="sidebar-flex-item">
+                  <span className="sidebar-label">Width ({drawWidth}px)</span>
                   <input
                     type="range"
                     min="1"
@@ -218,8 +226,8 @@ export const WhiteboardSidebar = ({
               </div>
             </div>
 
-            {/* Fill Settings (for rect, circle, polygon) */}
-            {(drawTool === 'rectangle' || drawTool === 'circle' || drawTool === 'polygon') && (
+            {/* Fill Settings (for rect, circle, polygon, note) */}
+            {(drawTool === 'rectangle' || drawTool === 'circle' || drawTool === 'polygon' || drawTool === 'note') && (
               <>
                 <div className="sidebar-divider" />
                 <div className="sidebar-section">

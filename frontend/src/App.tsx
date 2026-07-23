@@ -1311,7 +1311,10 @@ return {
           currentAnnotationRef,
           editingTextId,
           setEditingTextId,
+          selectedAnnotationId,
+          deleteSelectedAnnotation,
           commitActivePolyshape,
+          handleResizeStart,
           handleSvgMouseDown,
           handleSvgMouseMove,
           handleSvgMouseUp,
@@ -3142,6 +3145,11 @@ return {
 
       if (e.key === 'Delete' || e.key === 'Backspace') {
         if (isLocked) return;
+        if (canvasMode === 'draw' && drawTool === 'select' && selectedAnnotationId) {
+          e.preventDefault();
+          deleteSelectedAnnotation();
+          return;
+        }
         const selectedNodes = blocksRef.current.filter(n => n.selected);
         const selectedEdges = edgesRef.current.filter(e => e.selected);
         if (selectedNodes.length > 0 || selectedEdges.length > 0) {
@@ -3199,7 +3207,7 @@ return {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [handleUndo, handleRedo, handleCopy, handlePaste, handleDuplicate, triggerSaveToWorkspace, handleOverwriteToWorkspace, currentBlueprintName, closeContextMenu, commitActivePolyshape, canvasMode, setCanvasMode, editingTextId, setEditingTextId, isLocked]);
+  }, [handleUndo, handleRedo, handleCopy, handlePaste, handleDuplicate, triggerSaveToWorkspace, handleOverwriteToWorkspace, currentBlueprintName, closeContextMenu, commitActivePolyshape, canvasMode, setCanvasMode, editingTextId, setEditingTextId, drawTool, selectedAnnotationId, deleteSelectedAnnotation, isLocked]);
 
   if (loading) {
     return (
@@ -3724,6 +3732,7 @@ return {
                 markedForDeletion={markedForDeletion}
                 hoverPoint={hoverPoint}
                 editingTextId={editingTextId}
+                selectedAnnotationId={selectedAnnotationId}
                 blocks={blocks}
                 edges={edges}
                 pushStateToHistory={pushStateToHistory}
@@ -3734,6 +3743,7 @@ return {
                 onMouseUp={handleSvgMouseUp}
                 onDoubleClick={handleSvgDoubleClick}
                 onWheel={handleSvgWheel}
+                onStartResize={handleResizeStart}
               />
             </ReactFlow>
 
@@ -3906,6 +3916,7 @@ return {
               drawFillOpacity={drawFillOpacity}
               setDrawFillOpacity={setDrawFillOpacity}
               setEditingTextId={setEditingTextId}
+              commitActivePolyshape={commitActivePolyshape}
               onClearAll={async () => {
                 if (await confirmAsync("Are you sure you want to clear all annotations from this level?")) {
                   pushStateToHistory(blocksRef.current, edgesRef.current, annotationsRef.current);
