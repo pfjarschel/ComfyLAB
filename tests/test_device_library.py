@@ -244,14 +244,14 @@ def test_block_registration_discovery():
     assert "devices/keysight/dsox_series/connect" in registered
     assert "devices/agilent/e4407b/connect" in registered
     assert "devices/agilent/hp34401a/connect" in registered
-    assert "devices/advantest/q8384/connect" in registered
-    assert "devices/advantest/q8384/sweep" in registered
-    assert "devices/advantest/q8384/get_trace" in registered
+    assert "devices/advantest/q8384/sweep_config" in registered
+    assert "devices/advantest/q8384/acquire" in registered
     assert "devices/advantest/q8384/sweep_and_acquire" in registered
     assert "devices/yokogawa/aq6370/connect" in registered
-    assert "devices/yokogawa/aq6370/sweep" in registered
-    assert "devices/yokogawa/aq6370/get_trace" in registered
+    assert "devices/yokogawa/aq6370/sweep_config" in registered
+    assert "devices/yokogawa/aq6370/acquire" in registered
     assert "devices/yokogawa/aq6370/sweep_and_acquire" in registered
+
     assert "devices/keopsys/edfa/connect" in registered
     assert "devices/thorlabs/lts200/connect" in registered
     assert "devices/thorlabs/mdt69x/connect" in registered

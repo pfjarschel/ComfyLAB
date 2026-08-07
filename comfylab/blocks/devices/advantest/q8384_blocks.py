@@ -25,7 +25,6 @@ class AdvantestQ8384ConnectBlock(BaseDeviceConnectBlock):
 
 
 @register_block("devices/advantest/q8384/sweep_config")
-@register_block("devices/advantest/q8384/sweep")
 class AdvantestQ8384SweepConfigBlock(BaseBlock):
     """Configures center wavelength (nm), span (nm), resolution (RBW nm), and sweep mode on an Advantest Q8384 OSA."""
     icon = "🎛️"
@@ -71,7 +70,6 @@ class AdvantestQ8384SweepConfigBlock(BaseBlock):
 
 
 @register_block("devices/advantest/q8384/acquire")
-@register_block("devices/advantest/q8384/get_trace")
 class AdvantestQ8384AcquireBlock(BaseBlock):
     """Pulls wavelength (nm) and optical power trace (dBm) directly from Advantest Q8384 OSA memory."""
     icon = "📥"
@@ -171,4 +169,6 @@ class AdvantestQ8384SweepAndAcquireBlock(BaseBlock):
         elif pin_name == "Device":
             return await context.pull(self.id, "Device")
         return None
+
+
 

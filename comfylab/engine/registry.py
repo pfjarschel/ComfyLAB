@@ -49,6 +49,8 @@ def invalidate_schema_cache() -> None:
     global _schema_cache
     _schema_cache = None
 
+
+
 def register_block(type_name: str):
     """
     Decorator to register a BaseBlock subclass in the global registry.
@@ -216,7 +218,9 @@ def get_all_blocks_schema() -> Dict[str, Any]:
     schema = {}
     for type_name, cls in BLOCK_REGISTRY.items():
         exec_ins = []
+
         exec_outs = []
+
         data_ins = []
         data_outs = []
         
@@ -290,6 +294,7 @@ def get_all_blocks_schema() -> Dict[str, Any]:
             "dataIns": data_ins,
             "dataOuts": data_outs,
             "ui_behavior": getattr(cls, "ui_behavior", {}) or {},
+            "i18n": getattr(cls, "i18n", {}) or {},
             "original_code": getattr(cls, "original_code", "") or "",
             "script_language": getattr(cls, "script_language", "") or "",
             "unauthorized": getattr(cls, "unauthorized", False),

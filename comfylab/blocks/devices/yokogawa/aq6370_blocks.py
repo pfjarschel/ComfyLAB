@@ -25,7 +25,6 @@ class AQ6370ConnectBlock(BaseDeviceConnectBlock):
 
 
 @register_block("devices/yokogawa/aq6370/sweep_config")
-@register_block("devices/yokogawa/aq6370/sweep")
 class AQ6370SweepConfigBlock(BaseBlock):
     """Configures wavelength/span/RBW/sensitivity and sweep mode/traces on a Yokogawa OSA."""
     icon = "🎛️"
@@ -79,7 +78,6 @@ class AQ6370SweepConfigBlock(BaseBlock):
 
 
 @register_block("devices/yokogawa/aq6370/acquire")
-@register_block("devices/yokogawa/aq6370/get_trace")
 class AQ6370AcquireBlock(BaseBlock):
     """Pulls wavelength (nm) and optical spectrum trace (dBm) directly from Yokogawa OSA memory."""
     icon = "📥"
@@ -183,4 +181,6 @@ class AQ6370SweepAndAcquireBlock(BaseBlock):
         elif pin_name == "Device":
             return await context.pull(self.id, "Device")
         return None
+
+
 
