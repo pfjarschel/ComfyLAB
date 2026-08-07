@@ -1,25 +1,50 @@
 {
   "topbar": {
+    "fileMenu": "Menu Arquivo",
+    "newBlueprint": "Novo Blueprint",
+    "saveBlueprint": "Salvar Blueprint",
+    "overwriteBlueprint": "Sobrescrever Blueprint",
+    "loadBlueprint": "Carregar Blueprint",
+    "loadExample": "Carregar Exemplo",
+    "clearTempFiles": "Limpar Arquivos Temporários",
+    "clearPersistentStates": "Limpar Estados Persistentes",
+    "downloadBlueprint": "Baixar Blueprint",
+    "uploadBlueprint": "Enviar Blueprint",
+    "uploadFile": "Enviar Arquivo",
+    "quickStart": "Guia de Início Rápido",
+    "welcomeSplash": "Tela de Boas-Vindas",
+    "globalSettings": "Configurações Globais",
+    "blueprint": "Blueprint:",
+    "untitled": "Sem título",
+    "workspace": "Workspace:",
+    "clickToChangeWorkspace": "Clique para alterar o workspace",
+    "workspacePlaceholder": "/caminho/para/workspace",
     "run": "Executar Workspace",
-    "stop": "Parar Execução",
-    "save": "Salvar Workspace",
-    "saved": "Salvo",
-    "unsaved": "Alterações não salvas",
-    "clear": "Limpar Workspace",
-    "reload": "Recarregar Blocos",
-    "packages": "Pacotes e Dependências",
-    "createCluster": "Criar Cluster",
-    "settings": "Configurações",
-    "running": "Execução em andamento...",
-    "language": "Idioma"
+    "runBlueprint": "Executar Blueprint",
+    "running": "Executando:",
+    "pause": "Pausar",
+    "paused": "Pausado",
+    "stop": "🛑 Parar",
+    "importPackage": "📦 Importar Pacote",
+    "importPackageTitle": "Importar arquivo zip de pacote permanentemente para o workspace",
+    "switchToLight": "Alternar para Modo Claro",
+    "switchToDark": "Alternar para Modo Escuro",
+    "language": "Idioma",
+    "about": "Sobre o ComfyLAB"
+  },
+  "tabbar": {
+    "runningTab": "Executando blueprint",
+    "unsavedChanges": "Alterações não salvas",
+    "closeTab": "Fechar Aba",
+    "addTab": "Adicionar Nova Aba"
   },
   "sidebar": {
     "title": "Biblioteca de Blocos",
     "search": "Buscar blocos...",
     "noBlocks": "Nenhum bloco encontrado",
-    "customBlocks": "Blocos Personalizados",
-    "clusters": "Clusters",
-    "dragToCanvas": "Arraste ou clique para adicionar bloco",
+    "refresh": "Atualizar biblioteca de blocos",
+    "hide": "Ocultar Biblioteca",
+    "show": "Exibir Biblioteca",
     "categories": {
       "LOGIC": "Lógica e Controle",
       "MATH": "Matemática e Processamento",
@@ -28,7 +53,8 @@
       "IO": "Entrada / Saída",
       "PLOTS": "Gráficos e Visualização",
       "UTILITY": "Utilitários e Auxiliares",
-      "TEMPORARY": "Blocos Temporários"
+      "TEMPORARY": "Blocos Temporários",
+      "USER": "Usuário e Personalizados"
     }
   },
   "inspector": {
@@ -39,11 +65,17 @@
     "inputs": "Pinos de Entrada",
     "outputs": "Pinos de Saída",
     "author": "Autor",
+    "filepath": "Arquivo de Origem",
+    "copyPath": "Copiar Caminho",
+    "copied": "Copiado!",
     "source": "Código Fonte",
     "editScript": "Editar Script",
+    "editCluster": "Editar Cluster",
     "unauthorized": "Bloco Não Confiável",
     "trustNotice": "Este bloco vem de uma fonte não verificada.",
-    "dynamicPins": "Quantidade de Itens"
+    "dynamicPins": "Quantidade de Itens",
+    "incomingEdges": "Conexões de Entrada",
+    "outgoingEdges": "Conexões de Saída"
   },
   "canvas": {
     "delete": "Excluir Bloco",
@@ -52,7 +84,24 @@
     "exportScript": "Exportar como Script",
     "clearAll": "Limpar Tela",
     "executionSuccess": "Execução concluída com sucesso",
-    "executionFailed": "Falha na execução"
+    "executionFailed": "Falha na execução",
+    "missingBlock": "Aviso: Este tipo de bloco não foi encontrado no registro.",
+    "pinBlock": "Fixar bloco no lugar",
+    "unlockBlock": "Desbloquear posição do bloco"
+  },
+  "settingsModal": {
+    "title": "Configurações Globais",
+    "generalTab": "⚙️ Geral",
+    "diagnosticsTab": "🛠️ Idiomas e Diagnósticos",
+    "scriptTimeout": "Tempo Limite do Script Python (segundos)",
+    "visaBackend": "Driver de Backend VISA",
+    "customBlockDirs": "Diretórios de Blocos Personalizados",
+    "addDir": "Adicionar Diretório",
+    "removeDir": "Remover",
+    "trustedOrigins": "Origens / Autores Confiáveis",
+    "save": "Salvar Configurações",
+    "cancel": "Cancelar",
+    "loadingDiagnostics": "Carregando diagnósticos do sistema..."
   },
   "clusterModal": {
     "title": "Criar Cluster de Blocos",
@@ -63,6 +112,23 @@
     "cancel": "Cancelar",
     "boundaryNotice": "Os blocos selecionados serão encapsulados em um bloco de cluster reutilizável."
   },
+  "scriptEditor": {
+    "title": "Editor de Scripts",
+    "language": "Linguagem",
+    "runCode": "Testar Execução",
+    "saveScript": "Salvar Script",
+    "inputsOutputs": "Entradas e Saídas",
+    "addInput": "Adicionar Entrada",
+    "addOutput": "Adicionar Saída"
+  },
+  "libraryEditor": {
+    "title": "Editor de Assinatura FFI / Biblioteca C",
+    "functionName": "Nome da Função C",
+    "returnType": "Tipo de Retorno",
+    "parameters": "Parâmetros",
+    "addParam": "Adicionar Parâmetro",
+    "save": "Salvar Assinatura"
+  },
   "common": {
     "cancel": "Cancelar",
     "save": "Salvar",
@@ -72,6 +138,8 @@
     "error": "Erro",
     "warning": "Aviso",
     "info": "Informação",
-    "success": "Sucesso"
+    "success": "Sucesso",
+    "copy": "Copiar",
+    "copied": "Copiado"
   }
 }

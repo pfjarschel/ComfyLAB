@@ -1,25 +1,50 @@
 {
   "topbar": {
+    "fileMenu": "Menú Archivo",
+    "newBlueprint": "Nuevo Blueprint",
+    "saveBlueprint": "Guardar Blueprint",
+    "overwriteBlueprint": "Sobrescribir Blueprint",
+    "loadBlueprint": "Cargar Blueprint",
+    "loadExample": "Cargar Ejemplo",
+    "clearTempFiles": "Limpiar Archivos Temporales",
+    "clearPersistentStates": "Limpiar Estados Persistentes",
+    "downloadBlueprint": "Descargar Blueprint",
+    "uploadBlueprint": "Subir Blueprint",
+    "uploadFile": "Subir Archivo",
+    "quickStart": "Guía de Inicio Rápido",
+    "welcomeSplash": "Pantalla de Bienvenida",
+    "globalSettings": "Configuración Global",
+    "blueprint": "Blueprint:",
+    "untitled": "Sin título",
+    "workspace": "Workspace:",
+    "clickToChangeWorkspace": "Haz clic para cambiar de workspace",
+    "workspacePlaceholder": "/ruta/al/workspace",
     "run": "Ejecutar Workspace",
-    "stop": "Detener Ejecución",
-    "save": "Guardar Workspace",
-    "saved": "Guardado",
-    "unsaved": "Cambios sin guardar",
-    "clear": "Limpiar Workspace",
-    "reload": "Recargar Bloques",
-    "packages": "Paquetes y Dependencias",
-    "createCluster": "Crear Cluster",
-    "settings": "Configuración",
-    "running": "Ejecución en curso...",
-    "language": "Idioma"
+    "runBlueprint": "Ejecutar Blueprint",
+    "running": "Ejecutando:",
+    "pause": "Pausar",
+    "paused": "Pausado",
+    "stop": "🛑 Detener",
+    "importPackage": "📦 Importar Paquete",
+    "importPackageTitle": "Importar archivo zip de paquete permanentemente al workspace",
+    "switchToLight": "Cambiar a Modo Claro",
+    "switchToDark": "Cambiar a Modo Oscuro",
+    "language": "Idioma",
+    "about": "Acerca de ComfyLAB"
+  },
+  "tabbar": {
+    "runningTab": "Ejecutando blueprint",
+    "unsavedChanges": "Cambios sin guardar",
+    "closeTab": "Cerrar Pestaña",
+    "addTab": "Agregar Nueva Pestaña"
   },
   "sidebar": {
     "title": "Biblioteca de Bloques",
     "search": "Buscar bloques...",
     "noBlocks": "No se encontraron bloques",
-    "customBlocks": "Bloques Personalizados",
-    "clusters": "Clusters",
-    "dragToCanvas": "Arrastra o haz clic para añadir un bloque",
+    "refresh": "Actualizar biblioteca de bloques",
+    "hide": "Ocultar Biblioteca",
+    "show": "Mostrar Biblioteca",
     "categories": {
       "LOGIC": "Lógica y Control",
       "MATH": "Matemáticas y Procesamiento",
@@ -28,7 +53,8 @@
       "IO": "Entrada / Salida",
       "PLOTS": "Gráficos y Visualización",
       "UTILITY": "Utilidades y Ayudantes",
-      "TEMPORARY": "Bloques Temporales"
+      "TEMPORARY": "Bloques Temporales",
+      "USER": "Usuario y Personalizados"
     }
   },
   "inspector": {
@@ -39,11 +65,17 @@
     "inputs": "Pines de Entrada",
     "outputs": "Pines de Salida",
     "author": "Autor",
+    "filepath": "Archivo Fuente",
+    "copyPath": "Copiar Ruta",
+    "copied": "¡Copiado!",
     "source": "Código Fuente",
     "editScript": "Editar Script",
+    "editCluster": "Editar Cluster",
     "unauthorized": "Bloque No Confiable",
     "trustNotice": "Este bloque proviene de una fuente no verificada.",
-    "dynamicPins": "Cantidad de Elementos"
+    "dynamicPins": "Cantidad de Elementos",
+    "incomingEdges": "Conexiones Entrantes",
+    "outgoingEdges": "Conexiones Salientes"
   },
   "canvas": {
     "delete": "Eliminar Bloque",
@@ -52,7 +84,24 @@
     "exportScript": "Exportar como Script",
     "clearAll": "Limpiar Lienzo",
     "executionSuccess": "Ejecución completada con éxito",
-    "executionFailed": "Error en la ejecución"
+    "executionFailed": "Error en la ejecución",
+    "missingBlock": "Advertencia: Este tipo de bloque no se encuentra en el registro.",
+    "pinBlock": "Fijar bloque en su lugar",
+    "unlockBlock": "Desbloquear posición del bloque"
+  },
+  "settingsModal": {
+    "title": "Configuración Global",
+    "generalTab": "⚙️ General",
+    "diagnosticsTab": "🛠️ Idiomas y Diagnósticos",
+    "scriptTimeout": "Tiempo Límite del Script Python (segundos)",
+    "visaBackend": "Controlador Backend VISA",
+    "customBlockDirs": "Directorios de Bloques Personalizados",
+    "addDir": "Agregar Directorio",
+    "removeDir": "Eliminar",
+    "trustedOrigins": "Orígenes / Autores de Confianza",
+    "save": "Guardar Configuración",
+    "cancel": "Cancelar",
+    "loadingDiagnostics": "Cargando diagnósticos del sistema..."
   },
   "clusterModal": {
     "title": "Crear Cluster de Bloques",
@@ -63,6 +112,23 @@
     "cancel": "Cancelar",
     "boundaryNotice": "Los bloques seleccionados se encapsularán en un bloque de cluster reutilizable."
   },
+  "scriptEditor": {
+    "title": "Editor de Scripts",
+    "language": "Lenguaje",
+    "runCode": "Probar Ejecución",
+    "saveScript": "Guardar Script",
+    "inputsOutputs": "Entradas y Salidas",
+    "addInput": "Agregar Entrada",
+    "addOutput": "Agregar Salida"
+  },
+  "libraryEditor": {
+    "title": "Editor de Firma FFI / Biblioteca C",
+    "functionName": "Nombre de Función C",
+    "returnType": "Tipo de Retorno",
+    "parameters": "Parámetros",
+    "addParam": "Agregar Parámetro",
+    "save": "Guardar Firma"
+  },
   "common": {
     "cancel": "Cancelar",
     "save": "Guardar",
@@ -72,6 +138,8 @@
     "error": "Error",
     "warning": "Advertencia",
     "info": "Información",
-    "success": "Éxito"
+    "success": "Éxito",
+    "copy": "Copiar",
+    "copied": "Copiado"
   }
 }

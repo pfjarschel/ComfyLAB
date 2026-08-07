@@ -13,12 +13,14 @@
  */
 
 import React, { useEffect, useState, useRef } from 'react';
+import { useTranslation } from '../../i18n';
 
 interface QuickStartModalProps {
   onClose: () => void;
 }
 
 export const QuickStartModal: React.FC<QuickStartModalProps> = ({ onClose }) => {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSection, setActiveSection] = useState('intro');
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -110,7 +112,7 @@ export const QuickStartModal: React.FC<QuickStartModalProps> = ({ onClose }) => 
             <span style={{ fontSize: '1.6rem' }}>📖</span>
             <div>
               <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-color)' }}>
-                ComfyLAB Quick Start Guide
+                {t('topbar.quickStart', 'ComfyLAB Quick Start Guide')}
               </h3>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                 Complete reference & user manual for visual lab automation
@@ -123,7 +125,7 @@ export const QuickStartModal: React.FC<QuickStartModalProps> = ({ onClose }) => 
             <div style={{ position: 'relative' }}>
               <input
                 type="text"
-                placeholder="Search guide..."
+                placeholder={t('common.search', 'Search guide...')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{

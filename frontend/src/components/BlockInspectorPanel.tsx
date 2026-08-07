@@ -295,7 +295,7 @@ export const BlockInspectorPanel = ({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span className="sidebar-label" style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-muted)' }}>
-              Block Details
+              {t('inspector.description', 'Block Details')}
             </span>
             {!isEditingCluster && (
               <span
@@ -332,7 +332,7 @@ export const BlockInspectorPanel = ({
                   setIsEditingCluster(true);
                 }}
               >
-                Edit Cluster Definition
+                {t('inspector.editCluster', 'Edit Cluster')}
               </button>
             </div>
           )}
@@ -385,13 +385,13 @@ export const BlockInspectorPanel = ({
           {author && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
               <span>✍️</span>
-              <span>Author: <strong style={{ color: 'var(--text-color)' }}>{author}</strong></span>
+              <span>{t('inspector.author', 'Author')}: <strong style={{ color: 'var(--text-color)' }}>{author}</strong></span>
             </div>
           )}
 
           {filepath && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '4px' }}>
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Python File Path:</span>
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{t('inspector.filepath', 'Source File')}:</span>
               <div
                 style={{
                   display: 'flex',
@@ -420,9 +420,9 @@ export const BlockInspectorPanel = ({
                     padding: '2px 4px',
                     marginLeft: '8px',
                   }}
-                  title="Copy File Path"
+                  title={t('inspector.copyPath', 'Copy Path')}
                 >
-                  {isCopyingPath ? '✓' : '📋'}
+                  {isCopyingPath ? t('inspector.copied', 'Copied!') : '📋'}
                 </button>
               </div>
             </div>
@@ -627,12 +627,12 @@ export const BlockInspectorPanel = ({
         {/* CONNECTIONS SUMMARY */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <span className="sidebar-label" style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-muted)' }}>
-            Wire Connections
+            {t('inspector.incomingEdges', 'Incoming Connections')}
           </span>
 
           {/* Inputs list */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-color)' }}>Inputs:</span>
+            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-color)' }}>{t('inspector.inputs', 'Input Pins')}:</span>
             {/* Exec Inputs */}
             {layout?.execIns.map((pinName) => {
               const edge = incomingEdges.find((e) => e.targetHandle === pinName);
@@ -644,7 +644,7 @@ export const BlockInspectorPanel = ({
                       ← {getNodeNameById(edge.source)}
                     </span>
                   ) : (
-                    <span style={{ color: 'var(--text-muted)' }}>Not connected</span>
+                    <span style={{ color: 'var(--text-muted)' }}>{t('inspector.notConnected', 'Not connected')}</span>
                   )}
                 </div>
               );
@@ -653,9 +653,10 @@ export const BlockInspectorPanel = ({
             {layout?.dataIns.map((pin) => {
               const edge = incomingEdges.find((e) => e.targetHandle === pin.name);
               const color = getPinColor(pin.type);
+              const pinLabel = layout ? getPinLabel(layout, pin.name) : pin.label;
               return (
                 <div key={`in-data-${pin.name}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.7rem', padding: '4px 8px', background: 'var(--block-bg)', border: '1px solid var(--block-border)', borderRadius: '4px' }}>
-                  <span style={{ color, fontWeight: 600 }}>● {pin.label}</span>
+                  <span style={{ color, fontWeight: 600 }}>● {pinLabel}</span>
                   {edge ? (
                     <span style={{ color: 'var(--text-color)', textAlign: 'right', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '140px' }} title={`${getNodeNameById(edge.source)} (${edge.sourceHandle})`}>
                       ← {getNodeNameById(edge.source)}
@@ -669,13 +670,13 @@ export const BlockInspectorPanel = ({
               );
             })}
             {(!layout || (layout.execIns.length === 0 && layout.dataIns.length === 0)) && (
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontStyle: 'italic', paddingLeft: '8px' }}>No input pins</span>
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontStyle: 'italic', paddingLeft: '8px' }}>{t('inspector.noInputs', 'No input pins')}</span>
             )}
           </div>
 
           {/* Outputs list */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '6px' }}>
-            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-color)' }}>Outputs:</span>
+            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-color)' }}>{t('inspector.outputs', 'Output Pins')}:</span>
             {/* Exec Outputs */}
             {layout?.execOuts.map((pinName) => {
               const connected = outgoingEdges.filter((e) => e.sourceHandle === pinName);

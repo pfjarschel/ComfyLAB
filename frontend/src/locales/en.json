@@ -1,25 +1,50 @@
 {
   "topbar": {
+    "fileMenu": "File Menu",
+    "newBlueprint": "New Blueprint",
+    "saveBlueprint": "Save Blueprint",
+    "overwriteBlueprint": "Overwrite Blueprint",
+    "loadBlueprint": "Load Blueprint",
+    "loadExample": "Load Example",
+    "clearTempFiles": "Clear Temporary Files",
+    "clearPersistentStates": "Clear Persistent States",
+    "downloadBlueprint": "Download Blueprint",
+    "uploadBlueprint": "Upload Blueprint",
+    "uploadFile": "Upload File",
+    "quickStart": "Quick Start Guide",
+    "welcomeSplash": "Welcome Splash Screen",
+    "globalSettings": "Global Settings",
+    "blueprint": "Blueprint:",
+    "untitled": "Untitled",
+    "workspace": "Workspace:",
+    "clickToChangeWorkspace": "Click to change workspace",
+    "workspacePlaceholder": "/path/to/workspace",
     "run": "Run Workspace",
-    "stop": "Stop Execution",
-    "save": "Save Workspace",
-    "saved": "Saved",
-    "unsaved": "Unsaved changes",
-    "clear": "Clear Workspace",
-    "reload": "Reload Blocks",
-    "packages": "Packages & Dependencies",
-    "createCluster": "Create Cluster",
-    "settings": "Settings",
-    "running": "Execution in progress...",
-    "language": "Language"
+    "runBlueprint": "Run Blueprint",
+    "running": "Running:",
+    "pause": "Pause",
+    "paused": "Paused",
+    "stop": "🛑 Stop",
+    "importPackage": "📦 Import Package",
+    "importPackageTitle": "Import package zip permanently to workspace",
+    "switchToLight": "Switch to Light Mode",
+    "switchToDark": "Switch to Dark Mode",
+    "language": "Language",
+    "about": "About ComfyLAB"
+  },
+  "tabbar": {
+    "runningTab": "Running blueprint",
+    "unsavedChanges": "Unsaved changes",
+    "closeTab": "Close Tab",
+    "addTab": "Add New Tab"
   },
   "sidebar": {
     "title": "Block Library",
     "search": "Search blocks...",
     "noBlocks": "No matching blocks found",
-    "customBlocks": "Custom Blocks",
-    "clusters": "Clusters",
-    "dragToCanvas": "Drag or click to add block",
+    "refresh": "Refresh block library",
+    "hide": "Hide Block Library",
+    "show": "Show Block Library",
     "categories": {
       "LOGIC": "Logic & Control",
       "MATH": "Math & Processing",
@@ -28,7 +53,8 @@
       "IO": "Input / Output",
       "PLOTS": "Plots & Visualization",
       "UTILITY": "Utility & Helpers",
-      "TEMPORARY": "Temporary Blocks"
+      "TEMPORARY": "Temporary Blocks",
+      "USER": "User & Custom"
     }
   },
   "inspector": {
@@ -39,11 +65,17 @@
     "inputs": "Input Pins",
     "outputs": "Output Pins",
     "author": "Author",
+    "filepath": "Source File",
+    "copyPath": "Copy Path",
+    "copied": "Copied!",
     "source": "Source Code",
     "editScript": "Edit Script",
+    "editCluster": "Edit Cluster",
     "unauthorized": "Untrusted Block",
     "trustNotice": "This block is from an unverified source.",
-    "dynamicPins": "Item Count"
+    "dynamicPins": "Item Count",
+    "incomingEdges": "Incoming Connections",
+    "outgoingEdges": "Outgoing Connections"
   },
   "canvas": {
     "delete": "Delete Block",
@@ -52,7 +84,24 @@
     "exportScript": "Export as Script",
     "clearAll": "Clear Canvas",
     "executionSuccess": "Execution completed successfully",
-    "executionFailed": "Execution failed"
+    "executionFailed": "Execution failed",
+    "missingBlock": "Warning: This block type is not found in the registry.",
+    "pinBlock": "Pin block in place",
+    "unlockBlock": "Unlock block"
+  },
+  "settingsModal": {
+    "title": "Global Settings",
+    "generalTab": "⚙️ General",
+    "diagnosticsTab": "🛠️ Languages & Diagnostics",
+    "scriptTimeout": "Python Script Timeout (seconds)",
+    "visaBackend": "VISA Backend Driver",
+    "customBlockDirs": "Custom Block Directories",
+    "addDir": "Add Directory",
+    "removeDir": "Remove",
+    "trustedOrigins": "Trusted Origins / Authors",
+    "save": "Save Settings",
+    "cancel": "Cancel",
+    "loadingDiagnostics": "Loading system diagnostics..."
   },
   "clusterModal": {
     "title": "Create Block Cluster",
@@ -63,6 +112,23 @@
     "cancel": "Cancel",
     "boundaryNotice": "Selected blocks will be encapsulated into a reusable cluster block."
   },
+  "scriptEditor": {
+    "title": "Script Editor",
+    "language": "Language",
+    "runCode": "Test Execution",
+    "saveScript": "Save Script",
+    "inputsOutputs": "Inputs & Outputs",
+    "addInput": "Add Input",
+    "addOutput": "Add Output"
+  },
+  "libraryEditor": {
+    "title": "FFI / C Library Signature Editor",
+    "functionName": "C Function Name",
+    "returnType": "Return Type",
+    "parameters": "Parameters",
+    "addParam": "Add Parameter",
+    "save": "Save Signature"
+  },
   "common": {
     "cancel": "Cancel",
     "save": "Save",
@@ -72,6 +138,8 @@
     "error": "Error",
     "warning": "Warning",
     "info": "Information",
-    "success": "Success"
+    "success": "Success",
+    "copy": "Copy",
+    "copied": "Copied"
   }
 }

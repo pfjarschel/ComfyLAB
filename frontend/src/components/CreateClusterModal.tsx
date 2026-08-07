@@ -15,6 +15,7 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
+import { useTranslation } from '../i18n';
 
 const BACKEND_URL = 'http://localhost:8000';
 
@@ -59,6 +60,7 @@ export const CreateClusterModal = ({
   onClose,
   onCreated
 }: CreateClusterModalProps) => {
+  const { t } = useTranslation();
   const [form, setForm] = useState({
     displayName: '',
     category: 'User/Clusters',
@@ -351,7 +353,7 @@ export const CreateClusterModal = ({
       <div className="modal-content glass-panel" style={{ width: '520px', maxHeight: '90vh' }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span>📦</span> Group into Cluster
+            <span>📦</span> {t('clusterModal.title', 'Create Block Cluster')}
           </h3>
           <button className="modal-close-btn" onClick={onClose}>✕</button>
         </div>
@@ -362,7 +364,7 @@ export const CreateClusterModal = ({
           </div>
 
           <div className="input-group">
-            <label>Display Name</label>
+            <label>{t('clusterModal.nameLabel', 'Cluster Name')}</label>
             <input
               type="text"
               placeholder="e.g. Laser Calibrator"
@@ -383,7 +385,7 @@ export const CreateClusterModal = ({
               />
             </div>
             <div className="input-group" style={{ flex: 2 }}>
-              <label>Category</label>
+              <label>{t('clusterModal.categoryLabel', 'Category')}</label>
               <input
                 type="text"
                 placeholder="User/Clusters"
@@ -395,7 +397,7 @@ export const CreateClusterModal = ({
           </div>
 
           <div className="input-group">
-            <label>Description</label>
+            <label>{t('clusterModal.descriptionLabel', 'Description')}</label>
             <textarea
               placeholder="What does this cluster do?"
               value={form.description}
@@ -447,14 +449,14 @@ export const CreateClusterModal = ({
         </div>
 
         <div className="modal-footer" style={{ display: 'flex', gap: '10px', padding: '12px 20px' }}>
-          <button className="button-secondary" onClick={onClose} style={{ flex: 1 }}>Cancel</button>
+          <button className="button-secondary" onClick={onClose} style={{ flex: 1 }}>{t('clusterModal.cancel', 'Cancel')}</button>
           <button
             className="button-primary"
             onClick={handlePublish}
             disabled={isPublishing || !form.displayName.trim()}
             style={{ flex: 1.5, background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)' }}
           >
-            {isPublishing ? 'Creating...' : '🚀 Create Cluster'}
+            {isPublishing ? 'Creating...' : `🚀 ${t('clusterModal.create', 'Create Cluster')}`}
           </button>
         </div>
       </div>

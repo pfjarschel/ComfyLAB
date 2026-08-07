@@ -13,6 +13,7 @@
  */
 
 import React from 'react';
+import { useTranslation } from '../i18n';
 
 interface Tab {
   id: string;
@@ -39,6 +40,7 @@ export const TabBar = ({
   closeTab,
   addTab,
 }: TabBarProps) => {
+  const { t } = useTranslation();
   return (
     <div className="tab-bar glass-panel">
       <div className="tabs-container">
@@ -53,19 +55,19 @@ export const TabBar = ({
               onClick={() => switchTab(tab.id)}
             >
               {isTabRunning && (
-                <span className="tab-running-dot" title="Running blueprint" />
+                <span className="tab-running-dot" title={t('tabbar.runningTab', 'Running blueprint')} />
               )}
               <span className="tab-title">
                 {tab.name}
                 {displayDirty && <span className="tab-dirty-star">*</span>}
               </span>
               {displayDirty && (
-                <span className="tab-dirty-dot" title="Unsaved changes" />
+                <span className="tab-dirty-dot" title={t('tabbar.unsavedChanges', 'Unsaved changes')} />
               )}
               <button
                 className="tab-close-btn"
                 onClick={(e) => closeTab(tab.id, e)}
-                title="Close Tab"
+                title={t('tabbar.closeTab', 'Close Tab')}
               >
                 ✕
               </button>
@@ -75,7 +77,7 @@ export const TabBar = ({
         <button
           className="add-tab-btn"
           onClick={addTab}
-          title="Add New Tab"
+          title={t('tabbar.addTab', 'Add New Tab')}
         >
           ＋
         </button>

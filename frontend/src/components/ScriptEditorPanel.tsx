@@ -15,6 +15,7 @@
 import { useState, useRef, useCallback, useEffect, lazy, Suspense } from 'react';
 import { createPortal } from 'react-dom';
 import axios from 'axios';
+import { useTranslation } from '../i18n';
 
 const MonacoEditor = lazy(() => import('@monaco-editor/react'));
 
@@ -312,6 +313,7 @@ export const ScriptEditorPanel = ({
   registryLayout,
   appTheme = 'dark'
 }: ScriptEditorPanelProps) => {
+  const { t } = useTranslation();
   const getLanguageDetails = () => {
     // Check registryLayout.script_language for published blocks
     const lang = registryLayout?.script_language || actionType;
@@ -570,10 +572,10 @@ export const ScriptEditorPanel = ({
 
       <div className="script-editor-footer">
         <button className="button-secondary" onClick={onClose} style={{ flex: 1 }}>
-          Cancel
+          {t('common.cancel', 'Cancel')}
         </button>
         <button className="button-primary" onClick={handleSave} style={{ flex: 1.5 }}>
-          💾 Apply & Close
+          💾 {t('scriptEditor.saveScript', 'Apply & Close')}
         </button>
         {!isPublished ? (
           <button 

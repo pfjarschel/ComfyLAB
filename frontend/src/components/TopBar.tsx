@@ -125,52 +125,52 @@ export const TopBar = ({
               borderRadius: '8px',
               fontSize: '1.2rem'
             }}
-            title="File Menu"
+            title={t('topbar.fileMenu', 'File Menu')}
           >
             ☰
           </button>
           {menuOpen && (
             <div className="hamburger-dropdown glass-panel">
               <button onClick={onNewBlueprint}>
-                <span>📄</span> New Blueprint
+                <span>📄</span> {t('topbar.newBlueprint', 'New Blueprint')}
               </button>
               <button onClick={onSaveBlueprint} disabled={blocksCount === 0}>
-                <span>💾</span> Save Blueprint
+                <span>💾</span> {t('topbar.saveBlueprint', 'Save Blueprint')}
               </button>
               {currentBlueprintName && onOverwriteBlueprint && (
                 <button onClick={onOverwriteBlueprint} disabled={blocksCount === 0}>
-                  <span>💾</span> Overwrite Blueprint
+                  <span>💾</span> {t('topbar.overwriteBlueprint', 'Overwrite Blueprint')}
                 </button>
               )}
               <button onClick={onLoadBlueprint}>
-                <span>📂</span> Load Blueprint
+                <span>📂</span> {t('topbar.loadBlueprint', 'Load Blueprint')}
               </button>
               {onLoadExample && (
                 <button onClick={() => { setMenuOpen(false); onLoadExample(); }}>
-                  <span>🧪</span> Load Example
+                  <span>🧪</span> {t('topbar.loadExample', 'Load Example')}
                 </button>
               )}
               <button onClick={onClearTemporaryFiles}>
-                <span>🧹</span> Clear Temporary Files
+                <span>🧹</span> {t('topbar.clearTempFiles', 'Clear Temporary Files')}
               </button>
               <button onClick={onClearPersistentStates}>
-                <span>🧹</span> Clear Persistent States
+                <span>🧹</span> {t('topbar.clearPersistentStates', 'Clear Persistent States')}
               </button>
               <button onClick={onDownloadBlueprint} disabled={blocksCount === 0}>
-                <span>📥</span> Download Blueprint
+                <span>📥</span> {t('topbar.downloadBlueprint', 'Download Blueprint')}
               </button>
               <button onClick={onUploadBlueprintClick}>
-                <span>📤</span> Upload Blueprint
+                <span>📤</span> {t('topbar.uploadBlueprint', 'Upload Blueprint')}
               </button>
               <button onClick={onUploadFileClick}>
-                <span>📁</span> Upload File
+                <span>📁</span> {t('topbar.uploadFile', 'Upload File')}
               </button>
               <button onClick={() => { setMenuOpen(false); onOpenQuickStart ? onOpenQuickStart() : setShowQuickStartModal(true); }}>
-                <span>📖</span> Quick Start Guide
+                <span>📖</span> {t('topbar.quickStart', 'Quick Start Guide')}
               </button>
               {onOpenSplash && (
                 <button onClick={() => { setMenuOpen(false); onOpenSplash(); }}>
-                  <span>⚡</span> Welcome Splash Screen
+                  <span>⚡</span> {t('topbar.welcomeSplash', 'Welcome Splash Screen')}
                 </button>
               )}
             </div>
@@ -190,21 +190,21 @@ export const TopBar = ({
             height: '38px',
             borderRadius: '8px'
           }}
-          title="Global Settings"
+          title={t('topbar.globalSettings', 'Global Settings')}
         >
           ⚙️
         </button>
 
         <div className="filename-indicator-container">
-          <span className="filename-label">Blueprint:</span>
+          <span className="filename-label">{t('topbar.blueprint', 'Blueprint:')}</span>
           <span className="filename-value">
-            {currentBlueprintName || 'Untitled'}
+            {currentBlueprintName || t('topbar.untitled', 'Untitled')}
             {isDirty && <span className="filename-dirty-star">*</span>}
           </span>
         </div>
 
         <div className="workspace-indicator-container">
-          <span className="workspace-label">Workspace:</span>
+          <span className="workspace-label">{t('topbar.workspace', 'Workspace:')}</span>
           <div className="workspace-indicator" style={{ height: '38px' }}>
             {editingWorkspace ? (
               <>
@@ -216,7 +216,7 @@ export const TopBar = ({
                     if (e.key === 'Enter') handleSetWorkspace();
                     if (e.key === 'Escape') setEditingWorkspace(false);
                   }}
-                  placeholder="/path/to/workspace"
+                  placeholder={t('topbar.workspacePlaceholder', '/path/to/workspace')}
                   className="workspace-input"
                   autoFocus
                 />
@@ -231,7 +231,7 @@ export const TopBar = ({
               <span
                 className="workspace-path"
                 onClick={() => { setWorkspaceInput(workspacePath); setEditingWorkspace(true); }}
-                title="Click to change workspace"
+                title={t('topbar.clickToChangeWorkspace', 'Click to change workspace')}
               >
                 📁 {workspacePath || 'Loading...'}
               </span>
@@ -245,7 +245,7 @@ export const TopBar = ({
         {isRunning ? (
           <>
             <span className="running-tab-indicator" style={{ marginRight: '10px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-              Running: <strong>{runningTabName || 'Untitled'}</strong>
+              {t('topbar.running', 'Running:')} <strong>{runningTabName || t('topbar.untitled', 'Untitled')}</strong>
             </span>
             {isPaused ? (
               <button 
@@ -256,7 +256,7 @@ export const TopBar = ({
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="#ffffff" style={{ display: 'inline-block', verticalAlign: 'middle' }}>
                   <path d="M8 5v14l11-7z" />
                 </svg>
-                Paused
+                {t('topbar.paused', 'Paused')}
               </button>
             ) : (
               <button 
@@ -267,7 +267,7 @@ export const TopBar = ({
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="#ffffff" style={{ display: 'inline-block', verticalAlign: 'middle' }}>
                   <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
                 </svg>
-                Pause
+                {t('topbar.pause', 'Pause')}
               </button>
             )}
             <button 
@@ -275,7 +275,7 @@ export const TopBar = ({
               onClick={onAbort} 
               style={{ height: '38px', borderRadius: '8px' }}
             >
-              🛑 Stop
+              {t('topbar.stop', '🛑 Stop')}
             </button>
           </>
         ) : (
@@ -288,7 +288,7 @@ export const TopBar = ({
             <svg viewBox="0 0 24 24" width="16" height="16" fill="#10b981" style={{ display: 'inline-block', verticalAlign: 'middle' }}>
               <path d="M8 5v14l11-7z" />
             </svg>
-            Run Blueprint
+            {t('topbar.runBlueprint', 'Run Blueprint')}
           </button>
         )}
 
@@ -313,9 +313,9 @@ export const TopBar = ({
               background: 'var(--button-secondary-bg)',
               fontWeight: 600
             }}
-            title="Import package zip permanently to workspace"
+            title={t('topbar.importPackageTitle', 'Import package zip permanently to workspace')}
           >
-            📦 Import Package
+            {t('topbar.importPackage', '📦 Import Package')}
           </button>
         )}
         <div className="language-selector-container">
@@ -358,7 +358,7 @@ export const TopBar = ({
             border: '1px solid var(--button-secondary-border)',
             background: 'var(--button-secondary-bg)'
           }}
-          title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+          title={theme === 'dark' ? t('topbar.switchToLight', 'Switch to Light Mode') : t('topbar.switchToDark', 'Switch to Dark Mode')}
         >
           {theme === 'dark' ? '🌙' : '☀️'}
         </button>
@@ -384,7 +384,7 @@ export const TopBar = ({
               cursor: 'pointer',
               opacity: 0.8
             }}
-            title="Quick Start Guide"
+            title={t('topbar.quickStart', 'Quick Start Guide')}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10"></circle>
@@ -408,7 +408,7 @@ export const TopBar = ({
               cursor: 'pointer',
               opacity: 0.8
             }}
-            title="About ComfyLAB"
+            title={t('topbar.about', 'About ComfyLAB')}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10"></circle>

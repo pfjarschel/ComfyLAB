@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { getBackendUrls } from '../../App';
+import { useTranslation } from '../../i18n';
 
 interface AboutModalProps {
   onClose: () => void;
@@ -19,6 +20,7 @@ interface ServerInfo {
 }
 
 export const AboutModal: React.FC<AboutModalProps> = ({ onClose }) => {
+  const { t } = useTranslation();
   const [serverInfo, setServerInfo] = useState<ServerInfo | null>(null);
   const [showToken, setShowToken] = useState<boolean>(false);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
@@ -80,7 +82,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ onClose }) => {
         }}
       >
         <div className="modal-header">
-          <h3>About ComfyLAB</h3>
+          <h3>{t('topbar.about', 'About ComfyLAB')}</h3>
           <button className="modal-close-btn" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body" style={{ padding: '24px 20px', lineHeight: '1.6', textAlign: 'center' }}>
@@ -246,7 +248,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ onClose }) => {
             style={{ width: '120px' }}
             autoFocus
           >
-            Close
+            {t('common.close', 'Close')}
           </button>
         </div>
       </div>

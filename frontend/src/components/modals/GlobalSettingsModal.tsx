@@ -13,6 +13,8 @@
  */
 
 
+import { useTranslation } from '../../i18n';
+
 interface GlobalSettingsProps {
   isOpen: boolean;
   settings: {
@@ -58,6 +60,7 @@ export const GlobalSettingsModal = ({
   onSave,
   onClose,
 }: GlobalSettingsProps) => {
+  const { t } = useTranslation();
   if (!isOpen) return null;
 
   return (
@@ -65,7 +68,7 @@ export const GlobalSettingsModal = ({
       <div className="modal-content glass-panel" style={{ width: '500px' }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span>⚙️</span> Global Settings
+            <span>⚙️</span> {t('settingsModal.title', 'Global Settings')}
           </h3>
           <button className="modal-close-btn" onClick={onClose}>✕</button>
         </div>
@@ -87,7 +90,7 @@ export const GlobalSettingsModal = ({
                 fontWeight: 500
               }}
             >
-              ⚙️ General
+              {t('settingsModal.generalTab', '⚙️ General')}
             </button>
             <button 
               className={`settings-tab-btn ${settingsTab === 'diagnostics' ? 'active' : ''}`}
@@ -103,7 +106,7 @@ export const GlobalSettingsModal = ({
                 fontWeight: 500
               }}
             >
-              🛠️ Languages & Diagnostics
+              {t('settingsModal.diagnosticsTab', '🛠️ Languages & Diagnostics')}
             </button>
           </div>
 
@@ -385,14 +388,14 @@ export const GlobalSettingsModal = ({
             onClick={onClose}
             style={{ flex: 1 }}
           >
-            Cancel
+            {t('common.cancel', 'Cancel')}
           </button>
           <button
             className="button-primary"
             onClick={onSave}
             style={{ flex: 1.5, background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)' }}
           >
-            💾 Save Settings
+            💾 {t('settingsModal.save', 'Save Settings')}
           </button>
         </div>
       </div>

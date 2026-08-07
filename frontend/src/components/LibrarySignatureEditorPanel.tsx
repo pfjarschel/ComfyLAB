@@ -13,6 +13,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useTranslation } from '../i18n';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -86,6 +87,7 @@ export const LibrarySignatureEditorPanel = ({
   onSave,
   onClose,
 }: LibrarySignatureEditorPanelProps) => {
+  const { t } = useTranslation();
   const [args, setArgs] = useState<LibraryArg[]>([]);
   const [drawerWidth, setDrawerWidth] = useState(560);
   const isResizingRef = useRef(false);
@@ -236,7 +238,7 @@ export const LibrarySignatureEditorPanel = ({
           <span className="script-editor-icon">⚡</span>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600 }}>
-              DLL/SO Signature Editor
+              {t('libraryEditor.title', 'FFI / C Library Signature Editor')}
             </h3>
             <span
               className="script-editor-block-id"
@@ -549,10 +551,10 @@ export const LibrarySignatureEditorPanel = ({
       {/* ---- Footer ---- */}
       <div className="script-editor-footer">
         <button className="button-secondary" onClick={onClose} style={{ flex: 1 }}>
-          Cancel
+          {t('common.cancel', 'Cancel')}
         </button>
         <button className="button-primary" onClick={handleApply} style={{ flex: 1.5 }}>
-          ⚡ Apply &amp; Close
+          ⚡ {t('libraryEditor.save', 'Save Signature')}
         </button>
       </div>
     </div>
