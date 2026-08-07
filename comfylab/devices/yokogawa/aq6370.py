@@ -22,6 +22,8 @@ class AQ6370(BaseInstrumentDriver):
     Communicates via VISA GPIB or Ethernet TCPIP using SCPI commands.
     """
 
+    ALL_TRACES = ["TRA", "TRB", "TRC", "TRD", "TRE", "TRF", "TRG"]
+
     def set_sweep_config(
         self,
         center_nm: Optional[float] = None,
@@ -39,19 +41,50 @@ class AQ6370(BaseInstrumentDriver):
         if sens is not None:
             self.write(f":SENSe:SWEep:SENSitivity {sens.upper()}")
 
-    def acquire_trace(self, trace_name: str = "TRA") -> Tuple[np.ndarray, np.ndarray]:
+    def sweep(
+        self,
+        mode: str = "REPEAT",
+        active_trace: str = "TRA",
+        fix_other_traces: bool = True,
+        wait: bool = False
+    ) -> None:
         """
-        Triggers a single sweep, waits for completion, and fetches wavelength array (nm) and optical power array (dBm).
-        """
-        # Trigger single sweep
-        self.write(":INITiate:SMODe SINGle")
-        self.write(":INITiate:IMMediate")
-        self.write("*WAI")
+        Controls the OSA sweep execution and active trace states.
 
-        # Fetch wavelength X-axis array (nm)
-        x_str = self.query(f":TRACe:X? {trace_name.upper()}")
-        # Fetch power Y-axis array (dBm)
-        y_str = self.query(f":TRACe:Y? {trace_name.upper()}")
+        :param mode: 'REPEAT' (continuous), 'SINGLE' (one-shot), or 'STOP' (abort sweep).
+        :param active_trace: Active trace for the sweep ('TRA' through 'TRG').
+        :param fix_other_traces: If True, sets active_trace to WRITE state and fixes all other traces.
+        :param wait: If True and mode is 'SINGLE', blocks until sweep completion (*WAI).
+        """
+        mode_upper = mode.upper()
+        active = active_trace.upper()
+
+        if fix_other_traces:
+            for t in self.ALL_TRACES:
+                if t == active:
+                    self.write(f":TRACe:STATe:{t} WRITe")
+                else:
+                    self.write(f":TRACe:STATe:{t} FIXed")
+
+        if mode_upper in ("REPEAT", "CONTINUOUS"):
+            self.write(":INITiate:SMODe REPEAT")
+            self.write(":INITiate:IMMediate")
+        elif mode_upper == "SINGLE":
+            self.write(":INITiate:SMODe SINGle")
+            self.write(":INITiate:IMMediate")
+            if wait:
+                self.write("*WAI")
+        elif mode_upper == "STOP":
+            self.write(":ABORt")
+
+    def get_trace(self, trace_name: str = "TRA") -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Fetches wavelength array (nm) and optical power array (dBm) for the specified trace directly from OSA memory.
+        Does not trigger a sweep or block for sweep completion.
+        """
+        t_name = trace_name.upper()
+        x_str = self.query(f":TRACe:X? {t_name}")
+        y_str = self.query(f":TRACe:Y? {t_name}")
 
         x_vals = [float(v) for v in x_str.replace(";", ",").split(",") if v.strip()]
         y_vals = [float(v) for v in y_str.replace(";", ",").split(",") if v.strip()]
@@ -64,3 +97,17 @@ class AQ6370(BaseInstrumentDriver):
         power_dbm = np.array(y_vals, dtype=float)
 
         return wavelength_nm, power_dbm
+
+    def acquire_trace(self, trace_name: str = "TRA") -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Fetches wavelength array (nm) and power array (dBm) directly from OSA memory without triggering a new sweep.
+        """
+        return self.get_trace(trace_name)
+
+    def sweep_and_acquire(self, trace_name: str = "TRA") -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Triggers a single sweep, waits for completion, and fetches the trace data.
+        """
+        self.sweep(mode="SINGLE", active_trace=trace_name, fix_other_traces=False, wait=True)
+        return self.get_trace(trace_name)
+

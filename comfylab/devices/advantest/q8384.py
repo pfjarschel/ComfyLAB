@@ -36,14 +36,28 @@ class AdvantestQ8384(BaseInstrumentDriver):
         if rbw_nm is not None:
             self.write(f"RESLN {rbw_nm}")
 
-    def acquire_trace(self) -> Tuple[np.ndarray, np.ndarray]:
+    def sweep(self, mode: str = "REPEAT", wait: bool = False) -> None:
         """
-        Triggers a single sweep and queries wavelength array (nm) and optical power trace array (dBm).
-        """
-        # Trigger single sweep and wait
-        self.write("SI")
-        self.write("*WAI")
+        Controls the Advantest OSA sweep mode.
 
+        :param mode: 'REPEAT' (continuous), 'SINGLE' (one-shot), or 'STOP' (stop sweep).
+        :param wait: If True and mode is 'SINGLE', blocks until sweep completion (*WAI).
+        """
+        mode_upper = mode.upper()
+        if mode_upper in ("REPEAT", "CONTINUOUS"):
+            self.write("SR")
+        elif mode_upper == "SINGLE":
+            self.write("SI")
+            if wait:
+                self.write("*WAI")
+        elif mode_upper == "STOP":
+            self.write("ST")
+
+    def get_trace(self) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Fetches wavelength array (nm) and optical power trace array (dBm) directly from OSA memory.
+        Does not trigger a sweep or block for sweep completion.
+        """
         # Query center and span for frequency axis generation
         try:
             cnt_str = self.query("CNT?")
@@ -68,3 +82,17 @@ class AdvantestQ8384(BaseInstrumentDriver):
             wavelength_array = np.array([start_nm])
 
         return wavelength_array, power_array
+
+    def acquire_trace(self) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Fetches wavelength array (nm) and power array (dBm) directly from OSA memory without triggering a sweep.
+        """
+        return self.get_trace()
+
+    def sweep_and_acquire(self) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Triggers a single sweep, waits for completion, and fetches the trace data.
+        """
+        self.sweep(mode="SINGLE", wait=True)
+        return self.get_trace()
+

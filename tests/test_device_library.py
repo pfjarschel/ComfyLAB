@@ -53,7 +53,7 @@ def test_tbs1062_driver_mock():
         "HORizontal:MAIn:SCALE?": "0.001",
     }.get(cmd, "0")
 
-    mock_visa.query_raw.return_value = b"#10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+    mock_visa.read_raw.return_value = b"#10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
 
     drv = TBS1062(mock_visa)
     drv.set_timebase(scale=0.001, position=0.0)
@@ -73,7 +73,7 @@ def test_keysight_dsox_mock():
         ":WAVeform:PREamble?": "1,0,1000,1,1e-6,0.0,0.0,0.01,0.0,0.0"
     }.get(cmd, "0")
     # 4 bytes = 2 uint16 numbers
-    mock_visa.query_raw.return_value = b"#14\x00\x00\x01\x00"
+    mock_visa.read_raw.return_value = b"#14\x00\x00\x01\x00"
 
     drv = KeysightDSOX(mock_visa)
     drv.set_timebase(scale=0.001)
@@ -81,6 +81,7 @@ def test_keysight_dsox_mock():
 
     t, v = drv.acquire_waveform(channel=1)
     assert len(v) == 2
+
 
 
 def test_agilent_e4407b_mock():
@@ -127,9 +128,47 @@ def test_advantest_q8384_mock():
     drv.set_sweep_config(center_nm=1550.0, span_nm=20.0)
     mock_visa.write.assert_any_call("CNT 1550.0")
 
-    wl, p = drv.acquire_trace()
+    # Test sweep modes
+    drv.sweep(mode="REPEAT")
+    mock_visa.write.assert_any_call("SR")
+
+    drv.sweep(mode="SINGLE", wait=True)
+    mock_visa.write.assert_any_call("SI")
+    mock_visa.write.assert_any_call("*WAI")
+
+    drv.sweep(mode="STOP")
+    mock_visa.write.assert_any_call("ST")
+
+    # Test memory trace acquisition without sweep trigger
+    wl, p = drv.get_trace()
     assert len(wl) == 3
     assert p[1] == -10.0
+
+
+def test_yokogawa_aq6370_mock():
+    mock_visa = MagicMock()
+    mock_visa.query.side_effect = lambda cmd: {
+        ":TRACe:X? TRC": "1545.0, 1550.0, 1555.0",
+        ":TRACe:Y? TRC": "-15.0, -5.0, -20.0"
+    }.get(cmd, "0")
+
+    drv = AQ6370(mock_visa)
+    drv.set_sweep_config(center_nm=1550.0, span_nm=10.0, rbw_nm=0.02, sens="NORM")
+    mock_visa.write.assert_any_call(":SENSe:WAVelength:CENTer 1550.0NM")
+
+    # Test sweep mode and trace fixing across TRA..TRG
+    drv.sweep(mode="REPEAT", active_trace="TRC", fix_other_traces=True)
+    mock_visa.write.assert_any_call(":TRACe:STATe:TRC WRITe")
+    mock_visa.write.assert_any_call(":TRACe:STATe:TRA FIXed")
+    mock_visa.write.assert_any_call(":TRACe:STATe:TRG FIXed")
+    mock_visa.write.assert_any_call(":INITiate:SMODe REPEAT")
+    mock_visa.write.assert_any_call(":INITiate:IMMediate")
+
+    # Test memory read for trace C
+    wl, p = drv.get_trace("TRC")
+    assert len(wl) == 3
+    assert wl[1] == 1550.0
+    assert p[1] == -5.0
 
 
 def test_keopsys_edfa_mock():
@@ -195,16 +234,24 @@ def test_block_registration_discovery():
     import comfylab.blocks.devices as devices_pkg
     from pathlib import Path
 
-    devices_dir = str(Path(devices_pkg.__file__).parent)
+    devices_dir = str(Path(devices_pkg.__path__[0]))
     loader.load_blocks_from_directory(devices_dir)
 
     registered = BLOCK_REGISTRY
+
     
-    # Check block discovery for newly added devices
+    # Check block discovery for newly added devices and OSA blocks
     assert "devices/keysight/dsox_series/connect" in registered
     assert "devices/agilent/e4407b/connect" in registered
     assert "devices/agilent/hp34401a/connect" in registered
     assert "devices/advantest/q8384/connect" in registered
+    assert "devices/advantest/q8384/sweep" in registered
+    assert "devices/advantest/q8384/get_trace" in registered
+    assert "devices/advantest/q8384/sweep_and_acquire" in registered
+    assert "devices/yokogawa/aq6370/connect" in registered
+    assert "devices/yokogawa/aq6370/sweep" in registered
+    assert "devices/yokogawa/aq6370/get_trace" in registered
+    assert "devices/yokogawa/aq6370/sweep_and_acquire" in registered
     assert "devices/keopsys/edfa/connect" in registered
     assert "devices/thorlabs/lts200/connect" in registered
     assert "devices/thorlabs/mdt69x/connect" in registered
@@ -212,3 +259,4 @@ def test_block_registration_discovery():
     assert "devices/mcc/mcdaq1208ls/connect" in registered
     assert "devices/generic/oscilloscope/connect" in registered
     assert "devices/generic/camera/connect" in registered
+
