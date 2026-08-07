@@ -13,12 +13,15 @@
  */
 
 import { useState } from 'react';
+import { useTranslation } from '../i18n';
+import { getBlockTitle, getBlockDescription } from '../utils/blockI18n';
 
 export interface SidebarNode {
   type: string;
   name: string;
   icon: string;
   description: string;
+  i18n?: Record<string, any>;
 }
 
 export interface SidebarCategoryNode {
@@ -54,12 +57,19 @@ const CategoryTreeItem = ({
   expandedMap,
   toggleExpand,
 }: CategoryTreeItemProps) => {
+  const { t } = useTranslation();
   const isExpanded = searchQuery.trim() !== '' || expandedMap[path];
   const isTopLevel = level === 0;
   const isUserCat = isTopLevel && catName.toLowerCase() === 'user';
 
   const childEntries = Object.entries(node.children).sort((a, b) => a[0].localeCompare(b[0]));
-  const sortedDirectNodes = [...node.directNodes].sort((a, b) => a.name.localeCompare(b.name));
+  const sortedDirectNodes = [...node.directNodes].sort((a, b) => 
+    getBlockTitle(a).localeCompare(getBlockTitle(b))
+  );
+
+  const displayCategoryName = isTopLevel 
+    ? t(`sidebar.categories.${catName.toUpperCase()}`, catName)
+    : catName;
 
   return (
     <div>
@@ -70,24 +80,28 @@ const CategoryTreeItem = ({
           onClick={() => toggleExpand(path)}
         >
           <span className="expand-icon">{isExpanded ? '▼' : '▶'}</span>
-          <span className={isTopLevel ? "category-title" : "subcategory-title"}>{catName}</span>
+          <span className={isTopLevel ? "category-title" : "subcategory-title"}>{displayCategoryName}</span>
         </div>
 
         {isExpanded && (
           <div className={isTopLevel ? "sidebar-category-content" : "sidebar-subcategory-content"}>
             {/* Direct Blocks at this level */}
-            {sortedDirectNodes.map((block) => (
-              <div 
-                key={block.type} 
-                className="dndblock" 
-                onDragStart={(e) => { e.dataTransfer.setData('application/reactflow', block.type); }} 
-                draggable
-                title={block.description}
-              >
-                <span style={{ fontSize: '0.95rem' }}>{block.icon || '⚙️'}</span> 
-                <span>{block.name}</span>
-              </div>
-            ))}
+            {sortedDirectNodes.map((block) => {
+              const title = getBlockTitle(block);
+              const desc = getBlockDescription(block);
+              return (
+                <div 
+                  key={block.type} 
+                  className="dndblock" 
+                  onDragStart={(e) => { e.dataTransfer.setData('application/reactflow', block.type); }} 
+                  draggable
+                  title={desc}
+                >
+                  <span style={{ fontSize: '0.95rem' }}>{block.icon || '⚙️'}</span> 
+                  <span>{title}</span>
+                </div>
+              );
+            })}
 
             {/* Child subcategories */}
             {childEntries.map(([childName, childNode]) => (
@@ -117,6 +131,7 @@ export const Sidebar = ({
   filteredTree,
   onReloadRegistry,
 }: SidebarProps) => {
+  const { t } = useTranslation();
   const [expandedMap, setExpandedMap] = useState<Record<string, boolean>>({});
 
   const toggleExpand = (path: string) => {
@@ -134,12 +149,12 @@ export const Sidebar = ({
   return (
     <div className="sidebar-container glass-panel nodrag nowheel">
       <div className="sidebar-header">
-        <h3>Block Library</h3>
+        <h3>{t('sidebar.title', 'Block Library')}</h3>
         <div style={{ display: 'flex', gap: '6px' }}>
           <button
             className="button-secondary"
             onClick={onReloadRegistry}
-            title="Refresh block library"
+            title={t('topbar.reload', 'Refresh block library')}
             style={{ height: '30px', padding: '0 8px', fontSize: '0.8rem' }}
           >
             <span>🔄</span>
@@ -147,18 +162,18 @@ export const Sidebar = ({
           <button 
             className="button-secondary library-toggle-btn active"
             onClick={() => setSidebarOpen(false)}
-            title="Hide Block Library"
+            title={t('common.close', 'Hide Block Library')}
             style={{ height: '30px', padding: '0 10px', fontSize: '0.8rem', gap: '6px' }}
           >
             <span>📚</span>
-            <span>Hide</span>
+            <span>{t('common.close', 'Hide')}</span>
           </button>
         </div>
       </div>
       <div className="sidebar-search-container">
         <input
           type="text"
-          placeholder="Search blocks..."
+          placeholder={t('sidebar.search', 'Search blocks...')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="sidebar-search-input"
@@ -167,7 +182,7 @@ export const Sidebar = ({
           <button 
             className="sidebar-search-clear"
             onClick={() => setSearchQuery('')}
-            title="Clear search"
+            title={t('common.cancel', 'Clear search')}
           >
             ✕
           </button>
@@ -176,7 +191,7 @@ export const Sidebar = ({
       <div className="sidebar-content">
         {topLevelEntries.length === 0 && (
           <div style={{ color: '#64748b', fontSize: '0.85rem', textAlign: 'center', marginTop: '20px' }}>
-            No blocks match your search.
+            {t('sidebar.noBlocks', 'No matching blocks found')}
           </div>
         )}
         {topLevelEntries.map(([catName, node]) => (

@@ -15,6 +15,7 @@
 import React, { useState } from 'react';
 import { AboutModal } from './modals/AboutModal';
 import { QuickStartModal } from './modals/QuickStartModal';
+import { useTranslation, SUPPORTED_LANGUAGES, type Language } from '../i18n';
 
 interface TopBarProps {
   menuOpen: boolean;
@@ -102,6 +103,7 @@ export const TopBar = ({
 }: TopBarProps) => {
   const [showAboutModal, setShowAboutModal] = useState(false);
   const [showQuickStartModal, setShowQuickStartModal] = useState(false);
+  const { t, i18n } = useTranslation();
 
   return (
     <>
@@ -316,6 +318,31 @@ export const TopBar = ({
             📦 Import Package
           </button>
         )}
+        <div className="language-selector-container">
+          <select
+            value={i18n.language}
+            onChange={(e) => i18n.changeLanguage(e.target.value as Language)}
+            className="button-secondary"
+            style={{
+              height: '38px',
+              borderRadius: '8px',
+              padding: '0 8px',
+              fontSize: '0.85rem',
+              fontWeight: 500,
+              cursor: 'pointer',
+              border: '1px solid var(--button-secondary-border)',
+              background: 'var(--button-secondary-bg)',
+              color: 'var(--text-primary)'
+            }}
+            title={t('topbar.language', 'Language')}
+          >
+            {SUPPORTED_LANGUAGES.map((lang) => (
+              <option key={lang.code} value={lang.code} style={{ background: 'var(--bg-panel)', color: 'var(--text-primary)' }}>
+                {lang.flag} {lang.label}
+              </option>
+            ))}
+          </select>
+        </div>
         <button
           className="button-secondary"
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}

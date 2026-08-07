@@ -177,6 +177,9 @@ class BaseBlock:
     inputs_def: List[Pin] = []
     outputs_def: List[Pin] = []
     
+    # Embedded translations per block, e.g. {"en": {"display_name": "..."}, "pt-BR": {...}}
+    i18n: Dict[str, Dict[str, Any]] = {}
+    
     # Allows blocks to dictate frontend behaviors (e.g., {"suppress_value_msg": True})
     ui_behavior: Dict[str, Any] = {}
 

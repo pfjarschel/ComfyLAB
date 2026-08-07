@@ -1,0 +1,77 @@
+{
+  "topbar": {
+    "run": "Ejecutar Workspace",
+    "stop": "Detener Ejecución",
+    "save": "Guardar Workspace",
+    "saved": "Guardado",
+    "unsaved": "Cambios sin guardar",
+    "clear": "Limpiar Workspace",
+    "reload": "Recargar Bloques",
+    "packages": "Paquetes y Dependencias",
+    "createCluster": "Crear Cluster",
+    "settings": "Configuración",
+    "running": "Ejecución en curso...",
+    "language": "Idioma"
+  },
+  "sidebar": {
+    "title": "Biblioteca de Bloques",
+    "search": "Buscar bloques...",
+    "noBlocks": "No se encontraron bloques",
+    "customBlocks": "Bloques Personalizados",
+    "clusters": "Clusters",
+    "dragToCanvas": "Arrastra o haz clic para añadir un bloque",
+    "categories": {
+      "LOGIC": "Lógica y Control",
+      "MATH": "Matemáticas y Procesamiento",
+      "INSTRUMENTS": "Instrumentos y VISA",
+      "DATA ACQUISITION": "Adquisición de Datos",
+      "IO": "Entrada / Salida",
+      "PLOTS": "Gráficos y Visualización",
+      "UTILITY": "Utilidades y Ayudantes",
+      "TEMPORARY": "Bloques Temporales"
+    }
+  },
+  "inspector": {
+    "title": "Inspector de Bloques",
+    "noBlockSelected": "Selecciona un bloque para inspeccionar propiedades",
+    "description": "Descripción",
+    "properties": "Propiedades",
+    "inputs": "Pines de Entrada",
+    "outputs": "Pines de Salida",
+    "author": "Autor",
+    "source": "Código Fuente",
+    "editScript": "Editar Script",
+    "unauthorized": "Bloque No Confiable",
+    "trustNotice": "Este bloque proviene de una fuente no verificada.",
+    "dynamicPins": "Cantidad de Elementos"
+  },
+  "canvas": {
+    "delete": "Eliminar Bloque",
+    "duplicate": "Duplicar Bloque",
+    "createCluster": "Crear Cluster de la Selección",
+    "exportScript": "Exportar como Script",
+    "clearAll": "Limpiar Lienzo",
+    "executionSuccess": "Ejecución completada con éxito",
+    "executionFailed": "Error en la ejecución"
+  },
+  "clusterModal": {
+    "title": "Crear Cluster de Bloques",
+    "nameLabel": "Nombre del Cluster",
+    "categoryLabel": "Categoría",
+    "descriptionLabel": "Descripción",
+    "create": "Crear Cluster",
+    "cancel": "Cancelar",
+    "boundaryNotice": "Los bloques seleccionados se encapsularán en un bloque de cluster reutilizable."
+  },
+  "common": {
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "close": "Cerrar",
+    "search": "Buscar...",
+    "error": "Error",
+    "warning": "Advertencia",
+    "info": "Información",
+    "success": "Éxito"
+  }
+}

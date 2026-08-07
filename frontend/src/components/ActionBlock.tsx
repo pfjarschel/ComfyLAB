@@ -18,6 +18,7 @@ import type { NodeProps } from '@xyflow/react';
 import { RegistryContext } from '../context/RegistryContext';
 import { getPinColor } from '../constants/blockLayouts';
 import type { NodeSchema } from '../constants/blockLayouts';
+import { getBlockTitle, getPinLabel } from '../utils/blockI18n';
 import { NumericTextInput } from './common/NumericTextInput';
 import { TimePlotWidget } from './widgets/TimePlotWidget';
 import { XYPlotWidget } from './widgets/XYPlotWidget';
@@ -966,7 +967,7 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
         ) : (
           <>
             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '120px' }}>
-              {data.customName || layout.name}
+              {data.customName || getBlockTitle(layout)}
             </span>
             {data.disabled && (
               <span

@@ -15,6 +15,8 @@
 import { useContext, useState, useEffect } from 'react';
 import { RegistryContext } from '../context/RegistryContext';
 import { getPinColor } from './ActionBlock';
+import { useTranslation } from '../i18n';
+import { getBlockTitle, getBlockDescription, getBlockCategory, getPropertyLabel, getPinLabel } from '../utils/blockI18n';
 
 interface PinSchema {
   name: string;
@@ -58,6 +60,7 @@ export const BlockInspectorPanel = ({
   onBlockDataChange,
   onReloadRegistry,
 }: BlockInspectorPanelProps) => {
+  const { t } = useTranslation();
   const blockRegistry = useContext(RegistryContext) as Record<string, any> | null;
   const [isCopyingPath, setIsCopyingPath] = useState(false);
 
@@ -147,10 +150,10 @@ export const BlockInspectorPanel = ({
     };
   }
 
-  const displayName = block.data?.customName || layout?.name || action || 'Unknown Block';
-  const category = layout?.category || (isCluster ? 'Cluster' : 'General');
+  const displayName = block.data?.customName || (layout ? getBlockTitle(layout) : action) || 'Unknown Block';
+  const category = layout ? getBlockCategory(layout) : (isCluster ? 'Cluster' : 'General');
   const icon = layout?.icon || (isCluster ? '📦' : '⚙️');
-  const description = layout?.description || (isCluster ? 'Custom grouped cluster block containing sub-workflows.' : '');
+  const description = layout ? getBlockDescription(layout) : (isCluster ? 'Custom grouped cluster block containing sub-workflows.' : '');
   const author = layout?.author || '';
   const filepath = layout?.filepath || '';
 

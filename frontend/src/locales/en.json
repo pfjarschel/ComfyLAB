@@ -1,0 +1,77 @@
+{
+  "topbar": {
+    "run": "Run Workspace",
+    "stop": "Stop Execution",
+    "save": "Save Workspace",
+    "saved": "Saved",
+    "unsaved": "Unsaved changes",
+    "clear": "Clear Workspace",
+    "reload": "Reload Blocks",
+    "packages": "Packages & Dependencies",
+    "createCluster": "Create Cluster",
+    "settings": "Settings",
+    "running": "Execution in progress...",
+    "language": "Language"
+  },
+  "sidebar": {
+    "title": "Block Library",
+    "search": "Search blocks...",
+    "noBlocks": "No matching blocks found",
+    "customBlocks": "Custom Blocks",
+    "clusters": "Clusters",
+    "dragToCanvas": "Drag or click to add block",
+    "categories": {
+      "LOGIC": "Logic & Control",
+      "MATH": "Math & Processing",
+      "INSTRUMENTS": "Instruments & VISA",
+      "DATA ACQUISITION": "Data Acquisition",
+      "IO": "Input / Output",
+      "PLOTS": "Plots & Visualization",
+      "UTILITY": "Utility & Helpers",
+      "TEMPORARY": "Temporary Blocks"
+    }
+  },
+  "inspector": {
+    "title": "Block Inspector",
+    "noBlockSelected": "Select a block to inspect properties",
+    "description": "Description",
+    "properties": "Properties",
+    "inputs": "Input Pins",
+    "outputs": "Output Pins",
+    "author": "Author",
+    "source": "Source Code",
+    "editScript": "Edit Script",
+    "unauthorized": "Untrusted Block",
+    "trustNotice": "This block is from an unverified source.",
+    "dynamicPins": "Item Count"
+  },
+  "canvas": {
+    "delete": "Delete Block",
+    "duplicate": "Duplicate Block",
+    "createCluster": "Create Cluster from Selection",
+    "exportScript": "Export as Script",
+    "clearAll": "Clear Canvas",
+    "executionSuccess": "Execution completed successfully",
+    "executionFailed": "Execution failed"
+  },
+  "clusterModal": {
+    "title": "Create Block Cluster",
+    "nameLabel": "Cluster Name",
+    "categoryLabel": "Category",
+    "descriptionLabel": "Description",
+    "create": "Create Cluster",
+    "cancel": "Cancel",
+    "boundaryNotice": "Selected blocks will be encapsulated into a reusable cluster block."
+  },
+  "common": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "close": "Close",
+    "search": "Search...",
+    "error": "Error",
+    "warning": "Warning",
+    "info": "Information",
+    "success": "Success"
+  }
+}
