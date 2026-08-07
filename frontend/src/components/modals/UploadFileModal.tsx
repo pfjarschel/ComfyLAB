@@ -80,7 +80,7 @@ export const UploadFileModal = ({ isOpen, onClose, BACKEND_URL }: UploadFileModa
           )}
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)' }}>File</label>
+            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)' }}>{t('uploadModal.fileLabel', 'File')}</label>
             <input 
               type="file" 
               ref={fileInputRef}
@@ -90,12 +90,12 @@ export const UploadFileModal = ({ isOpen, onClose, BACKEND_URL }: UploadFileModa
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)' }}>Subdirectory (optional)</label>
+            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)' }}>{t('uploadModal.subdirLabel', 'Subdirectory (optional)')}</label>
             <input 
               type="text" 
               value={subdir}
               onChange={(e) => setSubdir(e.target.value)}
-              placeholder="e.g. images/raw"
+              placeholder={t('uploadModal.subdirPlaceholder', 'e.g. images/raw')}
               className="nodrag"
               style={{ 
                 padding: '8px', 
@@ -107,17 +107,17 @@ export const UploadFileModal = ({ isOpen, onClose, BACKEND_URL }: UploadFileModa
               }}
             />
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              Folders will be created if they do not exist.
+              {t('uploadModal.subdirHint', 'Folders will be created if they do not exist.')}
             </span>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)' }}>File Name</label>
+            <label style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)' }}>{t('uploadModal.filenameLabel', 'File Name')}</label>
             <input 
               type="text" 
               value={filename}
               onChange={(e) => setFilename(e.target.value)}
-              placeholder="e.g. my_image.png"
+              placeholder={t('uploadModal.filenamePlaceholder', 'e.g. my_image.png')}
               className="nodrag"
               disabled={!file}
               style={{ 
@@ -143,7 +143,7 @@ export const UploadFileModal = ({ isOpen, onClose, BACKEND_URL }: UploadFileModa
             disabled={!file || isUploading}
             style={{ minWidth: '80px' }}
           >
-            {isUploading ? 'Uploading...' : 'Upload'}
+            {isUploading ? t('uploadModal.uploading', 'Uploading...') : t('uploadModal.upload', 'Upload')}
           </button>
         </div>
       </div>

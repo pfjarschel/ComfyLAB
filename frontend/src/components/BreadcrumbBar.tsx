@@ -40,7 +40,7 @@ export const BreadcrumbBar = ({ levels, currentIndex, onNavigate }: BreadcrumbBa
         const layout = blockRegistry?.[level.type];
         const icon = layout?.icon || '🏠';
         const rawName = level.breadcrumbLabel || layout?.name || level.type;
-        const name = rawName === 'Untitled' ? t('topbar.untitled', 'Untitled') : rawName;
+        const name = (!rawName || rawName === 'Untitled') ? t('topbar.untitled', 'Untitled') : rawName;
 
         return (
           <span key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>

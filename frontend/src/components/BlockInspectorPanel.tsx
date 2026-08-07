@@ -341,7 +341,7 @@ export const BlockInspectorPanel = ({
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: 'rgba(255,255,255,0.03)', padding: '12px', borderRadius: '8px', border: '1px solid var(--block-border)' }}>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Icon</label>
+                  <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>{t('scriptEditor.iconLabel', 'Icon')}</label>
                   <input
                     type="text"
                     value={editIcon}
@@ -350,7 +350,7 @@ export const BlockInspectorPanel = ({
                   />
                 </div>
                 <div style={{ flex: 3 }}>
-                  <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Category</label>
+                  <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>{t('scriptEditor.category', 'Category')}</label>
                   <input
                     type="text"
                     value={editCategory}
@@ -360,7 +360,7 @@ export const BlockInspectorPanel = ({
                 </div>
               </div>
               <div>
-                <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Description</label>
+                <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>{t('scriptEditor.description', 'Description')}</label>
                 <textarea
                   value={editDescription}
                   onChange={(e) => setEditDescription(e.target.value)}
@@ -373,10 +373,10 @@ export const BlockInspectorPanel = ({
               )}
               <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
                 <button className="button-primary" style={{ flex: 1, padding: '6px', fontSize: '0.75rem' }} onClick={handleSaveClusterMetadata}>
-                  Save Definition
+                  {t('inspector.saveDefinition', 'Save Definition')}
                 </button>
                 <button className="button-secondary" style={{ flex: 1, padding: '6px', fontSize: '0.75rem' }} onClick={() => setIsEditingCluster(false)}>
-                  Cancel
+                  {t('common.cancel', 'Cancel')}
                 </button>
               </div>
             </div>
@@ -439,7 +439,7 @@ export const BlockInspectorPanel = ({
               }}
               onClick={() => block.data.onNavigateInto(blockId, action)}
             >
-              📦 Open Cluster Blueprint
+              {t('inspector.openCluster', '📦 Open Cluster Blueprint')}
             </button>
           )}
         </div>
@@ -469,15 +469,15 @@ export const BlockInspectorPanel = ({
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span className="sidebar-label" style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-muted)' }}>
-                  Library Signature
+                  {t('inspector.librarySignature', 'Library Signature')}
                 </span>
                 <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-                  {libraryArgs.length} argument{libraryArgs.length !== 1 ? 's' : ''}
+                  {libraryArgs.length} {t('libraryEditor.argumentsCount', 'argument(s)')}
                 </span>
               </div>
               {libraryArgs.length === 0 ? (
                 <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic', padding: '8px', background: 'var(--input-bg)', borderRadius: '6px', border: '1px solid var(--block-border)' }}>
-                  No arguments configured. Open the block and click ⚙️ Edit Signature.
+                  {t('inspector.noArgumentsConfigured', 'No arguments configured. Open the block and click ⚙️ Edit Signature.')}
                 </p>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -500,7 +500,7 @@ export const BlockInspectorPanel = ({
                         }}
                       >
                         <span style={{ fontFamily: 'monospace', color: 'var(--text-color)', fontWeight: 600, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {arg.name || '(unnamed)'}
+                          {arg.name || `(${t('libraryEditor.unnamed', 'unnamed')})`}
                         </span>
                         <span style={{ color: '#64748b', fontFamily: 'monospace', fontSize: '0.65rem', whiteSpace: 'nowrap' }}>
                           {arg.c_type}
@@ -713,7 +713,7 @@ export const BlockInspectorPanel = ({
               );
             })}
             {(!layout || (layout.execOuts.length === 0 && layout.dataOuts.length === 0)) && (
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontStyle: 'italic', paddingLeft: '8px' }}>No output pins</span>
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontStyle: 'italic', paddingLeft: '8px' }}>{t('inspector.noOutputs', 'No output pins')}</span>
             )}
           </div>
         </div>
@@ -723,10 +723,10 @@ export const BlockInspectorPanel = ({
         {/* EXECUTION DIAGNOSTICS */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <span className="sidebar-label" style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-muted)' }}>
-            Execution Status & Diagnostics
+            {t('inspector.executionStatus', 'Execution Status & Diagnostics')}
           </span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Status:</span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t('inspector.status', 'Status:')}</span>
             {(() => {
               const status = block.data?.status || 'idle';
               let badgeBg = 'rgba(148, 163, 184, 0.1)';
@@ -768,7 +768,7 @@ export const BlockInspectorPanel = ({
 
           {block.data?.resultMessage && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Result Output:</span>
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{t('inspector.resultOutput', 'Result Output:')}</span>
               <pre
                 style={{
                   margin: 0,
@@ -791,7 +791,7 @@ export const BlockInspectorPanel = ({
 
           {/* Optional inline property visualization */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
-            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Block Parameters:</span>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{t('inspector.blockParameters', 'Block Parameters:')}</span>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', background: 'rgba(2, 6, 23, 0.2)', border: '1px solid var(--block-border)', borderRadius: '6px', padding: '6px' }}>
               {Object.keys(block.data)
                 .filter((key) => !['action', 'status', 'resultMessage', 'result', 'history', 'waveform', 'onChange', 'onEditScript', 'onNavigateInto', 'onInspect', 'customInputs', 'customOutputs', 'code', 'notes', 'customName', 'displayValue', 'ffi_args', 'onEditFFISignature', 'library_args', 'onEditLibrarySignature'].includes(key))

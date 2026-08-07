@@ -182,12 +182,12 @@ export const CanvasContextMenu = ({
         <>
           <div className="context-menu-submenu-parent">
             <button className="context-menu-item">
-              <span>➕</span> Add Block <span className="submenu-arrow">▶</span>
+              <span>➕</span> {t('contextMenu.addBlock', 'Add Block')} <span className="submenu-arrow">▶</span>
             </button>
             <div className={`context-menu-submenu glass-panel ${submenuDirs.left ? 'submenu-left' : ''} ${submenuDirs.addTop ? 'submenu-top' : ''}`}>
               <input
                 type="text"
-                placeholder="Search blocks..."
+                placeholder={t('contextMenu.searchBlocks', 'Search blocks...')}
                 autoFocus
                 value={contextMenuSearch}
                 className="context-menu-search-input"
@@ -195,7 +195,7 @@ export const CanvasContextMenu = ({
               />
               <div className="context-menu-block-list">
                 {menuFilteredNodes.length === 0 ? (
-                  <div className="context-menu-no-results">No blocks found</div>
+                  <div className="context-menu-no-results">{t('contextMenu.noBlocksFound', 'No blocks found')}</div>
                 ) : (
                   menuFilteredNodes.map((block) => (
                     <button
@@ -231,7 +231,7 @@ export const CanvasContextMenu = ({
           )}
           <div className="context-menu-divider" />
           <button className="context-menu-item" onClick={() => { onResetZoom(); onClose(); }}>
-            <span>🔍</span> Reset Zoom
+            <span>🔍</span> {t('contextMenu.resetZoom', 'Reset Zoom')}
           </button>
           <button className="context-menu-item" onClick={() => { onFitView(); onClose(); }}>
             <span>🔍</span> {t('contextMenu.zoomToFit', 'Zoom to Fit')}
@@ -245,23 +245,23 @@ export const CanvasContextMenu = ({
                 <path d="M8 12h4M12 5.5h4M12 18.5h4M12 5.5v13" />
               </svg>
             </span>
-            Auto-Organize Blocks
+            {t('contextMenu.autoOrganize', 'Auto-Organize Blocks')}
           </button>
           <button className="context-menu-item" onClick={() => { onToggleLocked(); onClose(); }}>
-            <span>{isLocked ? '🔓' : '🔒'}</span> {isLocked ? 'Unlock Interactivity' : 'Lock Interactivity'}
+            <span>{isLocked ? '🔓' : '🔒'}</span> {isLocked ? t('contextMenu.unlock', 'Unlock Interactivity') : t('contextMenu.lock', 'Lock Interactivity')}
           </button>
           <button className="context-menu-item" onClick={() => { onToggleSnap(); onClose(); }}>
-            <span>🧲</span> {snapToGrid ? 'Disable Grid Snapping' : 'Enable Grid Snapping'}
+            <span>🧲</span> {snapToGrid ? t('contextMenu.disableGrid', 'Disable Grid Snapping') : t('contextMenu.enableGrid', 'Enable Grid Snapping')}
           </button>
           <button className="context-menu-item" onClick={() => { onToggleAnnotations(); onClose(); }}>
-            <span>👁️</span> {showAnnotations ? 'Hide Annotations' : 'Show Annotations'}
+            <span>👁️</span> {showAnnotations ? t('contextMenu.hideAnnotations', 'Hide Annotations') : t('contextMenu.showAnnotations', 'Show Annotations')}
           </button>
           <div className="context-menu-divider" />
           <button className="context-menu-item" disabled={isLocked} onClick={() => {
             onClearAllBlocksData();
             onClose();
           }}>
-            <span>🧹</span> Clear All Blocks Data
+            <span>🧹</span> {t('contextMenu.clearAllBlocksData', 'Clear All Blocks Data')}
           </button>
           <button className="context-menu-item danger" disabled={isLocked} onClick={() => {
             onClearCanvas();
@@ -302,10 +302,10 @@ export const CanvasContextMenu = ({
             }}
           >
             <span>{blocks.find(n => n.id === contextMenu.targetId)?.data?.isPersistent ? '🔓' : '🔒'}</span>{' '}
-            {blocks.find(n => n.id === contextMenu.targetId)?.data?.isPersistent ? 'Make Transient' : 'Make Persistent'}
+            {blocks.find(n => n.id === contextMenu.targetId)?.data?.isPersistent ? t('contextMenu.makeTransient', 'Make Transient') : t('contextMenu.makePersistent', 'Make Persistent')}
           </button>
           <button className="context-menu-item" onClick={() => { onClearBlockData(contextMenu.targetId!); onClose(); }}>
-            <span>🧹</span> Clear Block Data
+            <span>🧹</span> {t('contextMenu.clearBlockData', 'Clear Block Data')}
           </button>
           <button className="context-menu-item" onClick={() => { onCopyBlock(); onClose(); }}>
             <span>📄</span> {t('contextMenu.copyBlock', 'Copy Block')}
@@ -457,12 +457,12 @@ export const CanvasContextMenu = ({
                 <div className="context-menu-divider" />
                 <div className="context-menu-submenu-parent">
                   <button className="context-menu-item">
-                    <span>🔄</span> Replace Block <span className="submenu-arrow">▶</span>
+                    <span>🔄</span> {t('contextMenu.replaceBlock', 'Replace Block')} <span className="submenu-arrow">▶</span>
                   </button>
                   <div className={`context-menu-submenu glass-panel ${submenuDirs.left ? 'submenu-left' : ''} ${submenuDirs.replaceTop ? 'submenu-top' : ''}`}>
                     <input
                       type="text"
-                      placeholder="Search replacement..."
+                      placeholder={t('contextMenu.searchReplacement', 'Search replacement...')}
                       autoFocus
                       value={contextMenuSearch}
                       className="context-menu-search-input"
@@ -481,7 +481,7 @@ export const CanvasContextMenu = ({
                             letterSpacing: '0.5px',
                             borderBottom: '1px solid rgba(148, 163, 184, 0.08)'
                           }}>
-                            💡 Smart Suggestions
+                            💡 {t('contextMenu.smartSuggestions', 'Smart Suggestions')}
                           </div>
                           {suggestions.map((sug) => (
                             <button
@@ -519,7 +519,7 @@ export const CanvasContextMenu = ({
 
                       {/* Main filtered library list */}
                       {menuFilteredNodes.filter(n => n.type !== oldAction).length === 0 ? (
-                        <div className="context-menu-no-results">No blocks found</div>
+                        <div className="context-menu-no-results">{t('contextMenu.noBlocksFound', 'No blocks found')}</div>
                       ) : (
                         menuFilteredNodes.filter(n => n.type !== oldAction).map((regNode) => (
                           <button
@@ -551,10 +551,10 @@ export const CanvasContextMenu = ({
       {contextMenu.type === 'selection' && (
         <>
           <button className="context-menu-item" onClick={() => { onCopyBlock(); onClose(); }}>
-            <span>📄</span> Copy Blocks
+            <span>📄</span> {t('contextMenu.copyBlocks', 'Copy Blocks')}
           </button>
           <button className="context-menu-item" onClick={() => { onDuplicateBlock(); onClose(); }}>
-            <span>👯</span> Duplicate Blocks
+            <span>👯</span> {t('contextMenu.duplicateBlocks', 'Duplicate Blocks')}
           </button>
           <button
             className="context-menu-item"
@@ -565,7 +565,7 @@ export const CanvasContextMenu = ({
               onClose();
             }}
           >
-            <span>🚫</span> Disable Blocks
+            <span>🚫</span> {t('contextMenu.disableBlocks', 'Disable Blocks')}
           </button>
           <button
             className="context-menu-item"
@@ -576,7 +576,7 @@ export const CanvasContextMenu = ({
               onClose();
             }}
           >
-            <span>✅</span> Enable Blocks
+            <span>✅</span> {t('contextMenu.enableBlocks', 'Enable Blocks')}
           </button>
           <button
             className="context-menu-item danger"
@@ -586,13 +586,13 @@ export const CanvasContextMenu = ({
               onClose();
             }}
           >
-            <span>🗑️</span> Delete Blocks
+            <span>🗑️</span> {t('contextMenu.deleteBlocks', 'Delete Blocks')}
           </button>
           {selectedBlockIds.size >= 2 && (
             <>
               <div className="context-menu-divider" />
               <button className="context-menu-item" onClick={() => { onGroupIntoCluster(); onClose(); }}>
-                <span>📦</span> Group into Cluster
+                <span>📦</span> {t('contextMenu.groupCluster', 'Group into Cluster')}
               </button>
             </>
           )}
@@ -608,7 +608,7 @@ export const CanvasContextMenu = ({
               onClose();
             }}
           >
-            <span>🗑️</span> Delete Connection
+            <span>🗑️</span> {t('contextMenu.deleteConnection', 'Delete Connection')}
           </button>
         </>
       )}

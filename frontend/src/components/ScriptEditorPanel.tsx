@@ -583,7 +583,7 @@ export const ScriptEditorPanel = ({
             onClick={() => setShowPublishForm(true)} 
             style={{ flex: 1.5, background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)' }}
           >
-            🚀 Publish Block
+            {t('scriptEditor.publishBlockBtn', '🚀 Publish Block')}
           </button>
         ) : (
           <button 
@@ -591,7 +591,7 @@ export const ScriptEditorPanel = ({
             onClick={() => setShowPublishForm(true)} 
             style={{ flex: 1.5, background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)' }}
           >
-            💾 Update Published Block
+            {t('scriptEditor.updatePublished', '💾 Update Published Block')}
           </button>
         )}
       </div>
@@ -601,17 +601,17 @@ export const ScriptEditorPanel = ({
           <div className="modal-content glass-panel" style={{ width: '450px' }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3 style={{ margin: 0 }}>
-                {isPublished ? '💾 Update Published Block' : '🚀 Publish as Custom Block'}
+                {isPublished ? t('scriptEditor.updatePublished', '💾 Update Published Block') : t('scriptEditor.publishAsCustom', '🚀 Publish as Custom Block')}
               </h3>
               <button className="modal-close-btn" onClick={() => setShowPublishForm(false)}>✕</button>
             </div>
             <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '16px 20px' }}>
               
               <div className="input-group">
-                <label>Block Display Name</label>
+                <label>{t('scriptEditor.blockDisplayName', 'Block Display Name')}</label>
                 <input
                   type="text"
-                  placeholder="e.g. Waveform Generator"
+                  placeholder={t('scriptEditor.namePlaceholder', 'e.g. Waveform Generator')}
                   value={publishForm.displayName}
                   onChange={(e) => setPublishForm({ ...publishForm, displayName: e.target.value })}
                   style={{ background: 'var(--input-bg)', border: '1px solid var(--block-border)', color: 'var(--text-color)', padding: '8px', borderRadius: '6px' }}
@@ -621,7 +621,7 @@ export const ScriptEditorPanel = ({
 
               <div style={{ display: 'flex', gap: '10px' }}>
                 <div className="input-group" style={{ flex: 1 }}>
-                  <label>Icon (Emoji)</label>
+                  <label>{t('scriptEditor.iconLabel', 'Icon (Emoji)')}</label>
                   <input
                     type="text"
                     value={publishForm.icon}
@@ -630,10 +630,10 @@ export const ScriptEditorPanel = ({
                   />
                 </div>
                 <div className="input-group" style={{ flex: 2 }}>
-                  <label>Category</label>
+                  <label>{t('scriptEditor.category', 'Category')}</label>
                   <input
                     type="text"
-                    placeholder="User or VISA/Signal Generator"
+                    placeholder={t('scriptEditor.categoryPlaceholder', 'User or VISA/Signal Generator')}
                     value={publishForm.category}
                     onChange={(e) => setPublishForm({ ...publishForm, category: e.target.value })}
                     style={{ background: 'var(--input-bg)', border: '1px solid var(--block-border)', color: 'var(--text-color)', padding: '8px', borderRadius: '6px' }}
@@ -642,9 +642,9 @@ export const ScriptEditorPanel = ({
               </div>
 
               <div className="input-group">
-                <label>Description</label>
+                <label>{t('scriptEditor.description', 'Description')}</label>
                 <textarea
-                  placeholder="What does this custom block do?"
+                  placeholder={t('scriptEditor.descPlaceholder', 'What does this custom block do?')}
                   value={publishForm.description}
                   onChange={(e) => setPublishForm({ ...publishForm, description: e.target.value })}
                   rows={3}
@@ -653,36 +653,36 @@ export const ScriptEditorPanel = ({
               </div>
 
               <div className="input-group">
-                <label>Publish Destination</label>
+                <label>{t('scriptEditor.publishDestination', 'Publish Destination')}</label>
                 <select
                   value={publishForm.destination}
                   onChange={(e) => setPublishForm({ ...publishForm, destination: e.target.value })}
                   style={{ background: 'var(--input-bg)', border: '1px solid var(--block-border)', color: 'var(--text-color)', padding: '8px', borderRadius: '6px' }}
                   disabled={isPublished} // Destination directory is fixed once published
                 >
-                  <option value="global">Global User Library (~/.comfylab/user_nodes)</option>
+                  <option value="global">{t('scriptEditor.globalUserLibrary', 'Global User Library (~/.comfylab/user_nodes)')}</option>
                   {hasActiveWorkspace && (
-                    <option value="workspace">Active Workspace (blocks/)</option>
+                    <option value="workspace">{t('scriptEditor.activeWorkspace', 'Active Workspace (blocks/)')}</option>
                   )}
                 </select>
               </div>
 
               {validationError && (
                 <div style={{ color: '#ef4444', fontSize: '0.8rem', padding: '6px 10px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '4px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
-                  ⚠️ Validation Error: {validationError}
+                  {t('scriptEditor.validationError', '⚠️ Validation Error:')} {validationError}
                 </div>
               )}
 
             </div>
             <div className="modal-footer" style={{ display: 'flex', gap: '10px', padding: '12px 20px' }}>
               <button className="button-secondary" onClick={() => setShowPublishForm(false)} style={{ flex: 1 }}>
-                Cancel
+                {t('common.cancel', 'Cancel')}
               </button>
               <button 
                 className="button-primary" 
                 onClick={async () => {
                   if (!publishForm.displayName.trim()) {
-                    alert('Please enter a display name for the block.');
+                    alert(t('scriptEditor.enterDisplayName', 'Please enter a display name for the block.'));
                     return;
                   }
                   
@@ -694,7 +694,7 @@ export const ScriptEditorPanel = ({
                     ]);
                     
                     if (!validateRes.data.valid) {
-                      setValidationError(validateRes.data.error || 'Syntax error in script.');
+                      setValidationError(validateRes.data.error || t('scriptEditor.syntaxError', 'Syntax error in script.'));
                       setIsValidating(false);
                       return;
                     }
@@ -718,7 +718,7 @@ export const ScriptEditorPanel = ({
                     }
                   } catch (err: any) {
                     console.error('Publish failed:', err);
-                    alert(err.response?.data?.detail || 'Failed to publish block.');
+                    alert(err.response?.data?.detail || t('scriptEditor.publishFailed', 'Failed to publish block.'));
                   } finally {
                     setIsValidating(false);
                   }
@@ -726,7 +726,7 @@ export const ScriptEditorPanel = ({
                 style={{ flex: 1.5, background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)' }}
                 disabled={isValidating}
               >
-                {isValidating ? 'Publishing...' : '🚀 Publish'}
+                {isValidating ? t('scriptEditor.publishing', 'Publishing...') : t('scriptEditor.publish', '🚀 Publish')}
               </button>
             </div>
           </div>

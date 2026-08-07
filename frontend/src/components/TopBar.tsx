@@ -198,7 +198,7 @@ export const TopBar = ({
         <div className="filename-indicator-container">
           <span className="filename-label">{t('topbar.blueprint', 'Blueprint:')}</span>
           <span className="filename-value">
-            {currentBlueprintName || t('topbar.untitled', 'Untitled')}
+            {(!currentBlueprintName || currentBlueprintName === 'Untitled') ? t('topbar.untitled', 'Untitled') : currentBlueprintName}
             {isDirty && <span className="filename-dirty-star">*</span>}
           </span>
         </div>
@@ -245,7 +245,7 @@ export const TopBar = ({
         {isRunning ? (
           <>
             <span className="running-tab-indicator" style={{ marginRight: '10px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-              {t('topbar.running', 'Running:')} <strong>{runningTabName || t('topbar.untitled', 'Untitled')}</strong>
+              {t('topbar.running', 'Running:')} <strong>{(!runningTabName || runningTabName === 'Untitled') ? t('topbar.untitled', 'Untitled') : runningTabName}</strong>
             </span>
             {isPaused ? (
               <button 

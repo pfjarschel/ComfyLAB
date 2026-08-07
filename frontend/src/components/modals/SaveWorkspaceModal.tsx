@@ -64,7 +64,7 @@ export const SaveWorkspaceModal = ({
               autoFocus
             />
             <span className="setting-description">
-              The blueprint will be saved inside your active workspace directory.
+              {t('modals.saveWorkspaceHint', 'The blueprint will be saved inside your active workspace directory.')}
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
@@ -76,7 +76,7 @@ export const SaveWorkspaceModal = ({
               style={{ cursor: 'pointer', width: '16px', height: '16px' }}
             />
             <label htmlFor="exportAsPackageCheck" style={{ fontSize: '0.85rem', color: 'var(--text-color)', cursor: 'pointer', margin: 0, fontWeight: 500 }}>
-              📦 Export as CFY Package (includes custom blocks & clusters)
+              📦 {t('modals.exportAsPackage', 'Export as CFY Package (includes custom blocks & clusters)')}
             </label>
           </div>
         </div>

@@ -51,7 +51,7 @@ export const LoadWorkspaceModal = ({
         <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '16px 20px', maxHeight: '350px', overflowY: 'auto' }}>
           {workspaceBlueprints.length === 0 ? (
             <div style={{ color: '#64748b', fontSize: '0.85rem', textAlign: 'center', padding: '20px', fontStyle: 'italic' }}>
-              No blueprints found in the active workspace.
+              {t('modals.noBlueprintsFound', 'No blueprints found in the active workspace.')}
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -108,7 +108,7 @@ export const LoadWorkspaceModal = ({
                       transition: 'opacity 0.2s, transform 0.1s',
                       opacity: 0,
                     }} 
-                    title={bp.isPackage ? "Delete Package" : "Delete Blueprint"}
+                    title={bp.isPackage ? t('modals.deletePackage', 'Delete Package') : t('modals.deleteBlueprint', 'Delete Blueprint')}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.transform = 'scale(1.2)';
                       e.currentTarget.style.opacity = '1';
@@ -119,7 +119,7 @@ export const LoadWorkspaceModal = ({
                     onClick={async (e) => {
                       e.stopPropagation();
                       const type = bp.isPackage ? "package" : "blueprint";
-                      if (await confirmAsync(`Are you sure you want to delete ${type} ${bp.filename}?`)) {
+                      if (await confirmAsync(`${t('modals.confirmDelete', 'Are you sure you want to delete')} ${bp.filename}?`)) {
                         onDeleteBlueprint(bp.filename, bp.isPackage);
                       }
                     }}
@@ -133,7 +133,7 @@ export const LoadWorkspaceModal = ({
         </div>
         <div className="modal-footer" style={{ padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <button className="button-secondary" style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', textDecoration: 'underline', padding: '0' }} onClick={onOpenExplorer}>
-            Open Folder
+            {t('modals.openFolder', 'Open Folder')}
           </button>
           <button className="button-secondary" onClick={onClose} style={{ width: '100px' }}>
             {t('common.cancel', 'Cancel')}

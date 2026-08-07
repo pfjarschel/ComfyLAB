@@ -3514,7 +3514,7 @@ return {
               <div className="canvas-error-alert glass-panel">
                 <span className="error-icon">⚠️</span>
                 <span className="error-message">Error: {errorMessage}</span>
-                <button className="error-close-btn" onClick={() => setErrorMessage(null)} title="Clear error">✕</button>
+                <button className="error-close-btn" onClick={() => setErrorMessage(null)} title={t('canvasTools.clearError', 'Clear error')}>✕</button>
               </div>
             )}
             {unauthorizedBlocksCount > 0 && (
@@ -3548,7 +3548,7 @@ return {
                 <button
                   className="button-secondary back-btn"
                   onClick={() => handleBreadcrumbNavigate(currentLevelIndex - 1)}
-                  title="Back to previous level"
+                  title={t('canvasTools.backLevel', "Back to previous level")}
                 >
                   <span>⬅</span>
                   <span>Back</span>
@@ -3559,7 +3559,7 @@ return {
                   className="button-primary cluster-group-btn"
                   onClick={handleGroupIntoCluster}
                   disabled={isRunning}
-                  title={isRunning ? "Cannot group blocks while an execution is running" : "Group selected blocks into a cluster"}
+                  title={isRunning ? t('canvasTools.groupDisabled', "Cannot group blocks while an execution is running") : t('canvasTools.groupBlocks', "Group selected blocks into a cluster")}
                 >
                   📦 Group into Cluster ({selectedBlockIds.size})
                 </button>
@@ -3611,7 +3611,7 @@ return {
               <Controls showInteractive={false}>
                 <ControlButton
                   onClick={onLayout}
-                  title="Auto-Organize Blocks: Clean up and lay out blocks from left to right"
+                  title={t('canvasTools.autoOrganize', "Auto-Organize Blocks: Clean up and lay out blocks from left to right")}
                 >
                   <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', margin: 'auto' }}>
                     <rect x="2" y="9.5" width="6" height="5" rx="1" />
@@ -3624,7 +3624,7 @@ return {
                 <ControlButton
                   onClick={() => setIsLocked(prev => !prev)}
                   className={`control-btn-lock ${isLocked ? 'control-btn-active' : ''}`}
-                  title={isLocked ? 'Unlock Interactivity: Canvas is LOCKED' : 'Lock Interactivity: Prevent moving or connecting blocks'}
+                  title={isLocked ? t('canvasTools.unlock', 'Unlock Interactivity: Canvas is LOCKED') : t('canvasTools.lock', 'Lock Interactivity: Prevent moving or connecting blocks')}
                 >
                   {isLocked ? (
                     <svg viewBox="0 0 25 32" width="15" height="15" style={{ display: 'block', margin: 'auto' }}>
@@ -3639,7 +3639,7 @@ return {
                 <ControlButton
                   onClick={() => { setSnapToGrid(prev => !prev); }}
                   className={`control-btn-snap ${snapToGrid ? 'control-btn-active control-btn-snap-active' : ''}`}
-                  title={snapToGrid ? 'Snap to Grid: ON — Click to disable' : 'Snap to Grid: OFF — Click to enable'}
+                  title={snapToGrid ? t('canvasTools.snapOff', 'Snap to Grid: ON — Click to disable') : t('canvasTools.snapOn', 'Snap to Grid: OFF — Click to enable')}
                 >
                   {/* Horseshoe magnet icon */}
                   <svg viewBox="0 0 24 24" width="15" height="15" style={{ display: 'block', margin: 'auto' }}>
@@ -3649,7 +3649,7 @@ return {
                 <ControlButton
                   onClick={() => setShowAnnotations(prev => !prev)}
                   className={`control-btn-visibility ${showAnnotations ? 'control-btn-active' : ''}`}
-                  title={showAnnotations ? "Hide Annotations" : "Show Annotations"}
+                  title={showAnnotations ? t('canvasTools.hideAnnotations', "Hide Annotations") : t('canvasTools.showAnnotations', "Show Annotations")}
                 >
                   {showAnnotations ? (
                     <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', margin: 'auto' }}>
@@ -3667,7 +3667,7 @@ return {
                 <ControlButton
                   onClick={() => setCanvasMode('select')}
                   className={`control-btn-select ${canvasMode === 'select' ? 'control-btn-active' : ''}`}
-                  title="Selection Mode: Left-click drag to select blocks, Middle/Right-click drag to pan"
+                  title={t('canvasTools.selectionMode', "Selection Mode: Left-click drag to select blocks, Middle/Right-click drag to pan")}
                 >
                   <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', margin: 'auto' }}>
                     <polygon points="3 3 10.07 19.97 12.58 12.58 19.97 10.07 3 3"></polygon>
@@ -3677,7 +3677,7 @@ return {
                 <ControlButton
                   onClick={() => setCanvasMode('pan')}
                   className={`control-btn-pan ${canvasMode === 'pan' ? 'control-btn-active' : ''}`}
-                  title="Pan Mode: Left-click drag to pan/move canvas"
+                  title={t('canvasTools.panMode', "Pan Mode: Left-click drag to pan/move canvas")}
                 >
                   <svg viewBox="0 0 24 24" width="16" height="16" style={{ display: 'block', margin: 'auto' }}>
                     {canvasMode === 'pan' ? (
@@ -3690,7 +3690,7 @@ return {
                 <ControlButton
                   onClick={() => setCanvasMode('cut')}
                   className={`control-btn-cut ${canvasMode === 'cut' ? 'control-btn-active' : ''}`}
-                  title="Cut Mode: Left-click drag to cut/erase connections"
+                  title={t('canvasTools.cutMode', "Cut Mode: Left-click drag to cut/erase connections")}
                 >
                   <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', margin: 'auto' }}>
                     <circle cx="6" cy="6" r="3"></circle>
@@ -3710,7 +3710,7 @@ return {
                     }
                   }}
                   className={`control-btn-draw ${canvasMode === 'draw' ? 'control-btn-active' : ''}`}
-                  title="Draw Mode: Annotate and draw on the canvas"
+                  title={t('canvasTools.drawMode', "Draw Mode: Annotate and draw on the canvas")}
                 >
                   <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block', margin: 'auto' }}>
                     <path d="M12 20h9"></path>

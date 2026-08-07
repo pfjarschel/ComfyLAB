@@ -249,7 +249,7 @@ export const LibrarySignatureEditorPanel = ({
           </div>
         </div>
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center', fontSize: '0.72rem', color: textMuted }}>
-          <span>{args.length} argument{args.length !== 1 ? 's' : ''}</span>
+          <span>{args.length} {t('libraryEditor.argumentsCount', 'argument(s)')}</span>
         </div>
       </div>
 
@@ -257,12 +257,8 @@ export const LibrarySignatureEditorPanel = ({
       <div
         className="script-editor-hint"
         style={{ fontSize: '0.75rem', lineHeight: 1.5 }}
-      >
-        Define the C function's argument list in order. Each row becomes a
-        DataIn/DataOut pin on the block. For <strong>Output</strong> arrays,
-        specify a <strong>Size Arg</strong> matching the name of the input
-        argument that holds the element count.
-      </div>
+        dangerouslySetInnerHTML={{ __html: t('libraryEditor.hint', 'Define the C function\'s argument list in order. Each row becomes a DataIn/DataOut pin on the block. For <strong>Output</strong> arrays, specify a <strong>Size Arg</strong> matching the name of the input argument that holds the element count.') }}
+      />
 
       {/* ---- Table body ---- */}
       <div
@@ -280,9 +276,9 @@ export const LibrarySignatureEditorPanel = ({
               borderRadius: '8px',
             }}
           >
-            No arguments defined yet.
+            {t('libraryEditor.noArguments', 'No arguments defined yet.')}
             <br />
-            Click <strong>+ Add Argument</strong> below to start.
+            <span dangerouslySetInnerHTML={{ __html: t('libraryEditor.clickToAdd', 'Click <strong>+ Add Argument</strong> below to start.') }} />
           </div>
         )}
 
@@ -334,12 +330,12 @@ export const LibrarySignatureEditorPanel = ({
                   {dirBadge}
                 </span>
                 <span style={{ flex: 1, fontSize: '0.8rem', fontWeight: 600, color: textColor, fontFamily: 'monospace' }}>
-                  {arg.name || <span style={{ color: textMuted, fontStyle: 'italic' }}>unnamed</span>}
+                  {arg.name || <span style={{ color: textMuted, fontStyle: 'italic' }}>{t('libraryEditor.unnamed', 'unnamed')}</span>}
                 </span>
                 <button
                   onClick={() => moveArg(arg.id, -1)}
                   disabled={idx === 0}
-                  title="Move up"
+                  title={t('libraryEditor.moveUp', 'Move up')}
                   style={{
                     background: 'none', border: 'none', cursor: idx === 0 ? 'not-allowed' : 'pointer',
                     color: idx === 0 ? borderCol : textMuted, fontSize: '0.75rem', padding: '2px 5px',
@@ -349,7 +345,7 @@ export const LibrarySignatureEditorPanel = ({
                 <button
                   onClick={() => moveArg(arg.id, 1)}
                   disabled={idx === args.length - 1}
-                  title="Move down"
+                  title={t('libraryEditor.moveDown', 'Move down')}
                   style={{
                     background: 'none', border: 'none', cursor: idx === args.length - 1 ? 'not-allowed' : 'pointer',
                     color: idx === args.length - 1 ? borderCol : textMuted, fontSize: '0.75rem', padding: '2px 5px',
@@ -358,7 +354,7 @@ export const LibrarySignatureEditorPanel = ({
                 >▼</button>
                 <button
                   onClick={() => removeArg(arg.id)}
-                  title="Remove argument"
+                  title={t('libraryEditor.removeArg', 'Remove argument')}
                   style={{
                     background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)',
                     color: '#f87171', cursor: 'pointer', fontSize: '0.7rem', padding: '2px 7px',
@@ -372,20 +368,20 @@ export const LibrarySignatureEditorPanel = ({
                 <tbody>
                   <tr>
                     <td style={{ ...cellStyle, width: '70px' }}>
-                      <span style={{ fontSize: '0.68rem', color: textMuted, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.4px' }}>Name</span>
+                      <span style={{ fontSize: '0.68rem', color: textMuted, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.4px' }}>{t('libraryEditor.name', 'Name')}</span>
                     </td>
                     <td style={cellStyle}>
                       <input
                         type="text"
                         value={arg.name}
-                        placeholder="arg_name"
+                        placeholder={t('libraryEditor.namePlaceholder', 'arg_name')}
                         onChange={e => updateArg(arg.id, 'name', e.target.value)}
                         style={inputStyle}
                         spellCheck={false}
                       />
                     </td>
                     <td style={{ ...cellStyle, width: '80px', paddingLeft: '10px' }}>
-                      <span style={{ fontSize: '0.68rem', color: textMuted, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.4px' }}>C Type</span>
+                      <span style={{ fontSize: '0.68rem', color: textMuted, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.4px' }}>{t('libraryEditor.cType', 'C Type')}</span>
                     </td>
                     <td style={{ ...cellStyle, width: '110px' }}>
                       <select
@@ -401,7 +397,7 @@ export const LibrarySignatureEditorPanel = ({
                   </tr>
                   <tr>
                     <td style={{ ...cellStyle, paddingTop: '6px' }}>
-                      <span style={{ fontSize: '0.68rem', color: textMuted, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.4px' }}>Direction</span>
+                      <span style={{ fontSize: '0.68rem', color: textMuted, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.4px' }}>{t('libraryEditor.direction', 'Direction')}</span>
                     </td>
                     <td style={{ ...cellStyle, paddingTop: '6px' }} colSpan={3}>
                       <select
@@ -422,13 +418,13 @@ export const LibrarySignatureEditorPanel = ({
                   {arg.direction === 'out' && (
                     <tr>
                       <td style={{ ...cellStyle, paddingTop: '6px' }}>
-                        <span style={{ fontSize: '0.68rem', color: '#f59e0b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.4px' }}>Size Arg</span>
+                        <span style={{ fontSize: '0.68rem', color: '#f59e0b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.4px' }}>{t('libraryEditor.sizeArg', 'Size Arg')}</span>
                       </td>
                       <td style={{ ...cellStyle, paddingTop: '6px' }} colSpan={3}>
                         <input
                           type="text"
                           value={arg.size_arg}
-                          placeholder="Input arg name holding element count (leave blank for scalar)"
+                          placeholder={t('libraryEditor.sizeArgPlaceholder', 'Input arg name holding element count (leave blank for scalar)')}
                           onChange={e => updateArg(arg.id, 'size_arg', e.target.value)}
                           style={{ ...inputStyle, borderColor: 'rgba(245,158,11,0.4)' }}
                           spellCheck={false}
@@ -442,16 +438,16 @@ export const LibrarySignatureEditorPanel = ({
               {/* Inline pin hint */}
               <div style={{ fontSize: '0.68rem', color: textMuted, paddingLeft: '2px' }}>
                 {arg.direction === 'in' && (
-                  <span>Creates <span style={{ color: '#60a5fa' }}>Input pin ("{arg.name || '...'}")</span></span>
+                  <span>{t('libraryEditor.createsInput', 'Creates Input pin')} <span style={{ color: '#60a5fa' }}>("{arg.name || '...'}")</span></span>
                 )}
                 {arg.direction === 'out' && !arg.size_arg && (
-                  <span>Creates <span style={{ color: '#34d399' }}>Output pin ("{arg.name || '...'}")</span> — single {arg.c_type} value</span>
+                  <span>{t('libraryEditor.createsOutput', 'Creates Output pin')} <span style={{ color: '#34d399' }}>("{arg.name || '...'}")</span> — {t('libraryEditor.singleValue', 'single {type} value').replace('{type}', arg.c_type)}</span>
                 )}
                 {arg.direction === 'out' && arg.size_arg && (
-                  <span>Creates <span style={{ color: '#34d399' }}>Output pin ("{arg.name || '...'}")</span> — array of {arg.c_type}, size from <em>{arg.size_arg}</em></span>
+                  <span>{t('libraryEditor.createsOutput', 'Creates Output pin')} <span style={{ color: '#34d399' }}>("{arg.name || '...'}")</span> — <span dangerouslySetInnerHTML={{ __html: t('libraryEditor.arrayOf', 'array of {type}, size from <em>{size}</em>').replace('{type}', arg.c_type).replace('{size}', arg.size_arg) }} /></span>
                 )}
                 {arg.direction === 'inout' && (
-                  <span>Creates <span style={{ color: '#60a5fa' }}>Input pin</span> + <span style={{ color: '#f59e0b' }}>Output pin ("{arg.name || '...'}")</span> — buffer modified in-place</span>
+                  <span>{t('libraryEditor.createsInput', 'Creates Input pin')} + <span style={{ color: '#f59e0b' }}>{t('libraryEditor.createsOutput', 'Creates Output pin')} ("{arg.name || '...'}")</span> — {t('libraryEditor.bufferModified', 'buffer modified in-place')}</span>
                 )}
               </div>
             </div>
@@ -491,16 +487,16 @@ export const LibrarySignatureEditorPanel = ({
             }}
           >
             <div style={{ fontSize: '0.72rem', color: textMuted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '10px' }}>
-              Generated Pins Preview
+              {t('libraryEditor.generatedPinsPreview', 'Generated Pins Preview')}
             </div>
             <div style={{ display: 'flex', gap: '20px' }}>
               {/* DataIn pins */}
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '0.7rem', color: textMuted, marginBottom: '6px' }}>DataIn (inputs):</div>
+                <div style={{ fontSize: '0.7rem', color: textMuted, marginBottom: '6px' }}>{t('libraryEditor.dataIn', 'DataIn (inputs):')}</div>
                 {/* Static pins always present */}
                 {['Library', 'FunctionName', 'ReturnType'].map(p => (
                   <div key={p} style={{ fontSize: '0.7rem', color: '#475569', fontFamily: 'monospace', padding: '2px 0' }}>
-                    ● {p} <span style={{ color: '#334155', fontSize: '0.65rem' }}>(static)</span>
+                    ● {p} <span style={{ color: '#334155', fontSize: '0.65rem' }}>{t('libraryEditor.static', '(static)')}</span>
                   </div>
                 ))}
                 {previewIns.map(a => (
@@ -513,20 +509,20 @@ export const LibrarySignatureEditorPanel = ({
                       padding: '2px 0',
                     }}
                   >
-                    ● {a.name || '(unnamed)'}
-                    {a.direction === 'inout' && <span style={{ color: textMuted, fontSize: '0.65rem' }}> (in/out)</span>}
+                    ● {a.name || `(${t('libraryEditor.unnamed', 'unnamed')})`}
+                    {a.direction === 'inout' && <span style={{ color: textMuted, fontSize: '0.65rem' }}> ({t('libraryEditor.inout', 'in/out')})</span>}
                   </div>
                 ))}
                 {previewIns.length === 0 && (
-                  <div style={{ fontSize: '0.68rem', color: '#334155', fontStyle: 'italic' }}>No dynamic inputs</div>
+                  <div style={{ fontSize: '0.68rem', color: '#334155', fontStyle: 'italic' }}>{t('libraryEditor.noDynamicInputs', 'No dynamic inputs')}</div>
                 )}
               </div>
               {/* DataOut pins */}
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '0.7rem', color: textMuted, marginBottom: '6px' }}>DataOut (outputs):</div>
+                <div style={{ fontSize: '0.7rem', color: textMuted, marginBottom: '6px' }}>{t('libraryEditor.dataOut', 'DataOut (outputs):')}</div>
                 {['ReturnValue', 'Status'].map(p => (
                   <div key={p} style={{ fontSize: '0.7rem', color: '#475569', fontFamily: 'monospace', padding: '2px 0' }}>
-                    ● {p} <span style={{ color: '#334155', fontSize: '0.65rem' }}>(static)</span>
+                    ● {p} <span style={{ color: '#334155', fontSize: '0.65rem' }}>{t('libraryEditor.static', '(static)')}</span>
                   </div>
                 ))}
                 {previewOuts.map(a => (
@@ -539,12 +535,12 @@ export const LibrarySignatureEditorPanel = ({
                       padding: '2px 0',
                     }}
                   >
-                    ● {a.name || '(unnamed)'}
-                    {a.direction === 'inout' && <span style={{ color: textMuted, fontSize: '0.65rem' }}> (in/out)</span>}
+                    ● {a.name || `(${t('libraryEditor.unnamed', 'unnamed')})`}
+                    {a.direction === 'inout' && <span style={{ color: textMuted, fontSize: '0.65rem' }}> ({t('libraryEditor.inout', 'in/out')})</span>}
                   </div>
                 ))}
                 {previewOuts.length === 0 && (
-                  <div style={{ fontSize: '0.68rem', color: '#334155', fontStyle: 'italic' }}>No dynamic outputs</div>
+                  <div style={{ fontSize: '0.68rem', color: '#334155', fontStyle: 'italic' }}>{t('libraryEditor.noOutputs', 'No dynamic outputs')}</div>
                 )}
               </div>
             </div>

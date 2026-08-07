@@ -243,7 +243,7 @@ export const GlobalSettingsModal = ({
             <>
               {/* Scripting language toggles */}
               <div className="setting-group">
-                <label className="setting-label">Enable Scripting Blocks</label>
+                <label className="setting-label">{t('settingsModal.enableScriptingBlocks', 'Enable Scripting Blocks')}</label>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '6px', background: 'var(--dnd-bg)', padding: '12px', borderRadius: '6px', border: '1px solid var(--block-border)' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '0.85rem' }}>
                     <input
@@ -251,7 +251,7 @@ export const GlobalSettingsModal = ({
                       checked={settings.enable_lua_scripting}
                       onChange={(e) => setSettings({ ...settings, enable_lua_scripting: e.target.checked })}
                     />
-                    <span>🌙 Enable Lua Script Block</span>
+                    <span>{t('settingsModal.enableLua', '🌙 Enable Lua Script Block')}</span>
                   </label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '0.85rem' }}>
                     <input
@@ -259,7 +259,7 @@ export const GlobalSettingsModal = ({
                       checked={settings.enable_julia_scripting}
                       onChange={(e) => setSettings({ ...settings, enable_julia_scripting: e.target.checked })}
                     />
-                    <span>👩‍🏫 Enable Julia Script Block</span>
+                    <span>{t('settingsModal.enableJulia', '👩‍🏫 Enable Julia Script Block')}</span>
                   </label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '0.85rem' }}>
                     <input
@@ -267,7 +267,7 @@ export const GlobalSettingsModal = ({
                       checked={settings.enable_js_scripting}
                       onChange={(e) => setSettings({ ...settings, enable_js_scripting: e.target.checked })}
                     />
-                    <span>☕ / 🟦 Enable JS/TS Script Block</span>
+                    <span>{t('settingsModal.enableJs', '☕ / 🟦 Enable JS/TS Script Block')}</span>
                   </label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '0.85rem' }}>
                     <input
@@ -275,7 +275,7 @@ export const GlobalSettingsModal = ({
                       checked={settings.enable_rust_scripting}
                       onChange={(e) => setSettings({ ...settings, enable_rust_scripting: e.target.checked })}
                     />
-                    <span>🦀 Enable Rust Script Block</span>
+                    <span>{t('settingsModal.enableRust', '🦀 Enable Rust Script Block')}</span>
                   </label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '0.85rem' }}>
                     <input
@@ -283,7 +283,7 @@ export const GlobalSettingsModal = ({
                       checked={settings.enable_r_scripting}
                       onChange={(e) => setSettings({ ...settings, enable_r_scripting: e.target.checked })}
                     />
-                    <span>📊 Enable R Script Block</span>
+                    <span>{t('settingsModal.enableR', '📊 Enable R Script Block')}</span>
                   </label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '0.85rem' }}>
                     <input
@@ -291,7 +291,7 @@ export const GlobalSettingsModal = ({
                       checked={settings.enable_octave_scripting}
                       onChange={(e) => setSettings({ ...settings, enable_octave_scripting: e.target.checked })}
                     />
-                    <span>📐 Enable Octave Script Block</span>
+                    <span>{t('settingsModal.enableOctave', '📐 Enable Octave Script Block')}</span>
                   </label>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '0.85rem' }}>
                     <input
@@ -299,7 +299,7 @@ export const GlobalSettingsModal = ({
                       checked={settings.enable_wolfram_scripting}
                       onChange={(e) => setSettings({ ...settings, enable_wolfram_scripting: e.target.checked })}
                     />
-                    <span>🧠 Enable Wolfram Script Block</span>
+                    <span>{t('settingsModal.enableWolfram', '🧠 Enable Wolfram Script Block')}</span>
                   </label>
                 </div>
               </div>
@@ -307,18 +307,18 @@ export const GlobalSettingsModal = ({
               {/* Diagnostics Checks */}
               <div className="setting-group">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <label className="setting-label">System Dependencies Check</label>
+                  <label className="setting-label">{t('settingsModal.systemDependencies', 'System Dependencies Check')}</label>
                   <button 
                     className="button-secondary"
                     onClick={fetchDiagnostics}
                     disabled={loadingDiagnostics}
                     style={{ padding: '4px 8px', fontSize: '0.75rem' }}
                   >
-                    🔄 Refresh
+                    {t('settingsModal.refresh', '🔄 Refresh')}
                   </button>
                 </div>
                 {loadingDiagnostics ? (
-                  <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', padding: '10px 0' }}>Checking system PATH binaries...</div>
+                  <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', padding: '10px 0' }}>{t('settingsModal.checkingBinaries', 'Checking system PATH binaries...')}</div>
                 ) : diagnosticsData ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px', maxHeight: '180px', overflowY: 'auto', paddingRight: '4px' }}>
                     {Object.entries(diagnosticsData.dependencies || {}).map(([key, info]: [string, any]) => (
@@ -332,7 +332,7 @@ export const GlobalSettingsModal = ({
                     ))}
                     {Object.keys(diagnosticsData.instructions || {}).length > 0 && (
                       <div style={{ marginTop: '10px', padding: '10px', background: 'rgba(249, 115, 22, 0.08)', border: '1px solid rgba(249, 115, 22, 0.2)', borderRadius: '6px' }}>
-                        <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#f97316', marginBottom: '4px' }}>⚠️ Missing Dependencies Instructions:</div>
+                        <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#f97316', marginBottom: '4px' }}>{t('settingsModal.missingDependencies', '⚠️ Missing Dependencies Instructions:')}</div>
                         {Object.entries(diagnosticsData.instructions).map(([lang, inst]: [string, any]) => {
                           const renderTextWithLinks = (text: string) => {
                             const urlRegex = /(https?:\/\/[^\s\)]+)/g;
@@ -372,7 +372,7 @@ export const GlobalSettingsModal = ({
                     )}
                   </div>
                 ) : (
-                  <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', padding: '10px 0' }}>Diagnostics status unavailable.</div>
+                  <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', padding: '10px 0' }}>{t('settingsModal.unavailable', 'Diagnostics status unavailable.')}</div>
                 )}
               </div>
             </>

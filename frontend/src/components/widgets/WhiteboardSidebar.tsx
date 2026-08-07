@@ -83,7 +83,7 @@ export const WhiteboardSidebar = ({
         <button
           className="sidebar-close-btn"
           onClick={onDone}
-          title="Exit Drawing Mode"
+          title={t('whiteboard.exitDrawingMode', 'Exit Drawing Mode')}
         >
           ✕
         </button>
@@ -92,19 +92,19 @@ export const WhiteboardSidebar = ({
       <div className="sidebar-content">
         {/* Tools Grid */}
         <div className="sidebar-section">
-          <span className="sidebar-label">Drawing Tools</span>
+          <span className="sidebar-label">{t('whiteboard.drawingTools', 'Drawing Tools')}</span>
           <div className="tools-grid">
             {[
-              { id: 'select', label: 'Select / Move', icon: '👆' },
-              { id: 'eraser', label: 'Eraser', icon: '🧹' },
-              { id: 'pen', label: 'Pen', icon: '✏️' },
-              { id: 'line', label: 'Line', icon: '➖' },
-              { id: 'text', label: 'Text Label', icon: '🔤' },
-              { id: 'note', label: 'Sticky Note', icon: '📝' },
-              { id: 'circle', label: 'Ellipse', icon: '⭕' },
-              { id: 'rectangle', label: 'Rectangle', icon: '⬜' },
-              { id: 'polyline', label: 'Polyline', icon: '📈' },
-              { id: 'polygon', label: 'Polygon', icon: '⬟' },
+              { id: 'select', label: t('whiteboard.selectMove', 'Select / Move'), icon: '👆' },
+              { id: 'eraser', label: t('whiteboard.eraser', 'Eraser'), icon: '🧹' },
+              { id: 'pen', label: t('whiteboard.pen', 'Pen'), icon: '✏️' },
+              { id: 'line', label: t('whiteboard.line', 'Line'), icon: '➖' },
+              { id: 'text', label: t('whiteboard.textLabel', 'Text Label'), icon: '🔤' },
+              { id: 'note', label: t('whiteboard.stickyNote', 'Sticky Note'), icon: '📝' },
+              { id: 'circle', label: t('whiteboard.ellipse', 'Ellipse'), icon: '⭕' },
+              { id: 'rectangle', label: t('whiteboard.rectangle', 'Rectangle'), icon: '⬜' },
+              { id: 'polyline', label: t('whiteboard.polyline', 'Polyline'), icon: '📈' },
+              { id: 'polygon', label: t('whiteboard.polygon', 'Polygon'), icon: '⬟' },
             ].map((t) => (
               <button
                 key={t.id}
@@ -132,31 +132,31 @@ export const WhiteboardSidebar = ({
               <div className="sidebar-section">
                 <div className="sidebar-flex-row">
                   <div className="sidebar-flex-item">
-                    <span className="sidebar-label">Start Cap</span>
+                    <span className="sidebar-label">{t('whiteboard.startCap', 'Start Cap')}</span>
                     <select
                       value={lineStartCap}
                       onChange={(e) => setLineStartCap(e.target.value as any)}
                       className="toolbar-select"
                       style={{ width: '100%', marginTop: '4px' }}
                     >
-                      <option value="none">None</option>
-                      <option value="arrow">Arrow</option>
-                      <option value="dot">Dot</option>
-                      <option value="bar">Bar</option>
+                      <option value="none">{t('whiteboard.capNone', 'None')}</option>
+                      <option value="arrow">{t('whiteboard.capArrow', 'Arrow')}</option>
+                      <option value="dot">{t('whiteboard.capDot', 'Dot')}</option>
+                      <option value="bar">{t('whiteboard.capBar', 'Bar')}</option>
                     </select>
                   </div>
                   <div className="sidebar-flex-item">
-                    <span className="sidebar-label">End Cap</span>
+                    <span className="sidebar-label">{t('whiteboard.endCap', 'End Cap')}</span>
                     <select
                       value={lineEndCap}
                       onChange={(e) => setLineEndCap(e.target.value as any)}
                       className="toolbar-select"
                       style={{ width: '100%', marginTop: '4px' }}
                     >
-                      <option value="none">None</option>
-                      <option value="arrow">Arrow</option>
-                      <option value="dot">Dot</option>
-                      <option value="bar">Bar</option>
+                      <option value="none">{t('whiteboard.capNone', 'None')}</option>
+                      <option value="arrow">{t('whiteboard.capArrow', 'Arrow')}</option>
+                      <option value="dot">{t('whiteboard.capDot', 'Dot')}</option>
+                      <option value="bar">{t('whiteboard.capBar', 'Bar')}</option>
                     </select>
                   </div>
                 </div>
@@ -165,16 +165,16 @@ export const WhiteboardSidebar = ({
 
             {/* Stroke Settings */}
             <div className="sidebar-section">
-              <span className="sidebar-label">Stroke Color</span>
+              <span className="sidebar-label">{t('whiteboard.strokeColor', 'Stroke Color')}</span>
               <div className="preset-colors">
                 {[
-                  { hex: '#00f3ff', label: 'Cyan' },
-                  { hex: '#39ff14', label: 'Green' },
-                  { hex: '#ff073a', label: 'Red' },
-                  { hex: '#fff01f', label: 'Yellow' },
-                  { hex: '#ff007f', label: 'Pink' },
-                  { hex: '#d0d0d0', label: 'Light Gray' },
-                  { hex: '#303030', label: 'Dark Gray' },
+                  { hex: '#00f3ff', label: t('whiteboard.cyan', 'Cyan') },
+                  { hex: '#39ff14', label: t('whiteboard.green', 'Green') },
+                  { hex: '#ff073a', label: t('whiteboard.red', 'Red') },
+                  { hex: '#fff01f', label: t('whiteboard.yellow', 'Yellow') },
+                  { hex: '#ff007f', label: t('whiteboard.pink', 'Pink') },
+                  { hex: '#d0d0d0', label: t('whiteboard.lightGray', 'Light Gray') },
+                  { hex: '#303030', label: t('whiteboard.darkGray', 'Dark Gray') },
                 ].map((c) => (
                   <button
                     key={c.hex}
@@ -187,7 +187,7 @@ export const WhiteboardSidebar = ({
                     title={c.label}
                   />
                 ))}
-                <div className="color-picker-wrapper" title="Custom Color">
+                <div className="color-picker-wrapper" title={t('whiteboard.customColor', 'Custom Color')}>
                   <input
                     type="color"
                     value={drawColor}
@@ -201,21 +201,21 @@ export const WhiteboardSidebar = ({
             <div className="sidebar-section">
               <div className="sidebar-flex-row">
                 <div className="sidebar-flex-item">
-                  <span className="sidebar-label">Style</span>
+                  <span className="sidebar-label">{t('whiteboard.lineStyle', 'Style')}</span>
                   <select
                     value={drawStyle}
                     onChange={(e) => setDrawStyle(e.target.value as any)}
                     className="toolbar-select"
                     style={{ width: '100%', marginTop: '4px' }}
                   >
-                    <option value="flat">Flat</option>
-                    <option value="neon">Neon</option>
-                    <option value="dashed">Dashed</option>
-                    <option value="neon-dashed">Neon Dashed</option>
+                    <option value="flat">{t('whiteboard.styleFlat', 'Flat')}</option>
+                    <option value="neon">{t('whiteboard.styleNeon', 'Neon')}</option>
+                    <option value="dashed">{t('whiteboard.styleDashed', 'Dashed')}</option>
+                    <option value="neon-dashed">{t('whiteboard.styleNeonDashed', 'Neon Dashed')}</option>
                   </select>
                 </div>
                 <div className="sidebar-flex-item">
-                  <span className="sidebar-label">Width ({drawWidth}px)</span>
+                  <span className="sidebar-label">{t('whiteboard.strokeWidth', 'Width')} ({drawWidth}px)</span>
                   <input
                     type="range"
                     min="1"
@@ -240,13 +240,13 @@ export const WhiteboardSidebar = ({
                       checked={drawFillEnable}
                       onChange={(e) => setDrawFillEnable(e.target.checked)}
                     />
-                    <span>Fill Shape</span>
+                    <span>{t('whiteboard.enableFill', 'Fill Shape')}</span>
                   </label>
 
                   {drawFillEnable && (
                     <div className="sidebar-fill-panel animate-fade-in" style={{ marginTop: '10px' }}>
                       <div className="sidebar-flex-row" style={{ alignItems: 'center' }}>
-                        <span className="sidebar-label" style={{ marginRight: '8px' }}>Color:</span>
+                        <span className="sidebar-label" style={{ marginRight: '8px' }}>{t('whiteboard.fillColor', 'Color')}:</span>
                         <div
                           className="color-picker-wrapper"
                           style={{
@@ -262,7 +262,7 @@ export const WhiteboardSidebar = ({
                             justifyContent: 'center',
                             cursor: 'pointer',
                           }}
-                          title="Custom Fill Color"
+                          title={t('whiteboard.customColor', 'Custom Fill Color')}
                         >
                           <input
                             type="color"
@@ -280,7 +280,7 @@ export const WhiteboardSidebar = ({
                         </div>
                       </div>
                       <div style={{ marginTop: '8px' }}>
-                        <span className="sidebar-label">Opacity: {Math.round(drawFillOpacity * 100)}%</span>
+                        <span className="sidebar-label">{t('whiteboard.fillOpacity', 'Opacity')}: {Math.round(drawFillOpacity * 100)}%</span>
                         <input
                           type="range"
                           min="0.1"
@@ -307,17 +307,17 @@ export const WhiteboardSidebar = ({
           <button
             className="toolbar-action-btn danger"
             onClick={onClearAll}
-            title="Clear All Annotations"
+            title={t('whiteboard.clearAllTitle', 'Clear All Annotations')}
             style={{ width: '100%', display: 'block' }}
           >
-            🗑️ Clear All
+            🗑️ {t('whiteboard.clearAll', 'Clear All')}
           </button>
           <button
             className="toolbar-action-btn"
             onClick={onDone}
             style={{ width: '100%', marginTop: '8px', display: 'block' }}
           >
-            Done Drawing
+            {t('whiteboard.finish', 'Done Drawing')}
           </button>
         </div>
       </div>

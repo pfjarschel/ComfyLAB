@@ -92,13 +92,13 @@ export const AboutModal: React.FC<AboutModalProps> = ({ onClose }) => {
               target="_blank" 
               rel="noopener noreferrer"
               style={{ color: 'inherit', textDecoration: 'none' }}
-              title="Visit ComfyLAB on GitHub"
+              title={t('aboutModal.visitGithub', 'Visit ComfyLAB on GitHub')}
             >
               ComfyLAB
             </a>
           </h2>
           <div style={{ marginBottom: '6px', fontWeight: 'bold', color: 'var(--text-muted)' }}>
-            Version {import.meta.env.VITE_APP_VERSION}
+            {t('aboutModal.version', 'Version')} {import.meta.env.VITE_APP_VERSION}
           </div>
           <div style={{ marginBottom: '20px', fontSize: '0.85rem' }}>
             <span style={{ color: 'var(--text-muted)', marginRight: '6px' }}>{t('aboutModal.homepage', 'Project Homepage:')}</span>
@@ -107,14 +107,14 @@ export const AboutModal: React.FC<AboutModalProps> = ({ onClose }) => {
               target="_blank" 
               rel="noopener noreferrer"
               style={{ color: 'var(--accent-color, #a855f7)', textDecoration: 'none', fontWeight: 500 }}
-              title="Visit ComfyLAB repository on GitHub"
+              title={t('aboutModal.visitGithubRepo', 'Visit ComfyLAB repository on GitHub')}
             >
               https://github.com/pfjarschel/ComfyLAB
             </a>
           </div>
           
           <p style={{ marginBottom: '20px', color: 'var(--text-color)', fontSize: '1.05rem' }}>
-            <strong>Comfy LAB:</strong> <strong>Comf</strong>ortable <strong>L</strong>ab <strong>A</strong>utomation <strong>B</strong>locks
+            <strong>Comfy LAB:</strong> {t('aboutModal.tagline', 'Comfortable Lab Automation Blocks')}
           </p>
 
           <p style={{ marginBottom: '20px', color: 'var(--text-color)' }}>
@@ -213,7 +213,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ onClose }) => {
                           onClick={() => setShowToken(!showToken)}
                           className="button-secondary"
                           style={{ padding: '2px 8px', fontSize: '0.75rem', height: 'auto' }}
-                          title={showToken ? "Hide Access Token" : "Show Access Token"}
+                          title={showToken ? t('aboutModal.hideTokenTitle', "Hide Access Token") : t('aboutModal.showTokenTitle', "Show Access Token")}
                         >
                           {showToken ? t('aboutModal.hideToken', '👁 Hide') : t('aboutModal.showToken', '👁 Show')}
                         </button>
