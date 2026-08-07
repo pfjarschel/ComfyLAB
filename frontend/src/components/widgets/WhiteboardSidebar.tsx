@@ -13,6 +13,8 @@
  */
 
 
+import { useTranslation } from '../../i18n';
+
 interface WhiteboardSidebarProps {
   isOpen: boolean;
   drawTool: string;
@@ -64,6 +66,7 @@ export const WhiteboardSidebar = ({
   setEditingTextId,
   commitActivePolyshape,
 }: WhiteboardSidebarProps) => {
+  const { t } = useTranslation();
   if (!isOpen) return null;
 
   return (
@@ -76,7 +79,7 @@ export const WhiteboardSidebar = ({
       onMouseDown={(e) => e.stopPropagation()}
     >
       <div className="sidebar-header">
-        <h3>✏️ Whiteboard</h3>
+        <h3>✏️ {t('whiteboard.title', 'Notes & Whiteboard')}</h3>
         <button
           className="sidebar-close-btn"
           onClick={onDone}

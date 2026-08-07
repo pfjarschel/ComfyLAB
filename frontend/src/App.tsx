@@ -44,6 +44,7 @@ import './App.css';
 import dagre from '@dagrejs/dagre';
 
 import { RegistryContext } from './context/RegistryContext';
+import { useTranslation } from './i18n';
 import { RemoteAccessAuthPanel } from './components/modals/RemoteAccessAuthPanel';
 import { GlobalSettingsModal } from './components/modals/GlobalSettingsModal';
 import { SaveWorkspaceModal } from './components/modals/SaveWorkspaceModal';
@@ -293,6 +294,7 @@ function detectBoundaryPins(
 }
 
 function Flow() {
+  const { t } = useTranslation();
   const [quickConnectMenu, setQuickConnectMenu] = useState<{
     show: boolean;
     clientX: number;
@@ -3536,10 +3538,10 @@ return {
                 <button 
                   className="button-secondary library-toggle-btn"
                   onClick={() => setSidebarOpen(true)}
-                  title="Show Block Library"
+                  title={t('sidebar.showTitle', 'Show Block Library')}
                 >
                   <span>📚</span>
-                  <span>Show Library</span>
+                  <span>{t('sidebar.show', 'Show Library')}</span>
                 </button>
               )}
               {currentLevelIndex > 0 && (

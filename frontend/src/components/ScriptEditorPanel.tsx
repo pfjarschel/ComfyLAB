@@ -507,32 +507,32 @@ export const ScriptEditorPanel = ({
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <span className="script-editor-icon">{langDetails.icon}</span>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600 }}>{langDetails.name} Script Editor</h3>
+            <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 600 }}>{langDetails.name} {t('scriptEditor.title', 'Script Editor')}</h3>
             <span className="script-editor-block-id" style={{ marginTop: '2px' }}>{blockId}</span>
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {isValidating && (
-            <span className="script-editor-status validating">Validating...</span>
+            <span className="script-editor-status validating">{t('scriptEditor.validating', 'Validating...')}</span>
           )}
           {!isValidating && validationError === null && currentCode.trim() !== '' && (
-            <span className="script-editor-status valid">✓ Valid</span>
+            <span className="script-editor-status valid">{t('scriptEditor.valid', '✓ Valid')}</span>
           )}
           {!isValidating && validationError !== null && (
-            <span className="script-editor-status error" title={validationError}>✗ Error</span>
+            <span className="script-editor-status error" title={validationError}>{t('scriptEditor.error', '✗ Error')}</span>
           )}
         </div>
       </div>
 
       <div className="script-editor-hint">
-        Use <code>{langDetails.commentChar} @input name="var" type="number" default=1.0</code> to define pins.
+        {t('scriptEditor.hint', 'Use comment parameters to define block pins.')}
         Scope: <code>{langDetails.hint}</code>
       </div>
 
       <div className="script-editor-body">
         <Suspense fallback={
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#60a5fa' }}>
-            Loading editor...
+            {t('scriptEditor.loadingEditor', 'Loading editor...')}
           </div>
         }>
           <MonacoEditor

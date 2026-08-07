@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import axios from 'axios';
+import { useTranslation } from '../../i18n';
 
 interface UploadFileModalProps {
   isOpen: boolean;
@@ -8,6 +9,7 @@ interface UploadFileModalProps {
 }
 
 export const UploadFileModal = ({ isOpen, onClose, BACKEND_URL }: UploadFileModalProps) => {
+  const { t } = useTranslation();
   const [file, setFile] = useState<File | null>(null);
   const [subdir, setSubdir] = useState('');
   const [filename, setFilename] = useState('');
@@ -65,7 +67,7 @@ export const UploadFileModal = ({ isOpen, onClose, BACKEND_URL }: UploadFileModa
       <div className="modal-content glass-panel" style={{ width: '450px' }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span>📤</span> Upload File to Workspace
+            <span>📤</span> {t('topbar.uploadFile', 'Upload File')}
           </h3>
           <button className="modal-close-btn" onClick={onClose}>✕</button>
         </div>
@@ -133,7 +135,7 @@ export const UploadFileModal = ({ isOpen, onClose, BACKEND_URL }: UploadFileModa
 
         <div className="modal-footer" style={{ padding: '12px 20px', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
           <button className="button-secondary" onClick={onClose} disabled={isUploading}>
-            Cancel
+            {t('common.cancel', 'Cancel')}
           </button>
           <button 
             className="button-primary" 

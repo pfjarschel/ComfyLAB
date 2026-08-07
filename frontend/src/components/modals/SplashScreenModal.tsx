@@ -13,6 +13,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from '../../i18n';
 
 interface SplashScreenModalProps {
   isOpen: boolean;
@@ -35,6 +36,7 @@ export const SplashScreenModal: React.FC<SplashScreenModalProps> = ({
   onOpenAbout,
   onOpenQuickStart,
 }) => {
+  const { t } = useTranslation();
   const [dontShowAgain, setDontShowAgain] = useState(() => {
     return localStorage.getItem('comfylab_hide_splash') === 'true';
   });
@@ -156,7 +158,7 @@ export const SplashScreenModal: React.FC<SplashScreenModalProps> = ({
             >
               <span style={{ fontSize: '1.6rem' }}>📄</span>
               <div>
-                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-color)' }}>New Blueprint</div>
+                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-color)' }}>{t('topbar.newBlueprint', 'New Blueprint')}</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Start a fresh canvas</div>
               </div>
             </div>
@@ -189,7 +191,7 @@ export const SplashScreenModal: React.FC<SplashScreenModalProps> = ({
             >
               <span style={{ fontSize: '1.6rem' }}>📂</span>
               <div>
-                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-color)' }}>Open Blueprint</div>
+                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-color)' }}>{t('topbar.loadBlueprint', 'Load Blueprint')}</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Browse workspace files</div>
               </div>
             </div>
@@ -222,7 +224,7 @@ export const SplashScreenModal: React.FC<SplashScreenModalProps> = ({
             >
               <span style={{ fontSize: '1.6rem' }}>🧪</span>
               <div>
-                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-color)' }}>Load Example</div>
+                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-color)' }}>{t('topbar.loadExample', 'Load Example')}</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Pre-configured workflows</div>
               </div>
             </div>
@@ -255,7 +257,7 @@ export const SplashScreenModal: React.FC<SplashScreenModalProps> = ({
             >
               <span style={{ fontSize: '1.6rem' }}>⚙️</span>
               <div>
-                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-color)' }}>Settings</div>
+                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-color)' }}>{t('topbar.globalSettings', 'Global Settings')}</div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>VISA & Scripting options</div>
               </div>
             </div>
@@ -349,7 +351,7 @@ export const SplashScreenModal: React.FC<SplashScreenModalProps> = ({
             Don't show on startup
           </label>
           <button className="button-primary" onClick={onClose} style={{ padding: '8px 20px' }}>
-            Get Started 🚀
+            {t('common.close', 'Close')} 🚀
           </button>
         </div>
       </div>

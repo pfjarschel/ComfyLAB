@@ -101,7 +101,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ onClose }) => {
             Version {import.meta.env.VITE_APP_VERSION}
           </div>
           <div style={{ marginBottom: '20px', fontSize: '0.85rem' }}>
-            <span style={{ color: 'var(--text-muted)', marginRight: '6px' }}>Project Homepage:</span>
+            <span style={{ color: 'var(--text-muted)', marginRight: '6px' }}>{t('aboutModal.homepage', 'Project Homepage:')}</span>
             <a 
               href="https://github.com/pfjarschel/ComfyLAB" 
               target="_blank" 
@@ -118,19 +118,19 @@ export const AboutModal: React.FC<AboutModalProps> = ({ onClose }) => {
           </p>
 
           <p style={{ marginBottom: '20px', color: 'var(--text-color)' }}>
-            A flexible, block-based data acquisition and instrument control environment designed to simplify experimental workflows.
+            {t('aboutModal.description', 'A flexible, block-based data acquisition and instrument control environment designed to simplify experimental workflows.')}
           </p>
 
           <div style={{ textAlign: 'left', background: 'var(--input-bg)', padding: '16px', borderRadius: '8px', marginBottom: '16px', border: '1px solid var(--block-border)' }}>
-            <h4 style={{ margin: '0 0 10px 0', color: 'var(--text-color)' }}>Core Features</h4>
+            <h4 style={{ margin: '0 0 10px 0', color: 'var(--text-color)' }}>{t('aboutModal.features', 'Core Features')}</h4>
             <ul style={{ margin: '0 0 16px 0', paddingLeft: '24px', color: 'var(--text-muted)' }}>
-              <li>Intuitive block-based visual scripting interface</li>
-              <li>Seamless hardware interfacing via PyVISA</li>
-              <li>Real-time data visualization and array processing</li>
-              <li>Dynamic execution engine with block clustering</li>
+              <li>{t('aboutModal.feature1', 'Intuitive block-based visual scripting interface')}</li>
+              <li>{t('aboutModal.feature2', 'Seamless hardware interfacing via PyVISA')}</li>
+              <li>{t('aboutModal.feature3', 'Real-time data visualization and array processing')}</li>
+              <li>{t('aboutModal.feature4', 'Dynamic execution engine with block clustering')}</li>
             </ul>
 
-            <h4 style={{ margin: '0 0 10px 0', color: 'var(--text-color)' }}>Powered By</h4>
+            <h4 style={{ margin: '0 0 10px 0', color: 'var(--text-color)' }}>{t('aboutModal.poweredBy', 'Powered By')}</h4>
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
               <span style={{ padding: '4px 8px', background: 'var(--dnd-bg)', borderRadius: '4px', border: '1px solid var(--block-border)' }}>React</span>
               <span style={{ padding: '4px 8px', background: 'var(--dnd-bg)', borderRadius: '4px', border: '1px solid var(--block-border)' }}>XYFlow</span>
@@ -151,7 +151,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ onClose }) => {
             fontSize: '0.85rem'
           }}>
             <h4 style={{ margin: '0 0 10px 0', color: 'var(--text-color)', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              🌐 Network & Remote Access
+              {t('aboutModal.networkAccess', '🌐 Network & Remote Access')}
             </h4>
 
             {serverInfo ? (
@@ -159,7 +159,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ onClose }) => {
                 {/* Local Access */}
                 <div>
                   <div style={{ fontWeight: 600, color: 'var(--text-muted)', marginBottom: '4px', fontSize: '0.78rem' }}>
-                    LOCAL BROWSER ACCESS
+                    {t('aboutModal.localAccess', 'LOCAL BROWSER ACCESS')}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--dnd-bg)', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--block-border)' }}>
                     <code style={{ color: 'var(--accent-color, #a855f7)', fontFamily: 'monospace' }}>{serverInfo.local_url}</code>
@@ -168,7 +168,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ onClose }) => {
                       className="button-secondary"
                       style={{ padding: '2px 8px', fontSize: '0.75rem', height: 'auto' }}
                     >
-                      {copiedKey === 'local' ? '✓ Copied' : 'Copy'}
+                      {copiedKey === 'local' ? t('aboutModal.copied', '✓ Copied') : t('aboutModal.copy', 'Copy')}
                     </button>
                   </div>
                 </div>
@@ -177,7 +177,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ onClose }) => {
                 {serverInfo.remote_urls && serverInfo.remote_urls.length > 0 && (
                   <div>
                     <div style={{ fontWeight: 600, color: 'var(--text-muted)', marginBottom: '4px', fontSize: '0.78rem' }}>
-                      REMOTE ACCESS
+                      {t('aboutModal.remoteAccess', 'REMOTE ACCESS')}
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                       {serverInfo.remote_urls.map((item, idx) => (
@@ -190,7 +190,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ onClose }) => {
                             className="button-secondary"
                             style={{ padding: '2px 8px', fontSize: '0.75rem', height: 'auto', flexShrink: 0, marginLeft: '8px' }}
                           >
-                            {copiedKey === `remote-${idx}` ? '✓ Copied' : 'Copy'}
+                            {copiedKey === `remote-${idx}` ? t('aboutModal.copied', '✓ Copied') : t('aboutModal.copy', 'Copy')}
                           </button>
                         </div>
                       ))}
@@ -202,7 +202,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ onClose }) => {
                 {serverInfo.token && (
                   <div>
                     <div style={{ fontWeight: 600, color: 'var(--text-muted)', marginBottom: '4px', fontSize: '0.78rem' }}>
-                      SESSION REMOTE ACCESS TOKEN
+                      {t('aboutModal.tokenAccess', 'SESSION REMOTE ACCESS TOKEN')}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--dnd-bg)', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--block-border)' }}>
                       <code style={{ color: 'var(--text-color)', fontFamily: 'monospace', fontWeight: 'bold' }}>
@@ -215,14 +215,14 @@ export const AboutModal: React.FC<AboutModalProps> = ({ onClose }) => {
                           style={{ padding: '2px 8px', fontSize: '0.75rem', height: 'auto' }}
                           title={showToken ? "Hide Access Token" : "Show Access Token"}
                         >
-                          {showToken ? '👁 Hide' : '👁 Show'}
+                          {showToken ? t('aboutModal.hideToken', '👁 Hide') : t('aboutModal.showToken', '👁 Show')}
                         </button>
                         <button
                           onClick={() => copyToClipboard(serverInfo.token, 'token')}
                           className="button-secondary"
                           style={{ padding: '2px 8px', fontSize: '0.75rem', height: 'auto' }}
                         >
-                          {copiedKey === 'token' ? '✓ Copied' : 'Copy'}
+                          {copiedKey === 'token' ? t('aboutModal.copied', '✓ Copied') : t('aboutModal.copy', 'Copy')}
                         </button>
                       </div>
                     </div>
@@ -231,14 +231,14 @@ export const AboutModal: React.FC<AboutModalProps> = ({ onClose }) => {
               </div>
             ) : (
               <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontStyle: 'italic' }}>
-                Loading network access details...
+                {t('aboutModal.loadingNetwork', 'Loading network access details...')}
               </div>
             )}
           </div>
 
           <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginTop: '20px' }}>
-            <p>Copyright &copy; 2026 Paulo Felipe Jarschel</p>
-            <p>Released under the GNU General Public License v3.0</p>
+            <p>{t('aboutModal.copyright', 'Copyright © 2026 Paulo Felipe Jarschel')}</p>
+            <p>{t('aboutModal.license', 'Released under the GNU General Public License v3.0')}</p>
           </div>
         </div>
         <div className="modal-footer" style={{ padding: '16px 20px', display: 'flex', justifyContent: 'center' }}>

@@ -13,6 +13,8 @@
  */
 
 
+import { useTranslation } from '../../i18n';
+
 interface SaveWorkspaceModalProps {
   isOpen: boolean;
   saveFilenameInput: string;
@@ -32,6 +34,7 @@ export const SaveWorkspaceModal = ({
   onClose,
   onSubmit,
 }: SaveWorkspaceModalProps) => {
+  const { t } = useTranslation();
   if (!isOpen) return null;
 
   return (
@@ -39,13 +42,13 @@ export const SaveWorkspaceModal = ({
       <div className="modal-content glass-panel" style={{ width: '400px' }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span>💾</span> Save Blueprint to Workspace
+            <span>💾</span> {t('modals.saveBlueprintTitle', 'Save Blueprint')}
           </h3>
           <button className="modal-close-btn" onClick={onClose}>✕</button>
         </div>
         <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '16px 20px' }}>
           <div className="input-group">
-            <label>Blueprint Name</label>
+            <label>{t('topbar.blueprint', 'Blueprint:')}</label>
             <input
               type="text"
               placeholder="e.g. calibration_routine"
@@ -80,14 +83,14 @@ export const SaveWorkspaceModal = ({
 
         <div className="modal-footer" style={{ display: 'flex', gap: '10px', padding: '12px 20px' }}>
           <button className="button-secondary" onClick={onClose} style={{ flex: 1 }}>
-            Cancel
+            {t('common.cancel', 'Cancel')}
           </button>
           <button 
             className="button-primary" 
             onClick={onSubmit}
             style={{ flex: 1.5, background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}
           >
-            💾 Save Blueprint
+            💾 {t('topbar.saveBlueprint', 'Save Blueprint')}
           </button>
         </div>
       </div>

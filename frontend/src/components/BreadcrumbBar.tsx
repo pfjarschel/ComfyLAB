@@ -14,6 +14,7 @@
 
 import { useContext } from 'react';
 import { RegistryContext } from '../context/RegistryContext';
+import { useTranslation } from '../i18n';
 
 interface BreadcrumbLevel {
   breadcrumbLabel: string;
@@ -27,6 +28,7 @@ interface BreadcrumbBarProps {
 }
 
 export const BreadcrumbBar = ({ levels, currentIndex, onNavigate }: BreadcrumbBarProps) => {
+  const { t } = useTranslation();
   const blockRegistry = useContext(RegistryContext) as Record<string, any> | null;
 
   if (levels.length <= 1) return null;
@@ -37,7 +39,8 @@ export const BreadcrumbBar = ({ levels, currentIndex, onNavigate }: BreadcrumbBa
         const isLast = i === levels.length - 1;
         const layout = blockRegistry?.[level.type];
         const icon = layout?.icon || '🏠';
-        const name = level.breadcrumbLabel || layout?.name || level.type;
+        const rawName = level.breadcrumbLabel || layout?.name || level.type;
+        const name = rawName === 'Untitled' ? t('topbar.untitled', 'Untitled') : rawName;
 
         return (
           <span key={i} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>

@@ -58,7 +58,7 @@ export const TabBar = ({
                 <span className="tab-running-dot" title={t('tabbar.runningTab', 'Running blueprint')} />
               )}
               <span className="tab-title">
-                {tab.name}
+                {tab.name === 'Untitled' ? t('tabbar.untitled', 'Untitled') : tab.name}
                 {displayDirty && <span className="tab-dirty-star">*</span>}
               </span>
               {displayDirty && (

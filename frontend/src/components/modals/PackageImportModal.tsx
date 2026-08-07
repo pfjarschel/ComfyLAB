@@ -13,6 +13,8 @@
  */
 
 
+import { useTranslation } from '../../i18n';
+
 interface PackageImportModalProps {
   isOpen: boolean;
   packageFilename: string;
@@ -44,6 +46,7 @@ export const PackageImportModal = ({
   setDeletePackageAfterImport,
   onImport,
 }: PackageImportModalProps) => {
+  const { t } = useTranslation();
   if (!isOpen || !packagePreviewData) return null;
 
   const hasUntrusted = !packagePreviewData.blueprint_status?.is_trusted || 
@@ -183,14 +186,14 @@ export const PackageImportModal = ({
         </div>
         <div className="modal-footer" style={{ display: 'flex', gap: '10px', padding: '16px 20px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
           <button className="button-secondary" onClick={onClose} style={{ flex: 1 }}>
-            Cancel
+            {t('common.cancel', 'Cancel')}
           </button>
           <button 
             className="button-primary" 
             onClick={onImport}
             style={{ flex: 1.5, background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', fontWeight: 'bold' }}
           >
-            {importPermanent ? '📥 Import Package' : '📂 Open Package (Temporary)'}
+            {importPermanent ? `📥 ${t('topbar.importPackage', 'Import Package')}` : '📂 Open Package'}
           </button>
         </div>
       </div>

@@ -410,7 +410,11 @@ export const LibrarySignatureEditorPanel = ({
                         style={{ ...selectStyle, borderColor: `${dirColor}60` }}
                       >
                         {DIRECTION_OPTIONS.map(opt => (
-                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                          <option key={opt.value} value={opt.value}>
+                            {opt.value === 'in' ? t('libraryEditor.input', 'Input') :
+                             opt.value === 'out' ? t('libraryEditor.output', 'Output') :
+                             t('libraryEditor.inout', 'Input / Output')}
+                          </option>
                         ))}
                       </select>
                     </td>
@@ -472,7 +476,7 @@ export const LibrarySignatureEditorPanel = ({
           onMouseEnter={e => (e.currentTarget.style.background = 'rgba(59,130,246,0.18)')}
           onMouseLeave={e => (e.currentTarget.style.background = 'rgba(59,130,246,0.1)')}
         >
-          + Add Argument
+          {t('libraryEditor.addParam', '+ Add Argument')}
         </button>
 
         {/* Pin preview section */}

@@ -13,6 +13,8 @@
  */
 
 
+import { useTranslation } from '../../i18n';
+
 interface RemoteAccessAuthPanelProps {
   authInput: string;
   authError: string;
@@ -26,6 +28,7 @@ export const RemoteAccessAuthPanel = ({
   setAuthInput,
   onSubmit,
 }: RemoteAccessAuthPanelProps) => {
+  const { t } = useTranslation();
   return (
     <div style={{
       display: 'flex',
@@ -106,7 +109,7 @@ export const RemoteAccessAuthPanel = ({
           }}
           onClick={onSubmit}
         >
-          Authenticate Access
+          {t('modals.confirm', 'Confirm')}
         </button>
       </div>
     </div>

@@ -114,7 +114,7 @@ export const GlobalSettingsModal = ({
             <>
               {/* Script Timeout */}
               <div className="setting-group">
-                <label className="setting-label">Python Script Timeout (seconds)</label>
+                <label className="setting-label">{t('settingsModal.scriptTimeout', 'Python Script Timeout (seconds)')}</label>
                 <input
                   type="number"
                   min="1"
@@ -124,30 +124,30 @@ export const GlobalSettingsModal = ({
                   className="setting-input-number"
                 />
                 <span className="setting-description">
-                  Maximum duration a custom block script is allowed to execute.
+                  {t('settingsModal.scriptTimeoutHint', 'Maximum duration a custom block script is allowed to execute.')}
                 </span>
               </div>
 
               {/* VISA Backend */}
               <div className="setting-group">
-                <label className="setting-label">VISA Backend</label>
+                <label className="setting-label">{t('settingsModal.visaBackend', 'VISA Backend Driver')}</label>
                 <select
                   value={settings.visa_backend}
                   onChange={(e) => setSettings({ ...settings, visa_backend: e.target.value })}
                   className="setting-select"
                 >
-                  <option value="">Auto Detect (System Default)</option>
-                  <option value="@py">PyVISA-py (pure Python backend)</option>
-                  <option value="@ni">National Instruments NI-VISA</option>
+                  <option value="">{t('settingsModal.autoDetect', 'Auto Detect (System Default)')}</option>
+                  <option value="@py">{t('settingsModal.pyvisaPy', 'PyVISA-py (pure Python backend)')}</option>
+                  <option value="@ni">{t('settingsModal.niVisa', 'National Instruments NI-VISA')}</option>
                 </select>
                 <span className="setting-description">
-                  Select PyVISA backend wrapper library for hardware communication.
+                  {t('settingsModal.visaBackendHint', 'Select PyVISA backend wrapper library for hardware communication.')}
                 </span>
               </div>
 
               {/* External Python Executable Path */}
               <div className="setting-group" style={{ marginTop: '12px' }}>
-                <label className="setting-label">External Python Executable Path</label>
+                <label className="setting-label">{t('settingsModal.externalPython', 'External Python Executable Path')}</label>
                 <input
                   type="text"
                   placeholder="e.g. /usr/bin/python3 or C:\miniconda3\python.exe"
@@ -167,16 +167,16 @@ export const GlobalSettingsModal = ({
                   }}
                 />
                 <span className="setting-description" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
-                  Default Python interpreter path used by the "External Python" script block. Leave empty to use the server's running interpreter.
+                  {t('settingsModal.externalPythonHint', 'Default Python interpreter path used by the External Python script block.')}
                 </span>
               </div>
 
               {/* Custom Block Directories */}
               <div className="setting-group">
-                <label className="setting-label">Custom Discovery Folders</label>
+                <label className="setting-label">{t('settingsModal.customBlockDirs', 'Custom Discovery Folders')}</label>
                 <div className="directories-list">
                   {settings.custom_block_dirs.length === 0 ? (
-                    <div className="no-directories">No custom folders added.</div>
+                    <div className="no-directories">{t('settingsModal.noDirectories', 'No custom folders added.')}</div>
                   ) : (
                     settings.custom_block_dirs.map((dir, index) => (
                       <div key={index} className="directory-item">
@@ -187,7 +187,7 @@ export const GlobalSettingsModal = ({
                             const updatedDirs = settings.custom_block_dirs.filter((_, i) => i !== index);
                             setSettings({ ...settings, custom_block_dirs: updatedDirs });
                           }}
-                          title="Remove folder"
+                          title={t('settingsModal.removeDir', 'Remove')}
                         >
                           ✕
                         </button>
@@ -232,12 +232,9 @@ export const GlobalSettingsModal = ({
                     }}
                     style={{ padding: '8px 12px' }}
                   >
-                    ➕ Add
+                    ➕ {t('settingsModal.addDir', 'Add Directory')}
                   </button>
                 </div>
-                <span className="setting-description">
-                  Paths to scan at startup for custom Python blocks.
-                </span>
               </div>
             </>
           )}

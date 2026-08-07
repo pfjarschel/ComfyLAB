@@ -524,12 +524,12 @@ export const BlockInspectorPanel = ({
         {/* GENERAL COMMENTS / NOTES SECTION */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <span className="sidebar-label" style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-muted)' }}>
-            Comments & Notes 💬
+            {t('inspector.commentsNotes', 'Comments & Notes 💬')}
           </span>
           <textarea
             value={block.data?.notes || ''}
             onChange={(e) => onBlockDataChange(blockId, 'notes', e.target.value)}
-            placeholder="Add documentation, experimental setup details, or personal reminders for this block..."
+            placeholder={t('inspector.notesPlaceholder', 'Add documentation, experimental setup details, or personal reminders for this block...')}
             rows={4}
             className="nodrag"
             style={{
@@ -558,10 +558,10 @@ export const BlockInspectorPanel = ({
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px', background: 'var(--input-bg)', borderRadius: '6px', border: '1px solid var(--block-border)' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
               <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-color)' }}>
-                Persistent Block State
+                {t('inspector.persistence', 'Persistent Block State')}
               </span>
               <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-                Keep block handle/memory alive between runs
+                {t('inspector.persistenceHint', 'Keep block handle/memory alive between runs')}
               </span>
             </div>
             <label className="switch" style={{ position: 'relative', display: 'inline-block', width: '38px', height: '20px' }}>
@@ -594,10 +594,10 @@ export const BlockInspectorPanel = ({
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px', background: 'var(--input-bg)', borderRadius: '6px', border: '1px solid var(--block-border)', animation: 'fadeIn 0.2s' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', maxWidth: '80%' }}>
                 <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-color)' }}>
-                  Auto Clear Persistent Data
+                  {t('inspector.autoClear', 'Auto Clear Persistent Data')}
                 </span>
                 <span style={{ fontSize: '0.62rem', color: 'var(--text-muted)', lineHeight: '1.2' }}>
-                  Re-initialize automatically if inspector parameters are modified
+                  {t('inspector.autoClearHint', 'Re-initialize automatically if inspector parameters are modified')}
                 </span>
               </div>
               <label className="switch" style={{ position: 'relative', display: 'inline-block', width: '38px', height: '20px' }}>

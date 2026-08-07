@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { useTranslation } from '../../i18n';
 
 interface ConfirmModalProps {
   message: string;
@@ -11,6 +12,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   onConfirm,
   onCancel,
 }) => {
+  const { t } = useTranslation();
   const modalRef = useRef<HTMLDivElement>(null);
 
   // Close on escape key
@@ -47,7 +49,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
         }}
       >
         <div className="modal-header">
-          <h3>Confirmation</h3>
+          <h3>{t('modals.confirmTitle', 'Confirmation')}</h3>
           <button className="modal-close-btn" onClick={onCancel}>✕</button>
         </div>
         <div className="modal-body" style={{ padding: '24px 20px', lineHeight: '1.5' }}>
@@ -59,7 +61,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             onClick={onCancel} 
             style={{ width: '100px' }}
           >
-            Cancel
+            {t('common.cancel', 'Cancel')}
           </button>
           <button 
             className="button-primary" 
@@ -67,7 +69,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             style={{ width: '100px', background: '#ef4444' }} // Use a danger color for confirms by default
             autoFocus
           >
-            Confirm
+            {t('modals.confirm', 'Confirm')}
           </button>
         </div>
       </div>

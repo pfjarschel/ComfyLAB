@@ -13,6 +13,8 @@
  */
 
 
+import { useTranslation } from '../../i18n';
+
 interface LoadWorkspaceModalProps {
   isOpen: boolean;
   workspaceBlueprints: { filename: string; path: string; isPackage?: boolean }[];
@@ -34,6 +36,7 @@ export const LoadWorkspaceModal = ({
   onOpenExplorer,
   confirmAsync,
 }: LoadWorkspaceModalProps) => {
+  const { t } = useTranslation();
   if (!isOpen) return null;
 
   return (
@@ -41,7 +44,7 @@ export const LoadWorkspaceModal = ({
       <div className="modal-content glass-panel" style={{ width: '450px' }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span>📂</span> Load Blueprint from Workspace
+            <span>📂</span> {t('modals.loadBlueprintTitle', 'Load Blueprint')}
           </h3>
           <button className="modal-close-btn" onClick={onClose}>✕</button>
         </div>
@@ -133,7 +136,7 @@ export const LoadWorkspaceModal = ({
             Open Folder
           </button>
           <button className="button-secondary" onClick={onClose} style={{ width: '100px' }}>
-            Cancel
+            {t('common.cancel', 'Cancel')}
           </button>
         </div>
       </div>

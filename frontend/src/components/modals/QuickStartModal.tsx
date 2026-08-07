@@ -115,7 +115,7 @@ export const QuickStartModal: React.FC<QuickStartModalProps> = ({ onClose }) => 
                 {t('topbar.quickStart', 'ComfyLAB Quick Start Guide')}
               </h3>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                Complete reference & user manual for visual lab automation
+                {t('quickStart.subtitle', 'Complete reference & user manual for visual lab automation')}
               </div>
             </div>
           </div>

@@ -13,6 +13,8 @@
  */
 
 
+import { useTranslation } from '../../i18n';
+
 interface TrustWarningModalProps {
   isOpen: boolean;
   trustWarningMessage: string;
@@ -30,6 +32,7 @@ export const TrustWarningModal = ({
   onAlwaysTrust,
   onTrustOnce,
 }: TrustWarningModalProps) => {
+  const { t } = useTranslation();
   if (!isOpen) return null;
 
   return (
@@ -37,7 +40,7 @@ export const TrustWarningModal = ({
       <div className="modal-content glass-panel" style={{ width: '450px', border: '1px solid #f59e0b' }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-header" style={{ borderBottom: '1px solid rgba(245, 158, 11, 0.2)' }}>
           <h3 style={{ color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-            ⚠️ Security Trust Warning
+            ⚠️ {t('modals.trustWarningTitle', 'Untrusted Block Warning')}
           </h3>
           <button className="modal-close-btn" onClick={onClose}>✕</button>
         </div>
@@ -53,7 +56,7 @@ export const TrustWarningModal = ({
         </div>
         <div className="modal-footer" style={{ display: 'flex', gap: '10px', padding: '16px 20px', justifyContent: 'flex-end', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
           <button className="button-secondary" style={{ marginRight: 'auto' }} onClick={onClose}>
-            Cancel
+            {t('common.cancel', 'Cancel')}
           </button>
           {pendingBlueprint?.origin_uuid && (
             <button 

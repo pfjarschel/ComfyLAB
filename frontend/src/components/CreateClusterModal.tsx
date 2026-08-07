@@ -376,7 +376,7 @@ export const CreateClusterModal = ({
 
           <div style={{ display: 'flex', gap: '10px' }}>
             <div className="input-group" style={{ flex: 1 }}>
-              <label>Icon</label>
+              <label>{t('clusterModal.iconLabel', 'Icon')}</label>
               <input
                 type="text"
                 value={form.icon}
@@ -399,7 +399,7 @@ export const CreateClusterModal = ({
           <div className="input-group">
             <label>{t('clusterModal.descriptionLabel', 'Description')}</label>
             <textarea
-              placeholder="What does this cluster do?"
+              placeholder={t('clusterModal.descriptionPlaceholder', 'What does this cluster do?')}
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               rows={2}
@@ -408,24 +408,24 @@ export const CreateClusterModal = ({
           </div>
 
           <div className="input-group">
-            <label>Destination</label>
+            <label>{t('clusterModal.destinationLabel', 'Destination')}</label>
             <select
               value={form.destination}
               onChange={(e) => setForm({ ...form, destination: e.target.value as 'global' | 'workspace' })}
               style={{ background: 'var(--input-bg)', border: '1px solid var(--block-border)', color: 'var(--text-color)', padding: '8px', borderRadius: '6px' }}
             >
-              <option value="global">Global Library (~/.comfylab/user_clusters)</option>
+              <option value="global">{t('clusterModal.globalLibrary', 'Global Library (~/.comfylab/user_clusters)')}</option>
               {hasActiveWorkspace && (
-                <option value="workspace">Active Workspace (clusters/)</option>
+                <option value="workspace">{t('clusterModal.activeWorkspace', 'Active Workspace (clusters/)')}</option>
               )}
             </select>
           </div>
 
           <div style={{ background: 'var(--input-bg)', border: '1px solid var(--block-border)', borderRadius: '6px', padding: '10px', fontSize: '0.75rem' }}>
-            <div style={{ fontWeight: 600, marginBottom: '6px', color: 'var(--text-muted)' }}>Detected Boundary Pins</div>
+            <div style={{ fontWeight: 600, marginBottom: '6px', color: 'var(--text-muted)' }}>{t('clusterModal.detectedPins', 'Detected Boundary Pins')}</div>
             {detectedBoundary.data_ins.length === 0 && detectedBoundary.data_outs.length === 0 &&
              detectedBoundary.exec_ins.length === 0 && detectedBoundary.exec_outs.length === 0 && (
-              <div style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>No external connections detected.</div>
+              <div style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>{t('clusterModal.noConnections', 'No external connections detected.')}</div>
             )}
             {detectedBoundary.data_ins.map(pin => (
               <div key={`in-${pin.name}`} style={{ color: '#f97316', margin: '2px 0' }}>⬅ Input: {pin.label} ({pin.type})</div>

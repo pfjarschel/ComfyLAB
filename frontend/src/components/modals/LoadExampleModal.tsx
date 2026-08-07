@@ -14,6 +14,7 @@
 
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useTranslation } from '../../i18n';
 
 interface ExampleItem {
   filename: string;
@@ -35,6 +36,7 @@ export const LoadExampleModal: React.FC<LoadExampleModalProps> = ({
   onLoadExampleByName,
   BACKEND_URL,
 }) => {
+  const { t } = useTranslation();
   const [examples, setExamples] = useState<ExampleItem[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -65,7 +67,7 @@ export const LoadExampleModal: React.FC<LoadExampleModalProps> = ({
       <div className="modal-content glass-panel" style={{ width: '480px', maxWidth: '90%' }} onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-color)' }}>
-            <span>🧪</span> Built-in Example Blueprints
+            <span>🧪</span> {t('topbar.loadExample', 'Load Example')}
           </h3>
           <button className="modal-close-btn" onClick={onClose} title="Close">✕</button>
         </div>
@@ -140,7 +142,7 @@ export const LoadExampleModal: React.FC<LoadExampleModalProps> = ({
 
         <div className="modal-footer" style={{ padding: '12px 20px', display: 'flex', justifyContent: 'flex-end' }}>
           <button className="button-secondary" onClick={onClose} style={{ width: '100px' }}>
-            Cancel
+            {t('common.cancel', 'Cancel')}
           </button>
         </div>
       </div>

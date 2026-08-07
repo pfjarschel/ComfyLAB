@@ -13,6 +13,7 @@
  */
 
 import { useRef, useEffect, useState } from 'react';
+import { useTranslation } from '../../i18n';
 interface CanvasContextMenuProps {
   contextMenu: {
     show: boolean;
@@ -92,6 +93,7 @@ export const CanvasContextMenu = ({
   onReplaceBlock,
   onBlockDataChange,
 }: CanvasContextMenuProps) => {
+  const { t } = useTranslation();
   const menuRef = useRef<HTMLDivElement>(null);
   const hasClamped = useRef(false);
   const [pos, setPos] = useState({ x: contextMenu?.x ?? 0, y: contextMenu?.y ?? 0 });
@@ -224,7 +226,7 @@ export const CanvasContextMenu = ({
                 onClose();
               }}
             >
-              <span>📋</span> Paste Block
+              <span>📋</span> {t('contextMenu.pasteBlock', 'Paste Block')}
             </button>
           )}
           <div className="context-menu-divider" />
@@ -232,7 +234,7 @@ export const CanvasContextMenu = ({
             <span>🔍</span> Reset Zoom
           </button>
           <button className="context-menu-item" onClick={() => { onFitView(); onClose(); }}>
-            <span>🔍</span> Fit View
+            <span>🔍</span> {t('contextMenu.zoomToFit', 'Zoom to Fit')}
           </button>
           <button className="context-menu-item" onClick={() => { onLayout(); onClose(); }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '1.25rem', height: '1.25rem' }}>
@@ -265,7 +267,7 @@ export const CanvasContextMenu = ({
             onClearCanvas();
             onClose();
           }}>
-            <span>🗑️</span> Clear Canvas
+            <span>🗑️</span> {t('contextMenu.clearCanvas', 'Clear Canvas')}
           </button>
         </>
       )}
@@ -273,7 +275,7 @@ export const CanvasContextMenu = ({
       {contextMenu.type === 'block' && (
         <>
           <button className="context-menu-item" onClick={() => { onInspectBlock(contextMenu.targetId!); onClose(); }}>
-            <span>ℹ️</span> Inspect Block
+            <span>ℹ️</span> {t('contextMenu.inspectBlock', 'Inspect Block')}
           </button>
           <button
             className="context-menu-item"
@@ -285,7 +287,7 @@ export const CanvasContextMenu = ({
             }}
           >
             <span>{blocks.find(n => n.id === contextMenu.targetId)?.data?.disabled ? '✅' : '🚫'}</span>{' '}
-            {blocks.find(n => n.id === contextMenu.targetId)?.data?.disabled ? 'Enable Block' : 'Disable Block'}
+            {blocks.find(n => n.id === contextMenu.targetId)?.data?.disabled ? t('contextMenu.enableBlock', 'Enable Block') : t('contextMenu.disableBlock', 'Disable Block')}
           </button>
           <button 
             className="context-menu-item" 
@@ -306,11 +308,11 @@ export const CanvasContextMenu = ({
             <span>🧹</span> Clear Block Data
           </button>
           <button className="context-menu-item" onClick={() => { onCopyBlock(); onClose(); }}>
-            <span>📄</span> Copy Block
+            <span>📄</span> {t('contextMenu.copyBlock', 'Copy Block')}
           </button>
 
           <button className="context-menu-item" onClick={() => { onDuplicateBlock(); onClose(); }}>
-            <span>👯</span> Duplicate Block
+            <span>👯</span> {t('contextMenu.duplicateBlock', 'Duplicate Block')}
           </button>
           <button
             className="context-menu-item danger"
@@ -319,7 +321,7 @@ export const CanvasContextMenu = ({
               onClose();
             }}
           >
-            <span>🗑️</span> Delete Block
+            <span>🗑️</span> {t('contextMenu.deleteBlock', 'Delete Block')}
           </button>
           {(() => {
             const block = blocks.find(n => n.id === contextMenu.targetId);
@@ -331,7 +333,7 @@ export const CanvasContextMenu = ({
                     onEditScript(block.id, block.data.code, block.data.action);
                     onClose();
                   }}>
-                    <span>📝</span> Edit Script
+                    <span>📝</span> {t('contextMenu.editScript', 'Edit Script Code')}
                   </button>
                 </>
               );
@@ -342,7 +344,7 @@ export const CanvasContextMenu = ({
             <>
               <div className="context-menu-divider" />
               <button className="context-menu-item" onClick={() => { onGroupIntoCluster(); onClose(); }}>
-                <span>📦</span> Group into Cluster
+                <span>📦</span> {t('contextMenu.groupCluster', 'Create Cluster from Selection')}
               </button>
             </>
           )}
