@@ -428,5 +428,31 @@
     "trustAndSign": "🛡️ Confiar y Firmar código localmente (autoriza elementos no confiables)",
     "deletePackage": "🧹 Eliminar archivo de paquete después de importar",
     "openPackage": "📂 Abrir Paquete"
+  },
+  "app": {
+    "confirmCloseUnsaved": "¿Estás seguro de que quieres cerrar esta pestaña? Los cambios no guardados en \"{{name}}\" se perderán.",
+    "confirmCloseRunning": "Este blueprint se está ejecutando actualmente. Cerrar la pestaña detendrá la ejecución. ¿Continuar?",
+    "confirmClearCanvas": "¿Estás seguro de que quieres limpiar el lienzo y comenzar un nuevo blueprint?",
+    "confirmCleanTempFiles": "¿Estás seguro de que quieres eliminar todos los archivos de paquetes temporales, archivos temporales de tiempo de ejecución y recargar el registro? Esto también cerrará todas las pestañas abiertas que ejecutan blueprints de paquetes temporales.",
+    "confirmClearPersistent": "¿Estás seguro de que quieres borrar todos los estados persistentes de los bloques y liberar sus recursos/memoria abiertos?",
+    "confirmClearCanvasShort": "¿Limpiar lienzo?",
+    "confirmClearAnnotations": "¿Estás seguro de que quieres borrar todas las anotaciones de este nivel?",
+    "alertFailedAuthorize": "Error al autorizar bloques.",
+    "alertGroupClusterSelect": "Selecciona al menos 2 bloques en el lienzo para agrupar en un clúster.\n\nHaz clic en los bloques mientras mantienes presionado Shift, o arrastra un cuadro de selección.",
+    "alertInvalidBlueprint": "Formato de blueprint inválido.",
+    "alertFailedParseJSON": "Error al analizar el JSON del blueprint.",
+    "alertInvalidWorkspaceBlueprint": "Formato de blueprint inválido en el archivo del espacio de trabajo.",
+    "alertInvalidExampleBlueprint": "Formato de blueprint de ejemplo inválido.",
+    "alertEnterFilename": "Por favor ingresa un nombre de archivo.",
+    "alertFailedClearTemp": "Error al limpiar los archivos temporales.",
+    "alertFailedClearPersistent": "Error al borrar los estados persistentes de los bloques.",
+    "alertSettingsSaved": "¡Configuraciones guardadas y bloques dinámicos recargados exitosamente!"
+  },
+  "loadExampleModal": {
+    "title": "Cargar Blueprint de Ejemplo",
+    "description": "Explora blueprints de ejemplo preconfigurados. Cargar un ejemplo te permite ejecutar, inspeccionar y modificar el flujo de trabajo. Al guardar, se te pedirá que guardes una copia en tu espacio de trabajo activo.",
+    "loading": "Cargando ejemplos...",
+    "empty": "No se encontraron blueprints de ejemplo en la carpeta de ejemplos.",
+    "open": "Abrir"
   }
 }

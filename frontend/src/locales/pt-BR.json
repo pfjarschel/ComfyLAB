@@ -172,7 +172,7 @@
   "settingsModal": {
     "title": "Configurações Globais",
     "generalTab": "⚙️ Geral",
-    "diagnosticsTab": "🛠️ Idiomas e Diagnósticos",
+    "diagnosticsTab": "🛠️ Linguagens e Diagnósticos",
     "scriptTimeout": "Tempo Limite do Script Python (segundos)",
     "scriptTimeoutHint": "Duração máxima permitida para a execução de um script de bloco personalizado.",
     "visaBackend": "Driver de Backend VISA",
@@ -428,5 +428,31 @@
     "trustAndSign": "🛡️ Confiar e Assinar código localmente (autoriza itens não confiáveis)",
     "deletePackage": "🧹 Excluir arquivo do pacote após importar",
     "openPackage": "📂 Abrir Pacote"
+  },
+  "app": {
+    "confirmCloseUnsaved": "Tem certeza que deseja fechar esta aba? Alterações não salvas em \"{{name}}\" serão perdidas.",
+    "confirmCloseRunning": "Este blueprint está em execução no momento. Fechar a aba interromperá a execução. Continuar?",
+    "confirmClearCanvas": "Tem certeza que deseja limpar a tela e iniciar um novo blueprint?",
+    "confirmCleanTempFiles": "Tem certeza de que deseja excluir todos os arquivos de pacotes temporários, arquivos temporários de execução e recarregar o registro? Isso também fechará todas as abas abertas executando blueprints de pacotes temporários.",
+    "confirmClearPersistent": "Tem certeza de que deseja limpar todos os estados persistentes dos blocos e liberar seus recursos/memória abertos?",
+    "confirmClearCanvasShort": "Limpar tela?",
+    "confirmClearAnnotations": "Tem certeza de que deseja limpar todas as anotações deste nível?",
+    "alertFailedAuthorize": "Falha ao autorizar blocos.",
+    "alertGroupClusterSelect": "Selecione pelo menos 2 blocos na tela para agrupar em um cluster.\n\nClique nos blocos enquanto segura Shift, ou arraste uma caixa de seleção.",
+    "alertInvalidBlueprint": "Formato de blueprint inválido.",
+    "alertFailedParseJSON": "Falha ao analisar o JSON do blueprint.",
+    "alertInvalidWorkspaceBlueprint": "Formato de blueprint inválido no arquivo do workspace.",
+    "alertInvalidExampleBlueprint": "Formato de blueprint de exemplo inválido.",
+    "alertEnterFilename": "Por favor, insira um nome de arquivo.",
+    "alertFailedClearTemp": "Falha ao limpar arquivos temporários.",
+    "alertFailedClearPersistent": "Falha ao limpar estados persistentes dos blocos.",
+    "alertSettingsSaved": "Configurações salvas e blocos dinâmicos recarregados com sucesso!"
+  },
+  "loadExampleModal": {
+    "title": "Carregar Blueprint de Exemplo",
+    "description": "Explore blueprints de exemplo pré-configurados. Carregar um exemplo permite executar, inspecionar e modificar o fluxo de trabalho. Ao salvar, você será solicitado a salvar uma cópia no seu workspace ativo.",
+    "loading": "Carregando exemplos...",
+    "empty": "Nenhum blueprint de exemplo encontrado na pasta de exemplos.",
+    "open": "Abrir"
   }
 }

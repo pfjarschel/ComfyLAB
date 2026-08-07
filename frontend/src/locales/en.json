@@ -428,5 +428,31 @@
     "trustAndSign": "🛡️ Trust & Sign code locally (authorizes untrusted items)",
     "deletePackage": "🧹 Delete package file after importing",
     "openPackage": "📂 Open Package"
+  },
+  "app": {
+    "confirmCloseUnsaved": "Are you sure you want to close this tab? Unsaved changes in \"{{name}}\" will be lost.",
+    "confirmCloseRunning": "This blueprint is currently executing. Closing the tab will stop the execution. Continue?",
+    "confirmClearCanvas": "Are you sure you want to clear the canvas and start a new blueprint?",
+    "confirmCleanTempFiles": "Are you sure you want to delete all temporary package files, runtime temp files, and reload the registry? This will also close all open tabs running temporary package blueprints.",
+    "confirmClearPersistent": "Are you sure you want to clear all persistent block states and release their open handles/memory?",
+    "confirmClearCanvasShort": "Clear canvas?",
+    "confirmClearAnnotations": "Are you sure you want to clear all annotations from this level?",
+    "alertFailedAuthorize": "Failed to authorize blocks.",
+    "alertGroupClusterSelect": "Select at least 2 blocks on the canvas to group into a cluster.\n\nClick blocks while holding Shift, or drag a selection box.",
+    "alertInvalidBlueprint": "Invalid blueprint format.",
+    "alertFailedParseJSON": "Failed to parse blueprint JSON.",
+    "alertInvalidWorkspaceBlueprint": "Invalid blueprint format in workspace file.",
+    "alertInvalidExampleBlueprint": "Invalid example blueprint format.",
+    "alertEnterFilename": "Please enter a filename.",
+    "alertFailedClearTemp": "Failed to clear temporary files.",
+    "alertFailedClearPersistent": "Failed to clear persistent block states.",
+    "alertSettingsSaved": "Settings saved and dynamic blocks reloaded successfully!"
+  },
+  "loadExampleModal": {
+    "title": "Load Example Blueprint",
+    "description": "Explore pre-configured example blueprints. Loading an example allows you to run, inspect, and modify the workflow. Saving will prompt you to save a copy into your active workspace.",
+    "loading": "Loading examples...",
+    "empty": "No example blueprints found in the examples folder.",
+    "open": "Open"
   }
 }

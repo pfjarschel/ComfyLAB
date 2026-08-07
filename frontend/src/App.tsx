@@ -660,7 +660,7 @@ function Flow() {
       setBlockRegistry(templatesRes.data);
     } catch (err) {
       console.error("Failed to authorize blocks:", err);
-      alert("Failed to authorize blocks.");
+      alert(t('app.alertFailedAuthorize', "Failed to authorize blocks."));
     }
   };
 
@@ -2473,7 +2473,7 @@ return {
   // Group selected blocks into a cluster
   const handleGroupIntoCluster = useCallback(() => {
     if (selectedBlockIds.size < 2) {
-      alert('Select at least 2 blocks on the canvas to group into a cluster.\n\nClick blocks while holding Shift, or drag a selection box.');
+      alert(t('app.alertGroupClusterSelect', 'Select at least 2 blocks on the canvas to group into a cluster.\n\nClick blocks while holding Shift, or drag a selection box.'));
       return;
     }
 
@@ -2680,10 +2680,10 @@ return {
           
           loadBlueprintData(payload, file.name.replace(/\.json$/, ''));
         } else {
-          alert('Invalid blueprint format.');
+          alert(t('app.alertInvalidBlueprint', 'Invalid blueprint format.'));
         }
       } catch (err) {
-        alert('Failed to parse blueprint JSON.');
+        alert(t('app.alertFailedParseJSON', 'Failed to parse blueprint JSON.'));
       }
     };
     reader.readAsText(file);
@@ -2760,7 +2760,7 @@ return {
         }
         loadBlueprintData(payload, filename);
       } else {
-        alert('Invalid blueprint format in workspace file.');
+        alert(t('app.alertInvalidWorkspaceBlueprint', 'Invalid blueprint format in workspace file.'));
       }
     } catch (err: any) {
       setErrorMessage(err.response?.data?.detail || 'Failed to load blueprint from workspace.');
@@ -2775,7 +2775,7 @@ return {
       if (bpData.blocks && Array.isArray(bpData.blocks) && bpData.edges && Array.isArray(bpData.edges)) {
         loadBlueprintData(bpData, `[Example] ${filename}`, true);
       } else {
-        alert('Invalid example blueprint format.');
+        alert(t('app.alertInvalidExampleBlueprint', 'Invalid example blueprint format.'));
       }
     } catch (err: any) {
       setErrorMessage(err.response?.data?.detail || 'Failed to load example blueprint.');
@@ -2841,7 +2841,7 @@ return {
     if (rootNodes.length === 0) return;
     const trimmed = saveFilenameInput.trim();
     if (!trimmed) {
-      alert('Please enter a filename.');
+      alert(t('app.alertEnterFilename', 'Please enter a filename.'));
       return;
     }
 
@@ -3003,7 +3003,7 @@ return {
     const isTabDirty = tabIdToClose === activeTabId ? isDirty : tabToClose.isDirty;
     if (isTabDirty) {
       const confirmClose = await confirmAsync(
-        `Are you sure you want to close this tab? Unsaved changes in "${tabToClose.name}" will be lost.`
+        t('app.confirmCloseUnsaved', 'Are you sure you want to close this tab? Unsaved changes in "{{name}}" will be lost.', { name: tabToClose.name })
       );
       if (!confirmClose) return;
     }
@@ -3011,7 +3011,7 @@ return {
     // If it's the running tab, warn or handle
     if (tabIdToClose === runningTabId) {
       const confirmRunning = await confirmAsync(
-        `This blueprint is currently executing. Closing the tab will stop the execution. Continue?`
+        t('app.confirmCloseRunning', 'This blueprint is currently executing. Closing the tab will stop the execution. Continue?')
       );
       if (!confirmRunning) return;
       handleAbort(); // Abort the execution
@@ -3311,7 +3311,7 @@ return {
           menuContainerRef={menuContainerRef}
           onNewBlueprint={async () => {
             setMenuOpen(false);
-            if (await confirmAsync('Are you sure you want to clear the canvas and start a new blueprint?')) {
+            if (await confirmAsync(t('app.confirmClearCanvas', 'Are you sure you want to clear the canvas and start a new blueprint?'))) {
               setBlocks([]);
               setEdges([]);
               setAnnotations([]);
@@ -3338,7 +3338,7 @@ return {
           }}
           onClearTemporaryFiles={async () => {
             setMenuOpen(false);
-            if (await confirmAsync('Are you sure you want to delete all temporary package files, runtime temp files, and reload the registry? This will also close all open tabs running temporary package blueprints.')) {
+            if (await confirmAsync(t('app.confirmCleanTempFiles', 'Are you sure you want to delete all temporary package files, runtime temp files, and reload the registry? This will also close all open tabs running temporary package blueprints.'))) {
               try {
                 await axios.post(`${BACKEND_URL}/workspace/packages/clear_temp`);
                 await fetchRegistry();
@@ -3399,18 +3399,18 @@ return {
                 }
               } catch (err) {
                 console.error('Failed to clear temporary files:', err);
-                alert('Failed to clear temporary files.');
+                alert(t('app.alertFailedClearTemp', 'Failed to clear temporary files.'));
               }
             }
           }}
           onClearPersistentStates={async () => {
             setMenuOpen(false);
-            if (await confirmAsync('Are you sure you want to clear all persistent block states and release their open handles/memory?')) {
+            if (await confirmAsync(t('app.confirmClearPersistent', 'Are you sure you want to clear all persistent block states and release their open handles/memory?'))) {
               try {
                 await axios.post(`${BACKEND_URL}/blocks/clear_persistent`);
               } catch (err) {
                 console.error('Failed to clear persistent blocks:', err);
-                alert('Failed to clear persistent block states.');
+                alert(t('app.alertFailedClearPersistent', 'Failed to clear persistent block states.'));
               }
             }
           }}
@@ -3551,7 +3551,7 @@ return {
                   title={t('canvasTools.backLevel', "Back to previous level")}
                 >
                   <span>⬅</span>
-                  <span>Back</span>
+                  <span>{t('canvasTools.backLabel', 'Back')}</span>
                 </button>
               )}
               {selectedBlockIds.size >= 2 && (
@@ -3561,7 +3561,7 @@ return {
                   disabled={isRunning}
                   title={isRunning ? t('canvasTools.groupDisabled', "Cannot group blocks while an execution is running") : t('canvasTools.groupBlocks', "Group selected blocks into a cluster")}
                 >
-                  📦 Group into Cluster ({selectedBlockIds.size})
+                  📦 {t('canvasTools.groupIntoCluster', 'Group into Cluster')} ({selectedBlockIds.size})
                 </button>
               )}
             </div>
@@ -3803,7 +3803,7 @@ return {
               onToggleSnap={() => setSnapToGrid(prev => !prev)}
               onToggleAnnotations={() => setShowAnnotations(prev => !prev)}
               onClearCanvas={async () => {
-                if (await confirmAsync('Clear canvas?')) {
+                if (await confirmAsync(t('app.confirmClearCanvasShort', 'Clear canvas?'))) {
                   pushStateToHistory(blocksRef.current, edgesRef.current, annotationsRef.current);
                   setBlocks([]);
                   setEdges([]);
@@ -3929,7 +3929,7 @@ return {
               setEditingTextId={setEditingTextId}
               commitActivePolyshape={commitActivePolyshape}
               onClearAll={async () => {
-                if (await confirmAsync("Are you sure you want to clear all annotations from this level?")) {
+                if (await confirmAsync(t('app.confirmClearAnnotations', 'Are you sure you want to clear all annotations from this level?'))) {
                   pushStateToHistory(blocksRef.current, edgesRef.current, annotationsRef.current);
                   setAnnotations([]);
                 }
@@ -4040,7 +4040,7 @@ return {
           onSave={async () => {
             const success = await handleSaveSettings();
             if (success) {
-              alert('Settings saved and dynamic blocks reloaded successfully!');
+              alert(t('app.alertSettingsSaved', 'Settings saved and dynamic blocks reloaded successfully!'));
               setSettingsOpen(false);
             }
           }}

@@ -19,6 +19,7 @@ import { RegistryContext } from '../context/RegistryContext';
 import { getPinColor } from '../constants/blockLayouts';
 import type { NodeSchema } from '../constants/blockLayouts';
 import { getBlockTitle, getPinLabel } from '../utils/blockI18n';
+import { useTranslation } from '../i18n';
 import { NumericTextInput } from './common/NumericTextInput';
 import { TimePlotWidget } from './widgets/TimePlotWidget';
 import { XYPlotWidget } from './widgets/XYPlotWidget';
@@ -60,6 +61,7 @@ export type ActionBlockData = {
 
 
 export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
+  const { t } = useTranslation();
   const blockRegistry = useContext(RegistryContext);
   const registryLayout = blockRegistry?.[data.action] as NodeSchema | undefined;
   const updateBlockInternals = useUpdateNodeInternals();
@@ -866,7 +868,7 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
           data.onInspect(id);
         }
       }}
-      title={isCluster ? 'Double-click to inspect cluster' : 'Double-click to inspect block'}
+      title={isCluster ? t('actionBlock.inspectCluster', 'Double-click to inspect cluster') : t('actionBlock.inspectBlock', 'Double-click to inspect block')}
       style={{
         minHeight: `${calculatedMinHeight}px`
       }}
@@ -1731,7 +1733,7 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
           }}>
             ▼
           </span>
-          {showOptional ? 'Hide Optional Settings' : 'Show Optional Settings'}
+          {showOptional ? t('actionBlock.hideOptionalSettings', 'Hide Optional Settings') : t('actionBlock.showOptionalSettings', 'Show Optional Settings')}
         </div>
       )}
 

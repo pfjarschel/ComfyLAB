@@ -74,12 +74,12 @@ export const LoadExampleModal: React.FC<LoadExampleModalProps> = ({
 
         <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '20px', maxHeight: '380px', overflowY: 'auto' }}>
           <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-            Explore pre-configured example blueprints. Loading an example allows you to run, inspect, and modify the workflow. Saving will prompt you to save a copy into your active workspace.
+            {t('loadExampleModal.description', 'Explore pre-configured example blueprints. Loading an example allows you to run, inspect, and modify the workflow. Saving will prompt you to save a copy into your active workspace.')}
           </p>
 
           {loading ? (
             <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textAlign: 'center', padding: '20px' }}>
-              Loading examples...
+              {t('loadExampleModal.loading', 'Loading examples...')}
             </div>
           ) : error ? (
             <div style={{ color: '#ef4444', fontSize: '0.85rem', textAlign: 'center', padding: '16px' }}>
@@ -87,7 +87,7 @@ export const LoadExampleModal: React.FC<LoadExampleModalProps> = ({
             </div>
           ) : examples.length === 0 ? (
             <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', textAlign: 'center', padding: '20px', fontStyle: 'italic' }}>
-              No example blueprints found in the examples folder.
+              {t('loadExampleModal.empty', 'No example blueprints found in the examples folder.')}
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -131,7 +131,7 @@ export const LoadExampleModal: React.FC<LoadExampleModalProps> = ({
                       </span>
                     </div>
                     <span style={{ fontSize: '0.8rem', color: 'var(--accent-color)', fontWeight: 600 }}>
-                      Open →
+                      {t('loadExampleModal.open', 'Open')} →
                     </span>
                   </div>
                 );
