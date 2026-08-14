@@ -345,6 +345,13 @@ function Flow() {
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     return (localStorage.getItem('comfylab-theme') as 'dark' | 'light') || 'dark';
   });
+  const [liteMode, setLiteMode] = useState<boolean>(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('lite') === '1' || urlParams.get('lite') === 'true') {
+      return true;
+    }
+    return localStorage.getItem('comfylab-lite-mode') === 'true';
+  });
   const [isLocked, setIsLocked] = useState(false);
 
   // Cluster state
@@ -887,13 +894,15 @@ function Flow() {
     const newEdges = edges.map(edge => {
       const srcNode = blocks.find(n => n.id === edge.source);
       const isExecEdge = (blockRegistry?.[srcNode?.data?.action || '']?.execOuts?.includes(edge.sourceHandle || '') || false);
+      const shouldAnimate = !liteMode && isExecEdge;
       
       if (isExecEdge) {
-        if (edge.style?.stroke !== '#a78bfa') {
+        if (edge.style?.stroke !== '#a78bfa' || edge.animated !== shouldAnimate) {
           changed = true;
           return {
             ...edge,
-            style: { ...edge.style, stroke: '#a78bfa', strokeWidth: 2, animated: true },
+            animated: shouldAnimate,
+            style: { ...edge.style, stroke: '#a78bfa', strokeWidth: 2, animated: shouldAnimate },
             markerEnd: { ...(edge.markerEnd || {}), color: '#a78bfa' }
           };
         }
@@ -901,10 +910,11 @@ function Flow() {
       }
       
       const expectedColor = getResolvedEdgeColor(edge.source, edge.sourceHandle || '', blocks, edges, blockRegistry);
-      if (edge.style?.stroke !== expectedColor) {
+      if (edge.style?.stroke !== expectedColor || edge.animated) {
         changed = true;
         return {
           ...edge,
+          animated: false,
           style: {
             ...edge.style,
             stroke: expectedColor,
@@ -923,7 +933,7 @@ function Flow() {
     if (changed) {
       setEdges(newEdges);
     }
-  }, [blocks, edges, blockRegistry]);
+  }, [blocks, edges, blockRegistry, liteMode]);
 
   // Sync block changes back into blocks array
   const onBlockDataChange = useCallback((id: string, key: string, value: any) => {
@@ -1101,8 +1111,8 @@ function Flow() {
           target: bl.target_block,
           targetHandle: bl.target_pin,
           style: isExec
-            ? { stroke: pinColor, strokeWidth: 2, animated: true }
-            : { stroke: pinColor, strokeWidth: 1.5 },
+            ? { stroke: pinColor, strokeWidth: 2, animated: !liteMode }
+            : { stroke: pinColor, strokeWidth: 1.5, animated: false },
           markerEnd: { type: 'arrowclosed', color: pinColor },
         };
       });
@@ -1383,6 +1393,7 @@ return {
           setRunningTabId,
           setErrorMessage,
           blockRegistry,
+          liteMode,
         });
 
         const handleRunRef = useRef(handleRun);
@@ -1722,7 +1733,7 @@ return {
       const isExec = preview.style.stroke === '#a78bfa';
       const pinColor = isExec ? '#a78bfa' : preview.style.stroke;
       const edgeStyle = isExec
-        ? { stroke: pinColor, strokeWidth: 2, animated: true }
+        ? { stroke: pinColor, strokeWidth: 2, animated: !liteMode }
         : { stroke: pinColor, strokeWidth: 1.5, animated: false };
       return {
         id: `edge_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
@@ -1950,6 +1961,17 @@ return {
     localStorage.setItem('comfylab-theme', theme);
   }, [theme]);
 
+  // Handle Lite Mode transitions and storage persistence
+  useEffect(() => {
+    const root = document.documentElement;
+    if (liteMode) {
+      root.classList.add('lite-mode');
+    } else {
+      root.classList.remove('lite-mode');
+    }
+    localStorage.setItem('comfylab-lite-mode', String(liteMode));
+  }, [liteMode]);
+
   // Persist snap-to-grid preference
   useEffect(() => {
     localStorage.setItem('comfylab-snap-to-grid', String(snapToGrid));
@@ -2004,7 +2026,7 @@ return {
       }
 
       const edgeStyle = isExec
-        ? { stroke: pinColor, strokeWidth: 2, animated: true }
+        ? { stroke: pinColor, strokeWidth: 2, animated: !liteMode }
         : { stroke: pinColor, strokeWidth: 1.5, animated: false };
 
       const marker = { type: MarkerType.ArrowClosed, color: pinColor };
@@ -3359,6 +3381,8 @@ return {
           selectedBlocksCount={blocks.filter(n => n.selected).length}
           theme={theme}
           setTheme={setTheme}
+          liteMode={liteMode}
+          onToggleLiteMode={() => setLiteMode(prev => !prev)}
           menuContainerRef={menuContainerRef}
           onNewBlueprint={async () => {
             setMenuOpen(false);
@@ -3782,16 +3806,18 @@ return {
                   </svg>
                 </ControlButton>
               </Controls>
-              <MiniMap
-                pannable
-                zoomable
-                onClick={(_event, position) => {
-                  if (reactFlowInstance) {
-                    const viewport = reactFlowInstance.getViewport();
-                    reactFlowInstance.setCenter(position.x, position.y, { zoom: viewport.zoom, duration: 400 });
-                  }
-                }}
-              />
+              {!liteMode && (
+                <MiniMap
+                  pannable
+                  zoomable
+                  onClick={(_event, position) => {
+                    if (reactFlowInstance) {
+                      const viewport = reactFlowInstance.getViewport();
+                      reactFlowInstance.setCenter(position.x, position.y, { zoom: viewport.zoom, duration: 400 });
+                    }
+                  }}
+                />
+              )}
 
               {/* Whiteboard / Annotations SVG Overlay */}
               <WhiteboardOverlay
@@ -4094,6 +4120,8 @@ return {
           isOpen={settingsOpen}
           settings={settings}
           setSettings={setSettings}
+          liteMode={liteMode}
+          setLiteMode={setLiteMode}
           newDirInput={newDirInput}
           setNewDirInput={setNewDirInput}
           settingsTab={settingsTab}

@@ -2268,3 +2268,91 @@ text.annotation-element.hoverable-eraser:hover {
   border-style: dashed !important;
   opacity: 0.9;
 }
+
+/* ==========================================================================
+   LITE MODE (High Performance / Low-Resource Hardware Optimization)
+   Eliminates expensive GPU compositing (backdrop blur, diffuse shadows,
+   alpha blending, and continuous keyframe repaints) while preserving
+   100% full interactive functionality.
+   ========================================================================== */
+
+.lite-mode,
+.lite-mode * {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.lite-mode .glass-panel,
+.lite-mode .action-block,
+.lite-mode .top-bar,
+.lite-mode .sidebar,
+.lite-mode .inspector-panel,
+.lite-mode .modal-content,
+.lite-mode .context-menu,
+.lite-mode .dropdown-menu,
+.lite-mode .annotation-note-container,
+.lite-mode .button-primary,
+.lite-mode .button-secondary,
+.lite-mode .react-flow__controls,
+.lite-mode .whiteboard-sidebar {
+  box-shadow: none !important;
+  transition: none !important;
+  animation: none !important;
+}
+
+.lite-mode .action-block {
+  background: var(--block-bg) !important;
+  border: 1px solid var(--block-border);
+}
+
+.lite-mode .action-block:hover {
+  box-shadow: none !important;
+  border-color: #60a5fa !important;
+}
+
+.lite-mode .action-block.selected {
+  border: 2px solid #3b82f6 !important;
+  box-shadow: none !important;
+}
+
+.lite-mode .action-block.pinned-block.selected {
+  border: 2px solid #3b82f6 !important;
+  box-shadow: none !important;
+}
+
+.lite-mode .action-block.persistent-block {
+  animation: none !important;
+  border-color: #f59e0b !important;
+}
+
+.lite-mode .action-block.persistent-block.selected {
+  border: 2px solid #f59e0b !important;
+  box-shadow: none !important;
+}
+
+.lite-mode .tab-running-dot {
+  animation: none !important;
+  background-color: #10b981;
+}
+
+.lite-mode .button-primary:hover,
+.lite-mode .button-secondary:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.lite-mode .annotation-note-container {
+  box-shadow: none !important;
+}
+
+.lite-mode .annotation-note-container.selected,
+.lite-mode .annotation-note-container.editing {
+  box-shadow: none !important;
+  outline: 2px solid #3b82f6;
+}
+
+.lite-mode .led-indicator-block {
+  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.4) !important;
+  transition: none !important;
+}
+

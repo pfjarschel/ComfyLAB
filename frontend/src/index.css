@@ -148,6 +148,52 @@
   --cluster-badge-bg: linear-gradient(135deg, rgba(124, 58, 237, 0.12), rgba(99, 102, 241, 0.12));
 }
 
+.lite-mode {
+  /* High Performance Flat Dark Mode (Zero Blur / Zero Alpha-Blending Overhead) */
+  --block-bg: #1e293b;
+  --block-border: rgba(148, 163, 184, 0.35);
+  --block-shadow: none;
+  --sidebar-bg: #0a0f1c;
+  --sidebar-border: rgba(148, 163, 184, 0.3);
+  --dnd-bg: #1e293b;
+  --dnd-hover-bg: #334155;
+  --input-bg: #0f172a;
+  --dropdown-bg: #0a0f1c;
+  --modal-bg: #0a0f1c;
+  --modal-overlay-bg: rgba(0, 0, 0, 0.85);
+  --panel-bg: #1e293b;
+  --block-id-bg: #334155;
+  --controls-bg: #1e293b;
+  --controls-button-border: rgba(148, 163, 184, 0.35);
+  --button-secondary-bg: #1e293b;
+  --button-secondary-border: rgba(148, 163, 184, 0.35);
+  --button-secondary-hover-bg: #334155;
+  --minimap-bg: #0f172a;
+}
+
+.lite-mode.light-theme {
+  /* High Performance Flat Light Mode */
+  --block-bg: #ffffff;
+  --block-border: rgba(148, 163, 184, 0.5);
+  --block-shadow: none;
+  --sidebar-bg: #f8fafc;
+  --sidebar-border: rgba(148, 163, 184, 0.5);
+  --dnd-bg: #f1f5f9;
+  --dnd-hover-bg: #e2e8f0;
+  --input-bg: #f1f5f9;
+  --dropdown-bg: #ffffff;
+  --modal-bg: #ffffff;
+  --modal-overlay-bg: rgba(0, 0, 0, 0.5);
+  --panel-bg: #ffffff;
+  --block-id-bg: rgba(148, 163, 184, 0.25);
+  --controls-bg: #ffffff;
+  --controls-button-border: rgba(148, 163, 184, 0.5);
+  --button-secondary-bg: #ffffff;
+  --button-secondary-border: rgba(148, 163, 184, 0.5);
+  --button-secondary-hover-bg: #f1f5f9;
+  --minimap-bg: #f1f5f9;
+}
+
 body {
   margin: 0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',

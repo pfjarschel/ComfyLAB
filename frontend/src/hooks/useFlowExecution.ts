@@ -35,6 +35,7 @@ export interface UseFlowExecutionProps {
   setRunningTabId: React.Dispatch<React.SetStateAction<string | null>>;
   setErrorMessage: React.Dispatch<React.SetStateAction<string | null>>;
   blockRegistry: Record<string, any> | null;
+  liteMode?: boolean;
 }
 
 export function useFlowExecution({
@@ -55,6 +56,7 @@ export function useFlowExecution({
   setRunningTabId,
   setErrorMessage,
   blockRegistry,
+  liteMode = false,
 }: UseFlowExecutionProps) {
   const wsRef = useRef<WebSocket | null>(null);
   
@@ -175,10 +177,11 @@ export function useFlowExecution({
     };
     
     flushUpdatesRef.current = flushUpdates;
-    const interval = setInterval(flushUpdates, 100);
+    const intervalMs = liteMode ? 200 : 100;
+    const interval = setInterval(flushUpdates, intervalMs);
 
     return () => clearInterval(interval);
-  }, [setBlocks]);
+  }, [setBlocks, liteMode]);
 
   const startTelemetryStream = useCallback((runId: string) => {
     if (wsRef.current) {

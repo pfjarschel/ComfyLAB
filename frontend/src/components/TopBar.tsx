@@ -35,6 +35,8 @@ interface TopBarProps {
   selectedBlocksCount: number;
   theme: 'dark' | 'light';
   setTheme: (theme: 'dark' | 'light') => void;
+  liteMode?: boolean;
+  onToggleLiteMode?: () => void;
   menuContainerRef: React.RefObject<HTMLDivElement | null>;
 
   // Callbacks
@@ -78,6 +80,8 @@ export const TopBar = ({
    
   theme,
   setTheme,
+  liteMode,
+  onToggleLiteMode,
   menuContainerRef,
 
   onNewBlueprint,
@@ -343,6 +347,28 @@ export const TopBar = ({
             ))}
           </select>
         </div>
+        {onToggleLiteMode && (
+          <button
+            className={`button-secondary ${liteMode ? 'control-btn-active' : ''}`}
+            onClick={onToggleLiteMode}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minWidth: '38px',
+              height: '38px',
+              borderRadius: '8px',
+              fontSize: '1.1rem',
+              padding: '0',
+              border: liteMode ? '1px solid #3b82f6' : '1px solid var(--button-secondary-border)',
+              background: liteMode ? 'rgba(59, 130, 246, 0.2)' : 'var(--button-secondary-bg)',
+              color: liteMode ? '#60a5fa' : 'inherit'
+            }}
+            title={liteMode ? t('topbar.liteModeOn', 'Lite Mode: ON — Click to disable') : t('topbar.liteModeOff', 'Lite Mode: OFF — Click to enable (reduces visual effects for low-power devices)')}
+          >
+            ⚡
+          </button>
+        )}
         <button
           className="button-secondary"
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}

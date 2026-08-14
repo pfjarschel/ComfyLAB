@@ -35,6 +35,8 @@ interface GlobalSettingsProps {
     custom_users: Record<string, string>;
   };
   setSettings: (settings: any) => void;
+  liteMode?: boolean;
+  setLiteMode?: (val: boolean) => void;
   newDirInput: string;
   setNewDirInput: (value: string) => void;
   settingsTab: 'general' | 'diagnostics';
@@ -50,6 +52,8 @@ export const GlobalSettingsModal = ({
   isOpen,
   settings,
   setSettings,
+  liteMode,
+  setLiteMode,
   newDirInput,
   setNewDirInput,
   settingsTab,
@@ -170,6 +174,24 @@ export const GlobalSettingsModal = ({
                   {t('settingsModal.externalPythonHint', 'Default Python interpreter path used by the External Python script block.')}
                 </span>
               </div>
+
+              {/* Performance / Lite Mode */}
+              {setLiteMode && (
+                <div className="setting-group" style={{ marginTop: '12px' }}>
+                  <label className="setting-label">{t('settingsModal.performanceSection', 'Performance & Visuals')}</label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '0.85rem', marginTop: '6px' }}>
+                    <input
+                      type="checkbox"
+                      checked={!!liteMode}
+                      onChange={(e) => setLiteMode(e.target.checked)}
+                    />
+                    <span style={{ fontWeight: 500 }}>{t('settingsModal.enableLiteMode', '⚡ Enable Lite Mode (High Performance)')}</span>
+                  </label>
+                  <span className="setting-description" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
+                    {t('settingsModal.enableLiteModeHint', 'Reduces visual effects, disables blur filters, diffuse shadows, and ambient animations to maximize responsiveness on low-resource hardware (e.g. Raspberry Pi).')}
+                  </span>
+                </div>
+              )}
 
               {/* Custom Block Directories */}
               <div className="setting-group">

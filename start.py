@@ -30,6 +30,7 @@ def parse_args():
     parser.add_argument("--vite-port", type=int, default=5173, help="Port for the Vite frontend dev server (default: 5173)")
     parser.add_argument("--local", action="store_true", help="Restrict access to localhost only (bind to 127.0.0.1)")
     parser.add_argument("--dev", action="store_true", help="Force development mode (runs Vite and FastAPI concurrently)")
+    parser.add_argument("--lite", action="store_true", help="Launch in Lite Mode (reduces visual effects for low-power hardware)")
     return parser.parse_args()
 
 def is_npm_installed():
@@ -116,8 +117,8 @@ def main():
         if mode == "production":
             env["COMFYLAB_FRONTEND_PORT"] = str(port)
             env["COMFYLAB_BACKEND_PORT"] = str(port)
-            # In production, FastAPI serves the compiled files directly on the configured port
-            browser_url = f"http://127.0.0.1:{port}" if host in ("0.0.0.0", "::") else f"http://{host}:{port}"
+            query_str = "?lite=1" if args.lite else ""
+            browser_url = f"http://127.0.0.1:{port}{query_str}" if host in ("0.0.0.0", "::") else f"http://{host}:{port}{query_str}"
             
             print(f"[ComfyLAB] Starting FastAPI Backend on {host}:{port}...")
             # --no-proxy-headers: ComfyLAB's localhost-trust check relies on the real
@@ -168,7 +169,8 @@ def main():
             except Exception as e:
                 print(f"[ComfyLAB Warning] Failed to write backend_port.json: {e}")
 
-            browser_url = f"http://127.0.0.1:{vite_port}" if host in ("0.0.0.0", "::") else f"http://{host}:{vite_port}"
+            query_str = "?lite=1" if args.lite else ""
+            browser_url = f"http://127.0.0.1:{vite_port}{query_str}" if host in ("0.0.0.0", "::") else f"http://{host}:{vite_port}{query_str}"
 
             # Start backend (FastAPI) on the configured port
             print(f"[ComfyLAB] Starting FastAPI Backend on {host}:{port}...")
