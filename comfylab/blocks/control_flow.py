@@ -200,3 +200,90 @@ class WhileLoopBlock(BaseBlock):
 
     async def clear_data(self) -> None:
         self._index = 0
+
+
+@register_block("control_flow/loops/for_each")
+class ForEachLoopBlock(BaseBlock):
+    """Iterates over each item in a list or array, triggering the loop body branch for each item."""
+    icon = "🔁"
+    display_name = "For Each Loop"
+    description = "Iterates over each item in a list or array, triggering the loop body branch for each item."
+
+    inputs_def = [
+        ExecIn("Start"),
+        DataIn("Items", type_hint=Any, default=[])
+    ]
+    outputs_def = [
+        ExecOut("LoopBody"),
+        ExecOut("Done"),
+        DataOut("Item", type_hint=Any),
+        DataOut("Index", type_hint=int)
+    ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Laço For Each",
+            "description": "Itera sobre cada item em uma lista ou array, acionando o corpo do laço para cada item.",
+            "category": "Controle de Fluxo",
+            "pins": {
+                "Start": "Iniciar",
+                "Items": "Itens",
+                "LoopBody": "CorpoDoLaço",
+                "Done": "Concluído",
+                "Item": "Item",
+                "Index": "Índice"
+            }
+        },
+        "es": {
+            "display_name": "Bucle Para Cada",
+            "description": "Itera sobre cada elemento en una lista o matriz, activando el cuerpo del bucle para cada elemento.",
+            "category": "Control de Flujo",
+            "pins": {
+                "Start": "Iniciar",
+                "Items": "Elementos",
+                "LoopBody": "CuerpoDelBucle",
+                "Done": "Hecho",
+                "Item": "Elemento",
+                "Index": "Índice"
+            }
+        }
+    }
+
+    def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
+        super().__init__(block_id, properties)
+        self._current_item = None
+        self._current_index = 0
+
+    async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
+        items = await context.pull(self.id, "Items")
+        if items is None:
+            items = []
+
+        if hasattr(items, "__iter__") and not isinstance(items, (str, bytes, dict)):
+            iterable = items
+        else:
+            iterable = [items]
+
+        for i, item in enumerate(iterable):
+            if context.engine.state == "ABORTED":
+                break
+            await asyncio.sleep(0) # Yield to event loop to prevent CPU blocking
+            context.clear_cache()
+            self._current_index = i
+            self._current_item = item
+            # Trigger execution of the LoopBody sub-graph
+            await context.engine.trigger_exec(self.id, "LoopBody", context)
+
+        return "Done"
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Item":
+            return self._current_item
+        elif pin_name == "Index":
+            return self._current_index
+        return None
+
+    async def clear_data(self) -> None:
+        self._current_item = None
+        self._current_index = 0
+

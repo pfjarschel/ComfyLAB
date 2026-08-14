@@ -282,7 +282,14 @@ class ExecutionEngine:
         current_block_id = block_id
         current_pin_name = pin_name
 
-        if (block_id, pin_name) in self.exec_links:
+        block = self.blocks.get(block_id)
+        if block and pin_name in block.outputs:
+            if (block_id, pin_name) in self.exec_links:
+                current_block_id, current_pin_name = self.exec_links[(block_id, pin_name)]
+            else:
+                # Output pin is not connected to anything downstream
+                return
+        elif (block_id, pin_name) in self.exec_links:
             current_block_id, current_pin_name = self.exec_links[(block_id, pin_name)]
 
         while current_block_id is not None:
