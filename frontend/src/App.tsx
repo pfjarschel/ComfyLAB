@@ -371,6 +371,11 @@ function Flow() {
 
   const activeTabIdRef = useRef(activeTabId);
   const runningTabIdRef = useRef(runningTabId);
+  const tabsRef = useRef<Tab[]>(tabs);
+
+  useEffect(() => {
+    tabsRef.current = tabs;
+  }, [tabs]);
 
   useEffect(() => {
     activeTabIdRef.current = activeTabId;
@@ -820,15 +825,12 @@ function Flow() {
         return {
           ...t,
           name: currentBlueprintName || 'Untitled',
-          blocks: blocks,
-          edges: edges,
-          annotations: annotations,
           isDirty: isDirty
         };
       }
       return t;
     }));
-  }, [currentBlueprintName, isDirty, activeTabId, blocks, edges, annotations]);
+  }, [currentBlueprintName, isDirty, activeTabId]);
 
   const handleMoveEnd = useCallback((_: any, currentViewport: { x: number; y: number; zoom: number }) => {
     if (!activeTabId) return;
@@ -1215,9 +1217,8 @@ function Flow() {
 
     setTabs((prevTabs) =>
       prevTabs.map((t) => {
-        const hasNode = t.blocks?.some((n: any) => n.id === blockId);
-        if (!hasNode) return t;
-        const updatedNodes = t.blocks.map((block: any) => {
+        if (t.id !== activeTabId) return t;
+        const updatedNodes = (t.blocks || []).map((block: any) => {
           if (block.id === blockId) {
             const clearedData = { ...block.data };
             clearedData.status = 'idle';
@@ -1377,6 +1378,7 @@ return {
           wsRef,
         } = useFlowExecution({
           activeTabId,
+          tabs,
           blocks,
           edges,
           currentBlueprintName,
@@ -2951,7 +2953,7 @@ return {
 
     // 1. Save current active tab state to tabs array
     const currentViewport = reactFlowInstance ? reactFlowInstance.getViewport() : viewport;
-    setTabs(prevTabs => prevTabs.map(t => {
+    const updatedTabs = tabsRef.current.map(t => {
       if (t.id === activeTabId) {
         return {
           ...t,
@@ -2968,14 +2970,17 @@ return {
         };
       }
       return t;
-    }));
+    });
 
-    // 2. Retrieve target tab state
-    const targetTab = tabs.find(t => t.id === targetTabId);
+    tabsRef.current = updatedTabs;
+    setTabs(updatedTabs);
+
+    // 2. Retrieve target tab state from updatedTabs
+    const targetTab = updatedTabs.find(t => t.id === targetTabId);
     if (targetTab) {
       // 3. Load target tab state into active states
-      setBlocks(targetTab.blocks);
-      setEdges(targetTab.edges);
+      setBlocks(targetTab.blocks || []);
+      setEdges(targetTab.edges || []);
       setAnnotations(targetTab.annotations || []);
       setCurrentBlueprintName(targetTab.name === 'Untitled' ? '' : targetTab.name);
       setIsDirty(targetTab.isDirty);
@@ -2994,12 +2999,12 @@ return {
         reactFlowInstance.setViewport(targetViewport, { duration: 0 });
       }
     }
-  }, [activeTabId, currentBlueprintName, isDirty, tabs, annotations, setAnnotations, reactFlowInstance, viewport]);
+  }, [activeTabId, currentBlueprintName, isDirty, annotations, setAnnotations, reactFlowInstance, viewport]);
 
   const addTab = useCallback(() => {
     // 1. Save current active tab state to tabs array first
     const currentViewport = reactFlowInstance ? reactFlowInstance.getViewport() : viewport;
-    setTabs(prevTabs => prevTabs.map(t => {
+    const updatedTabs = tabsRef.current.map(t => {
       if (t.id === activeTabId) {
         return {
           ...t,
@@ -3016,7 +3021,7 @@ return {
         };
       }
       return t;
-    }));
+    });
 
     // 2. Create and switch to new tab
     const newTabId = `tab_${Date.now()}`;
@@ -3035,7 +3040,9 @@ return {
       viewport: defaultViewport
     };
 
-    setTabs(prev => [...prev, newTab]);
+    const finalTabs = [...updatedTabs, newTab];
+    tabsRef.current = finalTabs;
+    setTabs(finalTabs);
     setActiveTabId(newTabId);
 
     // Reset active states for the new tab

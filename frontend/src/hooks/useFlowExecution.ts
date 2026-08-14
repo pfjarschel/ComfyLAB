@@ -17,6 +17,7 @@ import axios from 'axios';
 
 export interface UseFlowExecutionProps {
   activeTabId: string;
+  tabs?: any[];
   blocks: any[];
   edges: any[];
   currentBlueprintName: string;
@@ -38,8 +39,68 @@ export interface UseFlowExecutionProps {
   liteMode?: boolean;
 }
 
+const applyUpdateToNode = (existingNode: any, update: any, registry: any) => {
+  if (!existingNode || !existingNode.data) return;
+  if (update.status !== undefined) existingNode.data.status = update.status;
+  if (update.statusMessage !== undefined) existingNode.data.resultMessage = update.statusMessage;
+  if (update.results) {
+    if (!existingNode.data.results) existingNode.data.results = {};
+    Object.assign(existingNode.data.results, update.results);
+  }
+  if (update.value !== undefined) {
+    if (!existingNode.data.results) existingNode.data.results = {};
+    
+    const uiBehavior = registry?.[existingNode.data.action]?.ui_behavior || {};
+    
+    if (uiBehavior.accumulate_history) {
+      let val;
+      if (Array.isArray(update.value)) {
+        val = update.value.map((v: any) => parseFloat(v));
+      } else {
+        val = parseFloat(update.value);
+      }
+      const oldHistory = existingNode.data.results.history || [];
+      const oldTimeHistory = existingNode.data.results.time_history || [];
+      
+      let maxHistory = 0;
+      if (update.results?.max_history !== undefined) {
+        maxHistory = Number(update.results.max_history);
+      } else if (existingNode.data.results?.max_history !== undefined) {
+        maxHistory = Number(existingNode.data.results.max_history);
+      }
+      
+      const timestamp = update.results?.timestamp;
+      
+      if (maxHistory > 0) {
+        existingNode.data.results.history = [...oldHistory, val].slice(-maxHistory);
+        if (timestamp !== undefined && timestamp !== null) {
+          existingNode.data.results.time_history = [...oldTimeHistory, timestamp].slice(-maxHistory);
+        } else {
+          existingNode.data.results.time_history = [];
+        }
+      } else {
+        existingNode.data.results.history = [...oldHistory, val];
+        if (timestamp !== undefined && timestamp !== null) {
+          existingNode.data.results.time_history = [...oldTimeHistory, timestamp];
+        } else {
+          existingNode.data.results.time_history = [];
+        }
+      }
+    } else {
+      existingNode.data.results.displayValue = update.value;
+    }
+  }
+  if (update.resultMessage !== undefined && update.value === undefined && update.statusMessage === undefined) {
+    existingNode.data.resultMessage = update.resultMessage;
+  }
+  if (update.pinValues) {
+    existingNode.data.pinValues = { ...(existingNode.data.pinValues || {}), ...update.pinValues };
+  }
+};
+
 export function useFlowExecution({
   activeTabId,
+  tabs = [],
   blocks,
   edges,
   currentBlueprintName,
@@ -65,7 +126,9 @@ export function useFlowExecution({
   const activeTabIdRef = useRef(activeTabId);
   const runningTabIdRef = useRef(runningTabId);
   const blockRegistryRef = useRef(blockRegistry);
+  const tabsRef = useRef<any[]>(tabs);
 
+  useEffect(() => { tabsRef.current = tabs; }, [tabs]);
   useEffect(() => { blockRegistryRef.current = blockRegistry; }, [blockRegistry]);
 
   useEffect(() => { isRunningRef.current = isRunning; }, [isRunning]);
@@ -99,69 +162,14 @@ export function useFlowExecution({
       // Clear the ref immediately so subsequent messages go into a clean state
       pendingUpdatesRef.current = {};
 
-      // 1. Update active blocks state
-      // 1. Dispatch custom events to bypass React's state tree and avoid Fiber re-allocations
-      if (activeTabIdRef.current === runningTabIdRef.current) {
+      const isForeground = activeTabIdRef.current === runningTabIdRef.current;
+      if (isForeground) {
+        // Active foreground tab: mutate blocks in active memory and dispatch custom DOM events
         Object.keys(updates).forEach(blockId => {
           const update = updates[blockId];
           const existingNode = blocksRef.current.find((n: any) => n.id === blockId);
           if (existingNode) {
-            // Mutate in-place
-            if (update.status !== undefined) existingNode.data.status = update.status;
-            if (update.statusMessage !== undefined) existingNode.data.resultMessage = update.statusMessage;
-            if (update.results) {
-               if (!existingNode.data.results) existingNode.data.results = {};
-               Object.assign(existingNode.data.results, update.results);
-            }
-            if (update.value !== undefined) {
-               if (!existingNode.data.results) existingNode.data.results = {};
-               
-               const uiBehavior = blockRegistryRef.current?.[existingNode.data.action]?.ui_behavior || {};
-               
-               if (uiBehavior.accumulate_history) {
-                  let val;
-                  if (Array.isArray(update.value)) {
-                     val = update.value.map((v: any) => parseFloat(v));
-                  } else {
-                     val = parseFloat(update.value);
-                  }
-                  const oldHistory = existingNode.data.results.history || [];
-                  const oldTimeHistory = existingNode.data.results.time_history || [];
-                  
-                  let maxHistory = 0;
-                  if (update.results?.max_history !== undefined) {
-                     maxHistory = Number(update.results.max_history);
-                  } else if (existingNode.data.results?.max_history !== undefined) {
-                     maxHistory = Number(existingNode.data.results.max_history);
-                  }
-                  
-                  const timestamp = update.results?.timestamp;
-                  
-                  if (maxHistory > 0) {
-                     existingNode.data.results.history = [...oldHistory, val].slice(-maxHistory);
-                     if (timestamp !== undefined && timestamp !== null) {
-                        existingNode.data.results.time_history = [...oldTimeHistory, timestamp].slice(-maxHistory);
-                     } else {
-                        existingNode.data.results.time_history = [];
-                     }
-                  } else {
-                     existingNode.data.results.history = [...oldHistory, val];
-                     if (timestamp !== undefined && timestamp !== null) {
-                        existingNode.data.results.time_history = [...oldTimeHistory, timestamp];
-                     } else {
-                        existingNode.data.results.time_history = [];
-                     }
-                  }
-               } else {
-                  existingNode.data.results.displayValue = update.value;
-               }
-            }
-            if (update.resultMessage !== undefined && update.value === undefined && update.statusMessage === undefined) {
-               existingNode.data.resultMessage = update.resultMessage;
-            }
-            if (update.pinValues) {
-               existingNode.data.pinValues = { ...(existingNode.data.pinValues || {}), ...update.pinValues };
-            }
+            applyUpdateToNode(existingNode, update, blockRegistryRef.current);
             
             // Dispatch to local block plot widgets
             window.dispatchEvent(new CustomEvent(`telemetry-${blockId}`, {
@@ -173,6 +181,20 @@ export function useFlowExecution({
             }));
           }
         });
+      } else {
+        // Running tab is currently in the background: update its blocks inside tabsRef
+        const rTabId = runningTabIdRef.current;
+        if (rTabId) {
+          const targetTab = tabsRef.current.find((t: any) => t.id === rTabId);
+          if (targetTab && targetTab.blocks) {
+            targetTab.blocks.forEach((node: any) => {
+              const update = updates[node.id];
+              if (update) {
+                applyUpdateToNode(node, update, blockRegistryRef.current);
+              }
+            });
+          }
+        }
       }
     };
     
@@ -214,12 +236,25 @@ export function useFlowExecution({
         // 3. Read waveform floats (bytes 40 onwards)
         const waveform = new Float32Array(buffer, 40, pointCount);
         
-        // Mutate in-place to avoid React state GC pressure and Fiber memory leaks
-        const existingNode = blocksRef.current.find((n: any) => n.id === blockId);
-        if (existingNode) {
-          if (!existingNode.data.results) existingNode.data.results = {};
-          existingNode.data.results.waveform = waveform;
-          existingNode.data.resultMessage = `Captured (Binary): ${waveform.length} pts`;
+        const isForeground = activeTabIdRef.current === runningTabIdRef.current;
+        if (isForeground) {
+          const existingNode = blocksRef.current.find((n: any) => n.id === blockId);
+          if (existingNode) {
+            if (!existingNode.data.results) existingNode.data.results = {};
+            existingNode.data.results.waveform = waveform;
+            existingNode.data.resultMessage = `Captured (Binary): ${waveform.length} pts`;
+          }
+        } else {
+          const rTabId = runningTabIdRef.current;
+          if (rTabId) {
+            const targetTab = tabsRef.current.find((t: any) => t.id === rTabId);
+            const node = targetTab?.blocks?.find((n: any) => n.id === blockId);
+            if (node) {
+              if (!node.data.results) node.data.results = {};
+              node.data.results.waveform = waveform;
+              node.data.resultMessage = `Captured (Binary): ${waveform.length} pts`;
+            }
+          }
         }
 
         // We specifically DO NOT add the waveform array to pendingUpdatesRef to prevent it from going into React state.
@@ -243,8 +278,12 @@ export function useFlowExecution({
       } else if (msg.type === 'telemetry') {
         const { block_id, data } = msg;
         
-        // Find existing block to perform in-place mutation for large arrays
-        const existingNode = blocksRef.current.find((n: any) => n.id === block_id);
+        // Find target block in active blocks or background running tab
+        const isForeground = activeTabIdRef.current === runningTabIdRef.current;
+        const existingNode = isForeground
+          ? blocksRef.current.find((n: any) => n.id === block_id)
+          : tabsRef.current.find((t: any) => t.id === runningTabIdRef.current)?.blocks?.find((n: any) => n.id === block_id);
+        
         let hasArrayData = false;
         
         if (existingNode && data) {
@@ -314,6 +353,7 @@ export function useFlowExecution({
              flushUpdatesRef.current();
           }
           
+          const finishedTabId = runningTabIdRef.current;
           setIsRunning(false);
           setIsPaused(false);
           setRunningTabId(null);
@@ -323,34 +363,39 @@ export function useFlowExecution({
 
           pendingUpdatesRef.current = {};
 
-          if (msg.status === 'failed' || msg.status === 'aborted') {
+          const targetStatus = msg.status === 'completed' ? 'success' : 'stopped';
+          const targetMsg = msg.status === 'completed' ? 'Completed' : 'Stopped';
+
+          if (activeTabIdRef.current === finishedTabId) {
             setBlocks((nds) =>
               nds.map((block) => {
-                if (block.data.status === 'running') {
+                if (block.data?.status === 'running') {
                   return {
                     ...block,
                     data: {
                       ...block.data,
-                      status: 'stopped',
-                      resultMessage: 'Stopped',
+                      status: targetStatus,
+                      resultMessage: targetMsg,
                     },
                   };
                 }
                 return block;
               })
             );
+          }
 
+          if (finishedTabId) {
             setTabs((prevTabs) =>
               prevTabs.map((t) => {
-                if (t.id === runningTabIdRef.current) {
-                  const updatedNodes = t.blocks.map((block: any) => {
-                    if (block.data.status === 'running') {
+                if (t.id === finishedTabId) {
+                  const updatedNodes = (t.blocks || []).map((block: any) => {
+                    if (block.data?.status === 'running') {
                       return {
                         ...block,
                         data: {
                           ...block.data,
-                          status: 'stopped',
-                          resultMessage: 'Stopped',
+                          status: targetStatus,
+                          resultMessage: targetMsg,
                         },
                       };
                     }
@@ -375,6 +420,10 @@ export function useFlowExecution({
     ws.onclose = () => {
       console.log('[Telemetry WS] Closed.');
       pendingUpdatesRef.current = {};
+    };
+
+    ws.onerror = (err) => {
+      console.error('[Telemetry WS] Error:', err);
     };
   }, [WS_BACKEND_URL, setBlocks, setTabs, setIsRunning, setIsPaused, setRunningTabId, setErrorMessage]);
 
