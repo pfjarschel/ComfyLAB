@@ -66,6 +66,13 @@ const PlotlyXYRenderer = ({ blockId, xLabel, yLabel, width, height, onChange, sa
   const [plotData, setPlotData] = useState<{x: any[], y: any[], labels?: any[]}>({ x: [], y: [] });
   const [labels, setLabels] = useState({ x: xLabel, y: yLabel });
   const [limits, setLimits] = useState<{x_min?: number, x_max?: number, y_min?: number, y_max?: number}>({});
+  const [dragMode, setDragMode] = useState<string>(savedLayout?.dragmode || 'zoom');
+
+  useEffect(() => {
+    if (savedLayout?.dragmode && savedLayout.dragmode !== dragMode) {
+      setDragMode(savedLayout.dragmode);
+    }
+  }, [savedLayout?.dragmode]);
 
   // Initialize and listen to high-frequency telemetry events directly
   useEffect(() => {
@@ -111,14 +118,14 @@ const PlotlyXYRenderer = ({ blockId, xLabel, yLabel, width, height, onChange, sa
     return () => {
       window.removeEventListener(eventName, handleTelemetry);
     };
-  }, [blockId, xLabel, yLabel, getNode]);
+  }, [blockId, getNode, xLabel, yLabel]);
 
   const isLight = document.documentElement.classList.contains('light-theme');
   const textColor = isLight ? '#475569' : '#94a3b8';
   const gridColor = isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.08)';
 
   const xaxis: any = {
-    title: { text: labels.x, font: { size: 14, color: textColor } },
+    title: { text: labels.x || 'X', font: { size: 14, color: textColor } },
     tickfont: { size: 12, color: textColor },
     gridcolor: gridColor,
     zerolinecolor: gridColor,
@@ -135,7 +142,7 @@ const PlotlyXYRenderer = ({ blockId, xLabel, yLabel, width, height, onChange, sa
   }
 
   const yaxis: any = {
-    title: { text: labels.y, font: { size: 14, color: textColor } },
+    title: { text: labels.y || 'Y', font: { size: 14, color: textColor } },
     tickfont: { size: 12, color: textColor },
     gridcolor: gridColor,
     zerolinecolor: gridColor,
@@ -179,7 +186,7 @@ const PlotlyXYRenderer = ({ blockId, xLabel, yLabel, width, height, onChange, sa
   }
 
   return (
-    <div className="nodrag" style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+    <div className="nodrag nopan nowheel" style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
       <Plot
         data={plotTraces}
         layout={{
@@ -189,6 +196,7 @@ const PlotlyXYRenderer = ({ blockId, xLabel, yLabel, width, height, onChange, sa
           paper_bgcolor: 'transparent',
           plot_bgcolor: 'transparent',
           uirevision: true,
+          dragmode: dragMode,
           xaxis,
           yaxis,
           legend: { font: { color: textColor } }
@@ -199,6 +207,9 @@ const PlotlyXYRenderer = ({ blockId, xLabel, yLabel, width, height, onChange, sa
           responsive: true
         }}
         onRelayout={(e: any) => {
+          if (e.dragmode) {
+            setDragMode(e.dragmode);
+          }
           if (onChange) {
             const newLayout = { ...(savedLayout || {}), ...e };
             if (e['xaxis.autorange']) {

@@ -67,6 +67,13 @@ const PlotlyTimeRenderer = ({ blockId, strokeColor, dataKey, width, height, onCh
   const [yLabel, setYLabel] = useState<string>('Value');
   const [traceLabels, setTraceLabels] = useState<string[]>([]);
   const [limits, setLimits] = useState<{x_min?: number, x_max?: number, y_min?: number, y_max?: number}>({});
+  const [dragMode, setDragMode] = useState<string>(savedLayout?.dragmode || 'zoom');
+
+  useEffect(() => {
+    if (savedLayout?.dragmode && savedLayout.dragmode !== dragMode) {
+      setDragMode(savedLayout.dragmode);
+    }
+  }, [savedLayout?.dragmode]);
 
   // Initialize and listen to high-frequency telemetry events directly to bypass full block render cycle
   useEffect(() => {
@@ -187,7 +194,7 @@ const PlotlyTimeRenderer = ({ blockId, strokeColor, dataKey, width, height, onCh
   }
 
   return (
-    <div className="nodrag" style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+    <div className="nodrag nopan nowheel" style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
       <Plot
         data={plotTraces}
         layout={{
@@ -197,6 +204,7 @@ const PlotlyTimeRenderer = ({ blockId, strokeColor, dataKey, width, height, onCh
           paper_bgcolor: 'transparent',
           plot_bgcolor: 'transparent',
           uirevision: true,
+          dragmode: dragMode,
           xaxis,
           yaxis,
           legend: { font: { color: textColor } }
@@ -207,6 +215,9 @@ const PlotlyTimeRenderer = ({ blockId, strokeColor, dataKey, width, height, onCh
           responsive: true
         }}
         onRelayout={(e: any) => {
+          if (e.dragmode) {
+            setDragMode(e.dragmode);
+          }
           if (onChange) {
             const newLayout = { ...(savedLayout || {}), ...e };
             if (e['xaxis.autorange']) {

@@ -84,6 +84,13 @@ const PlotlyHeatmapRenderer = ({ blockId, initialXLabel, initialYLabel, width, h
   const [colormap, setColormap] = useState('Viridis');
   const [interpolation, setInterpolation] = useState<'fast' | 'best' | false>(false);
   const [limits, setLimits] = useState<{x_min?: number, x_max?: number, y_min?: number, y_max?: number, z_min?: number, z_max?: number}>({});
+  const [dragMode, setDragMode] = useState<string>(savedLayout?.dragmode || 'zoom');
+
+  useEffect(() => {
+    if (savedLayout?.dragmode && savedLayout.dragmode !== dragMode) {
+      setDragMode(savedLayout.dragmode);
+    }
+  }, [savedLayout?.dragmode]);
 
   useEffect(() => {
     const updateChart = (eventResults?: any) => {
@@ -209,7 +216,7 @@ const PlotlyHeatmapRenderer = ({ blockId, initialXLabel, initialYLabel, width, h
   }
 
   return (
-    <div className="nodrag" style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+    <div className="nodrag nopan nowheel" style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
       <Plot
         data={[trace]}
         layout={{
@@ -219,6 +226,7 @@ const PlotlyHeatmapRenderer = ({ blockId, initialXLabel, initialYLabel, width, h
           paper_bgcolor: 'transparent',
           plot_bgcolor: 'transparent',
           uirevision: true,
+          dragmode: dragMode,
           xaxis,
           yaxis
         }}
@@ -228,6 +236,9 @@ const PlotlyHeatmapRenderer = ({ blockId, initialXLabel, initialYLabel, width, h
           responsive: true
         }}
         onRelayout={(e: any) => {
+          if (e.dragmode) {
+            setDragMode(e.dragmode);
+          }
           if (onChange) {
             const newLayout = { ...(savedLayout || {}), ...e };
             if (e['xaxis.autorange']) {
