@@ -13,7 +13,7 @@ Pure Python — no ComfyLAB UI or block dependencies.
 from typing import Any, Tuple, Optional
 import numpy as np
 
-from comfylab.devices.base import BaseInstrumentDriver, parse_ieee_block
+from comfylab.devices.base import BaseInstrumentDriver, parse_ieee_block, extract_float, extract_floats
 
 
 class KeysightDSOX(BaseInstrumentDriver):
@@ -36,6 +36,11 @@ class KeysightDSOX(BaseInstrumentDriver):
             self.write(f":TIMebase:SCALe {scale}")
         if position is not None:
             self.write(f":TIMebase:POSition {position}")
+
+    def get_timebase_scale(self) -> float:
+        """Returns horizontal timebase scale in seconds/div."""
+        val = self.query(":TIMebase:SCALe?")
+        return extract_float(val, default=0.001)
 
     def set_channel(
         self,
@@ -75,14 +80,14 @@ class KeysightDSOX(BaseInstrumentDriver):
 
         # Query preamble: format, type, points, count, xincrement, xorigin, xreference, yincrement, yorigin, yreference
         pre_str = self.query(":WAVeform:PREamble?")
-        pre_vals = [v.strip() for v in pre_str.split(",") if v.strip()]
+        pre_vals = extract_floats(pre_str)
 
-        x_incr = float(pre_vals[4]) if len(pre_vals) > 4 else 1e-6
-        x_orig = float(pre_vals[5]) if len(pre_vals) > 5 else 0.0
-        x_ref  = float(pre_vals[6]) if len(pre_vals) > 6 else 0.0
-        y_incr = float(pre_vals[7]) if len(pre_vals) > 7 else 0.01
-        y_orig = float(pre_vals[8]) if len(pre_vals) > 8 else 0.0
-        y_ref  = float(pre_vals[9]) if len(pre_vals) > 9 else 0.0
+        x_incr = pre_vals[4] if len(pre_vals) > 4 else 1e-6
+        x_orig = pre_vals[5] if len(pre_vals) > 5 else 0.0
+        x_ref  = pre_vals[6] if len(pre_vals) > 6 else 0.0
+        y_incr = pre_vals[7] if len(pre_vals) > 7 else 0.01
+        y_orig = pre_vals[8] if len(pre_vals) > 8 else 0.0
+        y_ref  = pre_vals[9] if len(pre_vals) > 9 else 0.0
 
         # Query binary waveform data payload
         raw_bytes = self.query_raw(":WAVeform:DATA?")

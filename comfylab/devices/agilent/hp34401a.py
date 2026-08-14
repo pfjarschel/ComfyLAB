@@ -12,7 +12,7 @@ Pure Python — no ComfyLAB UI or block dependencies.
 
 from typing import Any, Optional
 import numpy as np
-from comfylab.devices.base import BaseInstrumentDriver
+from comfylab.devices.base import BaseInstrumentDriver, extract_float, extract_floats
 
 
 class HP34401A(BaseInstrumentDriver):
@@ -45,7 +45,7 @@ class HP34401A(BaseInstrumentDriver):
         self.write("CONF:VOLT:DC")
         self.write("INIT")
         res_str = self.query("FETC?")
-        vals = [float(v) for v in res_str.split(",") if v.strip()]
+        vals = extract_floats(res_str)
         return float(np.mean(vals)) if len(vals) > 0 else 0.0
 
     def read_current_dc(self) -> float:
@@ -53,10 +53,10 @@ class HP34401A(BaseInstrumentDriver):
         self.write("CONF:CURR:DC")
         self.write("INIT")
         res_str = self.query("FETC?")
-        vals = [float(v) for v in res_str.split(",") if v.strip()]
+        vals = extract_floats(res_str)
         return float(np.mean(vals)) if len(vals) > 0 else 0.0
 
     def read_measurement(self) -> float:
         """Triggers and reads single measurement value."""
         res_str = self.query("READ?")
-        return float(res_str.split(",")[0])
+        return extract_float(res_str, default=0.0)

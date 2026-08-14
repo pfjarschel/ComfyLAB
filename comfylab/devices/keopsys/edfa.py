@@ -12,7 +12,7 @@ Modernized from legacy C++/Qt implementation.
 """
 
 from typing import Any, Optional
-from comfylab.devices.base import BaseInstrumentDriver
+from comfylab.devices.base import BaseInstrumentDriver, extract_float
 
 
 class KeopsysEDFA(BaseInstrumentDriver):
@@ -46,5 +46,5 @@ class KeopsysEDFA(BaseInstrumentDriver):
     def read_temperature(self) -> float:
         """Reads diode temperature in °C."""
         res_str = self.query("TD2?")
-        clean_val = res_str.replace("TD2=", "").strip()
-        return float(clean_val) / 100.0
+        raw_val = extract_float(res_str, default=2500.0)
+        return float(raw_val) / 100.0

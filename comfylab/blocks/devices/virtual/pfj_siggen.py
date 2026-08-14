@@ -13,6 +13,7 @@ from comfylab.blocks.base import BaseBlock, ExecIn, ExecOut, DataIn, DataOut, Ex
 from comfylab.blocks.devices.base import BaseDeviceConnectBlock, locked_device
 
 
+@register_block("visa/signal_generator/connect")
 @register_block("devices/virtual/signal_generator/connect")
 class VirtSigGenConnectBlock(BaseDeviceConnectBlock):
     """Opens a VISA connection to a VirtSigGen device with safety teardown (output off)."""
@@ -41,6 +42,7 @@ class VirtSigGenConnectBlock(BaseDeviceConnectBlock):
             await asyncio.to_thread(device.write, "out False")
 
 
+@register_block("visa/signal_generator/config_wave")
 @register_block("devices/virtual/signal_generator/config_wave")
 class VirtSigGenConfigWaveBlock(BaseBlock):
     """Configures the main waveform output parameters of a VirtSigGen device."""
@@ -143,6 +145,7 @@ class VirtSigGenConfigWaveBlock(BaseBlock):
         return "Out"
 
 
+@register_block("visa/signal_generator/config_chirp")
 @register_block("devices/virtual/signal_generator/config_chirp")
 class VirtSigGenConfigChirpBlock(BaseBlock):
     """Configures the frequency sweep chirp settings of a VirtSigGen device."""
@@ -214,6 +217,7 @@ class VirtSigGenConfigChirpBlock(BaseBlock):
         return "Out"
 
 
+@register_block("visa/signal_generator/set_output")
 @register_block("devices/virtual/signal_generator/output")
 class VirtSigGenOutputBlock(BaseBlock):
     """Enables or disables output signal transmission of a VirtSigGen device."""

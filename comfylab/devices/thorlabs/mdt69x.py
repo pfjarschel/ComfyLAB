@@ -12,7 +12,7 @@ Communicates over Virtual COM / ASRL VISA resources.
 """
 
 from typing import Any, Optional
-from comfylab.devices.base import BaseInstrumentDriver
+from comfylab.devices.base import BaseInstrumentDriver, extract_float
 
 
 class ThorlabsMDT69X(BaseInstrumentDriver):
@@ -33,5 +33,4 @@ class ThorlabsMDT69X(BaseInstrumentDriver):
         if axis_clean not in ("X", "Y", "Z"):
             raise ValueError(f"Invalid axis: {axis}. Must be 'X', 'Y', or 'Z'.")
         res_str = self.query(f"{axis_clean.lower()}voltage?")
-        clean_val = res_str.replace(f"{axis_clean.lower()}voltage=", "").replace("[", "").replace("]", "").strip()
-        return float(clean_val)
+        return extract_float(res_str, default=0.0)

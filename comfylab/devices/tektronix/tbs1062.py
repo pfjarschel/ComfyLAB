@@ -13,7 +13,12 @@ Pure Python — no ComfyLAB UI or block dependencies.
 from typing import Any, Tuple, Optional
 import numpy as np
 
-from comfylab.devices.base import BaseInstrumentDriver, parse_ieee_block
+from comfylab.devices.base import (
+    BaseInstrumentDriver,
+    parse_ieee_block,
+    extract_float,
+    parse_tektronix_preamble
+)
 
 
 class TBS1062(BaseInstrumentDriver):
@@ -29,6 +34,11 @@ class TBS1062(BaseInstrumentDriver):
             self.device.chunk_size = 40960
         except Exception:
             pass
+        # Ensure SCPI headers are turned OFF so responses don't include mnemonic headers like ':WFMPRE:XINCR '
+        try:
+            self.write("HEADER OFF")
+        except Exception:
+            pass
 
     def set_timebase(self, scale: Optional[float] = None, position: Optional[float] = None) -> None:
         """Sets horizontal timebase scale (seconds/div) and position (offset)."""
@@ -40,7 +50,7 @@ class TBS1062(BaseInstrumentDriver):
     def get_timebase_scale(self) -> float:
         """Returns horizontal timebase scale in seconds/div."""
         val = self.query("HORizontal:MAIn:SCALE?")
-        return float(val.split()[-1])
+        return extract_float(val, default=0.001)
 
     def set_channel(
         self,
@@ -91,23 +101,29 @@ class TBS1062(BaseInstrumentDriver):
         """
         Acquires vertical voltage waveform array and horizontal time vector for the selected channel.
         Queries preamble parameters (XINcr, XZERo, YMUlt, YOFF, YZERo) and decodes the binary byte payload.
+        Robustly handles header prefixes, string descriptions, and dates in the preamble.
         """
         if not (1 <= channel <= 4):
             raise ValueError(f"Invalid channel number: {channel}. Must be 1-4.")
 
         chan_str = f"CH{channel}"
+        try:
+            self.write("HEADER OFF")
+        except Exception:
+            pass
+
         self.write(f"DATa:SOURce {chan_str}")
         self.write("DATa:ENCdg SRIbinary")  # Signed Ribinary 8-bit integer
         self.write("DATa:WIDth 1")          # 1 byte per sample
         self.write("DATa:STARt 1")
         self.write("DATa:STOP 2500")
 
-        # Fetch waveform preamble scale factors
-        x_incr = float(self.query("WFMPRe:XINcr?"))
-        x_zero = float(self.query("WFMPRe:XZERo?"))
-        y_mult = float(self.query("WFMPRe:YMUlt?"))
-        y_off = float(self.query("WFMPRe:YOFF?"))
-        y_zero = float(self.query("WFMPRe:YZERo?"))
+        # Fetch waveform preamble scale factors with robust extraction
+        x_incr = extract_float(self.query("WFMPRe:XINcr?"), default=1e-6)
+        x_zero = extract_float(self.query("WFMPRe:XZERo?"), default=0.0)
+        y_mult = extract_float(self.query("WFMPRe:YMUlt?"), default=1.0)
+        y_off = extract_float(self.query("WFMPRe:YOFF?"), default=0.0)
+        y_zero = extract_float(self.query("WFMPRe:YZERo?"), default=0.0)
 
         # Fetch binary curve data
         raw_bytes = self.query_raw("CURVe?")

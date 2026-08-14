@@ -14,7 +14,7 @@ Modernized from legacy C++/Qt implementation.
 from typing import Any, Tuple, Optional
 import numpy as np
 
-from comfylab.devices.base import BaseInstrumentDriver
+from comfylab.devices.base import BaseInstrumentDriver, extract_float, extract_floats
 
 
 class AdvantestQ8384(BaseInstrumentDriver):
@@ -59,20 +59,16 @@ class AdvantestQ8384(BaseInstrumentDriver):
         Does not trigger a sweep or block for sweep completion.
         """
         # Query center and span for frequency axis generation
-        try:
-            cnt_str = self.query("CNT?")
-            span_str = self.query("SPAN?")
-            cnt = float(cnt_str.split()[-1])
-            span = float(span_str.split()[-1])
-            start_nm = cnt - (span / 2.0)
-            stop_nm = cnt + (span / 2.0)
-        except Exception:
-            start_nm = 1540.0
-            stop_nm = 1560.0
+        cnt_str = self.query("CNT?")
+        span_str = self.query("SPAN?")
+        cnt = extract_float(cnt_str, default=1550.0)
+        span = extract_float(span_str, default=20.0)
+        start_nm = cnt - (span / 2.0)
+        stop_nm = cnt + (span / 2.0)
 
         # Query trace data
         raw_res = self.query("LDAT")
-        vals = [float(v) for v in raw_res.replace(";", ",").replace("\n", ",").split(",") if v.strip()]
+        vals = extract_floats(raw_res)
         power_array = np.array(vals, dtype=float)
 
         point_count = len(power_array)

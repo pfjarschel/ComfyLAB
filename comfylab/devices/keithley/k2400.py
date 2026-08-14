@@ -11,7 +11,7 @@ Pure Python — no ComfyLAB UI or block dependencies.
 """
 
 from typing import Any, Tuple, Optional
-from comfylab.devices.base import BaseInstrumentDriver
+from comfylab.devices.base import BaseInstrumentDriver, extract_floats
 
 
 class Keithley2400(BaseInstrumentDriver):
@@ -58,7 +58,7 @@ class Keithley2400(BaseInstrumentDriver):
         Triggers measurement reading. Returns tuple of (Voltage_V, Current_A).
         """
         val_str = self.query(":READ?")
-        parts = [float(v) for v in val_str.split(",") if v.strip()]
+        parts = extract_floats(val_str)
         
         voltage = parts[0] if len(parts) > 0 else 0.0
         current = parts[1] if len(parts) > 1 else 0.0

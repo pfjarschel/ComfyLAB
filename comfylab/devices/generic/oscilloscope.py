@@ -14,7 +14,7 @@ Supports standard IEEE 488.2 SCPI compliant oscilloscopes (Keysight, Rigol, Sigl
 from typing import Any, Tuple, Optional
 import numpy as np
 
-from comfylab.devices.base import BaseInstrumentDriver, parse_ieee_block
+from comfylab.devices.base import BaseInstrumentDriver, parse_ieee_block, extract_float
 
 
 class GenericOscilloscope(BaseInstrumentDriver):
@@ -63,10 +63,7 @@ class GenericOscilloscope(BaseInstrumentDriver):
         self.write(":WAVeform:FORMat BYTE")
 
         # Query timebase scale & center
-        try:
-            t_scale = float(self.query(":TIMebase:SCALe?"))
-        except Exception:
-            t_scale = 0.001
+        t_scale = extract_float(self.query(":TIMebase:SCALe?"), default=0.001)
 
         # Query raw binary curve
         raw_bytes = self.query_raw(":WAVeform:DATA?")

@@ -13,7 +13,7 @@ Pure Python — no ComfyLAB UI or block dependencies.
 from typing import Any, Tuple, Optional
 import numpy as np
 
-from comfylab.devices.base import BaseInstrumentDriver, parse_ieee_block
+from comfylab.devices.base import BaseInstrumentDriver, parse_ieee_block, extract_float, extract_floats
 
 
 class AgilentE4407B(BaseInstrumentDriver):
@@ -59,11 +59,11 @@ class AgilentE4407B(BaseInstrumentDriver):
         self.write(":UNIT:POWer DBM")
         self.write(":FORMat:DATA ASCII")
 
-        f_start = float(self.query(":SENSe:FREQuency:STARt?"))
-        f_stop = float(self.query(":SENSe:FREQuency:STOP?"))
+        f_start = extract_float(self.query(":SENSe:FREQuency:STARt?"), default=0.0)
+        f_stop = extract_float(self.query(":SENSe:FREQuency:STOP?"), default=1e9)
 
         raw_res = self.query(f":TRACe:DATA? TRACE{trace_num}")
-        vals = [float(v) for v in raw_res.replace(";", ",").split(",") if v.strip()]
+        vals = extract_floats(raw_res)
         power_array = np.array(vals, dtype=float)
 
         point_count = len(power_array)

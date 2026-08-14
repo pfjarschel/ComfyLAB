@@ -11,7 +11,7 @@ Pure Python — no ComfyLAB UI or block dependencies.
 """
 
 from typing import Any, Optional
-from comfylab.devices.base import BaseInstrumentDriver
+from comfylab.devices.base import BaseInstrumentDriver, extract_float
 
 
 class GenericPowerSupply(BaseInstrumentDriver):
@@ -52,7 +52,7 @@ class GenericPowerSupply(BaseInstrumentDriver):
         except Exception:
             pass
         val_str = self.query("MEASure:VOLTage?")
-        return float(val_str.split(",")[0])
+        return extract_float(val_str, default=0.0)
 
     def measure_current(self, channel: int = 1) -> float:
         """Measures output current (A)."""
@@ -61,4 +61,4 @@ class GenericPowerSupply(BaseInstrumentDriver):
         except Exception:
             pass
         val_str = self.query("MEASure:CURRent?")
-        return float(val_str.split(",")[0])
+        return extract_float(val_str, default=0.0)

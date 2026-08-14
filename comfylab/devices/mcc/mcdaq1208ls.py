@@ -11,7 +11,7 @@ Pure Python — no ComfyLAB UI or block dependencies.
 """
 
 from typing import Any, Optional
-from comfylab.devices.base import BaseInstrumentDriver
+from comfylab.devices.base import BaseInstrumentDriver, extract_float
 
 
 class MCCDAQ1208LS(BaseInstrumentDriver):
@@ -22,8 +22,7 @@ class MCCDAQ1208LS(BaseInstrumentDriver):
     def read_analog_channel(self, channel: int = 0) -> float:
         """Reads analog voltage (V) on specified channel (0 to 7)."""
         val_str = self.query(f"AIN {channel}")
-        clean_val = val_str.replace("AIN", "").strip()
-        return float(clean_val)
+        return extract_float(val_str, default=0.0)
 
     def write_analog_channel(self, channel: int = 0, voltage: float = 0.0) -> None:
         """Outputs analog voltage (V) on specified channel (0 or 1)."""

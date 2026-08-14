@@ -11,7 +11,7 @@ Pure Python — no ComfyLAB UI or block dependencies.
 """
 
 from typing import Any, Tuple, Optional
-from comfylab.devices.base import BaseInstrumentDriver
+from comfylab.devices.base import BaseInstrumentDriver, extract_float, extract_floats
 
 
 class SR830(BaseInstrumentDriver):
@@ -37,12 +37,12 @@ class SR830(BaseInstrumentDriver):
     def read_ch1(self) -> float:
         """Reads Channel 1 output voltage (X component or R magnitude depending on display config)."""
         val_str = self.query("OUTP? 1")
-        return float(val_str.split(",")[0])
+        return extract_float(val_str, default=0.0)
 
     def read_ch2(self) -> float:
         """Reads Channel 2 output voltage (Y component or Phase angle depending on display config)."""
         val_str = self.query("OUTP? 2")
-        return float(val_str.split(",")[0])
+        return extract_float(val_str, default=0.0)
 
     def snap_all(self) -> Tuple[float, float, float, float]:
         """
@@ -50,7 +50,7 @@ class SR830(BaseInstrumentDriver):
         Uses SR830 SNAP? 1,2,3,4 command.
         """
         val_str = self.query("SNAP? 1,2,3,4")
-        parts = [float(v) for v in val_str.split(",") if v.strip()]
+        parts = extract_floats(val_str)
         
         x = parts[0] if len(parts) > 0 else 0.0
         y = parts[1] if len(parts) > 1 else 0.0

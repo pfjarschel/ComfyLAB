@@ -13,7 +13,7 @@ Pure Python — no ComfyLAB UI or block dependencies.
 from typing import Any, Tuple, Optional
 import numpy as np
 
-from comfylab.devices.base import BaseInstrumentDriver
+from comfylab.devices.base import BaseInstrumentDriver, extract_floats
 
 
 class AQ6370(BaseInstrumentDriver):
@@ -86,8 +86,8 @@ class AQ6370(BaseInstrumentDriver):
         x_str = self.query(f":TRACe:X? {t_name}")
         y_str = self.query(f":TRACe:Y? {t_name}")
 
-        x_vals = [float(v) for v in x_str.replace(";", ",").split(",") if v.strip()]
-        y_vals = [float(v) for v in y_str.replace(";", ",").split(",") if v.strip()]
+        x_vals = extract_floats(x_str)
+        y_vals = extract_floats(y_str)
 
         wavelength_nm = np.array(x_vals, dtype=float)
         # Yokogawa returns wavelengths in meters or nm depending on header config. Normalize if in meters (< 1e-3).

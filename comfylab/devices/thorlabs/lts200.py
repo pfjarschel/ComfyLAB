@@ -12,7 +12,7 @@ Communicates over Virtual COM / ASRL VISA resources.
 """
 
 from typing import Any, Optional
-from comfylab.devices.base import BaseInstrumentDriver
+from comfylab.devices.base import BaseInstrumentDriver, extract_float
 
 
 class ThorlabsLTS200(BaseInstrumentDriver):
@@ -35,5 +35,4 @@ class ThorlabsLTS200(BaseInstrumentDriver):
     def get_position(self) -> float:
         """Queries current stage position in millimeters (mm)."""
         res_str = self.query("pos")
-        clean_val = res_str.replace("pos", "").strip()
-        return float(clean_val)
+        return extract_float(res_str, default=0.0)

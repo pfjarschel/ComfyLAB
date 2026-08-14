@@ -15,6 +15,7 @@ from comfylab.blocks.base import BaseBlock, ExecIn, ExecOut, DataIn, DataOut, Ex
 from comfylab.blocks.devices.base import BaseDeviceConnectBlock, locked_device
 
 
+@register_block("visa/oscilloscope/connect")
 @register_block("devices/virtual/oscilloscope/connect")
 class VirtOscConnectBlock(BaseDeviceConnectBlock):
     """Opens a VISA connection to a VirtOsc device with safety teardown (stop acquisition)."""
@@ -43,6 +44,7 @@ class VirtOscConnectBlock(BaseDeviceConnectBlock):
             await asyncio.to_thread(device.write, "stop")
 
 
+@register_block("visa/oscilloscope/timebase")
 @register_block("devices/virtual/oscilloscope/timebase")
 class VirtOscTimebaseBlock(BaseBlock):
     """Configures horizontal acquisition parameters (scale, offset, length) on a VirtOsc device."""
@@ -113,6 +115,7 @@ class VirtOscTimebaseBlock(BaseBlock):
         return "Out"
 
 
+@register_block("visa/oscilloscope/channel")
 @register_block("devices/virtual/oscilloscope/channel")
 class VirtOscChannelBlock(BaseBlock):
     """Configures input channel scale, offset, and enable state on a VirtOsc device."""
@@ -189,6 +192,7 @@ class VirtOscChannelBlock(BaseBlock):
         return "Out"
 
 
+@register_block("visa/oscilloscope/trigger")
 @register_block("devices/virtual/oscilloscope/trigger")
 class VirtOscTriggerBlock(BaseBlock):
     """Configures the capture trigger mode on a VirtOsc device."""
@@ -246,6 +250,7 @@ class VirtOscTriggerBlock(BaseBlock):
         return "Out"
 
 
+@register_block("visa/oscilloscope/state")
 @register_block("devices/virtual/oscilloscope/state")
 class VirtOscStateBlock(BaseBlock):
     """Starts or stops active scanning/acquiring loops on a VirtOsc device."""
@@ -306,6 +311,7 @@ class VirtOscStateBlock(BaseBlock):
         return "Out"
 
 
+@register_block("visa/oscilloscope/acquire")
 @register_block("devices/virtual/oscilloscope/acquire")
 class VirtOscAcquireBlock(BaseBlock):
     """Pulls timebase coordinates and waveform channel values from a VirtOsc device."""

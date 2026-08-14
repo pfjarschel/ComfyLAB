@@ -13,7 +13,7 @@ Pure Python — no ComfyLAB UI or block dependencies.
 from typing import Any, Tuple, Optional
 import numpy as np
 
-from comfylab.devices.base import BaseInstrumentDriver, parse_ieee_block
+from comfylab.devices.base import BaseInstrumentDriver, parse_ieee_block, extract_float, extract_floats
 
 
 class GenericESA(BaseInstrumentDriver):
@@ -67,12 +67,14 @@ class GenericESA(BaseInstrumentDriver):
         Triggers a sweep (if in single mode) and fetches frequency array (Hz) and power trace array (dBm).
         """
         # Fetch start, stop, and point count for frequency axis generation
-        try:
-            f_start = float(self.query(":FREQuency:STARt?"))
-            f_stop = float(self.query(":FREQuency:STOP?"))
-        except Exception:
-            f_center = float(self.query(":FREQuency:CENTer?"))
-            f_span = float(self.query(":FREQuency:SPAN?"))
+        f_start_res = self.query(":FREQuency:STARt?")
+        f_stop_res = self.query(":FREQuency:STOP?")
+        f_start = extract_float(f_start_res, default=-1.0)
+        f_stop = extract_float(f_stop_res, default=-1.0)
+
+        if f_start < 0 or f_stop < 0:
+            f_center = extract_float(self.query(":FREQuency:CENTer?"), default=1e9)
+            f_span = extract_float(self.query(":FREQuency:SPAN?"), default=100e6)
             f_start = f_center - (f_span / 2.0)
             f_stop = f_center + (f_span / 2.0)
 
@@ -87,10 +89,7 @@ class GenericESA(BaseInstrumentDriver):
 
         # Query trace data
         raw_res = self.query(f":TRACe:DATA? TRACE{trace_num}")
-        
-        # Parse comma-separated or space-separated ASCII float numbers
-        clean_str = raw_res.replace(";", ",").replace(" ", ",")
-        vals = [float(v) for v in clean_str.split(",") if v.strip()]
+        vals = extract_floats(raw_res)
         power_array = np.array(vals, dtype=float)
 
         point_count = len(power_array)

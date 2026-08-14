@@ -11,7 +11,7 @@ Pure Python — no ComfyLAB UI or block dependencies.
 """
 
 from typing import Any, Optional
-from comfylab.devices.base import BaseInstrumentDriver
+from comfylab.devices.base import BaseInstrumentDriver, extract_float
 
 
 class ThorlabsPM100D(BaseInstrumentDriver):
@@ -29,7 +29,7 @@ class ThorlabsPM100D(BaseInstrumentDriver):
     def get_wavelength(self) -> float:
         """Returns operating calibration wavelength in nanometers (nm)."""
         val_str = self.query(":SENS:POW:WAV?")
-        return float(val_str) * 1e9
+        return extract_float(val_str, default=1550e-9) * 1e9
 
     def set_unit(self, unit: str = "W") -> None:
         """Sets power measurement display unit ('W' or 'DBM')."""
@@ -45,4 +45,4 @@ class ThorlabsPM100D(BaseInstrumentDriver):
     def read_power(self) -> float:
         """Triggers and reads single optical power measurement (in set unit, default W)."""
         val_str = self.query(":READ?")
-        return float(val_str.split(",")[0])
+        return extract_float(val_str, default=0.0)

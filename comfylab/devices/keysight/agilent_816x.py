@@ -11,7 +11,7 @@ Pure Python — no ComfyLAB UI or block dependencies.
 """
 
 from typing import Any, Optional
-from comfylab.devices.base import BaseInstrumentDriver
+from comfylab.devices.base import BaseInstrumentDriver, extract_float
 
 
 class Agilent816x(BaseInstrumentDriver):
@@ -42,4 +42,4 @@ class Agilent816x(BaseInstrumentDriver):
     def read_sensor_power(self, slot: int = 2) -> float:
         """Reads optical power from sensor module in slot (returns power in Watts)."""
         val_str = self.query(f":READ{slot}:POWer?")
-        return float(val_str.split(",")[0])
+        return extract_float(val_str, default=0.0)

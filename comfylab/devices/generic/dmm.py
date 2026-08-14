@@ -11,7 +11,7 @@ Pure Python — no ComfyLAB UI or block dependencies.
 """
 
 from typing import Any, Optional
-from comfylab.devices.base import BaseInstrumentDriver
+from comfylab.devices.base import BaseInstrumentDriver, extract_float
 
 
 class GenericDMM(BaseInstrumentDriver):
@@ -45,9 +45,9 @@ class GenericDMM(BaseInstrumentDriver):
     def read_measurement(self) -> float:
         """Triggers a measurement and returns float reading."""
         val_str = self.query(":READ?")
-        return float(val_str.split(",")[0])
+        return extract_float(val_str, default=0.0)
 
     def fetch_measurement(self) -> float:
         """Fetches last completed measurement from buffer."""
         val_str = self.query(":FETCh?")
-        return float(val_str.split(",")[0])
+        return extract_float(val_str, default=0.0)
