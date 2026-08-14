@@ -76,6 +76,7 @@ interface Tab {
   future: { blocks: any[]; edges: any[]; annotations: any[] }[];
   canvasStack: { breadcrumbLabel: string; type: string; savedNodes?: any[]; savedEdges?: any[]; savedAnnotations?: any[] }[];
   currentLevelIndex: number;
+  viewport?: { x: number; y: number; zoom: number };
 }
 
 const blockTypes: any = {
@@ -757,6 +758,7 @@ function Flow() {
   useEffect(() => {
     if (!loading && tabs.length === 0) {
       const initialTabId = `tab_${Date.now()}`;
+      const defaultViewport = { x: 50, y: 50, zoom: 0.9 };
       if (initialRunningInfo && initialRunningInfo.rawCanvas) {
         const newTab: Tab = {
           id: initialTabId,
@@ -768,7 +770,8 @@ function Flow() {
           past: [],
           future: [],
           canvasStack: [{ breadcrumbLabel: 'Main', type: 'main' }],
-          currentLevelIndex: 0
+          currentLevelIndex: 0,
+          viewport: initialRunningInfo.rawCanvas.viewport || defaultViewport
         };
         // Synchronously set refs to prevent WebSocket message race conditions
         activeTabIdRef.current = initialTabId;
@@ -793,7 +796,8 @@ function Flow() {
           past: [],
           future: [],
           canvasStack: [{ breadcrumbLabel: 'Main', type: 'main' }],
-          currentLevelIndex: 0
+          currentLevelIndex: 0,
+          viewport: defaultViewport
         };
         setTabs([newTab]);
         setActiveTabId(initialTabId);
@@ -818,6 +822,19 @@ function Flow() {
       return t;
     }));
   }, [currentBlueprintName, isDirty, activeTabId, blocks, edges, annotations]);
+
+  const handleMoveEnd = useCallback((_: any, currentViewport: { x: number; y: number; zoom: number }) => {
+    if (!activeTabId) return;
+    setTabs(prev => prev.map(t => {
+      if (t.id === activeTabId) {
+        return {
+          ...t,
+          viewport: currentViewport
+        };
+      }
+      return t;
+    }));
+  }, [activeTabId]);
 
   // Automatically close script editor if the editing block is deleted/removed
   useEffect(() => {
@@ -1867,9 +1884,10 @@ return {
         return { id, type, position, data: persistData, style, width, height };
       }),
       edges: rootEdges,
-      annotations: rootAnnotations
+      annotations: rootAnnotations,
+      viewport: reactFlowInstance ? reactFlowInstance.getViewport() : viewport
     };
-  }, [blocks, edges, annotations]);
+  }, [blocks, edges, annotations, reactFlowInstance, viewport]);
 
   // Breadcrumb navigation: navigate to a specific level
   const handleBreadcrumbNavigate = useCallback(async (index: number) => {
@@ -2651,7 +2669,14 @@ return {
     setCurrentBlueprintName(nameWithoutExt);
     setIsExampleBlueprint(isExample);
     setIsDirty(false);
-    setShouldFitView(true);
+    if (payload.viewport && payload.viewport.x !== undefined && payload.viewport.y !== undefined && payload.viewport.zoom !== undefined) {
+      if (reactFlowInstance) {
+        reactFlowInstance.setViewport(payload.viewport, { duration: 0 });
+      }
+      setShouldFitView(false);
+    } else {
+      setShouldFitView(true);
+    }
     fetchRegistry();
   };
 
@@ -2903,6 +2928,7 @@ return {
     if (targetTabId === activeTabId) return;
 
     // 1. Save current active tab state to tabs array
+    const currentViewport = reactFlowInstance ? reactFlowInstance.getViewport() : viewport;
     setTabs(prevTabs => prevTabs.map(t => {
       if (t.id === activeTabId) {
         return {
@@ -2915,7 +2941,8 @@ return {
           past: [...pastRef.current],
           future: [...futureRef.current],
           canvasStack: canvasStackRef.current,
-          currentLevelIndex: currentLevelIndexRef.current
+          currentLevelIndex: currentLevelIndexRef.current,
+          viewport: currentViewport
         };
       }
       return t;
@@ -2938,11 +2965,18 @@ return {
       setCurrentLevelIndex(targetTab.currentLevelIndex || 0);
       
       setActiveTabId(targetTabId);
+
+      // 4. Restore target tab viewport
+      if (reactFlowInstance) {
+        const targetViewport = targetTab.viewport || { x: 50, y: 50, zoom: 0.9 };
+        reactFlowInstance.setViewport(targetViewport, { duration: 0 });
+      }
     }
-  }, [activeTabId, currentBlueprintName, isDirty, tabs, annotations, setAnnotations]);
+  }, [activeTabId, currentBlueprintName, isDirty, tabs, annotations, setAnnotations, reactFlowInstance, viewport]);
 
   const addTab = useCallback(() => {
     // 1. Save current active tab state to tabs array first
+    const currentViewport = reactFlowInstance ? reactFlowInstance.getViewport() : viewport;
     setTabs(prevTabs => prevTabs.map(t => {
       if (t.id === activeTabId) {
         return {
@@ -2955,7 +2989,8 @@ return {
           past: [...pastRef.current],
           future: [...futureRef.current],
           canvasStack: canvasStackRef.current,
-          currentLevelIndex: currentLevelIndexRef.current
+          currentLevelIndex: currentLevelIndexRef.current,
+          viewport: currentViewport
         };
       }
       return t;
@@ -2963,6 +2998,7 @@ return {
 
     // 2. Create and switch to new tab
     const newTabId = `tab_${Date.now()}`;
+    const defaultViewport = { x: 50, y: 50, zoom: 0.9 };
     const newTab: Tab = {
       id: newTabId,
       name: 'Untitled',
@@ -2973,7 +3009,8 @@ return {
       past: [],
       future: [],
       canvasStack: [{ breadcrumbLabel: 'Main', type: 'main' }],
-      currentLevelIndex: 0
+      currentLevelIndex: 0,
+      viewport: defaultViewport
     };
 
     setTabs(prev => [...prev, newTab]);
@@ -2989,7 +3026,11 @@ return {
     futureRef.current = [];
     setCanvasStack([{ breadcrumbLabel: 'Main', type: 'main' }]);
     setCurrentLevelIndex(0);
-  }, [activeTabId, currentBlueprintName, isDirty, annotations, setAnnotations]);
+
+    if (reactFlowInstance) {
+      reactFlowInstance.setViewport(defaultViewport, { duration: 0 });
+    }
+  }, [activeTabId, currentBlueprintName, isDirty, annotations, setAnnotations, reactFlowInstance, viewport]);
 
   const closeTab = useCallback(async (tabIdToClose: string, event?: React.MouseEvent) => {
     if (event) {
@@ -3024,6 +3065,7 @@ return {
     if (remainingTabs.length === 0) {
       // If no tabs remain, create a new "Untitled" tab automatically
       const newTabId = `tab_${Date.now()}`;
+      const defaultViewport = { x: 50, y: 50, zoom: 0.9 };
       const newTab: Tab = {
         id: newTabId,
         name: 'Untitled',
@@ -3034,7 +3076,8 @@ return {
         past: [],
         future: [],
         canvasStack: [{ breadcrumbLabel: 'Main', type: 'main' }],
-        currentLevelIndex: 0
+        currentLevelIndex: 0,
+        viewport: defaultViewport
       };
       setTabs([newTab]);
       setActiveTabId(newTabId);
@@ -3047,6 +3090,9 @@ return {
       futureRef.current = [];
       setCanvasStack([{ breadcrumbLabel: 'Main', type: 'main' }]);
       setCurrentLevelIndex(0);
+      if (reactFlowInstance) {
+        reactFlowInstance.setViewport(defaultViewport, { duration: 0 });
+      }
     } else {
       setTabs(remainingTabs);
       // If we closed the active tab, switch to another tab
@@ -3068,9 +3114,13 @@ return {
         setCurrentLevelIndex(nextActiveTab.currentLevelIndex || 0);
         
         setActiveTabId(nextActiveTab.id);
+        if (reactFlowInstance) {
+          const nextViewport = nextActiveTab.viewport || { x: 50, y: 50, zoom: 0.9 };
+          reactFlowInstance.setViewport(nextViewport, { duration: 0 });
+        }
       }
     }
-  }, [tabs, activeTabId, isDirty, runningTabId, setAnnotations, fetchRegistry, fetchWorkspaceBlueprints]);
+  }, [tabs, activeTabId, isDirty, runningTabId, setAnnotations, fetchRegistry, fetchWorkspaceBlueprints, reactFlowInstance]);
 
   // --- KEYBOARD LISTENER EFFECT ---
   useEffect(() => {
@@ -3323,6 +3373,9 @@ return {
               setCanvasStack([{ breadcrumbLabel: 'Main', type: 'main' }]);
               setCurrentLevelIndex(0);
               setErrorMessage(null);
+              if (reactFlowInstance) {
+                reactFlowInstance.setViewport({ x: 50, y: 50, zoom: 0.9 }, { duration: 0 });
+              }
             }
           }}
           onSaveBlueprint={() => {
@@ -3359,6 +3412,7 @@ return {
                 
                 if (remainingTabs.length === 0) {
                   const newTabId = `tab_${Date.now()}`;
+                  const defaultViewport = { x: 50, y: 50, zoom: 0.9 };
                   const newTab: Tab = {
                     id: newTabId,
                     name: 'Untitled',
@@ -3369,7 +3423,8 @@ return {
                     past: [],
                     future: [],
                     canvasStack: [{ breadcrumbLabel: 'Main', type: 'main' }],
-                    currentLevelIndex: 0
+                    currentLevelIndex: 0,
+                    viewport: defaultViewport
                   };
                   setTabs([newTab]);
                   setActiveTabId(newTabId);
@@ -3382,6 +3437,9 @@ return {
                   futureRef.current = [];
                   setCanvasStack([{ breadcrumbLabel: 'Main', type: 'main' }]);
                   setCurrentLevelIndex(0);
+                  if (reactFlowInstance) {
+                    reactFlowInstance.setViewport(defaultViewport, { duration: 0 });
+                  }
                 } else {
                   setTabs(remainingTabs);
                   if (isActiveClosed) {
@@ -3396,6 +3454,10 @@ return {
                     setCanvasStack(nextActiveTab.canvasStack || [{ breadcrumbLabel: 'Main', type: 'main' }]);
                     setCurrentLevelIndex(nextActiveTab.currentLevelIndex || 0);
                     setActiveTabId(nextActiveTab.id);
+                    if (reactFlowInstance) {
+                      const nextViewport = nextActiveTab.viewport || { x: 50, y: 50, zoom: 0.9 };
+                      reactFlowInstance.setViewport(nextViewport, { duration: 0 });
+                    }
                   }
                 }
               } catch (err) {
@@ -3607,6 +3669,7 @@ return {
               onNodeClick={closeContextMenu}
               onEdgeClick={closeContextMenu}
               onMoveStart={closeContextMenu}
+              onMoveEnd={handleMoveEnd}
             >
               <Background color="#3b82f6" gap={16} size={1} offset={[0.5, 0.5]} />
               <Controls showInteractive={false}>
