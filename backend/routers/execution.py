@@ -99,8 +99,8 @@ async def run_graph(payload: BlueprintPayload):
 
     async def background_execution():
         try:
-            # Wait up to 1.0 second for the frontend to establish its WebSocket subscription
-            for _ in range(10):
+            # Wait up to 5.0 seconds for the frontend to establish its WebSocket subscription
+            for _ in range(50):
                 if run_id in manager.active_connections and manager.active_connections[run_id]:
                     break
                 await asyncio.sleep(0.1)

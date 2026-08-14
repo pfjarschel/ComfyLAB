@@ -116,6 +116,7 @@ class ForLoopBlock(BaseBlock):
             if context.engine.state == "ABORTED":
                 break
             await asyncio.sleep(0) # Yield to event loop to prevent CPU blocking (no artificial delay)
+            context.clear_cache()
             self._index = i
             # Trigger execution of the LoopBody sub-graph
             await context.engine.trigger_exec(self.id, "LoopBody", context)
@@ -143,7 +144,8 @@ class WhileLoopBlock(BaseBlock):
     ]
     outputs_def = [
         ExecOut("LoopBody"),
-        ExecOut("Done")
+        ExecOut("Done"),
+        DataOut("Index", type_hint=int)
     ]
 
     i18n = {
@@ -155,7 +157,8 @@ class WhileLoopBlock(BaseBlock):
                 "Start": "Iniciar",
                 "Condition": "Condição",
                 "LoopBody": "CorpoDoLaço",
-                "Done": "Concluído"
+                "Done": "Concluído",
+                "Index": "Índice"
             }
         },
         "es": {
@@ -166,12 +169,18 @@ class WhileLoopBlock(BaseBlock):
                 "Start": "Iniciar",
                 "Condition": "Condición",
                 "LoopBody": "CuerpoDelBucle",
-                "Done": "Hecho"
+                "Done": "Hecho",
+                "Index": "Índice"
             }
         }
     }
 
+    def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
+        super().__init__(block_id, properties)
+        self._index = 0
+
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
+        self._index = 0
         while True:
             if context.engine.state == "ABORTED":
                 break
@@ -181,4 +190,13 @@ class WhileLoopBlock(BaseBlock):
             if not bool(cond):
                 break
             await context.engine.trigger_exec(self.id, "LoopBody", context)
+            self._index += 1
         return "Done"
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Index":
+            return self._index
+        return None
+
+    async def clear_data(self) -> None:
+        self._index = 0

@@ -47,12 +47,47 @@ const applyUpdateToNode = (existingNode: any, update: any, registry: any) => {
     if (!existingNode.data.results) existingNode.data.results = {};
     Object.assign(existingNode.data.results, update.results);
   }
-  if (update.value !== undefined) {
-    if (!existingNode.data.results) existingNode.data.results = {};
-    
-    const uiBehavior = registry?.[existingNode.data.action]?.ui_behavior || {};
-    
-    if (uiBehavior.accumulate_history) {
+
+  const uiBehavior = registry?.[existingNode.data.action]?.ui_behavior || {};
+
+  if (uiBehavior.accumulate_history) {
+    if (update.valuesQueue && update.valuesQueue.length > 0) {
+      if (!existingNode.data.results) existingNode.data.results = {};
+      let oldHistory = existingNode.data.results.history || [];
+      let oldTimeHistory = existingNode.data.results.time_history || [];
+
+      for (const item of update.valuesQueue) {
+        let val;
+        if (Array.isArray(item.value)) {
+          val = item.value.map((v: any) => parseFloat(v));
+        } else {
+          val = parseFloat(item.value);
+        }
+
+        let maxHistory = 0;
+        if (item.max_history !== undefined) {
+          maxHistory = Number(item.max_history);
+        } else if (existingNode.data.results?.max_history !== undefined) {
+          maxHistory = Number(existingNode.data.results.max_history);
+        }
+
+        oldHistory.push(val);
+        if (item.timestamp !== undefined && item.timestamp !== null) {
+          oldTimeHistory.push(item.timestamp);
+        }
+
+        if (maxHistory > 0 && oldHistory.length > maxHistory) {
+          oldHistory = oldHistory.slice(-maxHistory);
+          if (oldTimeHistory.length > maxHistory) {
+            oldTimeHistory = oldTimeHistory.slice(-maxHistory);
+          }
+        }
+      }
+
+      existingNode.data.results.history = oldHistory;
+      existingNode.data.results.time_history = oldTimeHistory.length > 0 ? oldTimeHistory : [];
+    } else if (update.value !== undefined) {
+      if (!existingNode.data.results) existingNode.data.results = {};
       let val;
       if (Array.isArray(update.value)) {
         val = update.value.map((v: any) => parseFloat(v));
@@ -61,16 +96,16 @@ const applyUpdateToNode = (existingNode: any, update: any, registry: any) => {
       }
       const oldHistory = existingNode.data.results.history || [];
       const oldTimeHistory = existingNode.data.results.time_history || [];
-      
+
       let maxHistory = 0;
       if (update.results?.max_history !== undefined) {
         maxHistory = Number(update.results.max_history);
       } else if (existingNode.data.results?.max_history !== undefined) {
         maxHistory = Number(existingNode.data.results.max_history);
       }
-      
+
       const timestamp = update.results?.timestamp;
-      
+
       if (maxHistory > 0) {
         existingNode.data.results.history = [...oldHistory, val].slice(-maxHistory);
         if (timestamp !== undefined && timestamp !== null) {
@@ -86,10 +121,14 @@ const applyUpdateToNode = (existingNode: any, update: any, registry: any) => {
           existingNode.data.results.time_history = [];
         }
       }
-    } else {
+    }
+  } else {
+    if (update.value !== undefined) {
+      if (!existingNode.data.results) existingNode.data.results = {};
       existingNode.data.results.displayValue = update.value;
     }
   }
+
   if (update.resultMessage !== undefined && update.value === undefined && update.statusMessage === undefined) {
     existingNode.data.resultMessage = update.resultMessage;
   }
@@ -149,6 +188,7 @@ export function useFlowExecution({
     resultMessage?: string;
     pinValues?: Record<string, any>;
     value?: any;
+    valuesQueue?: Array<{ value: any; timestamp?: number; max_history?: number }>;
   }>>({});
 
   const flushUpdatesRef = useRef<(() => void) | undefined>(undefined);
@@ -334,6 +374,14 @@ export function useFlowExecution({
         // Handle small/scalar data messages
         if (data.value !== undefined) {
           pendingUpdatesRef.current[block_id].value = data.value;
+          if (!pendingUpdatesRef.current[block_id].valuesQueue) {
+            pendingUpdatesRef.current[block_id].valuesQueue = [];
+          }
+          pendingUpdatesRef.current[block_id].valuesQueue.push({
+            value: data.value,
+            timestamp: data.timestamp,
+            max_history: data.max_history
+          });
         } else if (data.state !== undefined) {
           pendingUpdatesRef.current[block_id].resultMessage = `State: ${data.state ? 'ON' : 'OFF'}`;
         }

@@ -158,7 +158,8 @@ class TimerBlock(BaseBlock):
     ]
     outputs_def = [
         ExecOut("Tick"),
-        ExecOut("Finished")
+        ExecOut("Finished"),
+        DataOut("Index", type_hint=int)
     ]
 
     i18n = {
@@ -173,7 +174,8 @@ class TimerBlock(BaseBlock):
                 "Count": "Contagem",
                 "StopCondition": "Condição de Parada",
                 "Tick": "Tique",
-                "Finished": "Concluído"
+                "Finished": "Concluído",
+                "Index": "Índice"
             }
         },
         "es": {
@@ -187,7 +189,8 @@ class TimerBlock(BaseBlock):
                 "Count": "Conteo",
                 "StopCondition": "Condición de Parada",
                 "Tick": "Tic",
-                "Finished": "Terminado"
+                "Finished": "Terminado",
+                "Index": "Índice"
             }
         }
     }
@@ -195,6 +198,7 @@ class TimerBlock(BaseBlock):
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)
         self._stopped = False
+        self._index = 0
 
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
         if trigger_pin == "Stop":
@@ -204,6 +208,7 @@ class TimerBlock(BaseBlock):
 
         if trigger_pin == "Start":
             self._stopped = False
+            self._index = 0
             interval_ms = await context.pull(self.id, "Interval")
             count = int(await context.pull(self.id, "Count"))
 
@@ -233,6 +238,7 @@ class TimerBlock(BaseBlock):
                     logger.info(f"Timer block '{self.id}' completed target count of {count}.")
                     break
 
+                self._index = i
                 start_time = time.perf_counter()
 
                 # Trigger loop body (Tick path) and wait for completion
@@ -251,3 +257,12 @@ class TimerBlock(BaseBlock):
 
             return "Finished"
         return None
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Index":
+            return self._index
+        return None
+
+    async def clear_data(self) -> None:
+        self._index = 0
+        self._stopped = False

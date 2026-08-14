@@ -162,12 +162,18 @@ const PlotlyXYRenderer = ({ blockId, xLabel, yLabel, width, height, onChange, sa
   
   let plotTraces: any[] = [];
   if (plotData.y && plotData.y.length > 0) {
+    const pointCount = Array.isArray(plotData.y[0]) ? plotData.y[0].length : plotData.y.length;
+    const traceType = pointCount > 5000 ? 'scattergl' : 'scatter';
+    const traceMode = pointCount <= 300 ? 'lines+markers' : 'lines';
+    const markerConfig = pointCount <= 300 ? { size: 4 } : undefined;
+
     if (Array.isArray(plotData.y[0])) {
       plotTraces = plotData.y.map((yArray: any[], i: number) => ({
         x: (plotData.x && Array.isArray(plotData.x[0])) ? plotData.x[i] : plotData.x,
         y: yArray,
-        type: 'scattergl',
-        mode: 'lines',
+        type: traceType,
+        mode: traceMode,
+        marker: markerConfig,
         line: { color: colors[i % colors.length], width: 2 },
         hoverinfo: 'x+y',
         name: plotData.labels?.[i] || `Trace ${i + 1}`
@@ -176,8 +182,9 @@ const PlotlyXYRenderer = ({ blockId, xLabel, yLabel, width, height, onChange, sa
       plotTraces = [{
         x: plotData.x,
         y: plotData.y,
-        type: 'scattergl',
-        mode: 'lines',
+        type: traceType,
+        mode: traceMode,
+        marker: markerConfig,
         line: { color: colors[0], width: 2 },
         hoverinfo: 'x+y',
         name: plotData.labels?.[0] || 'Trace 1'

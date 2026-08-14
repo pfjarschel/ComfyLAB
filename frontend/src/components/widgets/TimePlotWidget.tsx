@@ -164,31 +164,39 @@ const PlotlyTimeRenderer = ({ blockId, strokeColor, dataKey, width, height, onCh
   
   let plotTraces: any[] = [];
   if (plotData && plotData.length > 0) {
+    const traceType = plotData.length > 5000 ? 'scattergl' : 'scatter';
+    const traceMode = plotData.length <= 300 ? 'lines+markers' : 'lines';
+    const markerConfig = plotData.length <= 300 ? { size: 4 } : undefined;
+
     if (Array.isArray(plotData[0])) {
       const numCurves = plotData[0].length;
       for (let c = 0; c < numCurves; c++) {
         const curveY = plotData.map(step => (Array.isArray(step) ? step[c] : step));
+        const defaultX = Array.from({ length: curveY.length }, (_, i) => i);
         const traceObj: any = {
+          x: relativeTimeData.length > 0 ? relativeTimeData : defaultX,
           y: curveY,
-          type: 'scattergl',
-          mode: 'lines',
+          type: traceType,
+          mode: traceMode,
+          marker: markerConfig,
           line: { color: colors[c % colors.length], width: 1.5 },
-          hoverinfo: timeData.length > 0 ? 'x+y' : 'y',
+          hoverinfo: 'x+y',
           name: traceLabels?.[c] || `Trace ${c + 1}`
         };
-        if (relativeTimeData.length > 0) traceObj.x = relativeTimeData;
         plotTraces.push(traceObj);
       }
     } else {
+      const defaultX = Array.from({ length: plotData.length }, (_, i) => i);
       const traceObj: any = {
+        x: relativeTimeData.length > 0 ? relativeTimeData : defaultX,
         y: plotData,
-        type: 'scattergl',
-        mode: 'lines',
+        type: traceType,
+        mode: traceMode,
+        marker: markerConfig,
         line: { color: strokeColor, width: 1.5 },
-        hoverinfo: timeData.length > 0 ? 'x+y' : 'y',
+        hoverinfo: 'x+y',
         name: traceLabels?.[0] || 'Trace 1'
       };
-      if (relativeTimeData.length > 0) traceObj.x = relativeTimeData;
       plotTraces = [traceObj];
     }
   }

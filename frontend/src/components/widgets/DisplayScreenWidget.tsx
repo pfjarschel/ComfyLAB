@@ -26,10 +26,18 @@ export const DisplayScreenWidget = ({ blockId, initialValue }: DisplayScreenWidg
   const { getNode } = useReactFlow();
 
   useEffect(() => {
-    const handleTelemetry = () => {
-      const block = getNode(blockId);
-      if (block && (block.data?.results as any)?.displayValue !== undefined) {
-        setDisplayValue((block.data.results as any).displayValue);
+    const handleTelemetry = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const results = customEvent.detail?.results;
+      if (results?.displayValue !== undefined) {
+        setDisplayValue(results.displayValue);
+      } else if (results?.result !== undefined) {
+        setDisplayValue(results.result);
+      } else {
+        const block = getNode(blockId);
+        if (block && (block.data?.results as any)?.displayValue !== undefined) {
+          setDisplayValue((block.data.results as any).displayValue);
+        }
       }
     };
     const eventName = `telemetry-${blockId}`;
