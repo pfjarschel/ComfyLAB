@@ -30,6 +30,29 @@ class CreateFilledNdarrayBlock(BaseBlock):
     ]
     outputs_def = [DataOut("Array", type_hint=np.ndarray)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Criar Matriz Preenchida",
+            "description": "Fornece um NDArray preenchido com um único valor.",
+            "category": "Matrizes Numéricas",
+            "pins": {
+                "Shape": "Forma",
+                "Value": "Valor",
+                "Array": "Matriz"
+            }
+        },
+        "es": {
+            "display_name": "Crear Matriz Llena",
+            "description": "Devuelve un NDArray lleno con un único valor.",
+            "category": "Matrices Numéricas",
+            "pins": {
+                "Shape": "Forma",
+                "Value": "Valor",
+                "Array": "Matriz"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Array":
             shape_raw = await context.pull(self.id, "Shape")
@@ -52,6 +75,25 @@ class CreateNdarrayBlock(BaseBlock):
     
     inputs_def = []
     outputs_def = [DataOut("Array", type_hint=np.ndarray)]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Criar NDArray",
+            "description": "Cria uma matriz numérica NumPy a partir de uma string de números separados por vírgula.",
+            "category": "Matrizes Numéricas",
+            "pins": {
+                "Array": "Matriz"
+            }
+        },
+        "es": {
+            "display_name": "Crear NDArray",
+            "description": "Crea una matriz numérica NumPy a partir de una cadena de números separados por comas.",
+            "category": "Matrices Numéricas",
+            "pins": {
+                "Array": "Matriz"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)
@@ -95,6 +137,25 @@ class PackNdarrayBlock(BaseBlock):
     inputs_def = []
     outputs_def = [DataOut("Array", type_hint=np.ndarray)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Empacotar NDArray",
+            "description": "Empacota várias entradas avaliadas em um NumPy ndarray. Gera um erro se as dimensões forem inconsistentes.",
+            "category": "Matrizes Numéricas",
+            "pins": {
+                "Array": "Matriz"
+            }
+        },
+        "es": {
+            "display_name": "Empaquetar NDArray",
+            "description": "Empaqueta múltiples entradas evaluadas en un NumPy ndarray. Lanza un error si las dimensiones son inconsistentes.",
+            "category": "Matrices Numéricas",
+            "pins": {
+                "Array": "Matriz"
+            }
+        }
+    }
+
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)
         make_dynamic_item_inputs(self, "Item", 2, type_hint=Any, default=None)
@@ -132,6 +193,35 @@ class AccumulateNdarrayBlock(BaseBlock):
         ExecOut("Skipped"),
         DataOut("Array", type_hint=np.ndarray)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Acumular NDArray",
+            "description": "Acumula valores em uma matriz NumPy. Tem pinos Anexar e Redefinir.",
+            "category": "Matrizes Numéricas",
+            "pins": {
+                "Append": "Anexar",
+                "Reset": "Redefinir",
+                "Value": "Valor",
+                "Out": "Saída",
+                "Skipped": "Ignorado",
+                "Array": "Matriz"
+            }
+        },
+        "es": {
+            "display_name": "Acumular NDArray",
+            "description": "Acumula valores en una matriz NumPy. Tiene pines Añadir y Restablecer.",
+            "category": "Matrices Numéricas",
+            "pins": {
+                "Append": "Añadir",
+                "Reset": "Restablecer",
+                "Value": "Valor",
+                "Out": "Salida",
+                "Skipped": "Omitido",
+                "Array": "Matriz"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)
@@ -176,6 +266,29 @@ class ConcatNdarraysBlock(BaseBlock):
     ]
     outputs_def = [DataOut("Result", type_hint=np.ndarray)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Concatenar NDArrays",
+            "description": "Concatena duas matrizes NumPy.",
+            "category": "Matrizes Numéricas",
+            "pins": {
+                "ArrayA": "MatrizA",
+                "ArrayB": "MatrizB",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Concatenar NDArrays",
+            "description": "Concatena dos matrices NumPy.",
+            "category": "Matrices Numéricas",
+            "pins": {
+                "ArrayA": "MatrizA",
+                "ArrayB": "MatrizB",
+                "Result": "Resultado"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
             a = await context.pull(self.id, "ArrayA")
@@ -208,6 +321,27 @@ class TransposeNdarrayBlock(BaseBlock):
     ]
     outputs_def = [DataOut("Transposed", type_hint=np.ndarray)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Transpor NDArray",
+            "description": "Transpõe uma matriz NumPy 1D ou 2D.",
+            "category": "Matrizes Numéricas",
+            "pins": {
+                "Array": "Matriz",
+                "Transposed": "Transposta"
+            }
+        },
+        "es": {
+            "display_name": "Transponer NDArray",
+            "description": "Transpone una matriz NumPy 1D o 2D.",
+            "category": "Matrices Numéricas",
+            "pins": {
+                "Array": "Matriz",
+                "Transposed": "Transpuesta"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Transposed":
             arr = await context.pull(self.id, "Array")
@@ -229,6 +363,29 @@ class AppendNdarrayBlock(BaseBlock):
         DataIn("Value", type_hint=Any)
     ]
     outputs_def = [DataOut("Result", type_hint=np.ndarray)]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Anexar NDArray",
+            "description": "Anexa um valor a uma matriz NumPy.",
+            "category": "Matrizes Numéricas",
+            "pins": {
+                "Array": "Matriz",
+                "Value": "Valor",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Añadir NDArray",
+            "description": "Añade un valor a una matriz NumPy.",
+            "category": "Matrices Numéricas",
+            "pins": {
+                "Array": "Matriz",
+                "Value": "Valor",
+                "Result": "Resultado"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
@@ -255,6 +412,29 @@ class GetNdarrayItemBlock(BaseBlock):
         DataIn("Index", type_hint=Any, default=0, widget="number")
     ]
     outputs_def = [DataOut("Item", type_hint=Any)]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Obter Item NDArray",
+            "description": "Recupera um item em um índice específico de uma matriz NumPy.",
+            "category": "Matrizes Numéricas",
+            "pins": {
+                "Array": "Matriz",
+                "Index": "Índice",
+                "Item": "Item"
+            }
+        },
+        "es": {
+            "display_name": "Obtener Elemento NDArray",
+            "description": "Recupera un elemento en un índice específico de una matriz NumPy.",
+            "category": "Matrices Numéricas",
+            "pins": {
+                "Array": "Matriz",
+                "Index": "Índice",
+                "Item": "Elemento"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Item":
@@ -302,6 +482,27 @@ class NdarrayLengthBlock(BaseBlock):
     ]
     outputs_def = [DataOut("Length", type_hint=int)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Tamanho NDArray",
+            "description": "Fornece o tamanho/comprimento de uma matriz NumPy.",
+            "category": "Matrizes Numéricas",
+            "pins": {
+                "Array": "Matriz",
+                "Length": "Tamanho"
+            }
+        },
+        "es": {
+            "display_name": "Longitud NDArray",
+            "description": "Devuelve el tamaño/longitud de una matriz NumPy.",
+            "category": "Matrices Numéricas",
+            "pins": {
+                "Array": "Matriz",
+                "Length": "Longitud"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Length":
             arr = await context.pull(self.id, "Array")
@@ -324,6 +525,27 @@ class SortNdarrayBlock(BaseBlock):
         DataIn("Array", type_hint=np.ndarray)
     ]
     outputs_def = [DataOut("Sorted", type_hint=np.ndarray)]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Ordenar NDArray",
+            "description": "Ordena uma matriz NumPy em ordem crescente.",
+            "category": "Matrizes Numéricas",
+            "pins": {
+                "Array": "Matriz",
+                "Sorted": "Ordenada"
+            }
+        },
+        "es": {
+            "display_name": "Ordenar NDArray",
+            "description": "Ordena una matriz NumPy en orden ascendente.",
+            "category": "Matrices Numéricas",
+            "pins": {
+                "Array": "Matriz",
+                "Sorted": "Ordenada"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Sorted":
@@ -353,6 +575,33 @@ class SliceNdarrayBlock(BaseBlock):
         DataIn("Step", type_hint=int, default=1, widget="number")
     ]
     outputs_def = [DataOut("Sliced", type_hint=np.ndarray)]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Fatiar NDArray",
+            "description": "Fatia uma matriz NumPy do Início ao Fim com um Passo.",
+            "category": "Matrizes Numéricas",
+            "pins": {
+                "Array": "Matriz",
+                "Start": "Início",
+                "Stop": "Fim",
+                "Step": "Passo",
+                "Sliced": "Fatiada"
+            }
+        },
+        "es": {
+            "display_name": "Cortar NDArray",
+            "description": "Corta una matriz NumPy desde el Inicio hasta el Fin con un Paso.",
+            "category": "Matrices Numéricas",
+            "pins": {
+                "Array": "Matriz",
+                "Start": "Inicio",
+                "Stop": "Fin",
+                "Step": "Paso",
+                "Sliced": "Cortada"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Sliced":
@@ -390,6 +639,29 @@ class TakeNdarrayBlock(BaseBlock):
     ]
     outputs_def = [DataOut("Result", type_hint=np.ndarray)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Pegar Itens NDArray",
+            "description": "Extrai elementos de uma matriz baseando-se em uma matriz/lista de índices (útil para reordenar).",
+            "category": "Matrizes Numéricas",
+            "pins": {
+                "Array": "Matriz",
+                "Indices": "Índices",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Tomar Elementos NDArray",
+            "description": "Extrae elementos de una matriz basándose en una matriz/lista de índices (útil para reordenar).",
+            "category": "Matrices Numéricas",
+            "pins": {
+                "Array": "Matriz",
+                "Indices": "Índices",
+                "Result": "Resultado"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
             arr = await context.pull(self.id, "Array")
@@ -425,6 +697,31 @@ class AddSubtractNdarrayBlock(BaseBlock):
         DataIn("Operation", type_hint=str, default="add", widget="dropdown", options=["add", "subtract"])
     ]
     outputs_def = [DataOut("Result", type_hint=np.ndarray)]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "NDArray Soma/Sub",
+            "description": "Soma ou subtrai uma constante ou outra matriz para/de um ndarray.",
+            "category": "Matrizes Numéricas",
+            "pins": {
+                "Array": "Matriz",
+                "Operand": "Operando",
+                "Operation": "Operação",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "NDArray Suma/Res",
+            "description": "Suma o resta una constante u otra matriz a/de un ndarray.",
+            "category": "Matrices Numéricas",
+            "pins": {
+                "Array": "Matriz",
+                "Operand": "Operando",
+                "Operation": "Operación",
+                "Result": "Resultado"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
@@ -464,6 +761,31 @@ class MultiplyDivideNdarrayBlock(BaseBlock):
     ]
     outputs_def = [DataOut("Result", type_hint=np.ndarray)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "NDArray Mul/Div",
+            "description": "Multiplica ou divide um ndarray por uma constante ou outra matriz.",
+            "category": "Matrizes Numéricas",
+            "pins": {
+                "Array": "Matriz",
+                "Operand": "Operando",
+                "Operation": "Operação",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "NDArray Mul/Div",
+            "description": "Multiplica o divide un ndarray por una constante u otra matriz.",
+            "category": "Matrices Numéricas",
+            "pins": {
+                "Array": "Matriz",
+                "Operand": "Operando",
+                "Operation": "Operación",
+                "Result": "Resultado"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
             arr = await context.pull(self.id, "Array")
@@ -500,6 +822,29 @@ class InnerProductNdarrayBlock(BaseBlock):
     ]
     outputs_def = [DataOut("Product", type_hint=float)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Produto Interno",
+            "description": "Calcula o produto interno (escalar) de duas matrizes numéricas.",
+            "category": "Matrizes Numéricas",
+            "pins": {
+                "ArrayA": "MatrizA",
+                "ArrayB": "MatrizB",
+                "Product": "Produto"
+            }
+        },
+        "es": {
+            "display_name": "Producto Interno",
+            "description": "Calcula el producto interno (escalar) de dos matrices numéricas.",
+            "category": "Matrices Numéricas",
+            "pins": {
+                "ArrayA": "MatrizA",
+                "ArrayB": "MatrizB",
+                "Product": "Producto"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Product":
             a = await context.pull(self.id, "ArrayA")
@@ -531,6 +876,29 @@ class OuterProductNdarrayBlock(BaseBlock):
     ]
     outputs_def = [DataOut("Product", type_hint=np.ndarray)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Produto Externo",
+            "description": "Calcula o produto externo de duas matrizes numéricas.",
+            "category": "Matrizes Numéricas",
+            "pins": {
+                "ArrayA": "MatrizA",
+                "ArrayB": "MatrizB",
+                "Product": "Produto"
+            }
+        },
+        "es": {
+            "display_name": "Producto Externo",
+            "description": "Calcula el producto externo de dos matrices numéricas.",
+            "category": "Matrices Numéricas",
+            "pins": {
+                "ArrayA": "MatrizA",
+                "ArrayB": "MatrizB",
+                "Product": "Producto"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Product":
             a = await context.pull(self.id, "ArrayA")
@@ -558,6 +926,27 @@ class ShapeNdarrayBlock(BaseBlock):
     ]
     outputs_def = [DataOut("Shape", type_hint=list)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Forma NDArray",
+            "description": "Fornece a forma de uma matriz NumPy como uma lista de dimensões.",
+            "category": "Matrizes Numéricas",
+            "pins": {
+                "Array": "Matriz",
+                "Shape": "Forma"
+            }
+        },
+        "es": {
+            "display_name": "Forma NDArray",
+            "description": "Devuelve la forma de una matriz NumPy como una lista de dimensiones.",
+            "category": "Matrices Numéricas",
+            "pins": {
+                "Array": "Matriz",
+                "Shape": "Forma"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Shape":
             arr = await context.pull(self.id, "Array")
@@ -582,6 +971,31 @@ class LinspaceBlock(BaseBlock):
     outputs_def = [
         DataOut("Array", type_hint=np.ndarray)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Linspace",
+            "description": "Gera um ndarray de números uniformemente espaçados em um intervalo.",
+            "category": "Matrizes Numéricas",
+            "pins": {
+                "Start": "Início",
+                "Stop": "Fim",
+                "Steps": "Passos",
+                "Array": "Matriz"
+            }
+        },
+        "es": {
+            "display_name": "Linspace",
+            "description": "Genera un ndarray de números espaciados uniformemente en un intervalo.",
+            "category": "Matrices Numéricas",
+            "pins": {
+                "Start": "Inicio",
+                "Stop": "Fin",
+                "Steps": "Pasos",
+                "Array": "Matriz"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Array":
@@ -614,6 +1028,35 @@ class MovingAverageBlock(BaseBlock):
         DataOut("Average", type_hint=float),
         DataOut("Buffer", type_hint=list)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Média Móvel",
+            "description": "Mantém uma janela deslizante de valores recentes e fornece sua média.",
+            "category": "Matrizes Numéricas",
+            "pins": {
+                "Update": "Atualizar",
+                "Data": "Dados",
+                "Window Size": "Tamanho da Janela",
+                "Out": "Saída",
+                "Average": "Média",
+                "Buffer": "Buffer"
+            }
+        },
+        "es": {
+            "display_name": "Media Móvil",
+            "description": "Mantiene una ventana deslizante de valores recientes y devuelve su media.",
+            "category": "Matrices Numéricas",
+            "pins": {
+                "Update": "Actualizar",
+                "Data": "Datos",
+                "Window Size": "Tamaño de Ventana",
+                "Out": "Salida",
+                "Average": "Media",
+                "Buffer": "Buffer"
+            }
+        }
+    }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

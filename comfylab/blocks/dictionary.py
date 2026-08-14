@@ -16,6 +16,25 @@ class DictCreateBlock(BaseBlock):
     inputs_def = []
     outputs_def = [DataOut("Dictionary", type_hint=dict)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Criar Dicionário",
+            "description": "Gera um dicionário novo e vazio.",
+            "category": "Dicionário",
+            "pins": {
+                "Dictionary": "Dicionário"
+            }
+        },
+        "es": {
+            "display_name": "Crear Diccionario",
+            "description": "Genera un diccionario nuevo y vacío.",
+            "category": "Diccionario",
+            "pins": {
+                "Dictionary": "Diccionario"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Dictionary":
             return {}
@@ -34,6 +53,29 @@ class DictSetBlock(BaseBlock):
         DataIn("Value", type_hint=Any)
     ]
     outputs_def = [DataOut("Dictionary", type_hint=dict)]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Definir Chave/Valor",
+            "description": "Define ou atualiza um par chave/valor em um dicionário. Retorna um novo dicionário.",
+            "category": "Dicionário",
+            "pins": {
+                "Dictionary": "Dicionário",
+                "Key": "Chave",
+                "Value": "Valor"
+            }
+        },
+        "es": {
+            "display_name": "Establecer Clave/Valor",
+            "description": "Establece o actualiza un par clave/valor en un diccionario. Devuelve un nuevo diccionario.",
+            "category": "Diccionario",
+            "pins": {
+                "Dictionary": "Diccionario",
+                "Key": "Clave",
+                "Value": "Valor"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Dictionary":
@@ -65,6 +107,31 @@ class DictGetBlock(BaseBlock):
     ]
     outputs_def = [DataOut("Value", type_hint=Any)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Obter Valor",
+            "description": "Recupera o valor de uma chave específica em um dicionário.",
+            "category": "Dicionário",
+            "pins": {
+                "Dictionary": "Dicionário",
+                "Key": "Chave",
+                "Default": "Padrão",
+                "Value": "Valor"
+            }
+        },
+        "es": {
+            "display_name": "Obtener Valor",
+            "description": "Recupera el valor para una clave específica en un diccionario.",
+            "category": "Diccionario",
+            "pins": {
+                "Dictionary": "Diccionario",
+                "Key": "Clave",
+                "Default": "Por Defecto",
+                "Value": "Valor"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Value":
             d = await context.pull(self.id, "Dictionary")
@@ -88,6 +155,27 @@ class DictKeysBlock(BaseBlock):
     ]
     outputs_def = [DataOut("Keys", type_hint=list)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Obter Chaves",
+            "description": "Fornece uma lista de todas as chaves do dicionário.",
+            "category": "Dicionário",
+            "pins": {
+                "Dictionary": "Dicionário",
+                "Keys": "Chaves"
+            }
+        },
+        "es": {
+            "display_name": "Obtener Claves",
+            "description": "Devuelve una lista de todas las claves en el diccionario.",
+            "category": "Diccionario",
+            "pins": {
+                "Dictionary": "Diccionario",
+                "Keys": "Claves"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Keys":
             d = await context.pull(self.id, "Dictionary")
@@ -107,6 +195,27 @@ class DictValuesBlock(BaseBlock):
         DataIn("Dictionary", type_hint=dict)
     ]
     outputs_def = [DataOut("Values", type_hint=list)]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Obter Valores",
+            "description": "Fornece uma lista de todos os valores do dicionário.",
+            "category": "Dicionário",
+            "pins": {
+                "Dictionary": "Dicionário",
+                "Values": "Valores"
+            }
+        },
+        "es": {
+            "display_name": "Obtener Valores",
+            "description": "Devuelve una lista de todos los valores en el diccionario.",
+            "category": "Diccionario",
+            "pins": {
+                "Dictionary": "Diccionario",
+                "Values": "Valores"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Values":

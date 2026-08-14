@@ -247,6 +247,31 @@ class TableViewBlock(BaseBlock):
     ]
     outputs_def = [ExecOut("Out")]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Visualização de Tabela",
+            "description": "Exibe listas, ndarrays ou dicionários em uma tabela com rolagem (até 1000 linhas × 1000 colunas).",
+            "category": "Saídas",
+            "pins": {
+                "In": "Entrada",
+                "Data": "Dados",
+                "Headers": "Cabeçalhos",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Vista de Tabla",
+            "description": "Muestra listas, ndarrays o diccionarios en una tabla desplazable (hasta 1000 filas × 1000 columnas).",
+            "category": "Salidas",
+            "pins": {
+                "In": "Entrada",
+                "Data": "Datos",
+                "Headers": "Encabezados",
+                "Out": "Salida"
+            }
+        }
+    }
+
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
         data = await context.pull(self.id, "Data")
         custom_headers = await context.pull(self.id, "Headers")
@@ -269,6 +294,29 @@ class PrintBlock(BaseBlock):
         DataIn("Value", type_hint=Any, default="", widget="text")
     ]
     outputs_def = [ExecOut("Out")]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Imprimir",
+            "description": "Imprime um valor obtido na saída padrão e continua a execução.",
+            "category": "Saídas",
+            "pins": {
+                "In": "Entrada",
+                "Value": "Valor",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Imprimir",
+            "description": "Imprime un valor obtenido en la salida estándar y continúa la ejecución.",
+            "category": "Salidas",
+            "pins": {
+                "In": "Entrada",
+                "Value": "Valor",
+                "Out": "Salida"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)
@@ -299,6 +347,29 @@ class DisplayBlock(BaseBlock):
     ]
     outputs_def = [ExecOut("Out")]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Exibir Valor",
+            "description": "Exibe o valor recebido na interface do usuário.",
+            "category": "Saídas",
+            "pins": {
+                "In": "Entrada",
+                "Value": "Valor",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Mostrar Valor",
+            "description": "Muestra el valor entrante en la interfaz de usuario.",
+            "category": "Salidas",
+            "pins": {
+                "In": "Entrada",
+                "Value": "Valor",
+                "Out": "Salida"
+            }
+        }
+    }
+
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
         val = await context.pull(self.id, "Value")
         if isinstance(val, (int, float)) and not isinstance(val, bool):
@@ -326,6 +397,29 @@ class LEDBlock(BaseBlock):
     outputs_def = [
         ExecOut("Out")
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Status do LED",
+            "description": "Indicador de status circular que mostra verde (Verdadeiro) ou vermelho (Falso) dinamicamente.",
+            "category": "Saídas",
+            "pins": {
+                "In": "Entrada",
+                "State": "Estado",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Estado del LED",
+            "description": "Indicador de estado circular que muestra verde (Verdadero) o rojo (Falso) dinámicamente.",
+            "category": "Salidas",
+            "pins": {
+                "In": "Entrada",
+                "State": "Estado",
+                "Out": "Salida"
+            }
+        }
+    }
 
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
         if trigger_pin == "In":

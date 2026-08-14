@@ -20,6 +20,18 @@ class BK4052ConnectBlock(BaseDeviceConnectBlock):
     icon = "⚡"
     display_name = "BK Precision 4052 Connect"
     description = "Opens a VISA session to a BK Precision 4052 function generator. On teardown, disables output."
+    i18n = {
+        "pt-BR": {
+            "display_name": "Conectar BK Precision 4052",
+            "description": "Abre uma sessão VISA com um gerador de funções BK Precision 4052. No encerramento, desativa as saídas.",
+            "category": "Equipamentos"
+        },
+        "es": {
+            "display_name": "Conectar BK Precision 4052",
+            "description": "Abre una sesión VISA con un generador de funciones BK Precision 4052. Al finalizar, desactiva las salidas.",
+            "category": "Equipos"
+        }
+    }
 
     async def _device_teardown(self, device: Any, lock_manager: Any) -> None:
         drv = BK4052(device)
@@ -56,6 +68,38 @@ class BK4052ConfigWaveBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Device", type_hint=Any)
     ]
+    i18n = {
+        "pt-BR": {
+            "display_name": "Configurar Onda BK Precision 4052",
+            "description": "Configura formato, frequência, amplitude, offset, fase, ciclo de trabalho e simetria em um BK Precision 4052.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Channel": "Canal",
+                "Shape": "Formato",
+                "Frequency": "Frequência",
+                "Amplitude": "Amplitude",
+                "Offset": "Offset",
+                "Phase": "Fase",
+                "Duty": "Ciclo de Trabalho",
+                "Symmetry": "Simetria"
+            }
+        },
+        "es": {
+            "display_name": "Configurar Onda BK Precision 4052",
+            "description": "Configura formato, frecuencia, amplitud, offset, fase, ciclo de trabajo y simetría en un BK Precision 4052.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Channel": "Canal",
+                "Shape": "Formato",
+                "Frequency": "Frecuencia",
+                "Amplitude": "Amplitud",
+                "Offset": "Offset",
+                "Phase": "Fase",
+                "Duty": "Ciclo de Trabajo",
+                "Symmetry": "Simetría"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Device":
@@ -98,6 +142,28 @@ class BK4052OutputBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Device", type_hint=Any)
     ]
+    i18n = {
+        "pt-BR": {
+            "display_name": "Saída BK Precision 4052",
+            "description": "Habilita ou desabilita o estado de transmissão de saída do canal e a impedância de carga em um BK Precision 4052.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Channel": "Canal",
+                "Enable": "Habilitar",
+                "Load": "Carga"
+            }
+        },
+        "es": {
+            "display_name": "Salida BK Precision 4052",
+            "description": "Habilita o deshabilita el estado de transmisión de salida del canal y la impedancia de carga en un BK Precision 4052.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Channel": "Canal",
+                "Enable": "Habilitar",
+                "Load": "Carga"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Device":

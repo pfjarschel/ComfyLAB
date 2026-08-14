@@ -21,6 +21,17 @@ class SR830ConnectBlock(BaseDeviceConnectBlock):
     display_name = "SRS SR830 Connect"
     description = "Opens a VISA session to an SRS SR830/SR850/SR860 Lock-In Amplifier."
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Conectar SRS SR830",
+            "description": "Abre uma sessão VISA para um Amplificador Lock-In SRS SR830/SR850/SR860."
+        },
+        "es": {
+            "display_name": "Conectar SRS SR830",
+            "description": "Abre una sesión VISA a un Amplificador Lock-In SRS SR830/SR850/SR860."
+        }
+    }
+
 
 @register_block("devices/srs/sr830/reference")
 class SR830ReferenceBlock(BaseBlock):
@@ -40,6 +51,29 @@ class SR830ReferenceBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Device", type_hint=Any)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Configuração de Referência SRS SR830",
+            "description": "Configura frequência de referência, fase e amplitude de saída senoidal em um SRS SR830.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Frequency": "Frequencia",
+                "Phase": "Fase",
+                "Amplitude": "Amplitude"
+            }
+        },
+        "es": {
+            "display_name": "Configuración de Referencia SRS SR830",
+            "description": "Configura la frecuencia de referencia, fase y amplitud de salida senoidal en un SRS SR830.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Frequency": "Frecuencia",
+                "Phase": "Fase",
+                "Amplitude": "Amplitud"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Device":
@@ -78,6 +112,25 @@ class SR830ReadBlock(BaseBlock):
         DataOut("Phase", type_hint=float),
         DataOut("Device", type_hint=Any)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "SRS SR830 Ler Snapshot",
+            "description": "Consulta snapshot simultâneo de X, Y, R e Fase de um amplificador lock-in SRS SR830.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Phase": "Fase"
+            }
+        },
+        "es": {
+            "display_name": "SRS SR830 Leer Snapshot",
+            "description": "Consulta un snapshot simultáneo de X, Y, R y Fase de un amplificador lock-in SRS SR830.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Phase": "Fase"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)

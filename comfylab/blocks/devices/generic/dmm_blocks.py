@@ -20,6 +20,16 @@ class GenericDMMConnectBlock(BaseDeviceConnectBlock):
     icon = "🎛️"
     display_name = "Generic DMM Connect"
     description = "Opens a VISA session to a SCPI Digital Multimeter (DMM)."
+    i18n = {
+        "pt-BR": {
+            "display_name": "Conexão Genérica DMM",
+            "description": "Abre uma sessão VISA para um Multímetro Digital (DMM) SCPI."
+        },
+        "es": {
+            "display_name": "Conexión Genérica DMM",
+            "description": "Abre una sesión VISA para un Multímetro Digital (DMM) SCPI."
+        }
+    }
 
 
 @register_block("devices/generic/dmm/measure")
@@ -41,6 +51,32 @@ class GenericDMMMeasureBlock(BaseBlock):
         DataOut("Value", type_hint=float),
         DataOut("Device", type_hint=Any)
     ]
+    i18n = {
+        "pt-BR": {
+            "display_name": "Medição Genérica DMM",
+            "description": "Configura o modo (VOLT:DC, CURR:DC, RES, etc.) e aciona a leitura em um DMM SCPI.",
+            "pins": {
+                "In": "Entrada",
+                "Device": "Dispositivo",
+                "Mode": "Modo",
+                "Range": "Faixa",
+                "Out": "Saída",
+                "Value": "Valor"
+            }
+        },
+        "es": {
+            "display_name": "Medición Genérica DMM",
+            "description": "Configura el modo (VOLT:DC, CURR:DC, RES, etc.) y activa la lectura en un DMM SCPI.",
+            "pins": {
+                "In": "Entrada",
+                "Device": "Dispositivo",
+                "Mode": "Modo",
+                "Range": "Rango",
+                "Out": "Salida",
+                "Value": "Valor"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)

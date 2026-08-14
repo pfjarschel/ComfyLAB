@@ -26,6 +26,29 @@ class LogicAndBlock(BaseBlock):
     ]
     outputs_def = [DataOut("Result", type_hint=Any)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Porta AND",
+            "description": "Executa uma operação lógica AND (E) entre A e B.",
+            "category": "Lógica",
+            "pins": {
+                "A": "A",
+                "B": "B",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Puerta AND",
+            "description": "Realiza una operación lógica AND (Y) entre A y B.",
+            "category": "Lógica",
+            "pins": {
+                "A": "A",
+                "B": "B",
+                "Result": "Resultado"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
             a = await context.pull(self.id, "A")
@@ -47,6 +70,29 @@ class LogicOrBlock(BaseBlock):
     ]
     outputs_def = [DataOut("Result", type_hint=Any)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Porta OR",
+            "description": "Executa uma operação lógica OR (OU) entre A e B.",
+            "category": "Lógica",
+            "pins": {
+                "A": "A",
+                "B": "B",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Puerta OR",
+            "description": "Realiza una operación lógica OR (O) entre A y B.",
+            "category": "Lógica",
+            "pins": {
+                "A": "A",
+                "B": "B",
+                "Result": "Resultado"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
             a = await context.pull(self.id, "A")
@@ -67,6 +113,27 @@ class LogicNotBlock(BaseBlock):
     ]
     outputs_def = [DataOut("Result", type_hint=Any)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Porta NOT",
+            "description": "Executa uma operação lógica NOT (NÃO) em A.",
+            "category": "Lógica",
+            "pins": {
+                "A": "A",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Puerta NOT",
+            "description": "Realiza una operación lógica NOT (NO) en A.",
+            "category": "Lógica",
+            "pins": {
+                "A": "A",
+                "Result": "Resultado"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
             a = await context.pull(self.id, "A")
@@ -86,6 +153,29 @@ class LogicXorBlock(BaseBlock):
         DataIn("B", type_hint=Any, default=False, widget="checkbox")
     ]
     outputs_def = [DataOut("Result", type_hint=Any)]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Porta XOR",
+            "description": "Executa uma operação lógica XOR (OU Exclusivo) entre A e B.",
+            "category": "Lógica",
+            "pins": {
+                "A": "A",
+                "B": "B",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Puerta XOR",
+            "description": "Realiza una operación lógica XOR (O Exclusivo) entre A y B.",
+            "category": "Lógica",
+            "pins": {
+                "A": "A",
+                "B": "B",
+                "Result": "Resultado"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
@@ -108,6 +198,29 @@ class LogicNandBlock(BaseBlock):
     ]
     outputs_def = [DataOut("Result", type_hint=Any)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Porta NAND",
+            "description": "Executa uma operação lógica NAND (NÃO E) entre A e B.",
+            "category": "Lógica",
+            "pins": {
+                "A": "A",
+                "B": "B",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Puerta NAND",
+            "description": "Realiza una operación lógica NAND (NO Y) entre A y B.",
+            "category": "Lógica",
+            "pins": {
+                "A": "A",
+                "B": "B",
+                "Result": "Resultado"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
             a = await context.pull(self.id, "A")
@@ -129,6 +242,29 @@ class LogicNorBlock(BaseBlock):
     ]
     outputs_def = [DataOut("Result", type_hint=Any)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Porta NOR",
+            "description": "Executa uma operação lógica NOR (NÃO OU) entre A e B.",
+            "category": "Lógica",
+            "pins": {
+                "A": "A",
+                "B": "B",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Puerta NOR",
+            "description": "Realiza una operación lógica NOR (NO O) entre A y B.",
+            "category": "Lógica",
+            "pins": {
+                "A": "A",
+                "B": "B",
+                "Result": "Resultado"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
             a = await context.pull(self.id, "A")
@@ -149,6 +285,29 @@ class LogicXnorBlock(BaseBlock):
         DataIn("B", type_hint=Any, default=False, widget="checkbox")
     ]
     outputs_def = [DataOut("Result", type_hint=Any)]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Porta XNOR",
+            "description": "Executa uma operação lógica XNOR (NÃO OU Exclusivo) entre A e B.",
+            "category": "Lógica",
+            "pins": {
+                "A": "A",
+                "B": "B",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Puerta XNOR",
+            "description": "Realiza una operación lógica XNOR (NO O Exclusivo) entre A y B.",
+            "category": "Lógica",
+            "pins": {
+                "A": "A",
+                "B": "B",
+                "Result": "Resultado"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
@@ -173,6 +332,31 @@ class FlipFlopBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("State", type_hint=bool)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Flip-Flop",
+            "description": "Alterna um estado booleano (Verdadeiro/Falso) a cada gatilho de execução.",
+            "category": "Lógica",
+            "pins": {
+                "Toggle": "Alternar",
+                "Initial": "Inicial",
+                "Out": "Saída",
+                "State": "Estado"
+            }
+        },
+        "es": {
+            "display_name": "Flip-Flop",
+            "description": "Alterna un estado booleano (Verdadero/Falso) en cada gatillo de ejecución.",
+            "category": "Lógica",
+            "pins": {
+                "Toggle": "Alternar",
+                "Initial": "Inicial",
+                "Out": "Salida",
+                "State": "Estado"
+            }
+        }
+    }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -209,6 +393,31 @@ class CompareBlock(BaseBlock):
     ]
 
     outputs_def = [DataOut("Result", type_hint=bool)]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Comparar",
+            "description": "Obtém dois valores e os compara com base em um operador.",
+            "category": "Lógica",
+            "pins": {
+                "A": "A",
+                "B": "B",
+                "Operator": "Operador",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Comparar",
+            "description": "Obtiene dos valores y los compara basándose en un operador.",
+            "category": "Lógica",
+            "pins": {
+                "A": "A",
+                "B": "B",
+                "Operator": "Operador",
+                "Result": "Resultado"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
@@ -248,6 +457,31 @@ class HasChangedBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Changed", type_hint=bool)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Mudou",
+            "description": "Compara um valor de entrada com seu valor de execução anterior e indica se ele mudou.",
+            "category": "Lógica",
+            "pins": {
+                "In": "Entrada",
+                "Value": "Valor",
+                "Out": "Saída",
+                "Changed": "Mudou"
+            }
+        },
+        "es": {
+            "display_name": "Ha Cambiado",
+            "description": "Compara un valor de entrada con su valor de ejecución anterior e indica si ha cambiado.",
+            "category": "Lógica",
+            "pins": {
+                "In": "Entrada",
+                "Value": "Valor",
+                "Out": "Salida",
+                "Changed": "Cambiado"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)

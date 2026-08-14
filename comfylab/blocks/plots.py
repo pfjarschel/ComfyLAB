@@ -46,6 +46,39 @@ class XYPlotBlock(BaseBlock):
     ]
     outputs_def = [ExecOut("Out")]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Gráfico XY",
+            "description": "Recebe listas de dados X e Y e os envia para a interface para plotagem XY.",
+            "pins": {
+                "Plot": "Plotar",
+                "XLabel": "Rótulo X",
+                "YLabel": "Rótulo Y",
+                "Labels": "Rótulos",
+                "XMin": "X Mín",
+                "XMax": "X Máx",
+                "YMin": "Y Mín",
+                "YMax": "Y Máx",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Gráfico XY",
+            "description": "Recibe listas de datos X e Y y los envía a la interfaz para graficar XY.",
+            "pins": {
+                "Plot": "Graficar",
+                "XLabel": "Etiqueta X",
+                "YLabel": "Etiqueta Y",
+                "Labels": "Etiquetas",
+                "XMin": "X Mín",
+                "XMax": "X Máx",
+                "YMin": "Y Mín",
+                "YMax": "Y Máx",
+                "Out": "Salida"
+            }
+        }
+    }
+
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
         x = await context.pull(self.id, "X")
         y = await context.pull(self.id, "Y")
@@ -103,6 +136,43 @@ class PlotBlock(BaseBlock):
         DataIn("YMax", type_hint=float, optional=True)
     ]
     outputs_def = [ExecOut("Out")]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Gráfico de Tempo",
+            "description": "Recebe valores de dados e os envia para a interface para plotagem ao vivo.",
+            "pins": {
+                "Plot": "Plotar",
+                "InputData": "Dados de Entrada",
+                "MaxHistory": "Histórico Máx",
+                "Labels": "Rótulos",
+                "YLabel": "Rótulo Y",
+                "UseTime": "Usar Tempo",
+                "XMin": "X Mín",
+                "XMax": "X Máx",
+                "YMin": "Y Mín",
+                "YMax": "Y Máx",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Gráfico de Tiempo",
+            "description": "Recibe valores de datos y los envía a la interfaz para graficar en vivo.",
+            "pins": {
+                "Plot": "Graficar",
+                "InputData": "Datos de Entrada",
+                "MaxHistory": "Historial Máx",
+                "Labels": "Etiquetas",
+                "YLabel": "Etiqueta Y",
+                "UseTime": "Usar Tiempo",
+                "XMin": "X Mín",
+                "XMax": "X Máx",
+                "YMin": "Y Mín",
+                "YMax": "Y Máx",
+                "Out": "Salida"
+            }
+        }
+    }
 
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
         val = await context.pull(self.id, "InputData")
@@ -175,6 +245,49 @@ class HeatmapPlotBlock(BaseBlock):
         DataIn("ZMax", type_hint=float, optional=True)
     ]
     outputs_def = [ExecOut("Out")]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Mapa de Calor",
+            "description": "Plota uma matriz 2D de valores com extensões e mapeamento de cores opcionais.",
+            "pins": {
+                "Plot": "Plotar",
+                "Colormap": "Mapa de Cores",
+                "XLabel": "Rótulo X",
+                "YLabel": "Rótulo Y",
+                "ZLabel": "Rótulo Z",
+                "PlotType": "Tipo de Gráfico",
+                "Interpolation": "Interpolação",
+                "XMin": "X Mín",
+                "XMax": "X Máx",
+                "YMin": "Y Mín",
+                "YMax": "Y Máx",
+                "ZMin": "Z Mín",
+                "ZMax": "Z Máx",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Mapa de Calor",
+            "description": "Grafica una matriz 2D de valores con extensiones y mapeo de colores opcionales.",
+            "pins": {
+                "Plot": "Graficar",
+                "Colormap": "Mapa de Colores",
+                "XLabel": "Etiqueta X",
+                "YLabel": "Etiqueta Y",
+                "ZLabel": "Etiqueta Z",
+                "PlotType": "Tipo de Gráfico",
+                "Interpolation": "Interpolación",
+                "XMin": "X Mín",
+                "XMax": "X Máx",
+                "YMin": "Y Mín",
+                "YMax": "Y Máx",
+                "ZMin": "Z Mín",
+                "ZMax": "Z Máx",
+                "Out": "Salida"
+            }
+        }
+    }
 
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
         z = await context.pull(self.id, "Z")

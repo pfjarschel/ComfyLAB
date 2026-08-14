@@ -20,6 +20,16 @@ class GenericPowerSupplyConnectBlock(BaseDeviceConnectBlock):
     icon = "🔋"
     display_name = "Generic Power Supply Connect"
     description = "Opens a VISA session to a SCPI Power Supply. On teardown, turns output OFF."
+    i18n = {
+        "pt-BR": {
+            "display_name": "Conexão Genérica de Fonte de Alimentação",
+            "description": "Abre uma sessão VISA para uma Fonte de Alimentação SCPI. Na desconexão, desliga a saída."
+        },
+        "es": {
+            "display_name": "Conexión Genérica de Fuente de Alimentación",
+            "description": "Abre una sesión VISA para una Fuente de Alimentación SCPI. Al desconectar, apaga la salida."
+        }
+    }
 
     async def _device_teardown(self, device: Any, lock_manager: Any) -> None:
         drv = GenericPowerSupply(device)
@@ -50,6 +60,34 @@ class GenericPowerSupplySetChannelBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Device", type_hint=Any)
     ]
+    i18n = {
+        "pt-BR": {
+            "display_name": "Configurar Canal Genérico de Fonte de Alimentação",
+            "description": "Configura a tensão (V) e o limite de corrente (A) em um canal de Fonte de Alimentação SCPI.",
+            "pins": {
+                "In": "Entrada",
+                "Device": "Dispositivo",
+                "Channel": "Canal",
+                "Voltage": "Tensão",
+                "CurrentLimit": "Limite de Corrente",
+                "Enable": "Habilitar",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Configurar Canal Genérico de Fuente de Alimentación",
+            "description": "Configura el voltaje (V) y el límite de corriente (A) en un canal de Fuente de Alimentación SCPI.",
+            "pins": {
+                "In": "Entrada",
+                "Device": "Dispositivo",
+                "Channel": "Canal",
+                "Voltage": "Voltaje",
+                "CurrentLimit": "Límite de Corriente",
+                "Enable": "Habilitar",
+                "Out": "Salida"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Device":
@@ -89,6 +127,32 @@ class GenericPowerSupplyMeasureBlock(BaseBlock):
         DataOut("Current", type_hint=float),
         DataOut("Device", type_hint=Any)
     ]
+    i18n = {
+        "pt-BR": {
+            "display_name": "Medição Genérica de Fonte de Alimentação",
+            "description": "Consulta leituras em tempo real de tensão (V) e corrente (A) de saída de um canal de Fonte de Alimentação.",
+            "pins": {
+                "In": "Entrada",
+                "Device": "Dispositivo",
+                "Channel": "Canal",
+                "Out": "Saída",
+                "Voltage": "Tensão",
+                "Current": "Corrente"
+            }
+        },
+        "es": {
+            "display_name": "Medición Genérica de Fuente de Alimentación",
+            "description": "Consulta lecturas en tiempo real de voltaje (V) y corriente (A) de salida de un canal de Fuente de Alimentación.",
+            "pins": {
+                "In": "Entrada",
+                "Device": "Dispositivo",
+                "Channel": "Canal",
+                "Out": "Salida",
+                "Voltage": "Voltaje",
+                "Current": "Corriente"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)

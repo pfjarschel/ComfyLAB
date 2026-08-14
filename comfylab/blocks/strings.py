@@ -18,6 +18,31 @@ class StringSubstringBlock(BaseBlock):
     ]
     outputs_def = [DataOut("Result", type_hint=str)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Sub-string",
+            "description": "Extrai parte de uma string com base no Início e Comprimento (ou Fim se o Comprimento for 0 ou omitido).",
+            "category": "Strings",
+            "pins": {
+                "Text": "Texto",
+                "Start": "Início",
+                "End": "Fim",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Subcadena",
+            "description": "Extrae una parte de una cadena según Inicio y Longitud (o Fin si la Longitud es 0 u omitida).",
+            "category": "Cadenas",
+            "pins": {
+                "Text": "Texto",
+                "Start": "Inicio",
+                "End": "Fin",
+                "Result": "Resultado"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
             text = str(await context.pull(self.id, "Text") or "")
@@ -42,6 +67,29 @@ class StringSplitBlock(BaseBlock):
     ]
     outputs_def = [DataOut("List", type_hint=list)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Dividir String",
+            "description": "Divide uma string em uma lista de strings com base em um separador.",
+            "category": "Strings",
+            "pins": {
+                "Text": "Texto",
+                "Separator": "Separador",
+                "List": "Lista"
+            }
+        },
+        "es": {
+            "display_name": "Dividir Cadena",
+            "description": "Divide una cadena en una lista de cadenas según un separador.",
+            "category": "Cadenas",
+            "pins": {
+                "Text": "Texto",
+                "Separator": "Separador",
+                "List": "Lista"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "List":
             text = str(await context.pull(self.id, "Text") or "")
@@ -65,6 +113,29 @@ class StringJoinBlock(BaseBlock):
         DataIn("Separator", type_hint=str, default=", ", widget="text")
     ]
     outputs_def = [DataOut("Text", type_hint=str)]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Juntar Strings",
+            "description": "Junta uma lista de strings em uma única string usando um separador.",
+            "category": "Strings",
+            "pins": {
+                "List": "Lista",
+                "Separator": "Separador",
+                "Text": "Texto"
+            }
+        },
+        "es": {
+            "display_name": "Unir Cadenas",
+            "description": "Une una lista de cadenas en una sola cadena usando un separador.",
+            "category": "Cadenas",
+            "pins": {
+                "List": "Lista",
+                "Separator": "Separador",
+                "Text": "Texto"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Text":
@@ -94,6 +165,31 @@ class StringReplaceBlock(BaseBlock):
     ]
     outputs_def = [DataOut("Result", type_hint=str)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Substituir String",
+            "description": "Substitui todas as ocorrências da substring 'Velha' pela substring 'Nova'.",
+            "category": "Strings",
+            "pins": {
+                "Text": "Texto",
+                "Old": "Velha",
+                "New": "Nova",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Reemplazar Cadena",
+            "description": "Reemplaza todas las ocurrencias de la subcadena 'Vieja' por la subcadena 'Nueva'.",
+            "category": "Cadenas",
+            "pins": {
+                "Text": "Texto",
+                "Old": "Vieja",
+                "New": "Nueva",
+                "Result": "Resultado"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
             text = str(await context.pull(self.id, "Text") or "")
@@ -118,6 +214,29 @@ class StringConcatBlock(BaseBlock):
     ]
     outputs_def = [DataOut("Result", type_hint=str)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Concatenar",
+            "description": "Junta a String A e a String B. Opcionalmente, forneça uma lista em 'Lista' para concatenar várias.",
+            "category": "Strings",
+            "pins": {
+                "String A": "String A",
+                "String B": "String B",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Concatenar",
+            "description": "Une la Cadena A y la Cadena B. Opcionalmente, pasa una lista a 'Lista' para concatenar varias.",
+            "category": "Cadenas",
+            "pins": {
+                "String A": "Cadena A",
+                "String B": "Cadena B",
+                "Result": "Resultado"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
             a = str(await context.pull(self.id, "String A") or "")
@@ -137,6 +256,27 @@ class StringLengthBlock(BaseBlock):
     ]
     outputs_def = [DataOut("Length", type_hint=int)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Tamanho da String",
+            "description": "Retorna o comprimento do texto de entrada.",
+            "category": "Strings",
+            "pins": {
+                "Text": "Texto",
+                "Length": "Tamanho"
+            }
+        },
+        "es": {
+            "display_name": "Longitud de Cadena",
+            "description": "Devuelve la longitud del texto de entrada.",
+            "category": "Cadenas",
+            "pins": {
+                "Text": "Texto",
+                "Length": "Longitud"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Length":
             text = str(await context.pull(self.id, "Text") or "")
@@ -155,6 +295,29 @@ class StringCaseBlock(BaseBlock):
         DataIn("Mode", type_hint=str, default="Upper", options=["Upper", "Lower", "Title"])
     ]
     outputs_def = [DataOut("Result", type_hint=str)]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Mudar Maiúsculas/Minúsculas",
+            "description": "Converte o texto para maiúsculas, minúsculas ou capitalizado.",
+            "category": "Strings",
+            "pins": {
+                "Text": "Texto",
+                "Mode": "Modo",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Cambiar Mayúsculas/Minúsculas",
+            "description": "Convierte el texto a mayúsculas, minúsculas o formato título.",
+            "category": "Cadenas",
+            "pins": {
+                "Text": "Texto",
+                "Mode": "Modo",
+                "Result": "Resultado"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
@@ -180,6 +343,27 @@ class StringTrimBlock(BaseBlock):
     ]
     outputs_def = [DataOut("Result", type_hint=str)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Aparar String",
+            "description": "Remove os espaços em branco no início e no final do texto.",
+            "category": "Strings",
+            "pins": {
+                "Text": "Texto",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Recortar Cadena",
+            "description": "Elimina los espacios en blanco iniciales y finales del texto.",
+            "category": "Cadenas",
+            "pins": {
+                "Text": "Texto",
+                "Result": "Resultado"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
             text = str(await context.pull(self.id, "Text") or "")
@@ -201,6 +385,33 @@ class FormatStringBlock(BaseBlock):
         DataIn("Arg2", type_hint=Any, default="", widget="text", optional=True)
     ]
     outputs_def = [DataOut("Result", type_hint=str)]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Formatar String",
+            "description": "Gera um texto substituindo espaços reservados do tipo {0}.",
+            "category": "Strings",
+            "pins": {
+                "Template": "Modelo",
+                "Arg0": "Arg0",
+                "Arg1": "Arg1",
+                "Arg2": "Arg2",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Formatear Cadena",
+            "description": "Genera un texto reemplazando marcadores de posición estilo {0}.",
+            "category": "Cadenas",
+            "pins": {
+                "Template": "Plantilla",
+                "Arg0": "Arg0",
+                "Arg1": "Arg1",
+                "Arg2": "Arg2",
+                "Result": "Resultado"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
@@ -231,6 +442,31 @@ class StringContainsBlock(BaseBlock):
         DataOut("Found", type_hint=bool),
         DataOut("Index", type_hint=int)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Contém String",
+            "description": "Procura ocorrências de uma string em outra, indicando se foi encontrada e o índice de sua última aparição.",
+            "category": "Strings",
+            "pins": {
+                "Text": "Texto",
+                "Search": "Buscar",
+                "Found": "Encontrado",
+                "Index": "Índice"
+            }
+        },
+        "es": {
+            "display_name": "Contiene Cadena",
+            "description": "Busca ocurrencias de una cadena en otra, devolviendo si fue encontrada y el índice de su última aparición.",
+            "category": "Cadenas",
+            "pins": {
+                "Text": "Texto",
+                "Search": "Buscar",
+                "Found": "Encontrado",
+                "Index": "Índice"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         text = str(await context.pull(self.id, "Text") or "")

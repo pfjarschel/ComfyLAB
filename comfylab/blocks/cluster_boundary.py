@@ -32,6 +32,31 @@ class ClusterInputBlock(BaseBlock):
         DataOut("Value", type_hint=Any)
     ]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Entrada de Cluster",
+            "description": "Expõe um pino de limite de entrada de cluster. Conecte isso a blocos dentro do cluster.",
+            "pins": {
+                "Name": "Nome",
+                "Type": "Tipo",
+                "DataType": "Tipo de Dados",
+                "Out": "Saída",
+                "Value": "Valor"
+            }
+        },
+        "es": {
+            "display_name": "Entrada de Clúster",
+            "description": "Expone un pin de límite de entrada de clúster. Conecte esto a bloques dentro del clúster.",
+            "pins": {
+                "Name": "Nombre",
+                "Type": "Tipo",
+                "DataType": "Tipo de Datos",
+                "Out": "Salida",
+                "Value": "Valor"
+            }
+        }
+    }
+
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
         return "Out"
 
@@ -58,6 +83,30 @@ class ClusterOutputBlock(BaseBlock):
         DataIn("Value", type_hint=Any, optional=False)
     ]
     outputs_def = []
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Saída de Cluster",
+            "description": "Expõe um pino de limite de saída de cluster. Conecte blocos dentro do cluster a isso.",
+            "pins": {
+                "Name": "Nome",
+                "Type": "Tipo",
+                "In": "Entrada",
+                "Value": "Valor"
+            }
+        },
+        "es": {
+            "display_name": "Salida de Clúster",
+            "description": "Expone un pin de límite de salida de clúster. Conecte bloques dentro del clúster a esto.",
+            "pins": {
+                "Name": "Nombre",
+                "Type": "Tipo",
+                "In": "Entrada",
+                "Value": "Valor"
+            }
+        }
+    }
+
 
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
         if trigger_pin == "In":

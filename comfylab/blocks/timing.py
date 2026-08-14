@@ -34,6 +34,27 @@ class SleepBlock(BaseBlock):
     ]
     outputs_def = [ExecOut("Out")]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Dormir",
+            "description": "Atrasa a execução por um número especificado de segundos.",
+            "pins": {
+                "In": "Entrada",
+                "Delay": "Atraso",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Dormir",
+            "description": "Retrasa la ejecución por un número especificado de segundos.",
+            "pins": {
+                "In": "Entrada",
+                "Delay": "Retraso",
+                "Out": "Salida"
+            }
+        }
+    }
+
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
         delay = await context.pull(self.id, "Delay")
         d = max(0.0, float(delay))
@@ -57,6 +78,29 @@ class MeasureTimeBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Time", type_hint=float)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Medir Tempo",
+            "description": "Mede o tempo decorrido entre tokens de execução no bloco, e emite a duração em segundos.",
+            "pins": {
+                "In": "Entrada",
+                "Body": "Corpo",
+                "Out": "Saída",
+                "Time": "Tempo"
+            }
+        },
+        "es": {
+            "display_name": "Medir Tiempo",
+            "description": "Mide el tiempo transcurrido entre tokens de ejecución en el bloque, y emite la duración en segundos.",
+            "pins": {
+                "In": "Entrada",
+                "Body": "Cuerpo",
+                "Out": "Salida",
+                "Time": "Tiempo"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)
@@ -112,6 +156,35 @@ class TimerBlock(BaseBlock):
         ExecOut("Tick"),
         ExecOut("Finished")
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Temporizador",
+            "description": "Aciona a execução periodicamente em um intervalo especificado.",
+            "pins": {
+                "Start": "Iniciar",
+                "Stop": "Parar",
+                "Interval": "Intervalo",
+                "Count": "Contagem",
+                "StopCondition": "Condição de Parada",
+                "Tick": "Tique",
+                "Finished": "Concluído"
+            }
+        },
+        "es": {
+            "display_name": "Temporizador",
+            "description": "Desencadena la ejecución periódicamente en un intervalo especificado.",
+            "pins": {
+                "Start": "Iniciar",
+                "Stop": "Detener",
+                "Interval": "Intervalo",
+                "Count": "Conteo",
+                "StopCondition": "Condición de Parada",
+                "Tick": "Tic",
+                "Finished": "Terminado"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)

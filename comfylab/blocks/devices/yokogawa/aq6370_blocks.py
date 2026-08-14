@@ -23,6 +23,17 @@ class AQ6370ConnectBlock(BaseDeviceConnectBlock):
     display_name = "Yokogawa AQ6370 Connect"
     description = "Opens a VISA session to a Yokogawa AQ6370 Optical Spectrum Analyzer."
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Conectar Yokogawa AQ6370",
+            "description": "Abre uma sessão VISA para um Analisador de Espectro Óptico Yokogawa AQ6370."
+        },
+        "es": {
+            "display_name": "Conectar Yokogawa AQ6370",
+            "description": "Abre una sesión VISA a un Analizador de Espectro Óptico Yokogawa AQ6370."
+        }
+    }
+
 
 @register_block("devices/yokogawa/aq6370/sweep_config")
 class AQ6370SweepConfigBlock(BaseBlock):
@@ -47,6 +58,29 @@ class AQ6370SweepConfigBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Device", type_hint=Any)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Configuração de Varredura Yokogawa AQ6370",
+            "description": "Configura comprimento de onda central, span, RBW, sensibilidade, modo de varredura e traço ativo em um OSA Yokogawa AQ6370.",
+            "pins": {
+                "Device": "Dispositivo",
+                "CenterWavelength": "ComprimentoDeOndaCentral",
+                "WaitCompletion": "AguardarConclusao",
+                "FixOtherTraces": "FixarOutrosTracos"
+            }
+        },
+        "es": {
+            "display_name": "Configuración de Barrido Yokogawa AQ6370",
+            "description": "Configura la longitud de onda central, span, RBW, sensibilidad, modo de barrido y traza activa en un OSA Yokogawa AQ6370.",
+            "pins": {
+                "Device": "Dispositivo",
+                "CenterWavelength": "LongitudDeOndaCentral",
+                "WaitCompletion": "EsperarFinalizacion",
+                "FixOtherTraces": "FijarOtrasTrazas"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Device":
@@ -95,6 +129,29 @@ class AQ6370AcquireBlock(BaseBlock):
         DataOut("Wavelength", type_hint=np.ndarray),
         DataOut("Device", type_hint=Any)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Yokogawa AQ6370 Obter Dados do Traço",
+            "description": "Busca vetores de comprimento de onda e potência diretamente da memória do OSA Yokogawa sem acionar uma varredura.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Trace": "Traco",
+                "Power": "Potencia",
+                "Wavelength": "ComprimentoDeOnda"
+            }
+        },
+        "es": {
+            "display_name": "Yokogawa AQ6370 Obtener Datos de Traza",
+            "description": "Obtiene arreglos de longitud de onda y potencia directamente de la memoria del OSA Yokogawa sin activar un barrido.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Trace": "Traza",
+                "Power": "Potencia",
+                "Wavelength": "LongitudDeOnda"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)
@@ -148,6 +205,29 @@ class AQ6370SweepAndAcquireBlock(BaseBlock):
         DataOut("Wavelength", type_hint=np.ndarray),
         DataOut("Device", type_hint=Any)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Yokogawa AQ6370 Varrer e Adquirir",
+            "description": "Aciona uma única varredura, aguarda a conclusão e busca os vetores do traço de um OSA Yokogawa.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Trace": "Traco",
+                "Power": "Potencia",
+                "Wavelength": "ComprimentoDeOnda"
+            }
+        },
+        "es": {
+            "display_name": "Yokogawa AQ6370 Barrer y Adquirir",
+            "description": "Activa un solo barrido, espera la finalización y obtiene los arreglos de traza de un OSA Yokogawa.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Trace": "Traza",
+                "Power": "Potencia",
+                "Wavelength": "LongitudDeOnda"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)

@@ -21,6 +21,17 @@ class HP34401AConnectBlock(BaseDeviceConnectBlock):
     display_name = "HP 34401A DMM Connect"
     description = "Opens a VISA session to an HP / Agilent 34401A 6½ Digit Multimeter."
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Conectar DMM HP 34401A",
+            "description": "Abre uma sessão VISA para um Multímetro de 6½ Dígitos HP / Agilent 34401A."
+        },
+        "es": {
+            "display_name": "Conectar DMM HP 34401A",
+            "description": "Abre una sesión VISA a un Multímetro de 6½ Dígitos HP / Agilent 34401A."
+        }
+    }
+
 
 @register_block("devices/agilent/hp34401a/measure")
 class HP34401AMeasureBlock(BaseBlock):
@@ -41,6 +52,29 @@ class HP34401AMeasureBlock(BaseBlock):
         DataOut("Value", type_hint=float),
         DataOut("Device", type_hint=Any)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Medir HP 34401A",
+            "description": "Configura o modo (VOLT:DC, CURR:DC, RES, etc.) e aciona a leitura em um DMM HP 34401A.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Mode": "Modo",
+                "Range": "Faixa",
+                "Value": "Valor"
+            }
+        },
+        "es": {
+            "display_name": "Medir HP 34401A",
+            "description": "Configura el modo (VOLT:DC, CURR:DC, RES, etc.) y activa la lectura en un DMM HP 34401A.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Mode": "Modo",
+                "Range": "Rango",
+                "Value": "Valor"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)

@@ -23,6 +23,17 @@ class AdvantestQ8384ConnectBlock(BaseDeviceConnectBlock):
     display_name = "Advantest Q8384 Connect"
     description = "Opens a VISA session to an Advantest Q8384 Optical Spectrum Analyzer."
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Conectar Advantest Q8384",
+            "description": "Abre uma sessão VISA para um Analisador de Espectro Óptico Advantest Q8384."
+        },
+        "es": {
+            "display_name": "Conectar Advantest Q8384",
+            "description": "Abre una sesión VISA a un Analizador de Espectro Óptico Advantest Q8384."
+        }
+    }
+
 
 @register_block("devices/advantest/q8384/sweep_config")
 class AdvantestQ8384SweepConfigBlock(BaseBlock):
@@ -44,6 +55,27 @@ class AdvantestQ8384SweepConfigBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Device", type_hint=Any)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Configuração de Varredura Advantest Q8384",
+            "description": "Configura comprimento de onda central, span, RBW e modo de varredura em um OSA Advantest Q8384.",
+            "pins": {
+                "Device": "Dispositivo",
+                "CenterWavelength": "ComprimentoDeOndaCentral",
+                "WaitCompletion": "AguardarConclusao"
+            }
+        },
+        "es": {
+            "display_name": "Configuración de Barrido Advantest Q8384",
+            "description": "Configura la longitud de onda central, span, RBW y modo de barrido en un OSA Advantest Q8384.",
+            "pins": {
+                "Device": "Dispositivo",
+                "CenterWavelength": "LongitudDeOndaCentral",
+                "WaitCompletion": "EsperarFinalizacion"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Device":
@@ -86,6 +118,27 @@ class AdvantestQ8384AcquireBlock(BaseBlock):
         DataOut("Wavelength", type_hint=np.ndarray),
         DataOut("Device", type_hint=Any)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Advantest Q8384 Obter Dados do Traço",
+            "description": "Busca vetores de comprimento de onda e potência diretamente da memória do OSA Advantest sem acionar uma varredura.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Power": "Potencia",
+                "Wavelength": "ComprimentoDeOnda"
+            }
+        },
+        "es": {
+            "display_name": "Advantest Q8384 Obtener Datos de Traza",
+            "description": "Obtiene arreglos de longitud de onda y potencia directamente de la memoria del OSA Advantest sin activar un barrido.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Power": "Potencia",
+                "Wavelength": "LongitudDeOnda"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)
@@ -137,6 +190,27 @@ class AdvantestQ8384SweepAndAcquireBlock(BaseBlock):
         DataOut("Wavelength", type_hint=np.ndarray),
         DataOut("Device", type_hint=Any)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Advantest Q8384 Varrer e Adquirir",
+            "description": "Aciona uma única varredura, aguarda a conclusão e busca os vetores do traço de um OSA Advantest Q8384.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Power": "Potencia",
+                "Wavelength": "ComprimentoDeOnda"
+            }
+        },
+        "es": {
+            "display_name": "Advantest Q8384 Barrer y Adquirir",
+            "description": "Activa un solo barrido, espera la finalización y obtiene los arreglos de traza de un OSA Advantest Q8384.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Power": "Potencia",
+                "Wavelength": "LongitudDeOnda"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)

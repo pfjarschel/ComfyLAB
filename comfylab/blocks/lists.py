@@ -35,6 +35,35 @@ class AccumulateListBlock(BaseBlock):
         DataOut("List", type_hint=list)
     ]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Acumular Lista",
+            "description": "Acumula valores de entrada em uma lista. Tem um pino Append para adicionar itens e um pino Reset para limpá-los.",
+            "category": "Listas",
+            "pins": {
+                "Append": "Anexar",
+                "Reset": "Redefinir",
+                "Value": "Valor",
+                "Out": "Saída",
+                "Skipped": "Ignorado",
+                "List": "Lista"
+            }
+        },
+        "es": {
+            "display_name": "Acumular Lista",
+            "description": "Acumula valores de entrada en una lista. Tiene un pin Append para añadir elementos y un pin Reset para vaciarlos.",
+            "category": "Listas",
+            "pins": {
+                "Append": "Añadir",
+                "Reset": "Restablecer",
+                "Value": "Valor",
+                "Out": "Salida",
+                "Skipped": "Omitido",
+                "List": "Lista"
+            }
+        }
+    }
+
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)
         self._list: List[Any] = []
@@ -75,6 +104,27 @@ class CreateListBlock(BaseBlock):
         DataIn("ParseNumbers", type_hint=bool, default=False, widget="checkbox")
     ]
     outputs_def = [DataOut("List", type_hint=list)]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Criar Lista",
+            "description": "Cria uma lista a partir de uma string de números ou textos separados por vírgula.",
+            "category": "Listas",
+            "pins": {
+                "ParseNumbers": "AnalisarNúmeros",
+                "List": "Lista"
+            }
+        },
+        "es": {
+            "display_name": "Crear Lista",
+            "description": "Crea una lista a partir de una cadena de números o textos separados por comas.",
+            "category": "Listas",
+            "pins": {
+                "ParseNumbers": "AnalizarNúmeros",
+                "List": "Lista"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)
@@ -124,6 +174,25 @@ class PackListBlock(BaseBlock):
     inputs_def = []
     outputs_def = [DataOut("List", type_hint=list)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Empacotar Lista",
+            "description": "Empacota várias entradas avaliadas em uma lista python padrão.",
+            "category": "Listas",
+            "pins": {
+                "List": "Lista"
+            }
+        },
+        "es": {
+            "display_name": "Empaquetar Lista",
+            "description": "Empaqueta múltiples entradas evaluadas en una lista estándar de python.",
+            "category": "Listas",
+            "pins": {
+                "List": "Lista"
+            }
+        }
+    }
+
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)
         make_dynamic_item_inputs(self, "Item", 2, type_hint=Any, default=None)
@@ -151,6 +220,29 @@ class GetListItemBlock(BaseBlock):
         DataIn("Index", type_hint=Any, default=0, widget="number")
     ]
     outputs_def = [DataOut("Item", type_hint=Any)]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Obter Item da Lista",
+            "description": "Recupera um item da lista em um índice específico.",
+            "category": "Listas",
+            "pins": {
+                "List": "Lista",
+                "Index": "Índice",
+                "Item": "Item"
+            }
+        },
+        "es": {
+            "display_name": "Obtener Elemento de Lista",
+            "description": "Recupera un elemento de la lista en un índice específico.",
+            "category": "Listas",
+            "pins": {
+                "List": "Lista",
+                "Index": "Índice",
+                "Item": "Elemento"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Item":
@@ -210,6 +302,27 @@ class ListLengthBlock(BaseBlock):
     ]
     outputs_def = [DataOut("Length", type_hint=int)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Tamanho da Lista",
+            "description": "Fornece o tamanho da lista.",
+            "category": "Listas",
+            "pins": {
+                "List": "Lista",
+                "Length": "Tamanho"
+            }
+        },
+        "es": {
+            "display_name": "Longitud de Lista",
+            "description": "Devuelve el tamaño de la lista.",
+            "category": "Listas",
+            "pins": {
+                "List": "Lista",
+                "Length": "Longitud"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Length":
             arr = await context.pull(self.id, "List")
@@ -234,6 +347,29 @@ class ConcatListsBlock(BaseBlock):
     ]
     outputs_def = [DataOut("Result", type_hint=list)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Concatenar Listas",
+            "description": "Concatena a lista A e a lista B.",
+            "category": "Listas",
+            "pins": {
+                "ListA": "ListaA",
+                "ListB": "ListaB",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Concatenar Listas",
+            "description": "Concatena la lista A y la lista B.",
+            "category": "Listas",
+            "pins": {
+                "ListA": "ListaA",
+                "ListB": "ListaB",
+                "Result": "Resultado"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
             a = await context.pull(self.id, "ListA")
@@ -257,6 +393,27 @@ class TransposeListBlock(BaseBlock):
         DataIn("List", type_hint=list)
     ]
     outputs_def = [DataOut("Transposed", type_hint=list)]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Transpor Lista",
+            "description": "Transpõe uma lista ou lista 2D aninhada (lista de listas).",
+            "category": "Listas",
+            "pins": {
+                "List": "Lista",
+                "Transposed": "Transposta"
+            }
+        },
+        "es": {
+            "display_name": "Transponer Lista",
+            "description": "Transpone una lista o lista anidada 2D (lista de listas).",
+            "category": "Listas",
+            "pins": {
+                "List": "Lista",
+                "Transposed": "Transpuesta"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Transposed":
@@ -284,6 +441,29 @@ class AppendListBlock(BaseBlock):
     ]
     outputs_def = [DataOut("Result", type_hint=list)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Anexar à Lista",
+            "description": "Adiciona um valor a uma lista e retorna a nova lista.",
+            "category": "Listas",
+            "pins": {
+                "List": "Lista",
+                "Value": "Valor",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Añadir a Lista",
+            "description": "Añade un valor a una lista y devuelve la nueva lista.",
+            "category": "Listas",
+            "pins": {
+                "List": "Lista",
+                "Value": "Valor",
+                "Result": "Resultado"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
             lst = await context.pull(self.id, "List")
@@ -306,6 +486,29 @@ class SortListBlock(BaseBlock):
         DataIn("Reverse", type_hint=bool, default=False, widget="checkbox")
     ]
     outputs_def = [DataOut("Sorted", type_hint=list)]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Ordenar Lista",
+            "description": "Ordena uma lista em ordem crescente ou decrescente.",
+            "category": "Listas",
+            "pins": {
+                "List": "Lista",
+                "Reverse": "Inverter",
+                "Sorted": "Ordenada"
+            }
+        },
+        "es": {
+            "display_name": "Ordenar Lista",
+            "description": "Ordena una lista en orden ascendente o descendente.",
+            "category": "Listas",
+            "pins": {
+                "List": "Lista",
+                "Reverse": "Invertir",
+                "Sorted": "Ordenada"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Sorted":
@@ -334,6 +537,33 @@ class SliceListBlock(BaseBlock):
         DataIn("Step", type_hint=int, default=1, widget="number")
     ]
     outputs_def = [DataOut("Sliced", type_hint=list)]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Fatiar Lista",
+            "description": "Fatia uma lista do Início ao Fim com um Passo.",
+            "category": "Listas",
+            "pins": {
+                "List": "Lista",
+                "Start": "Início",
+                "Stop": "Fim",
+                "Step": "Passo",
+                "Sliced": "Fatiada"
+            }
+        },
+        "es": {
+            "display_name": "Cortar Lista",
+            "description": "Corta una lista desde el Inicio hasta el Fin con un Paso.",
+            "category": "Listas",
+            "pins": {
+                "List": "Lista",
+                "Start": "Inicio",
+                "Stop": "Fin",
+                "Step": "Paso",
+                "Sliced": "Cortada"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Sliced":
@@ -369,6 +599,29 @@ class TakeListBlock(BaseBlock):
         DataIn("Indices", type_hint=list)
     ]
     outputs_def = [DataOut("Result", type_hint=list)]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Pegar Itens da Lista",
+            "description": "Extrai elementos de uma lista baseando-se em uma lista de índices (útil para reordenar).",
+            "category": "Listas",
+            "pins": {
+                "List": "Lista",
+                "Indices": "Índices",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Tomar Elementos de Lista",
+            "description": "Extrae elementos de una lista basándose en una lista de índices (útil para reordenar).",
+            "category": "Listas",
+            "pins": {
+                "List": "Lista",
+                "Indices": "Índices",
+                "Result": "Resultado"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":

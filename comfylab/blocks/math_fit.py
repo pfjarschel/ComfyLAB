@@ -31,6 +31,37 @@ class CurveFitBlock(BaseBlock):
         DataOut("FitY", type_hint=np.ndarray)
     ]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Ajuste de Curva",
+            "description": "Ajusta os dados X e Y a funções matemáticas comuns usando mínimos quadrados.",
+            "category": "Matemática",
+            "pins": {
+                "X": "X",
+                "Y": "Y",
+                "FunctionType": "TipoDeFunção",
+                "PolyDegree": "GrauPolinômio",
+                "InitialGuesses": "EstimativasIniciais",
+                "Parameters": "Parâmetros",
+                "FitY": "YAjustado"
+            }
+        },
+        "es": {
+            "display_name": "Ajuste de Curva",
+            "description": "Ajusta los datos X e Y a funciones matemáticas comunes usando mínimos cuadrados.",
+            "category": "Matemáticas",
+            "pins": {
+                "X": "X",
+                "Y": "Y",
+                "FunctionType": "TipoDeFunción",
+                "PolyDegree": "GradoPolinomio",
+                "InitialGuesses": "EstimacionesIniciales",
+                "Parameters": "Parámetros",
+                "FitY": "YAjustado"
+            }
+        }
+    }
+
     # Cache key for the per-step shared fit result (both output pins reuse it)
     _FIT_CACHE_KEY = "__curve_fit_result__"
 
@@ -168,6 +199,41 @@ class CustomFunctionFitBlock(BaseBlock):
         DataOut("Parameters", type_hint=np.ndarray),
         DataOut("FitY", type_hint=np.ndarray)
     ]
+    
+    i18n = {
+        "pt-BR": {
+            "display_name": "Ajuste de Função Personalizada",
+            "description": "Ajusta os dados X e Y a uma expressão matemática definida pelo usuário.",
+            "category": "Matemática",
+            "pins": {
+                "X": "X",
+                "Y": "Y",
+                "InitialGuesses": "EstimativasIniciais",
+                "Parameters": "Parâmetros",
+                "FitY": "YAjustado"
+            },
+            "properties": {
+                "expression": "Expressão",
+                "variables": "Variáveis"
+            }
+        },
+        "es": {
+            "display_name": "Ajuste de Función Personalizada",
+            "description": "Ajusta los datos X e Y a una expresión matemática definida por el usuario.",
+            "category": "Matemáticas",
+            "pins": {
+                "X": "X",
+                "Y": "Y",
+                "InitialGuesses": "EstimacionesIniciales",
+                "Parameters": "Parámetros",
+                "FitY": "YAjustado"
+            },
+            "properties": {
+                "expression": "Expresión",
+                "variables": "Variables"
+            }
+        }
+    }
     
     # Cache key for the per-step shared fit result (both output pins reuse it)
     _FIT_CACHE_KEY = "__custom_fit_result__"

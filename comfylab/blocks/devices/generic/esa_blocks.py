@@ -22,6 +22,16 @@ class GenericESAConnectBlock(BaseDeviceConnectBlock):
     icon = "📻"
     display_name = "Generic ESA Connect"
     description = "Opens a VISA session to a SCPI Electrical Spectrum Analyzer (ESA)."
+    i18n = {
+        "pt-BR": {
+            "display_name": "Conexão Genérica ESA",
+            "description": "Abre uma sessão VISA para um Analisador de Espectro Elétrico (ESA) SCPI."
+        },
+        "es": {
+            "display_name": "Conexión Genérica ESA",
+            "description": "Abre una sesión VISA para un Analizador de Espectro Eléctrico (ESA) SCPI."
+        }
+    }
 
 
 @register_block("devices/generic/esa/sweep_config")
@@ -46,6 +56,34 @@ class GenericESASweepConfigBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Device", type_hint=Any)
     ]
+    i18n = {
+        "pt-BR": {
+            "display_name": "Configuração de Varredura Genérica ESA",
+            "description": "Configura centro/span de frequência, início/parada, RBW, VBW e pontos de varredura em um ESA SCPI.",
+            "pins": {
+                "In": "Entrada",
+                "Device": "Dispositivo",
+                "Center": "Centro",
+                "Start": "Início",
+                "Stop": "Parada",
+                "Points": "Pontos",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Configuración de Barrido Genérica ESA",
+            "description": "Configura centro/span de frecuencia, inicio/parada, RBW, VBW y puntos de barrido en un ESA SCPI.",
+            "pins": {
+                "In": "Entrada",
+                "Device": "Dispositivo",
+                "Center": "Centro",
+                "Start": "Inicio",
+                "Stop": "Parada",
+                "Points": "Puntos",
+                "Out": "Salida"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Device":
@@ -89,6 +127,32 @@ class GenericESAAcquireBlock(BaseBlock):
         DataOut("Frequency", type_hint=np.ndarray),
         DataOut("Device", type_hint=Any)
     ]
+    i18n = {
+        "pt-BR": {
+            "display_name": "Adquirir Traço Genérico ESA",
+            "description": "Aciona a aquisição de traço de um ESA SCPI, fornece arrays e transmite telemetria de plotagem.",
+            "pins": {
+                "In": "Entrada",
+                "Device": "Dispositivo",
+                "Trace": "Traço",
+                "Out": "Saída",
+                "Power": "Potência",
+                "Frequency": "Frequência"
+            }
+        },
+        "es": {
+            "display_name": "Adquirir Trazo Genérico ESA",
+            "description": "Activa la adquisición de trazo de un ESA SCPI, emite arrays y transmite telemetría de trazado visual.",
+            "pins": {
+                "In": "Entrada",
+                "Device": "Dispositivo",
+                "Trace": "Trazo",
+                "Out": "Salida",
+                "Power": "Potencia",
+                "Frequency": "Frecuencia"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)

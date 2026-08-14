@@ -27,6 +27,29 @@ class GaussianBlock(BaseBlock):
     ]
     outputs_def = [DataOut("Result", type_hint=Any)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Gaussiana",
+            "description": "Avalia uma função Gaussiana: Amplitude * exp(-((X - Centro)^2) / (2 * Largura^2))",
+            "pins": {
+                "Amplitude": "Amplitude",
+                "Center": "Centro",
+                "Width": "Largura",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Gaussiana",
+            "description": "Evalúa una función Gaussiana: Amplitud * exp(-((X - Centro)^2) / (2 * Ancho^2))",
+            "pins": {
+                "Amplitude": "Amplitud",
+                "Center": "Centro",
+                "Width": "Ancho",
+                "Result": "Resultado"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
             x = await context.pull(self.id, "X")
@@ -57,6 +80,29 @@ class LorentzianBlock(BaseBlock):
         DataIn("Gamma", type_hint=float, default=1.0, widget="number")
     ]
     outputs_def = [DataOut("Result", type_hint=Any)]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Lorentziana",
+            "description": "Avalia uma função Lorentziana: Amplitude * (Gama^2 / ((X - Centro)^2 + Gama^2))",
+            "pins": {
+                "Amplitude": "Amplitude",
+                "Center": "Centro",
+                "Gamma": "Gama",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Lorentziana",
+            "description": "Evalúa una función Lorentziana: Amplitud * (Gamma^2 / ((X - Centro)^2 + Gamma^2))",
+            "pins": {
+                "Amplitude": "Amplitud",
+                "Center": "Centro",
+                "Gamma": "Gamma",
+                "Result": "Resultado"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
@@ -90,6 +136,33 @@ class PulseBlock(BaseBlock):
         DataIn("Offset", type_hint=float, default=0.0, widget="number")
     ]
     outputs_def = [DataOut("Result", type_hint=Any)]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Onda de Pulso",
+            "description": "Gera uma onda quadrada/pulso periódica.",
+            "pins": {
+                "Frequency": "Frequência",
+                "Amplitude": "Amplitude",
+                "DutyCycle": "Ciclo de Trabalho",
+                "Phase": "Fase",
+                "Offset": "Deslocamento",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Onda de Pulso",
+            "description": "Genera una onda cuadrada/pulso periódica.",
+            "pins": {
+                "Frequency": "Frecuencia",
+                "Amplitude": "Amplitud",
+                "DutyCycle": "Ciclo de Trabajo",
+                "Phase": "Fase",
+                "Offset": "Desplazamiento",
+                "Result": "Resultado"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
@@ -127,6 +200,31 @@ class StepBlock(BaseBlock):
     ]
     outputs_def = [DataOut("Result", type_hint=Any)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Função Degrau",
+            "description": "Gera um único degrau ou pulso entre os pontos Início e Fim.",
+            "pins": {
+                "Start": "Início",
+                "End": "Fim",
+                "Amplitude": "Amplitude",
+                "Invert": "Inverter",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Función Escalón",
+            "description": "Genera un solo escalón o pulso entre los puntos Inicio y Fin.",
+            "pins": {
+                "Start": "Inicio",
+                "End": "Fin",
+                "Amplitude": "Amplitud",
+                "Invert": "Invertir",
+                "Result": "Resultado"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
             x = await context.pull(self.id, "X")
@@ -163,6 +261,31 @@ class TriangleBlock(BaseBlock):
     ]
     outputs_def = [DataOut("Result", type_hint=Any)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Onda Triangular",
+            "description": "Gera uma onda triangular periódica.",
+            "pins": {
+                "Frequency": "Frequência",
+                "Amplitude": "Amplitude",
+                "Phase": "Fase",
+                "Offset": "Deslocamento",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Onda Triangular",
+            "description": "Genera una onda triangular periódica.",
+            "pins": {
+                "Frequency": "Frecuencia",
+                "Amplitude": "Amplitud",
+                "Phase": "Fase",
+                "Offset": "Desplazamiento",
+                "Result": "Resultado"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
             x = await context.pull(self.id, "X")
@@ -194,6 +317,31 @@ class SawtoothBlock(BaseBlock):
         DataIn("Offset", type_hint=float, default=0.0, widget="number")
     ]
     outputs_def = [DataOut("Result", type_hint=Any)]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Onda Dente de Serra",
+            "description": "Gera uma onda dente de serra periódica.",
+            "pins": {
+                "Frequency": "Frequência",
+                "Amplitude": "Amplitude",
+                "Phase": "Fase",
+                "Offset": "Deslocamento",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Onda Diente de Sierra",
+            "description": "Genera una onda diente de sierra periódica.",
+            "pins": {
+                "Frequency": "Frecuencia",
+                "Amplitude": "Amplitud",
+                "Phase": "Fase",
+                "Offset": "Desplazamiento",
+                "Result": "Resultado"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
@@ -227,6 +375,31 @@ class SineBlock(BaseBlock):
     ]
     outputs_def = [DataOut("Result", type_hint=Any)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Onda Senoidal",
+            "description": "Gera uma onda senoidal periódica.",
+            "pins": {
+                "Frequency": "Frequência",
+                "Amplitude": "Amplitude",
+                "Phase": "Fase",
+                "Offset": "Deslocamento",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Onda Senoidal",
+            "description": "Genera una onda senoidal periódica.",
+            "pins": {
+                "Frequency": "Frecuencia",
+                "Amplitude": "Amplitud",
+                "Phase": "Fase",
+                "Offset": "Desplazamiento",
+                "Result": "Resultado"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
             x = await context.pull(self.id, "X")
@@ -254,6 +427,27 @@ class BesselBlock(BaseBlock):
         DataIn("Kind", type_hint=str, default="first (J)", widget="dropdown", options=["first (J)", "second (Y)"])
     ]
     outputs_def = [DataOut("Result", type_hint=Any)]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Função de Bessel",
+            "description": "Avalia funções de Bessel de primeira (J) ou segunda (Y) espécie.",
+            "pins": {
+                "Order": "Ordem",
+                "Kind": "Espécie",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Función de Bessel",
+            "description": "Evalúa funciones de Bessel de primera (J) o segunda (Y) especie.",
+            "pins": {
+                "Order": "Orden",
+                "Kind": "Especie",
+                "Result": "Resultado"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
@@ -284,6 +478,25 @@ class PolynomBlock(BaseBlock):
     ]
     outputs_def = [DataOut("Result", type_hint=Any)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Polinômio",
+            "description": "Avalia um polinômio usando um array de coeficientes (maior grau primeiro).",
+            "pins": {
+                "Coefficients": "Coeficientes",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Polinomio",
+            "description": "Evalúa un polinomio usando una matriz de coeficientes (grado mayor primero).",
+            "pins": {
+                "Coefficients": "Coeficientes",
+                "Result": "Resultado"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
             x = await context.pull(self.id, "X")
@@ -312,6 +525,25 @@ class LogBlock(BaseBlock):
         DataIn("Base", type_hint=float, default=math.e, widget="number")
     ]
     outputs_def = [DataOut("Result", type_hint=Any)]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Logaritmo",
+            "description": "Avalia o logaritmo de X com uma Base dada.",
+            "pins": {
+                "Base": "Base",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Logaritmo",
+            "description": "Evalúa el logaritmo de X con una Base dada.",
+            "pins": {
+                "Base": "Base",
+                "Result": "Resultado"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
@@ -345,6 +577,27 @@ class ExponentialBlock(BaseBlock):
         DataIn("Base", type_hint=float, default=math.e, widget="number")
     ]
     outputs_def = [DataOut("Result", type_hint=Any)]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Exponencial",
+            "description": "Avalia uma função exponencial: Amplitude * (Base ^ X)",
+            "pins": {
+                "Amplitude": "Amplitude",
+                "Base": "Base",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Exponencial",
+            "description": "Evalúa una función exponencial: Amplitud * (Base ^ X)",
+            "pins": {
+                "Amplitude": "Amplitud",
+                "Base": "Base",
+                "Result": "Resultado"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":

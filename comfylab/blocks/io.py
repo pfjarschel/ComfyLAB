@@ -44,6 +44,31 @@ class FilePathGeneratorBlock(BaseBlock):
         DataOut("FilePath", type_hint=str)
     ]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Gerador de Caminho",
+            "description": "Gera um caminho de arquivo usando um prefixo, carimbo de tempo atual e extensão.",
+            "pins": {
+                "Prefix": "Prefixo",
+                "Extension": "Extensão",
+                "FormatPattern": "Padrão de Formato",
+                "Subfolder": "Subpasta",
+                "FilePath": "Caminho do Arquivo"
+            }
+        },
+        "es": {
+            "display_name": "Generador de Ruta",
+            "description": "Genera una ruta de archivo utilizando un prefijo, marca de tiempo actual y extensión.",
+            "pins": {
+                "Prefix": "Prefijo",
+                "Extension": "Extensión",
+                "FormatPattern": "Patrón de Formato",
+                "Subfolder": "Subcarpeta",
+                "FilePath": "Ruta de Archivo"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "FilePath":
             prefix = await context.pull(self.id, "Prefix")
@@ -86,6 +111,28 @@ class ImageDisplayBlock(BaseBlock):
     ]
     outputs_def = [ExecOut("Out")]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Exibição de Imagem",
+            "description": "Carrega uma imagem da área de trabalho (caminho relativo) e a exibe.",
+            "pins": {
+                "Display": "Exibir",
+                "FilePath": "Caminho do Arquivo",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Visualización de Imagen",
+            "description": "Carga una imagen del espacio de trabajo (ruta relativa) y la muestra.",
+            "pins": {
+                "Display": "Mostrar",
+                "FilePath": "Ruta de Archivo",
+                "Out": "Salida"
+            }
+        }
+    }
+
+
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
         filepath = await context.pull(self.id, "FilePath")
         
@@ -117,6 +164,31 @@ class ArrayDisplayBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Data", type_hint=np.ndarray)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Exibição de Array",
+            "description": "Exibe um array numérico (2D tons de cinza ou 3D BGR/RGB) diretamente como uma imagem na interface.",
+            "pins": {
+                "Display": "Exibir",
+                "Data": "Dados",
+                "Quality": "Qualidade",
+                "ColorFormat": "Formato de Cor",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Visualización de Matriz",
+            "description": "Muestra un arreglo numérico (2D escala de grises o 3D BGR/RGB) directamente como una imagen en la interfaz.",
+            "pins": {
+                "Display": "Mostrar",
+                "Data": "Datos",
+                "Quality": "Calidad",
+                "ColorFormat": "Formato de Color",
+                "Out": "Salida"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)
@@ -197,6 +269,28 @@ class ImageToArrayBlock(BaseBlock):
     ]
     outputs_def = [DataOut("Array", type_hint=np.ndarray)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Imagem para Array",
+            "description": "Carrega uma imagem da área de trabalho (caminho relativo) e a converte em um array NumPy.",
+            "pins": {
+                "FilePath": "Caminho do Arquivo",
+                "Grayscale": "Tons de Cinza",
+                "Array": "Array"
+            }
+        },
+        "es": {
+            "display_name": "Imagen a Matriz",
+            "description": "Carga una imagen del espacio de trabajo (ruta relativa) y la emite como un arreglo NumPy.",
+            "pins": {
+                "FilePath": "Ruta de Archivo",
+                "Grayscale": "Escala de Grises",
+                "Array": "Matriz"
+            }
+        }
+    }
+
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Array":
             filepath = await context.pull(self.id, "FilePath")
@@ -247,6 +341,36 @@ class SaveDataBlock(BaseBlock):
         DataIn("Append", type_hint=bool, default=False, widget="checkbox", optional=True)
     ]
     outputs_def = [ExecOut("Out")]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Salvar CSV",
+            "description": "Salva linhas de dados estruturados em um arquivo CSV. Suporta anexar ou sobrescrever.",
+            "pins": {
+                "Write": "Escrever",
+                "FilePath": "Caminho do Arquivo",
+                "Data": "Dados",
+                "Headers": "Cabeçalhos",
+                "Transpose": "Transpor",
+                "Append": "Anexar",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Guardar CSV",
+            "description": "Guarda filas de datos estructurados en un archivo CSV. Soporta anexar o sobrescribir.",
+            "pins": {
+                "Write": "Escribir",
+                "FilePath": "Ruta de Archivo",
+                "Data": "Datos",
+                "Headers": "Encabezados",
+                "Transpose": "Transponer",
+                "Append": "Anexar",
+                "Out": "Salida"
+            }
+        }
+    }
+
 
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
         filepath = await context.pull(self.id, "FilePath")
@@ -360,6 +484,34 @@ class SaveParquetBlock(BaseBlock):
         DataIn("Append", type_hint=bool, default=False, widget="checkbox", optional=True)
     ]
     outputs_def = [ExecOut("Out")]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Salvar Parquet",
+            "description": "Salva linhas de dados estruturados em um arquivo Parquet. Otimizado para grandes matrizes e dados colunares. Anexação é suportada via fastparquet.",
+            "pins": {
+                "Write": "Escrever",
+                "FilePath": "Caminho do Arquivo",
+                "Data": "Dados",
+                "Headers": "Cabeçalhos",
+                "Append": "Anexar",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Guardar Parquet",
+            "description": "Guarda filas de datos estructurados en un archivo Parquet. Optimizado para grandes matrices y datos columnares. Se admite anexar mediante fastparquet.",
+            "pins": {
+                "Write": "Escribir",
+                "FilePath": "Ruta de Archivo",
+                "Data": "Datos",
+                "Headers": "Encabezados",
+                "Append": "Anexar",
+                "Out": "Salida"
+            }
+        }
+    }
+
 
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
         import pandas as pd
@@ -561,6 +713,30 @@ class SaveJSONBlock(BaseBlock):
     ]
     outputs_def = [ExecOut("Out")]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Salvar JSON",
+            "description": "Salva dados como um arquivo JSON. Converte arrays NumPy para listas automaticamente.",
+            "pins": {
+                "Write": "Escrever",
+                "FilePath": "Caminho do Arquivo",
+                "Data": "Dados",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Guardar JSON",
+            "description": "Guarda datos como un archivo JSON. Convierte automáticamente matrices NumPy a listas.",
+            "pins": {
+                "Write": "Escribir",
+                "FilePath": "Ruta de Archivo",
+                "Data": "Datos",
+                "Out": "Salida"
+            }
+        }
+    }
+
+
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
         filepath = await context.pull(self.id, "FilePath")
         data = await context.pull(self.id, "Data")
@@ -601,6 +777,29 @@ class LoadJSONBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Data", type_hint=Any)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Carregar JSON",
+            "description": "Lê um arquivo JSON e gera seu conteúdo como dados (geralmente um dicionário ou lista).",
+            "pins": {
+                "Read": "Ler",
+                "FilePath": "Caminho do Arquivo",
+                "Out": "Saída",
+                "Data": "Dados"
+            }
+        },
+        "es": {
+            "display_name": "Cargar JSON",
+            "description": "Lee un archivo JSON y emite su contenido como datos (generalmente un diccionario o lista).",
+            "pins": {
+                "Read": "Leer",
+                "FilePath": "Ruta de Archivo",
+                "Out": "Salida",
+                "Data": "Datos"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)
@@ -645,6 +844,32 @@ class ArrayToImageBlock(BaseBlock):
         DataIn("SubDir", type_hint=str, default="", widget="text", optional=True)
     ]
     outputs_def = [ExecOut("Out")]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Array para Imagem",
+            "description": "Salva um array (2D tons de cinza ou MxNx3/4 cor) como um arquivo de imagem.",
+            "pins": {
+                "Save": "Salvar",
+                "Data": "Dados",
+                "FileName": "Nome do Arquivo",
+                "SubDir": "Subdiretório",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Matriz a Imagen",
+            "description": "Guarda una matriz (2D escala de grises o MxNx3/4 color) como un archivo de imagen.",
+            "pins": {
+                "Save": "Guardar",
+                "Data": "Datos",
+                "FileName": "Nombre de Archivo",
+                "SubDir": "Subdirectorio",
+                "Out": "Salida"
+            }
+        }
+    }
+
 
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
         data = await context.pull(self.id, "Data")

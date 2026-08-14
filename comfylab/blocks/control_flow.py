@@ -32,6 +32,31 @@ class IfElseBlock(BaseBlock):
         ExecOut("False")
     ]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Se/Senão",
+            "description": "Ramifica o caminho de execução com base em uma condição booleana.",
+            "category": "Controle de Fluxo",
+            "pins": {
+                "In": "Entrada",
+                "Condition": "Condição",
+                "True": "Verdadeiro",
+                "False": "Falso"
+            }
+        },
+        "es": {
+            "display_name": "Si/Sino",
+            "description": "Ramifica la ruta de ejecución basándose en una condición booleana.",
+            "category": "Control de Flujo",
+            "pins": {
+                "In": "Entrada",
+                "Condition": "Condición",
+                "True": "Verdadero",
+                "False": "Falso"
+            }
+        }
+    }
+
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
         cond = await context.pull(self.id, "Condition")
         return "True" if bool(cond) else "False"
@@ -53,6 +78,33 @@ class ForLoopBlock(BaseBlock):
         ExecOut("Done"),
         DataOut("Index", type_hint=int)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Laço For",
+            "description": "Itera um número especificado de vezes, acionando o corpo do laço.",
+            "category": "Controle de Fluxo",
+            "pins": {
+                "Start": "Iniciar",
+                "Count": "Contagem",
+                "LoopBody": "CorpoDoLaço",
+                "Done": "Concluído",
+                "Index": "Índice"
+            }
+        },
+        "es": {
+            "display_name": "Bucle For",
+            "description": "Itera un número especificado de veces, activando el cuerpo del bucle.",
+            "category": "Control de Flujo",
+            "pins": {
+                "Start": "Iniciar",
+                "Count": "Conteo",
+                "LoopBody": "CuerpoDelBucle",
+                "Done": "Hecho",
+                "Index": "Índice"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)
@@ -93,6 +145,31 @@ class WhileLoopBlock(BaseBlock):
         ExecOut("LoopBody"),
         ExecOut("Done")
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Laço While",
+            "description": "Itera enquanto uma condição for Verdadeira.",
+            "category": "Controle de Fluxo",
+            "pins": {
+                "Start": "Iniciar",
+                "Condition": "Condição",
+                "LoopBody": "CorpoDoLaço",
+                "Done": "Concluído"
+            }
+        },
+        "es": {
+            "display_name": "Bucle While",
+            "description": "Itera mientras una condición sea Verdadera.",
+            "category": "Control de Flujo",
+            "pins": {
+                "Start": "Iniciar",
+                "Condition": "Condición",
+                "LoopBody": "CuerpoDelBucle",
+                "Done": "Hecho"
+            }
+        }
+    }
 
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
         while True:

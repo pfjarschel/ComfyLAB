@@ -20,6 +20,16 @@ class GenericSigGenConnectBlock(BaseDeviceConnectBlock):
     icon = "⚡"
     display_name = "Generic SigGen Connect"
     description = "Opens a VISA session to a SCPI Signal / Function Generator."
+    i18n = {
+        "pt-BR": {
+            "display_name": "Conexão Genérica SigGen",
+            "description": "Abre uma sessão VISA para um Gerador de Sinais / Funções SCPI."
+        },
+        "es": {
+            "display_name": "Conexión Genérica SigGen",
+            "description": "Abre una sesión VISA para un Generador de Señales / Funciones SCPI."
+        }
+    }
 
     async def _device_teardown(self, device: Any, lock_manager: Any) -> None:
         drv = GenericSigGen(device)
@@ -51,6 +61,36 @@ class GenericSigGenConfigWaveBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Device", type_hint=Any)
     ]
+    i18n = {
+        "pt-BR": {
+            "display_name": "Configurar Onda Genérica SigGen",
+            "description": "Configura forma, frequência, amplitude e offset para um canal em um Gerador de Sinais SCPI.",
+            "pins": {
+                "In": "Entrada",
+                "Device": "Dispositivo",
+                "Channel": "Canal",
+                "Shape": "Forma",
+                "Frequency": "Frequência",
+                "Amplitude": "Amplitude",
+                "Offset": "Offset",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Configurar Onda Genérica SigGen",
+            "description": "Configura forma, frecuencia, amplitud y offset para un canal en un Generador de Señales SCPI.",
+            "pins": {
+                "In": "Entrada",
+                "Device": "Dispositivo",
+                "Channel": "Canal",
+                "Shape": "Forma",
+                "Frequency": "Frecuencia",
+                "Amplitude": "Amplitud",
+                "Offset": "Offset",
+                "Out": "Salida"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Device":
@@ -89,6 +129,30 @@ class GenericSigGenOutputBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Device", type_hint=Any)
     ]
+    i18n = {
+        "pt-BR": {
+            "display_name": "Saída Genérica SigGen",
+            "description": "Habilita ou desabilita o estado de transmissão de saída do canal em um Gerador de Sinais SCPI.",
+            "pins": {
+                "In": "Entrada",
+                "Device": "Dispositivo",
+                "Channel": "Canal",
+                "Enable": "Habilitar",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Salida Genérica SigGen",
+            "description": "Habilita o deshabilita el estado de transmisión de salida del canal en un Generador de Señales SCPI.",
+            "pins": {
+                "In": "Entrada",
+                "Device": "Dispositivo",
+                "Channel": "Canal",
+                "Enable": "Habilitar",
+                "Out": "Salida"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Device":

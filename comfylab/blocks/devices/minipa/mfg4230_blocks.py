@@ -20,6 +20,18 @@ class MFG4230ConnectBlock(BaseDeviceConnectBlock):
     icon = "⚡"
     display_name = "Minipa MFG-4230 Connect"
     description = "Opens a VISA session to a Minipa MFG-4230 function generator. On teardown, disables output."
+    i18n = {
+        "pt-BR": {
+            "display_name": "Conectar Minipa MFG-4230",
+            "description": "Abre uma sessão VISA com um gerador de funções Minipa MFG-4230. No encerramento, desativa as saídas.",
+            "category": "Equipamentos"
+        },
+        "es": {
+            "display_name": "Conectar Minipa MFG-4230",
+            "description": "Abre una sesión VISA con un generador de funciones Minipa MFG-4230. Al finalizar, desactiva las salidas.",
+            "category": "Equipos"
+        }
+    }
 
     async def _device_teardown(self, device: Any, lock_manager: Any) -> None:
         drv = MFG4230(device)
@@ -54,6 +66,34 @@ class MFG4230ConfigWaveBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Device", type_hint=Any)
     ]
+    i18n = {
+        "pt-BR": {
+            "display_name": "Configurar Onda Minipa MFG-4230",
+            "description": "Configura formato, frequência, amplitude, offset e fase para um canal em um Minipa MFG-4230.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Channel": "Canal",
+                "Shape": "Formato",
+                "Frequency": "Frequência",
+                "Amplitude": "Amplitude",
+                "Offset": "Offset",
+                "Phase": "Fase"
+            }
+        },
+        "es": {
+            "display_name": "Configurar Onda Minipa MFG-4230",
+            "description": "Configura formato, frecuencia, amplitud, offset y fase para un canal en un Minipa MFG-4230.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Channel": "Canal",
+                "Shape": "Formato",
+                "Frequency": "Frecuencia",
+                "Amplitude": "Amplitud",
+                "Offset": "Offset",
+                "Phase": "Fase"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Device":
@@ -93,6 +133,26 @@ class MFG4230OutputBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Device", type_hint=Any)
     ]
+    i18n = {
+        "pt-BR": {
+            "display_name": "Saída Minipa MFG-4230",
+            "description": "Habilita ou desabilita o estado de transmissão de saída do canal em um Minipa MFG-4230.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Channel": "Canal",
+                "Enable": "Habilitar"
+            }
+        },
+        "es": {
+            "display_name": "Salida Minipa MFG-4230",
+            "description": "Habilita o deshabilita el estado de transmisión de salida del canal en un Minipa MFG-4230.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Channel": "Canal",
+                "Enable": "Habilitar"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Device":

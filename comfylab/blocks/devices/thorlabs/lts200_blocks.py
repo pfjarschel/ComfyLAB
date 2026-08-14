@@ -20,6 +20,18 @@ class ThorlabsLTS200ConnectBlock(BaseDeviceConnectBlock):
     icon = "🎯"
     display_name = "Thorlabs LTS200 Connect"
     description = "Opens a VISA session to a Thorlabs LTS200 Linear Stage."
+    i18n = {
+        "pt-BR": {
+            "display_name": "Conectar Thorlabs LTS200",
+            "description": "Abre uma sessão VISA com um Estágio Linear Thorlabs LTS200.",
+            "category": "Equipamentos"
+        },
+        "es": {
+            "display_name": "Conectar Thorlabs LTS200",
+            "description": "Abre una sesión VISA con una Platina Lineal Thorlabs LTS200.",
+            "category": "Equipos"
+        }
+    }
 
 
 @register_block("devices/thorlabs/lts200/move")
@@ -40,6 +52,28 @@ class ThorlabsLTS200MoveBlock(BaseBlock):
         DataOut("CurrentPosition", type_hint=float),
         DataOut("Device", type_hint=Any)
     ]
+    i18n = {
+        "pt-BR": {
+            "display_name": "Mover Thorlabs LTS200",
+            "description": "Move um estágio Thorlabs LTS200 para uma posição especificada (mm).",
+            "pins": {
+                "Device": "Dispositivo",
+                "Position_mm": "Posição (mm)",
+                "Mode": "Modo",
+                "CurrentPosition": "Posição Atual"
+            }
+        },
+        "es": {
+            "display_name": "Mover Thorlabs LTS200",
+            "description": "Mueve una platina Thorlabs LTS200 a una posición especificada (mm).",
+            "pins": {
+                "Device": "Dispositivo",
+                "Position_mm": "Posición (mm)",
+                "Mode": "Modo",
+                "CurrentPosition": "Posición Actual"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)

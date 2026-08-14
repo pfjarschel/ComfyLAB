@@ -21,6 +21,17 @@ class KeopsysEDFAConnectBlock(BaseDeviceConnectBlock):
     display_name = "Keopsys EDFA Connect"
     description = "Opens a VISA session to a Keopsys EDFA. On teardown, turns pump diode OFF."
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Conectar EDFA Keopsys",
+            "description": "Abre uma sessão VISA para um EDFA Keopsys. Ao desmontar, desliga o diodo de bombeamento."
+        },
+        "es": {
+            "display_name": "Conectar EDFA Keopsys",
+            "description": "Abre una sesión VISA a un EDFA Keopsys. Al desmontar, apaga el diodo de bombeo."
+        }
+    }
+
     async def _device_teardown(self, device: Any, lock_manager: Any) -> None:
         drv = KeopsysEDFA(device)
         address = getattr(device, "resource_name", None)
@@ -50,6 +61,31 @@ class KeopsysEDFAConfigBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Device", type_hint=Any)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Configuração EDFA Keopsys",
+            "description": "Configura o modo de operação (ACC/APC), setpoint (corrente/potência) e o estado de bombeamento em um EDFA Keopsys.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Mode": "Modo",
+                "Current_mA": "Corrente_mA",
+                "Power_mW": "Potencia_mW",
+                "EnablePump": "HabilitarBombeamento"
+            }
+        },
+        "es": {
+            "display_name": "Configuración EDFA Keopsys",
+            "description": "Configura el modo de operación (ACC/APC), punto de ajuste (corriente/potencia) y el estado de bombeo en un EDFA Keopsys.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Mode": "Modo",
+                "Current_mA": "Corriente_mA",
+                "Power_mW": "Potencia_mW",
+                "EnablePump": "HabilitarBombeo"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Device":

@@ -23,6 +23,17 @@ class AgilentE4407BConnectBlock(BaseDeviceConnectBlock):
     display_name = "Agilent E4407B Connect"
     description = "Opens a VISA session to an Agilent E4407B / ESA Series Electrical Spectrum Analyzer."
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Conectar Agilent E4407B",
+            "description": "Abre uma sessão VISA para um Analisador de Espectro Elétrico Agilent E4407B / Série ESA."
+        },
+        "es": {
+            "display_name": "Conectar Agilent E4407B",
+            "description": "Abre una sesión VISA a un Analizador de Espectro Eléctrico Agilent E4407B / Serie ESA."
+        }
+    }
+
 
 @register_block("devices/agilent/e4407b/sweep_config")
 class AgilentE4407BSweepConfigBlock(BaseBlock):
@@ -46,6 +57,31 @@ class AgilentE4407BSweepConfigBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Device", type_hint=Any)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Configuração de Varredura Agilent E4407B",
+            "description": "Configura centro/span de frequência, RBW, VBW e atenuação de RF em um Agilent E4407B.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Center": "Centro",
+                "Start": "Inicio",
+                "Stop": "Fim",
+                "Attenuation": "Atenuacao"
+            }
+        },
+        "es": {
+            "display_name": "Configuración de Barrido Agilent E4407B",
+            "description": "Configura el centro/span de frecuencia, RBW, VBW y atenuación de RF en un Agilent E4407B.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Center": "Centro",
+                "Start": "Inicio",
+                "Stop": "Fin",
+                "Attenuation": "Atenuacion"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Device":
@@ -90,6 +126,29 @@ class AgilentE4407BAcquireBlock(BaseBlock):
         DataOut("Frequency", type_hint=np.ndarray),
         DataOut("Device", type_hint=Any)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Agilent E4407B Adquirir Traço",
+            "description": "Aciona a aquisição de traço de um Agilent E4407B, gera vetores e transmite telemetria de plotagem visual.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Trace": "Traco",
+                "Power": "Potencia",
+                "Frequency": "Frequencia"
+            }
+        },
+        "es": {
+            "display_name": "Agilent E4407B Adquirir Traza",
+            "description": "Activa la adquisición de traza de un Agilent E4407B, genera arreglos y transmite telemetría de ploteo visual.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Trace": "Traza",
+                "Power": "Potencia",
+                "Frequency": "Frecuencia"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)

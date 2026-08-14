@@ -163,6 +163,29 @@ class LibraryLoadBlock(BaseBlock):
         DataOut("Library", type_hint=Any),
     ]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Carregar DLL/SO",
+            "description": "Carrega uma biblioteca compartilhada nativa (.dll no Windows, .so no Linux) e emite a referência. Conecte a um bloco 'Chamar DLL/SO' para invocar funções.",
+            "pins": {
+                "Load": "Carregar",
+                "LibraryPath": "Caminho da Biblioteca",
+                "Out": "Saída",
+                "Library": "Biblioteca"
+            }
+        },
+        "es": {
+            "display_name": "Cargar DLL/SO",
+            "description": "Carga una biblioteca compartida nativa (.dll en Windows, .so en Linux) y emite la referencia. Conecte a un bloque 'Llamar DLL/SO' para invocar funciones.",
+            "pins": {
+                "Load": "Cargar",
+                "LibraryPath": "Ruta de Biblioteca",
+                "Out": "Salida",
+                "Library": "Biblioteca"
+            }
+        }
+    }
+
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)
         self._lib: Optional[ctypes.CDLL] = None
@@ -246,6 +269,35 @@ class LibraryCallBlock(BaseBlock):
         DataOut("ReturnValue", type_hint=Any),
         DataOut("Status", type_hint=int),
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Chamar DLL/SO",
+            "description": "Chama uma função em uma biblioteca nativa carregada usando uma assinatura configurável. Clique em '⚙️ Edit Signature' no bloco para definir os argumentos.",
+            "pins": {
+                "Call": "Chamar",
+                "Library": "Biblioteca",
+                "FunctionName": "Nome da Função",
+                "ReturnType": "Tipo de Retorno",
+                "Out": "Saída",
+                "ReturnValue": "Valor de Retorno",
+                "Status": "Status"
+            }
+        },
+        "es": {
+            "display_name": "Llamar DLL/SO",
+            "description": "Llama a una función en una biblioteca nativa cargada utilizando una firma configurable. Haga clic en '⚙️ Edit Signature' en el bloque para definir los argumentos.",
+            "pins": {
+                "Call": "Llamar",
+                "Library": "Biblioteca",
+                "FunctionName": "Nombre de la Función",
+                "ReturnType": "Tipo de Retorno",
+                "Out": "Salida",
+                "ReturnValue": "Valor de Retorno",
+                "Status": "Estado"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)

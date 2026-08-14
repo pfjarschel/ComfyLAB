@@ -31,6 +31,27 @@ class NIDAQmxConnectBlock(BaseBlock):
         DataOut("Device", type_hint=Any)
     ]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Conectar NI DAQmx",
+            "description": "Inicializa uma sessão de hardware NI-DAQmx (ex. 'Dev1'). Gera um erro explícito se os drivers estiverem ausentes.",
+            "pins": {
+                "Open": "Abrir",
+                "DeviceName": "NomeDoDispositivo",
+                "Device": "Dispositivo"
+            }
+        },
+        "es": {
+            "display_name": "Conectar NI DAQmx",
+            "description": "Inicializa una sesión de hardware NI-DAQmx (ej. 'Dev1'). Genera un error explícito si faltan los controladores.",
+            "pins": {
+                "Open": "Abrir",
+                "DeviceName": "NombreDelDispositivo",
+                "Device": "Dispositivo"
+            }
+        }
+    }
+
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)
         self._daq = None
@@ -68,6 +89,37 @@ class NIDAQmxAnalogReadBlock(BaseBlock):
         DataOut("Time", type_hint=np.ndarray),
         DataOut("Device", type_hint=Any)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "NI DAQmx Ler Analógico",
+            "description": "Adquire um bloco finito de amostras de tensão de Entrada Analógica de um canal NI DAQ (ex. 'ai0').",
+            "pins": {
+                "Device": "Dispositivo",
+                "Channel": "Canal",
+                "SampleRate": "TaxaDeAmostragem",
+                "Samples": "Amostras",
+                "MinVoltage": "TensaoMinima",
+                "MaxVoltage": "TensaoMaxima",
+                "Voltage": "Tensao",
+                "Time": "Tempo"
+            }
+        },
+        "es": {
+            "display_name": "NI DAQmx Leer Analógico",
+            "description": "Adquiere un bloque finito de muestras de voltaje de Entrada Analógica de un canal NI DAQ (ej. 'ai0').",
+            "pins": {
+                "Device": "Dispositivo",
+                "Channel": "Canal",
+                "SampleRate": "TasaDeMuestreo",
+                "Samples": "Muestras",
+                "MinVoltage": "VoltajeMinimo",
+                "MaxVoltage": "VoltajeMaximo",
+                "Voltage": "Voltaje",
+                "Time": "Tiempo"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)
@@ -132,6 +184,27 @@ class NIDAQmxAnalogWriteBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Device", type_hint=Any)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "NI DAQmx Escrever Analógico",
+            "description": "Emite tensão analógica CC para um canal de saída analógica NI DAQ (ex. 'ao0').",
+            "pins": {
+                "Device": "Dispositivo",
+                "Channel": "Canal",
+                "Voltage": "Tensao"
+            }
+        },
+        "es": {
+            "display_name": "NI DAQmx Escribir Analógico",
+            "description": "Emite voltaje analógico CC a un canal de salida analógica NI DAQ (ej. 'ao0').",
+            "pins": {
+                "Device": "Dispositivo",
+                "Channel": "Canal",
+                "Voltage": "Voltaje"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Device":

@@ -60,6 +60,35 @@ class RangeCheckBlock(BaseBlock):
         DataOut("IsInRange", type_hint=bool)
     ]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Verificação de Intervalo",
+            "description": "Verifica se um valor está dentro de um intervalo e ramifica a execução.",
+            "pins": {
+                "In": "Entrada",
+                "Value": "Valor",
+                "Min": "Mín",
+                "Max": "Máx",
+                "InRange": "No Intervalo",
+                "OutOfRange": "Fora do Intervalo",
+                "IsInRange": "Está no Intervalo"
+            }
+        },
+        "es": {
+            "display_name": "Comprobación de Rango",
+            "description": "Comprueba si un valor está dentro de un rango y ramifica la ejecución.",
+            "pins": {
+                "In": "Entrada",
+                "Value": "Valor",
+                "Min": "Mín",
+                "Max": "Máx",
+                "InRange": "En Rango",
+                "OutOfRange": "Fuera de Rango",
+                "IsInRange": "Está en Rango"
+            }
+        }
+    }
+
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)
         self._is_in_range = False
@@ -113,6 +142,35 @@ class ArrayStatsBlock(BaseBlock):
         DataOut("Mean", type_hint=float),
         DataOut("Count", type_hint=int)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Estatísticas de Array",
+            "description": "Calcula mínimo, máximo e média de um ndarray.",
+            "pins": {
+                "Compute": "Calcular",
+                "Array": "Array",
+                "Out": "Saída",
+                "Min": "Mín",
+                "Max": "Máx",
+                "Mean": "Média",
+                "Count": "Contagem"
+            }
+        },
+        "es": {
+            "display_name": "Estadísticas de Matriz",
+            "description": "Calcula mínimo, máximo y media de un ndarray.",
+            "pins": {
+                "Compute": "Calcular",
+                "Array": "Matriz",
+                "Out": "Salida",
+                "Min": "Mín",
+                "Max": "Máx",
+                "Mean": "Media",
+                "Count": "Conteo"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)
@@ -186,6 +244,29 @@ class CounterBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Count", type_hint=int)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Contador",
+            "description": "Mantém um contador que incrementa a cada execução.",
+            "pins": {
+                "Increment": "Incrementar",
+                "Step": "Passo",
+                "Out": "Saída",
+                "Count": "Contagem"
+            }
+        },
+        "es": {
+            "display_name": "Contador",
+            "description": "Mantiene un contador que se incrementa en cada ejecución.",
+            "pins": {
+                "Increment": "Incrementar",
+                "Step": "Paso",
+                "Out": "Salida",
+                "Count": "Conteo"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)

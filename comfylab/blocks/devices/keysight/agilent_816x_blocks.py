@@ -20,6 +20,18 @@ class Agilent816xConnectBlock(BaseDeviceConnectBlock):
     icon = "💡"
     display_name = "Keysight 816x Connect"
     description = "Opens a VISA session to a Keysight 816x Lightwave Mainframe. On teardown, turns laser output OFF."
+    i18n = {
+        "pt-BR": {
+            "display_name": "Conectar Keysight 816x",
+            "description": "Abre uma sessão VISA com um Mainframe Keysight 816x Lightwave. No encerramento, desliga a saída do laser.",
+            "category": "Equipamentos"
+        },
+        "es": {
+            "display_name": "Conectar Keysight 816x",
+            "description": "Abre una sesión VISA con un Mainframe Keysight 816x Lightwave. Al finalizar, apaga la salida del láser.",
+            "category": "Equipos"
+        }
+    }
 
     async def _device_teardown(self, device: Any, lock_manager: Any) -> None:
         drv = Agilent816x(device)
@@ -50,6 +62,30 @@ class Agilent816xLaserConfigBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Device", type_hint=Any)
     ]
+    i18n = {
+        "pt-BR": {
+            "display_name": "Configuração de Laser Keysight 816x",
+            "description": "Configura o comprimento de onda (nm), potência de saída (dBm) e estado do laser em um slot do Keysight 816x.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Slot": "Slot",
+                "Wavelength": "Comprimento de Onda",
+                "Power": "Potência",
+                "Enable": "Habilitar"
+            }
+        },
+        "es": {
+            "display_name": "Configuración de Láser Keysight 816x",
+            "description": "Configura la longitud de onda (nm), potencia de salida (dBm) y estado del láser en un slot del Keysight 816x.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Slot": "Slot",
+                "Wavelength": "Longitud de Onda",
+                "Power": "Potencia",
+                "Enable": "Habilitar"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Device":
@@ -92,6 +128,28 @@ class Agilent816xReadPowerBlock(BaseBlock):
         DataOut("Power", type_hint=float),
         DataOut("Device", type_hint=Any)
     ]
+    i18n = {
+        "pt-BR": {
+            "display_name": "Ler Potência Keysight 816x",
+            "description": "Consulta a potência óptica de um módulo sensor de potência em um mainframe Keysight 816x.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Slot": "Slot",
+                "Wavelength": "Comprimento de Onda",
+                "Power": "Potência"
+            }
+        },
+        "es": {
+            "display_name": "Leer Potencia Keysight 816x",
+            "description": "Consulta la potencia óptica de un módulo sensor de potencia en un mainframe Keysight 816x.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Slot": "Slot",
+                "Wavelength": "Longitud de Onda",
+                "Power": "Potencia"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)

@@ -21,6 +21,17 @@ class Keithley2400ConnectBlock(BaseDeviceConnectBlock):
     display_name = "Keithley 2400 SMU Connect"
     description = "Opens a VISA session to a Keithley 2400/2450 SMU. On teardown, turns output OFF."
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Conectar SMU Keithley 2400",
+            "description": "Abre uma sessão VISA para um SMU Keithley 2400/2450. Ao desmontar, desliga a saída."
+        },
+        "es": {
+            "display_name": "Conectar SMU Keithley 2400",
+            "description": "Abre una sesión VISA a un SMU Keithley 2400/2450. Al desmontar, apaga la salida."
+        }
+    }
+
     async def _device_teardown(self, device: Any, lock_manager: Any) -> None:
         drv = Keithley2400(device)
         address = getattr(device, "resource_name", None)
@@ -49,6 +60,29 @@ class Keithley2400SourceVoltageBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Device", type_hint=Any)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Keithley 2400 Fornecer Tensão",
+            "description": "Configura o setpoint de tensão (V), limite de conformidade de corrente (A) e ativa a saída em um SMU Keithley.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Voltage": "Tensao",
+                "CurrentLimit": "LimiteCorrente",
+                "Enable": "Habilitar"
+            }
+        },
+        "es": {
+            "display_name": "Keithley 2400 Proveer Voltaje",
+            "description": "Configura el punto de ajuste de voltaje (V), límite de conformidad de corriente (A) y habilita la salida en un SMU Keithley.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Voltage": "Voltaje",
+                "CurrentLimit": "LimiteCorriente",
+                "Enable": "Habilitar"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Device":
@@ -86,6 +120,27 @@ class Keithley2400ReadBlock(BaseBlock):
         DataOut("Current", type_hint=float),
         DataOut("Device", type_hint=Any)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Keithley 2400 Medir V & I",
+            "description": "Aciona a medição em tempo real da tensão (V) e corrente (A) de saída em um SMU Keithley 2400.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Voltage": "Tensao",
+                "Current": "Corrente"
+            }
+        },
+        "es": {
+            "display_name": "Keithley 2400 Medir V e I",
+            "description": "Activa la medición en tiempo real del voltaje (V) y corriente (A) de salida en un SMU Keithley 2400.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Voltage": "Voltaje",
+                "Current": "Corriente"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)

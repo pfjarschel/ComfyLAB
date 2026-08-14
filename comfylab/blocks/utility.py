@@ -37,6 +37,27 @@ class PassthroughBlock(BaseBlock):
         DataOut("Out", type_hint=Any)
     ]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Passagem Direta",
+            "description": "Passa os dados de entrada diretamente para a saída. Útil para organizar fios.",
+            "category": "Utilidade",
+            "pins": {
+                "In": "Entrada",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Paso Directo",
+            "description": "Pasa los datos de entrada directamente a la salida. Útil para organizar cables.",
+            "category": "Utilidad",
+            "pins": {
+                "In": "Entrada",
+                "Out": "Salida"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Out":
             return await context.pull(self.id, "In")
@@ -60,6 +81,27 @@ class ExecPassthroughBlock(BaseBlock):
         ExecOut("Out")
     ]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Passagem de Execução",
+            "description": "Passa o gatilho de execução diretamente para a saída. Útil para organizar fios de execução.",
+            "category": "Utilidade",
+            "pins": {
+                "In": "Entrada",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Paso de Ejecución",
+            "description": "Pasa el gatillo de ejecución directamente a la salida. Útil para organizar cables de ejecución.",
+            "category": "Utilidad",
+            "pins": {
+                "In": "Entrada",
+                "Out": "Salida"
+            }
+        }
+    }
+
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
         if trigger_pin == "In":
             return "Out"
@@ -81,6 +123,31 @@ class SampleAndHoldBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Held Value", type_hint=Any)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Amostra e Retém",
+            "description": "Trava um valor de dados quando ativado e o mantém constante até ser ativado novamente.",
+            "category": "Utilidade",
+            "pins": {
+                "Sample": "Amostra",
+                "Data": "Dados",
+                "Out": "Saída",
+                "Held Value": "Valor Retido"
+            }
+        },
+        "es": {
+            "display_name": "Muestra y Retiene",
+            "description": "Bloquea un valor de datos cuando se activa y lo mantiene constante hasta que se activa nuevamente.",
+            "category": "Utilidad",
+            "pins": {
+                "Sample": "Muestra",
+                "Data": "Datos",
+                "Out": "Salida",
+                "Held Value": "Valor Retenido"
+            }
+        }
+    }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -115,6 +182,33 @@ class SequencerBlock(BaseBlock):
         DataOut("Current", type_hint=Any),
         DataOut("Index", type_hint=int)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Sequenciador",
+            "description": "Avança em uma matriz de sequência a cada gatilho, emitindo o elemento atual. Recomeça quando chega ao fim.",
+            "category": "Utilidade",
+            "pins": {
+                "Step": "Avançar",
+                "Sequence": "Sequência",
+                "Out": "Saída",
+                "Current": "Atual",
+                "Index": "Índice"
+            }
+        },
+        "es": {
+            "display_name": "Secuenciador",
+            "description": "Avanza en una matriz de secuencia en cada gatillo, emitiendo el elemento actual. Vuelve al inicio al llegar al final.",
+            "category": "Utilidad",
+            "pins": {
+                "Step": "Avanzar",
+                "Sequence": "Secuencia",
+                "Out": "Salida",
+                "Current": "Actual",
+                "Index": "Índice"
+            }
+        }
+    }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -179,6 +273,35 @@ class BeepBlock(BaseBlock):
     outputs_def = [
         ExecOut("Out")
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Bipe / Alarme",
+            "description": "Aciona um tom de áudio sintetizado na interface do navegador quando executado.",
+            "category": "Utilidade",
+            "pins": {
+                "Play": "Tocar",
+                "Sound Type": "Tipo de Som",
+                "Frequency": "Frequência",
+                "Duration (ms)": "Duração (ms)",
+                "Volume": "Volume",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Bip / Alarma",
+            "description": "Activa un tono de audio sintetizado en la interfaz del navegador cuando se ejecuta.",
+            "category": "Utilidad",
+            "pins": {
+                "Play": "Tocar",
+                "Sound Type": "Tipo de Sonido",
+                "Frequency": "Frecuencia",
+                "Duration (ms)": "Duración (ms)",
+                "Volume": "Volumen",
+                "Out": "Salida"
+            }
+        }
+    }
 
     async def execute(self, context: ExecutionContext, pin_name: str):
         if pin_name == "Play":

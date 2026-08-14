@@ -20,6 +20,18 @@ class ThorlabsPM100DConnectBlock(BaseDeviceConnectBlock):
     icon = "💡"
     display_name = "Thorlabs PM100D Connect"
     description = "Opens a VISA session to a Thorlabs Optical Power Meter."
+    i18n = {
+        "pt-BR": {
+            "display_name": "Conectar Thorlabs PM100D",
+            "description": "Abre uma sessão VISA com um Medidor de Potência Óptica Thorlabs.",
+            "category": "Equipamentos"
+        },
+        "es": {
+            "display_name": "Conectar Thorlabs PM100D",
+            "description": "Abre una sesión VISA con un Medidor de Potencia Óptica Thorlabs.",
+            "category": "Equipos"
+        }
+    }
 
 
 @register_block("devices/thorlabs/pm100d/config")
@@ -40,6 +52,28 @@ class ThorlabsPM100DConfigBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Device", type_hint=Any)
     ]
+    i18n = {
+        "pt-BR": {
+            "display_name": "Configuração Thorlabs PM100D",
+            "description": "Configura o comprimento de onda operacional (nm), unidade de exibição (W ou dBm) e contagem de média em um Thorlabs PM100D.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Wavelength": "Comprimento de Onda",
+                "Unit": "Unidade",
+                "Averaging": "Média"
+            }
+        },
+        "es": {
+            "display_name": "Configuración Thorlabs PM100D",
+            "description": "Configura la longitud de onda operativa (nm), unidad de visualización (W o dBm) y el conteo de promedios en un Thorlabs PM100D.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Wavelength": "Longitud de Onda",
+                "Unit": "Unidad",
+                "Averaging": "Promedios"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Device":
@@ -80,6 +114,24 @@ class ThorlabsPM100DReadBlock(BaseBlock):
         DataOut("Power", type_hint=float),
         DataOut("Device", type_hint=Any)
     ]
+    i18n = {
+        "pt-BR": {
+            "display_name": "Ler Potência Thorlabs PM100D",
+            "description": "Aciona uma leitura de potência óptica de um medidor de potência Thorlabs PM100D.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Power": "Potência"
+            }
+        },
+        "es": {
+            "display_name": "Leer Potencia Thorlabs PM100D",
+            "description": "Activa una lectura de potencia óptica de un medidor de potencia Thorlabs PM100D.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Power": "Potencia"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)

@@ -47,6 +47,35 @@ class FFTBlock(BaseBlock):
         DataOut("Length", type_hint=int)
     ]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Espectro FFT",
+            "description": "Calcula a Transformada Discreta de Fourier (magnitude do espectro) de um sinal.",
+            "pins": {
+                "Analyze": "Analisar",
+                "Signal": "Sinal",
+                "Out": "Saída",
+                "Spectrum": "Espectro",
+                "Phase": "Fase",
+                "Frequencies": "Frequências",
+                "Length": "Tamanho"
+            }
+        },
+        "es": {
+            "display_name": "Espectro FFT",
+            "description": "Calcula la Transformada Discreta de Fourier (magnitud del espectro) de una señal.",
+            "pins": {
+                "Analyze": "Analizar",
+                "Signal": "Señal",
+                "Out": "Salida",
+                "Spectrum": "Espectro",
+                "Phase": "Fase",
+                "Frequencies": "Frecuencias",
+                "Length": "Longitud"
+            }
+        }
+    }
+
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)
         self._last_spectrum: Optional[np.ndarray] = None
@@ -122,6 +151,33 @@ class IFFTBlock(BaseBlock):
         DataOut("Signal", type_hint=np.ndarray)
     ]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "FFT Inversa",
+            "description": "Reconstrói um sinal no domínio do tempo a partir de arrays de Magnitude (Espectro) e Fase.",
+            "pins": {
+                "Reconstruct": "Reconstruir",
+                "Spectrum": "Espectro",
+                "Phase": "Fase",
+                "Length": "Tamanho",
+                "Out": "Saída",
+                "Signal": "Sinal"
+            }
+        },
+        "es": {
+            "display_name": "FFT Inversa",
+            "description": "Reconstruye una señal en el dominio del tiempo a partir de matrices de Magnitud (Espectro) y Fase.",
+            "pins": {
+                "Reconstruct": "Reconstruir",
+                "Spectrum": "Espectro",
+                "Phase": "Fase",
+                "Length": "Longitud",
+                "Out": "Salida",
+                "Signal": "Señal"
+            }
+        }
+    }
+
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)
         self._last_signal: np.ndarray = np.array([])
@@ -187,6 +243,41 @@ class FilterBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Filtered", type_hint=np.ndarray)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Filtro de Sinal",
+            "description": "Filtra um ndarray 1D usando média móvel ou filtros Butterworth com frequência normalizada.",
+            "pins": {
+                "Filter": "Filtrar",
+                "Signal": "Sinal",
+                "FilterType": "Tipo de Filtro",
+                "Cutoff": "Corte",
+                "LowCutoff": "Corte Baixo",
+                "HighCutoff": "Corte Alto",
+                "Order": "Ordem",
+                "Window": "Janela",
+                "Out": "Saída",
+                "Filtered": "Filtrado"
+            }
+        },
+        "es": {
+            "display_name": "Filtro de Señal",
+            "description": "Filtra un ndarray 1D usando promedio móvil o filtros Butterworth con frecuencia normalizada.",
+            "pins": {
+                "Filter": "Filtrar",
+                "Signal": "Señal",
+                "FilterType": "Tipo de Filtro",
+                "Cutoff": "Corte",
+                "LowCutoff": "Corte Bajo",
+                "HighCutoff": "Corte Alto",
+                "Order": "Orden",
+                "Window": "Ventana",
+                "Out": "Salida",
+                "Filtered": "Filtrado"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)
@@ -277,6 +368,31 @@ class Interpolate1DBlock(BaseBlock):
         DataOut("Interpolated Y", type_hint=np.ndarray)
     ]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Interpolação 1D",
+            "description": "Interpola um sinal 1D para um novo eixo X.",
+            "pins": {
+                "Execute": "Executar",
+                "New X": "Novo X",
+                "Method": "Método",
+                "Out": "Saída",
+                "Interpolated Y": "Y Interpolado"
+            }
+        },
+        "es": {
+            "display_name": "Interpolación 1D",
+            "description": "Interpola una señal 1D a un nuevo eje X.",
+            "pins": {
+                "Execute": "Ejecutar",
+                "New X": "Nuevo X",
+                "Method": "Método",
+                "Out": "Salida",
+                "Interpolated Y": "Y Interpolado"
+            }
+        }
+    }
+
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)
         self._interpolated: np.ndarray = np.array([])
@@ -332,6 +448,31 @@ class Interpolate2DBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Interpolated Z", type_hint=np.ndarray)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Interpolação 2D",
+            "description": "Redimensiona um ndarray 2D (matriz) usando interpolação.",
+            "pins": {
+                "Execute": "Executar",
+                "New Size": "Novo Tamanho",
+                "Order": "Ordem",
+                "Out": "Saída",
+                "Interpolated Z": "Z Interpolado"
+            }
+        },
+        "es": {
+            "display_name": "Interpolación 2D",
+            "description": "Redimensiona un ndarray 2D (matriz) usando interpolación.",
+            "pins": {
+                "Execute": "Ejecutar",
+                "New Size": "Nuevo Tamaño",
+                "Order": "Orden",
+                "Out": "Salida",
+                "Interpolated Z": "Z Interpolado"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)
@@ -407,6 +548,39 @@ class FunctionGeneratorBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Value", type_hint=float)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Gerador de Funções",
+            "description": "Calcula o valor instantâneo de uma forma de onda com base no tempo atual do sistema.",
+            "pins": {
+                "Generate": "Gerar",
+                "Wave Type": "Tipo de Onda",
+                "Amplitude": "Amplitude",
+                "Offset": "Deslocamento",
+                "Frequency": "Frequência",
+                "Phase (deg)": "Fase (graus)",
+                "Noise Amp": "Amp Ruído",
+                "Out": "Saída",
+                "Value": "Valor"
+            }
+        },
+        "es": {
+            "display_name": "Generador de Funciones",
+            "description": "Calcula el valor instantáneo de una forma de onda basado en el tiempo actual del sistema.",
+            "pins": {
+                "Generate": "Generar",
+                "Wave Type": "Tipo de Onda",
+                "Amplitude": "Amplitud",
+                "Offset": "Desplazamiento",
+                "Frequency": "Frecuencia",
+                "Phase (deg)": "Fase (grados)",
+                "Noise Amp": "Amp Ruido",
+                "Out": "Salida",
+                "Value": "Valor"
+            }
+        }
+    }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

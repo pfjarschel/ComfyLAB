@@ -36,6 +36,28 @@ class BaseDeviceConnectBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Device", type_hint=Any)
     ]
+    i18n = {
+        "pt-BR": {
+            "display_name": "Conectar Dispositivo",
+            "description": "Abre uma conexão VISA com ganchos de inicialização/desconexão específicos do dispositivo.",
+            "pins": {
+                "Open": "Abrir",
+                "Address": "Endereço",
+                "Out": "Saída",
+                "Device": "Dispositivo"
+            }
+        },
+        "es": {
+            "display_name": "Conectar Dispositivo",
+            "description": "Abre una conexión VISA con ganchos de inicialización/desconexión específicos del dispositivo.",
+            "pins": {
+                "Open": "Abrir",
+                "Address": "Dirección",
+                "Out": "Salida",
+                "Device": "Dispositivo"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)

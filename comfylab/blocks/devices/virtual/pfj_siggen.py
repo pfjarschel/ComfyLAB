@@ -19,6 +19,16 @@ class VirtSigGenConnectBlock(BaseDeviceConnectBlock):
     icon = "⚡"
     display_name = "VirtSigGen Connect"
     description = "Opens a VISA connection to a VirtSigGen signal generator. On teardown, disables output."
+    i18n = {
+        "pt-BR": {
+            "display_name": "Conexão VirtSigGen",
+            "description": "Abre uma conexão VISA para um gerador de sinais VirtSigGen. Na desconexão, desabilita a saída."
+        },
+        "es": {
+            "display_name": "Conexión VirtSigGen",
+            "description": "Abre una conexión VISA a un generador de señales VirtSigGen. Al desconectar, deshabilita la salida."
+        }
+    }
 
     async def _device_teardown(self, device: Any, lock_manager: Any) -> None:
         address = getattr(device, "resource_name", None)
@@ -51,6 +61,40 @@ class VirtSigGenConfigWaveBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Device", type_hint=Any)
     ]
+    i18n = {
+        "pt-BR": {
+            "display_name": "Configurar Onda VirtSigGen",
+            "description": "Configura a forma de onda, frequência, amplitude, offset, fase e ciclo de trabalho de um dispositivo VirtSigGen.",
+            "pins": {
+                "In": "Entrada",
+                "Device": "Dispositivo",
+                "WaveType": "Tipo de Onda",
+                "Frequency": "Frequência",
+                "Amplitude": "Amplitude",
+                "Offset": "Offset",
+                "Phase": "Fase",
+                "DutyCycle": "Ciclo de Trabalho",
+                "Shape": "Forma",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Configurar Onda VirtSigGen",
+            "description": "Configura la forma de onda, frecuencia, amplitud, offset, fase y ciclo de trabajo de un dispositivo VirtSigGen.",
+            "pins": {
+                "In": "Entrada",
+                "Device": "Dispositivo",
+                "WaveType": "Tipo de Onda",
+                "Frequency": "Frecuencia",
+                "Amplitude": "Amplitud",
+                "Offset": "Offset",
+                "Phase": "Fase",
+                "DutyCycle": "Ciclo de Trabajo",
+                "Shape": "Forma",
+                "Out": "Salida"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Device":
@@ -113,6 +157,32 @@ class VirtSigGenConfigChirpBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Device", type_hint=Any)
     ]
+    i18n = {
+        "pt-BR": {
+            "display_name": "Configurar Chirp VirtSigGen",
+            "description": "Configura o estado do chirp, span de variação de frequência e período de um dispositivo VirtSigGen.",
+            "pins": {
+                "In": "Entrada",
+                "Device": "Dispositivo",
+                "Chirp": "Chirp",
+                "Variation": "Variação",
+                "Period": "Período",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Configurar Chirp VirtSigGen",
+            "description": "Configura el estado de chirp del trigger, el span de variación de frecuencia y el período de un dispositivo VirtSigGen.",
+            "pins": {
+                "In": "Entrada",
+                "Device": "Dispositivo",
+                "Chirp": "Chirp",
+                "Variation": "Variación",
+                "Period": "Período",
+                "Out": "Salida"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Device":
@@ -155,6 +225,30 @@ class VirtSigGenOutputBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Device", type_hint=Any)
     ]
+    i18n = {
+        "pt-BR": {
+            "display_name": "Saída VirtSigGen",
+            "description": "Habilita ou desabilita o estado de saída (ON/OFF) de um dispositivo VirtSigGen.",
+            "pins": {
+                "In": "Entrada",
+                "Device": "Dispositivo",
+                "Output": "Saída",
+                "Enable": "Habilitar",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Salida VirtSigGen",
+            "description": "Habilita o deshabilita el estado de salida (ON/OFF) de un dispositivo VirtSigGen.",
+            "pins": {
+                "In": "Entrada",
+                "Device": "Dispositivo",
+                "Output": "Salida",
+                "Enable": "Habilitar",
+                "Out": "Salida"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Device":

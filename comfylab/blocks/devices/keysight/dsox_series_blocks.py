@@ -22,6 +22,18 @@ class KeysightDSOXConnectBlock(BaseDeviceConnectBlock):
     icon = "📺"
     display_name = "Keysight DSO-X Connect"
     description = "Opens a VISA session to a Keysight InfiniiVision DSO-X 3000/2000/1000 oscilloscope."
+    i18n = {
+        "pt-BR": {
+            "display_name": "Conectar Keysight DSO-X",
+            "description": "Abre uma sessão VISA com um osciloscópio Keysight InfiniiVision DSO-X 3000/2000/1000.",
+            "category": "Equipamentos"
+        },
+        "es": {
+            "display_name": "Conectar Keysight DSO-X",
+            "description": "Abre una sesión VISA con un osciloscopio Keysight InfiniiVision DSO-X 3000/2000/1000.",
+            "category": "Equipos"
+        }
+    }
 
 
 @register_block("devices/keysight/dsox_series/timebase")
@@ -41,6 +53,26 @@ class KeysightDSOXTimebaseBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Device", type_hint=Any)
     ]
+    i18n = {
+        "pt-BR": {
+            "display_name": "Base de Tempo Keysight DSO-X",
+            "description": "Configura a escala de base de tempo e posição no osciloscópio Keysight DSO-X.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Scale": "Escala",
+                "Position": "Posição"
+            }
+        },
+        "es": {
+            "display_name": "Base de Tiempo Keysight DSO-X",
+            "description": "Configura la escala de base de tiempo y posición en un osciloscopio Keysight DSO-X.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Scale": "Escala",
+                "Position": "Posición"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Device":
@@ -79,6 +111,32 @@ class KeysightDSOXChannelBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Device", type_hint=Any)
     ]
+    i18n = {
+        "pt-BR": {
+            "display_name": "Canal Keysight DSO-X",
+            "description": "Configura os parâmetros verticais do canal em um osciloscópio Keysight DSO-X.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Channel": "Canal",
+                "Enable": "Habilitar",
+                "Scale": "Escala",
+                "Offset": "Offset",
+                "Coupling": "Acoplamento"
+            }
+        },
+        "es": {
+            "display_name": "Canal Keysight DSO-X",
+            "description": "Configura los parámetros verticales del canal en un osciloscopio Keysight DSO-X.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Channel": "Canal",
+                "Enable": "Habilitar",
+                "Scale": "Escala",
+                "Offset": "Offset",
+                "Coupling": "Acoplamiento"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Device":
@@ -118,6 +176,28 @@ class KeysightDSOXAcquireBlock(BaseBlock):
         DataOut("Time", type_hint=np.ndarray),
         DataOut("Device", type_hint=Any)
     ]
+    i18n = {
+        "pt-BR": {
+            "display_name": "Adquirir Keysight DSO-X",
+            "description": "Aciona a aquisição de forma de onda de alta velocidade de um Keysight DSO-X, gera arrays e transmite telemetria.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Channel": "Canal",
+                "Waveform": "Forma de Onda",
+                "Time": "Tempo"
+            }
+        },
+        "es": {
+            "display_name": "Adquirir Keysight DSO-X",
+            "description": "Activa la adquisición de forma de onda de alta velocidad de un Keysight DSO-X, genera arrays y transmite telemetría.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Channel": "Canal",
+                "Waveform": "Forma de Onda",
+                "Time": "Tiempo"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)

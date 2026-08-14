@@ -22,6 +22,18 @@ class TBS1062ConnectBlock(BaseDeviceConnectBlock):
     icon = "📺"
     display_name = "Tektronix TBS1062 Connect"
     description = "Opens a VISA session to a Tektronix TBS1062 oscilloscope. On teardown, stops acquisition."
+    i18n = {
+        "pt-BR": {
+            "display_name": "Conectar Tektronix TBS1062",
+            "description": "Abre uma sessão VISA com um osciloscópio Tektronix TBS1062. No encerramento, para a aquisição.",
+            "category": "Equipamentos"
+        },
+        "es": {
+            "display_name": "Conectar Tektronix TBS1062",
+            "description": "Abre una sesión VISA con un osciloscopio Tektronix TBS1062. Al finalizar, detiene la adquisición.",
+            "category": "Equipos"
+        }
+    }
 
     async def _device_teardown(self, device: Any, lock_manager: Any) -> None:
         drv = TBS1062(device)
@@ -50,6 +62,26 @@ class TBS1062TimebaseBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Device", type_hint=Any)
     ]
+    i18n = {
+        "pt-BR": {
+            "display_name": "Base de Tempo Tektronix TBS1062",
+            "description": "Configura a escala de base de tempo horizontal e posição no Tektronix TBS1062.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Scale": "Escala",
+                "Position": "Posição"
+            }
+        },
+        "es": {
+            "display_name": "Base de Tiempo Tektronix TBS1062",
+            "description": "Configura la escala de base de tiempo horizontal y posición en un Tektronix TBS1062.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Scale": "Escala",
+                "Position": "Posición"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Device":
@@ -88,6 +120,32 @@ class TBS1062ChannelBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Device", type_hint=Any)
     ]
+    i18n = {
+        "pt-BR": {
+            "display_name": "Canal Tektronix TBS1062",
+            "description": "Configura os parâmetros verticais do canal (escala, posição, acoplamento, habilitar) em um TBS1062.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Channel": "Canal",
+                "Enable": "Habilitar",
+                "Scale": "Escala",
+                "Position": "Posição",
+                "Coupling": "Acoplamento"
+            }
+        },
+        "es": {
+            "display_name": "Canal Tektronix TBS1062",
+            "description": "Configura los parámetros verticales del canal (escala, posición, acoplamiento, habilitar) en un TBS1062.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Channel": "Canal",
+                "Enable": "Habilitar",
+                "Scale": "Escala",
+                "Position": "Posición",
+                "Coupling": "Acoplamiento"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Device":
@@ -127,6 +185,28 @@ class TBS1062AcquireBlock(BaseBlock):
         DataOut("Time", type_hint=np.ndarray),
         DataOut("Device", type_hint=Any)
     ]
+    i18n = {
+        "pt-BR": {
+            "display_name": "Adquirir Tektronix TBS1062",
+            "description": "Aciona a aquisição de um Tektronix TBS1062, gera arrays e transmite a telemetria visual do gráfico.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Channel": "Canal",
+                "Waveform": "Forma de Onda",
+                "Time": "Tempo"
+            }
+        },
+        "es": {
+            "display_name": "Adquirir Tektronix TBS1062",
+            "description": "Activa la adquisición de un Tektronix TBS1062, genera arrays y transmite la telemetría visual del gráfico.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Channel": "Canal",
+                "Waveform": "Forma de Onda",
+                "Time": "Tiempo"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)

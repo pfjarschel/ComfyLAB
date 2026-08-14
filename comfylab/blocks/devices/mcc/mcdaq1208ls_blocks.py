@@ -21,6 +21,17 @@ class MCCDAQ1208LSConnectBlock(BaseDeviceConnectBlock):
     display_name = "MCC USB-1208LS Connect"
     description = "Opens a VISA session to an MCC USB-1208LS DAQ module."
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Conectar MCC USB-1208LS",
+            "description": "Abre uma sessão VISA para um módulo DAQ MCC USB-1208LS."
+        },
+        "es": {
+            "display_name": "Conectar MCC USB-1208LS",
+            "description": "Abre una sesión VISA a un módulo DAQ MCC USB-1208LS."
+        }
+    }
+
 
 @register_block("devices/mcc/mcdaq1208ls/analog_read")
 class MCCDAQ1208LSAnalogReadBlock(BaseBlock):
@@ -39,6 +50,27 @@ class MCCDAQ1208LSAnalogReadBlock(BaseBlock):
         DataOut("Voltage", type_hint=float),
         DataOut("Device", type_hint=Any)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "MCC USB-1208LS Ler Analógico",
+            "description": "Consulta a tensão de entrada analógica em tempo real (V) em um canal MCC USB-1208LS (0-7).",
+            "pins": {
+                "Device": "Dispositivo",
+                "Channel": "Canal",
+                "Voltage": "Tensao"
+            }
+        },
+        "es": {
+            "display_name": "MCC USB-1208LS Leer Analógico",
+            "description": "Consulta el voltaje de entrada analógica en tiempo real (V) en un canal MCC USB-1208LS (0-7).",
+            "pins": {
+                "Device": "Dispositivo",
+                "Channel": "Canal",
+                "Voltage": "Voltaje"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)

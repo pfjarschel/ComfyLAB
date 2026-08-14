@@ -20,6 +20,18 @@ class ThorlabsMDT69XConnectBlock(BaseDeviceConnectBlock):
     icon = "⚡"
     display_name = "Thorlabs MDT69X Connect"
     description = "Opens a VISA session to a Thorlabs MDT693B/MDT694B Piezo Controller."
+    i18n = {
+        "pt-BR": {
+            "display_name": "Conectar Thorlabs MDT69X",
+            "description": "Abre uma sessão VISA com um Controlador Piezo Thorlabs MDT693B/MDT694B.",
+            "category": "Equipamentos"
+        },
+        "es": {
+            "display_name": "Conectar Thorlabs MDT69X",
+            "description": "Abre una sesión VISA con un Controlador Piezo Thorlabs MDT693B/MDT694B.",
+            "category": "Equipos"
+        }
+    }
 
 
 @register_block("devices/thorlabs/mdt69x/set_voltage")
@@ -40,6 +52,28 @@ class ThorlabsMDT69XSetVoltageBlock(BaseBlock):
         DataOut("ActualVoltage", type_hint=float),
         DataOut("Device", type_hint=Any)
     ]
+    i18n = {
+        "pt-BR": {
+            "display_name": "Definir Tensão Thorlabs MDT69X",
+            "description": "Define a saída de tensão piezo (V) para um eixo do canal (X/Y/Z) em um Thorlabs MDT69X.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Axis": "Eixo",
+                "Voltage": "Tensão",
+                "ActualVoltage": "Tensão Atual"
+            }
+        },
+        "es": {
+            "display_name": "Ajustar Voltaje Thorlabs MDT69X",
+            "description": "Ajusta la salida de voltaje piezo (V) para un eje del canal (X/Y/Z) en un Thorlabs MDT69X.",
+            "pins": {
+                "Device": "Dispositivo",
+                "Axis": "Eje",
+                "Voltage": "Voltaje",
+                "ActualVoltage": "Voltaje Actual"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)

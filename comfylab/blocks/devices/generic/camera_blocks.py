@@ -34,6 +34,32 @@ class GenericCameraConnectBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Camera", type_hint=Any)
     ]
+    i18n = {
+        "pt-BR": {
+            "display_name": "Conexão Genérica de Câmera",
+            "description": "Abre uma sessão para uma webcam USB ou câmera UVC (índice 0, 1, 2...).",
+            "pins": {
+                "Open": "Abrir",
+                "CameraIndex": "Índice da Câmera",
+                "Width": "Largura",
+                "Height": "Altura",
+                "Out": "Saída",
+                "Camera": "Câmera"
+            }
+        },
+        "es": {
+            "display_name": "Conexión Genérica de Cámara",
+            "description": "Abre una sesión para una cámara web USB o cámara UVC (índice 0, 1, 2...).",
+            "pins": {
+                "Open": "Abrir",
+                "CameraIndex": "Índice de Cámara",
+                "Width": "Ancho",
+                "Height": "Alto",
+                "Out": "Salida",
+                "Camera": "Cámara"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)
@@ -86,6 +112,28 @@ class GenericCameraCaptureBlock(BaseBlock):
         DataOut("Frame", type_hint=np.ndarray),
         DataOut("Camera", type_hint=Any)
     ]
+    i18n = {
+        "pt-BR": {
+            "display_name": "Captura Genérica de Câmera",
+            "description": "Captura um array de quadro de imagem de um fluxo de câmera aberto.",
+            "pins": {
+                "In": "Entrada",
+                "Camera": "Câmera",
+                "Out": "Saída",
+                "Frame": "Quadro"
+            }
+        },
+        "es": {
+            "display_name": "Captura Genérica de Cámara",
+            "description": "Captura un array de cuadro de imagen de un flujo de cámara abierto.",
+            "pins": {
+                "In": "Entrada",
+                "Camera": "Cámara",
+                "Out": "Salida",
+                "Frame": "Cuadro"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)

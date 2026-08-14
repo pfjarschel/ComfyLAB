@@ -73,6 +73,24 @@ class VISAResourceManagerBlock(BaseBlock):
         DataOut("Resources", type_hint=list)
     ]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Gerenciador de Recursos VISA",
+            "description": "Consulta a biblioteca VISA e retorna uma lista de endereços de dispositivos disponíveis.",
+            "pins": {
+                "Resources": "Recursos"
+            }
+        },
+        "es": {
+            "display_name": "Administrador de Recursos VISA",
+            "description": "Consulta la biblioteca VISA y devuelve una lista de direcciones de dispositivos disponibles.",
+            "pins": {
+                "Resources": "Recursos"
+            }
+        }
+    }
+
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Resources":
             rm = visa_rm_wrapper.get_rm()
@@ -103,6 +121,36 @@ class VISADeviceBlock(BaseBlock):
         ExecOut("Out"),
         DataOut("Device", type_hint=Any)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Dispositivo VISA",
+            "description": "Abre uma sessão para um endereço VISA e gera o handle de conexão do dispositivo.",
+            "pins": {
+                "Open": "Abrir",
+                "Address": "Endereço",
+                "ReadTermination": "Terminação de Leitura",
+                "WriteTermination": "Terminação de Escrita",
+                "Timeout": "Tempo Limite",
+                "Out": "Saída",
+                "Device": "Dispositivo"
+            }
+        },
+        "es": {
+            "display_name": "Dispositivo VISA",
+            "description": "Abre una sesión a una dirección VISA y emite el identificador de conexión del dispositivo.",
+            "pins": {
+                "Open": "Abrir",
+                "Address": "Dirección",
+                "ReadTermination": "Terminación de Lectura",
+                "WriteTermination": "Terminación de Escritura",
+                "Timeout": "Tiempo de Espera",
+                "Out": "Salida",
+                "Device": "Dispositivo"
+            }
+        }
+    }
+
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)
@@ -177,6 +225,30 @@ class VISAWriteBlock(BaseBlock):
         DataOut("Device", type_hint=Any)
     ]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Escrita VISA",
+            "description": "Escreve uma string de comando SCPI no handle do dispositivo VISA fornecido.",
+            "pins": {
+                "In": "Entrada",
+                "Device": "Dispositivo",
+                "Command": "Comando",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Escritura VISA",
+            "description": "Escribe una cadena de comando SCPI en el identificador de dispositivo VISA dado.",
+            "pins": {
+                "In": "Entrada",
+                "Device": "Dispositivo",
+                "Command": "Comando",
+                "Out": "Salida"
+            }
+        }
+    }
+
+
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
         device = await context.pull(self.id, "Device")
         command = await context.pull(self.id, "Command")
@@ -212,6 +284,30 @@ class VISAReadBlock(BaseBlock):
         DataOut("Response", type_hint=str),
         DataOut("Device", type_hint=Any)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Leitura VISA",
+            "description": "Lê os dados de resposta do handle do dispositivo VISA fornecido.",
+            "pins": {
+                "In": "Entrada",
+                "Device": "Dispositivo",
+                "Response": "Resposta",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Lectura VISA",
+            "description": "Lee los datos de respuesta del identificador de dispositivo VISA dado.",
+            "pins": {
+                "In": "Entrada",
+                "Device": "Dispositivo",
+                "Response": "Respuesta",
+                "Out": "Salida"
+            }
+        }
+    }
+
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)
@@ -251,6 +347,32 @@ class VISAQueryBlock(BaseBlock):
         DataOut("Response", type_hint=str),
         DataOut("Device", type_hint=Any)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Consulta VISA",
+            "description": "Envia uma string de consulta SCPI e lê a resposta do handle do dispositivo VISA fornecido.",
+            "pins": {
+                "In": "Entrada",
+                "Device": "Dispositivo",
+                "Command": "Comando",
+                "Response": "Resposta",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Consulta VISA",
+            "description": "Envía una cadena de consulta SCPI y lee la respuesta del identificador de dispositivo VISA dado.",
+            "pins": {
+                "In": "Entrada",
+                "Device": "Dispositivo",
+                "Command": "Comando",
+                "Response": "Respuesta",
+                "Out": "Salida"
+            }
+        }
+    }
+
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)

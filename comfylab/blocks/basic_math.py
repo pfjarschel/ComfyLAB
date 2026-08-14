@@ -34,6 +34,29 @@ class AddBlock(BaseBlock):
     ]
     outputs_def = [DataOut("Result", type_hint=float)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Adicionar",
+            "description": "Obtém dois números, A e B, e fornece sua soma.",
+            "category": "Matemática",
+            "pins": {
+                "A": "A",
+                "B": "B",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Sumar",
+            "description": "Obtiene dos números, A y B, y devuelve su suma.",
+            "category": "Matemáticas",
+            "pins": {
+                "A": "A",
+                "B": "B",
+                "Result": "Resultado"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
             a = await context.pull(self.id, "A")
@@ -54,6 +77,29 @@ class SubtractBlock(BaseBlock):
         DataIn("B", type_hint=float, default=0.0, widget="number")
     ]
     outputs_def = [DataOut("Result", type_hint=float)]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Subtrair",
+            "description": "Obtém dois números, A e B, e fornece A - B.",
+            "category": "Matemática",
+            "pins": {
+                "A": "A",
+                "B": "B",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Restar",
+            "description": "Obtiene dos números, A y B, y devuelve A - B.",
+            "category": "Matemáticas",
+            "pins": {
+                "A": "A",
+                "B": "B",
+                "Result": "Resultado"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
@@ -76,6 +122,29 @@ class MultiplyBlock(BaseBlock):
     ]
     outputs_def = [DataOut("Result", type_hint=float)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Multiplicar",
+            "description": "Obtém dois números, A e B, e fornece seu produto.",
+            "category": "Matemática",
+            "pins": {
+                "A": "A",
+                "B": "B",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Multiplicar",
+            "description": "Obtiene dos números, A y B, y devuelve su producto.",
+            "category": "Matemáticas",
+            "pins": {
+                "A": "A",
+                "B": "B",
+                "Result": "Resultado"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
             a = await context.pull(self.id, "A")
@@ -96,6 +165,29 @@ class DivideBlock(BaseBlock):
         DataIn("B", type_hint=float, default=1.0, widget="number")
     ]
     outputs_def = [DataOut("Result", type_hint=float)]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Dividir",
+            "description": "Obtém dois números, A e B, e fornece A / B.",
+            "category": "Matemática",
+            "pins": {
+                "A": "A",
+                "B": "B",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Dividir",
+            "description": "Obtiene dos números, A y B, y devuelve A / B.",
+            "category": "Matemáticas",
+            "pins": {
+                "A": "A",
+                "B": "B",
+                "Result": "Resultado"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
@@ -121,6 +213,29 @@ class PowerBlock(BaseBlock):
     ]
     outputs_def = [DataOut("Result", type_hint=float)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Potência",
+            "description": "Eleva a base A ao expoente B (A^B).",
+            "category": "Matemática",
+            "pins": {
+                "Base": "Base",
+                "Exponent": "Expoente",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Potencia",
+            "description": "Eleva la base A al exponente B (A^B).",
+            "category": "Matemáticas",
+            "pins": {
+                "Base": "Base",
+                "Exponent": "Exponente",
+                "Result": "Resultado"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
             base = await context.pull(self.id, "Base")
@@ -145,6 +260,31 @@ class TrigBlock(BaseBlock):
         DataIn("UseDegrees", type_hint=bool, default=False, widget="checkbox")
     ]
     outputs_def = [DataOut("Result", type_hint=Any)]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Trigonometria",
+            "description": "Calcula funções trigonométricas e hiperbólicas em radianos ou graus. Suporta matrizes.",
+            "category": "Matemática",
+            "pins": {
+                "Value": "Valor",
+                "Function": "Função",
+                "UseDegrees": "UsarGraus",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Trigonometría",
+            "description": "Calcula funciones trigonométricas e hiperbólicas en radianes o grados. Soporta matrices.",
+            "category": "Matemáticas",
+            "pins": {
+                "Value": "Valor",
+                "Function": "Función",
+                "UseDegrees": "UsarGrados",
+                "Result": "Resultado"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
@@ -199,6 +339,31 @@ class RandomBlock(BaseBlock):
     ]
     outputs_def = [DataOut("Value", type_hint=float)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Número Aleatório",
+            "description": "Fornece um número aleatório no intervalo [Mín, Máx].",
+            "category": "Matemática",
+            "pins": {
+                "Min": "Mín",
+                "Max": "Máx",
+                "IntegerMode": "ModoInteiro",
+                "Value": "Valor"
+            }
+        },
+        "es": {
+            "display_name": "Número Aleatorio",
+            "description": "Devuelve un número aleatorio en el rango [Mín, Máx].",
+            "category": "Matemáticas",
+            "pins": {
+                "Min": "Mín",
+                "Max": "Máx",
+                "IntegerMode": "ModoEntero",
+                "Value": "Valor"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Value":
             min_val = float(await context.pull(self.id, "Min"))
@@ -225,6 +390,33 @@ class RandomArrayBlock(BaseBlock):
         DataIn("IntegerMode", type_hint=bool, default=False, widget="checkbox")
     ]
     outputs_def = [DataOut("Array", type_hint=np.ndarray)]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Matriz Aleatória",
+            "description": "Fornece um NDArray aleatório no intervalo [Mín, Máx].",
+            "category": "Matemática",
+            "pins": {
+                "Shape": "Forma",
+                "Min": "Mín",
+                "Max": "Máx",
+                "IntegerMode": "ModoInteiro",
+                "Array": "Matriz"
+            }
+        },
+        "es": {
+            "display_name": "Matriz Aleatoria",
+            "description": "Devuelve un NDArray aleatorio en el rango [Mín, Máx].",
+            "category": "Matemáticas",
+            "pins": {
+                "Shape": "Forma",
+                "Min": "Mín",
+                "Max": "Máx",
+                "IntegerMode": "ModoEntero",
+                "Array": "Matriz"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Array":
@@ -254,6 +446,33 @@ class CalculatorBlock(BaseBlock):
     outputs_def = [
         DataOut("Result", type_hint=float)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Calculadora",
+            "description": "Avalia uma expressão matemática com entradas de variáveis.",
+            "category": "Matemática",
+            "pins": {
+                "Result": "Resultado"
+            },
+            "properties": {
+                "expression": "Expressão",
+                "variables": "Variáveis"
+            }
+        },
+        "es": {
+            "display_name": "Calculadora",
+            "description": "Evalúa una expresión matemática con entradas de variables.",
+            "category": "Matemáticas",
+            "pins": {
+                "Result": "Resultado"
+            },
+            "properties": {
+                "expression": "Expresión",
+                "variables": "Variables"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)
@@ -318,6 +537,31 @@ class LinearScaleBlock(BaseBlock):
     outputs_def = [
         DataOut("Result", type_hint=Any)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Escala Linear",
+            "description": "Escalona um valor ou matriz linearmente: ax + b.",
+            "category": "Matemática",
+            "pins": {
+                "X": "X",
+                "A": "A",
+                "B": "B",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Escala Lineal",
+            "description": "Escala un valor o matriz linealmente: ax + b.",
+            "category": "Matemáticas",
+            "pins": {
+                "X": "X",
+                "A": "A",
+                "B": "B",
+                "Result": "Resultado"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Result":
