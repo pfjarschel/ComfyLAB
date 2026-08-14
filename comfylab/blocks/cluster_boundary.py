@@ -36,6 +36,7 @@ class ClusterInputBlock(BaseBlock):
         "pt-BR": {
             "display_name": "Entrada de Cluster",
             "description": "Expõe um pino de limite de entrada de cluster. Conecte isso a blocos dentro do cluster.",
+            "category": "Clusters",
             "pins": {
                 "Name": "Nome",
                 "Type": "Tipo",
@@ -47,6 +48,7 @@ class ClusterInputBlock(BaseBlock):
         "es": {
             "display_name": "Entrada de Clúster",
             "description": "Expone un pin de límite de entrada de clúster. Conecte esto a bloques dentro del clúster.",
+            "category": "Clusters",
             "pins": {
                 "Name": "Nombre",
                 "Type": "Tipo",
@@ -88,6 +90,7 @@ class ClusterOutputBlock(BaseBlock):
         "pt-BR": {
             "display_name": "Saída de Cluster",
             "description": "Expõe um pino de limite de saída de cluster. Conecte blocos dentro do cluster a isso.",
+            "category": "Clusters",
             "pins": {
                 "Name": "Nome",
                 "Type": "Tipo",
@@ -98,6 +101,7 @@ class ClusterOutputBlock(BaseBlock):
         "es": {
             "display_name": "Salida de Clúster",
             "description": "Expone un pin de límite de salida de clúster. Conecte bloques dentro del clúster a esto.",
+            "category": "Clusters",
             "pins": {
                 "Name": "Nombre",
                 "Type": "Tipo",

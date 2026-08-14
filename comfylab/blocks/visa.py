@@ -77,6 +77,7 @@ class VISAResourceManagerBlock(BaseBlock):
         "pt-BR": {
             "display_name": "Gerenciador de Recursos VISA",
             "description": "Consulta a biblioteca VISA e retorna uma lista de endereços de dispositivos disponíveis.",
+            "category": "Instrumentos/VISA",
             "pins": {
                 "Resources": "Recursos"
             }
@@ -84,6 +85,7 @@ class VISAResourceManagerBlock(BaseBlock):
         "es": {
             "display_name": "Administrador de Recursos VISA",
             "description": "Consulta la biblioteca VISA y devuelve una lista de direcciones de dispositivos disponibles.",
+            "category": "Instrumentos/VISA",
             "pins": {
                 "Resources": "Recursos"
             }
@@ -126,6 +128,7 @@ class VISADeviceBlock(BaseBlock):
         "pt-BR": {
             "display_name": "Dispositivo VISA",
             "description": "Abre uma sessão para um endereço VISA e gera o handle de conexão do dispositivo.",
+            "category": "Instrumentos/VISA",
             "pins": {
                 "Open": "Abrir",
                 "Address": "Endereço",
@@ -139,6 +142,7 @@ class VISADeviceBlock(BaseBlock):
         "es": {
             "display_name": "Dispositivo VISA",
             "description": "Abre una sesión a una dirección VISA y emite el identificador de conexión del dispositivo.",
+            "category": "Instrumentos/VISA",
             "pins": {
                 "Open": "Abrir",
                 "Address": "Dirección",
@@ -229,6 +233,7 @@ class VISAWriteBlock(BaseBlock):
         "pt-BR": {
             "display_name": "Escrita VISA",
             "description": "Escreve uma string de comando SCPI no handle do dispositivo VISA fornecido.",
+            "category": "Instrumentos/VISA",
             "pins": {
                 "In": "Entrada",
                 "Device": "Dispositivo",
@@ -239,6 +244,7 @@ class VISAWriteBlock(BaseBlock):
         "es": {
             "display_name": "Escritura VISA",
             "description": "Escribe una cadena de comando SCPI en el identificador de dispositivo VISA dado.",
+            "category": "Instrumentos/VISA",
             "pins": {
                 "In": "Entrada",
                 "Device": "Dispositivo",
@@ -289,6 +295,7 @@ class VISAReadBlock(BaseBlock):
         "pt-BR": {
             "display_name": "Leitura VISA",
             "description": "Lê os dados de resposta do handle do dispositivo VISA fornecido.",
+            "category": "Instrumentos/VISA",
             "pins": {
                 "In": "Entrada",
                 "Device": "Dispositivo",
@@ -299,6 +306,7 @@ class VISAReadBlock(BaseBlock):
         "es": {
             "display_name": "Lectura VISA",
             "description": "Lee los datos de respuesta del identificador de dispositivo VISA dado.",
+            "category": "Instrumentos/VISA",
             "pins": {
                 "In": "Entrada",
                 "Device": "Dispositivo",
@@ -352,6 +360,7 @@ class VISAQueryBlock(BaseBlock):
         "pt-BR": {
             "display_name": "Consulta VISA",
             "description": "Envia uma string de consulta SCPI e lê a resposta do handle do dispositivo VISA fornecido.",
+            "category": "Instrumentos/VISA",
             "pins": {
                 "In": "Entrada",
                 "Device": "Dispositivo",
@@ -363,6 +372,7 @@ class VISAQueryBlock(BaseBlock):
         "es": {
             "display_name": "Consulta VISA",
             "description": "Envía una cadena de consulta SCPI y lee la respuesta del identificador de dispositivo VISA dado.",
+            "category": "Instrumentos/VISA",
             "pins": {
                 "In": "Entrada",
                 "Device": "Dispositivo",

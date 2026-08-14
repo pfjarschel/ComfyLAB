@@ -24,10 +24,12 @@ class GenericOscilloscopeConnectBlock(BaseDeviceConnectBlock):
     description = "Opens a VISA session to a standard SCPI-compliant oscilloscope."
     i18n = {
         "pt-BR": {
+            "category": "Dispositivos/Genérico/Osciloscópio",
             "display_name": "Conexão Genérica de Osciloscópio",
             "description": "Abre uma sessão VISA para um osciloscópio padrão compatível com SCPI."
         },
         "es": {
+            "category": "Dispositivos/Genérico/Osciloscopio",
             "display_name": "Conexión Genérica de Osciloscopio",
             "description": "Abre una sesión VISA para un osciloscopio estándar compatible con SCPI."
         }
@@ -53,6 +55,7 @@ class GenericOscilloscopeTimebaseBlock(BaseBlock):
     ]
     i18n = {
         "pt-BR": {
+            "category": "Dispositivos/Genérico/Osciloscópio",
             "display_name": "Base de Tempo Genérica de Osciloscópio",
             "description": "Configura a escala da base de tempo horizontal e a posição de offset em um Osciloscópio SCPI.",
             "pins": {
@@ -64,6 +67,7 @@ class GenericOscilloscopeTimebaseBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Dispositivos/Genérico/Osciloscopio",
             "display_name": "Base de Tiempo Genérica de Osciloscopio",
             "description": "Configura la escala de la base de tiempo horizontal y la posición de offset en un Osciloscopio SCPI.",
             "pins": {
@@ -115,6 +119,7 @@ class GenericOscilloscopeChannelBlock(BaseBlock):
     ]
     i18n = {
         "pt-BR": {
+            "category": "Dispositivos/Genérico/Osciloscópio",
             "display_name": "Canal Genérico de Osciloscópio",
             "description": "Configura parâmetros do canal vertical em um Osciloscópio SCPI.",
             "pins": {
@@ -129,6 +134,7 @@ class GenericOscilloscopeChannelBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Dispositivos/Genérico/Osciloscopio",
             "display_name": "Canal Genérico de Osciloscopio",
             "description": "Configura parámetros del canal vertical en un Osciloscopio SCPI.",
             "pins": {
@@ -184,6 +190,7 @@ class GenericOscilloscopeAcquireBlock(BaseBlock):
     ]
     i18n = {
         "pt-BR": {
+            "category": "Dispositivos/Genérico/Osciloscópio",
             "display_name": "Adquirir Genérico de Osciloscópio",
             "description": "Aciona a aquisição de forma de onda de um Osciloscópio SCPI, fornece arrays e transmite telemetria.",
             "pins": {
@@ -196,6 +203,7 @@ class GenericOscilloscopeAcquireBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Dispositivos/Genérico/Osciloscopio",
             "display_name": "Adquirir Genérico de Osciloscopio",
             "description": "Activa la adquisición de forma de onda de un Osciloscopio SCPI, emite arrays y transmite telemetría.",
             "pins": {

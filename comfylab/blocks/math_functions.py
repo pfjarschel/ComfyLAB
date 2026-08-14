@@ -29,6 +29,7 @@ class GaussianBlock(BaseBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Matemática/Funções",
             "display_name": "Gaussiana",
             "description": "Avalia uma função Gaussiana: Amplitude * exp(-((X - Centro)^2) / (2 * Largura^2))",
             "pins": {
@@ -39,6 +40,7 @@ class GaussianBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Matemáticas/Funciones",
             "display_name": "Gaussiana",
             "description": "Evalúa una función Gaussiana: Amplitud * exp(-((X - Centro)^2) / (2 * Ancho^2))",
             "pins": {
@@ -83,6 +85,7 @@ class LorentzianBlock(BaseBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Matemática/Funções",
             "display_name": "Lorentziana",
             "description": "Avalia uma função Lorentziana: Amplitude * (Gama^2 / ((X - Centro)^2 + Gama^2))",
             "pins": {
@@ -93,6 +96,7 @@ class LorentzianBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Matemáticas/Funciones",
             "display_name": "Lorentziana",
             "description": "Evalúa una función Lorentziana: Amplitud * (Gamma^2 / ((X - Centro)^2 + Gamma^2))",
             "pins": {
@@ -139,6 +143,7 @@ class PulseBlock(BaseBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Matemática/Funções",
             "display_name": "Onda de Pulso",
             "description": "Gera uma onda quadrada/pulso periódica.",
             "pins": {
@@ -151,6 +156,7 @@ class PulseBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Matemáticas/Funciones",
             "display_name": "Onda de Pulso",
             "description": "Genera una onda cuadrada/pulso periódica.",
             "pins": {
@@ -202,6 +208,7 @@ class StepBlock(BaseBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Matemática/Funções",
             "display_name": "Função Degrau",
             "description": "Gera um único degrau ou pulso entre os pontos Início e Fim.",
             "pins": {
@@ -213,6 +220,7 @@ class StepBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Matemáticas/Funciones",
             "display_name": "Función Escalón",
             "description": "Genera un solo escalón o pulso entre los puntos Inicio y Fin.",
             "pins": {
@@ -263,6 +271,7 @@ class TriangleBlock(BaseBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Matemática/Funções",
             "display_name": "Onda Triangular",
             "description": "Gera uma onda triangular periódica.",
             "pins": {
@@ -274,6 +283,7 @@ class TriangleBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Matemáticas/Funciones",
             "display_name": "Onda Triangular",
             "description": "Genera una onda triangular periódica.",
             "pins": {
@@ -320,6 +330,7 @@ class SawtoothBlock(BaseBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Matemática/Funções",
             "display_name": "Onda Dente de Serra",
             "description": "Gera uma onda dente de serra periódica.",
             "pins": {
@@ -331,6 +342,7 @@ class SawtoothBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Matemáticas/Funciones",
             "display_name": "Onda Diente de Sierra",
             "description": "Genera una onda diente de sierra periódica.",
             "pins": {
@@ -377,6 +389,7 @@ class SineBlock(BaseBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Matemática/Funções",
             "display_name": "Onda Senoidal",
             "description": "Gera uma onda senoidal periódica.",
             "pins": {
@@ -388,6 +401,7 @@ class SineBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Matemáticas/Funciones",
             "display_name": "Onda Senoidal",
             "description": "Genera una onda senoidal periódica.",
             "pins": {
@@ -430,6 +444,7 @@ class BesselBlock(BaseBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Matemática/Funções",
             "display_name": "Função de Bessel",
             "description": "Avalia funções de Bessel de primeira (J) ou segunda (Y) espécie.",
             "pins": {
@@ -439,6 +454,7 @@ class BesselBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Matemáticas/Funciones",
             "display_name": "Función de Bessel",
             "description": "Evalúa funciones de Bessel de primera (J) o segunda (Y) especie.",
             "pins": {
@@ -480,6 +496,7 @@ class PolynomBlock(BaseBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Matemática/Funções",
             "display_name": "Polinômio",
             "description": "Avalia um polinômio usando um array de coeficientes (maior grau primeiro).",
             "pins": {
@@ -488,6 +505,7 @@ class PolynomBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Matemáticas/Funciones",
             "display_name": "Polinomio",
             "description": "Evalúa un polinomio usando una matriz de coeficientes (grado mayor primero).",
             "pins": {
@@ -528,6 +546,7 @@ class LogBlock(BaseBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Matemática/Funções",
             "display_name": "Logaritmo",
             "description": "Avalia o logaritmo de X com uma Base dada.",
             "pins": {
@@ -536,6 +555,7 @@ class LogBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Matemáticas/Funciones",
             "display_name": "Logaritmo",
             "description": "Evalúa el logaritmo de X con una Base dada.",
             "pins": {
@@ -580,6 +600,7 @@ class ExponentialBlock(BaseBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Matemática/Funções",
             "display_name": "Exponencial",
             "description": "Avalia uma função exponencial: Amplitude * (Base ^ X)",
             "pins": {
@@ -589,6 +610,7 @@ class ExponentialBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Matemáticas/Funciones",
             "display_name": "Exponencial",
             "description": "Evalúa una función exponencial: Amplitud * (Base ^ X)",
             "pins": {

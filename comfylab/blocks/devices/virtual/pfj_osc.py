@@ -23,10 +23,12 @@ class VirtOscConnectBlock(BaseDeviceConnectBlock):
     description = "Opens a VISA connection to a VirtOsc oscilloscope. On teardown, stops acquisition."
     i18n = {
         "pt-BR": {
+            "category": "Dispositivos/Virtual/Osciloscópio",
             "display_name": "Conexão VirtOsc",
             "description": "Abre uma conexão VISA para um osciloscópio VirtOsc. Na desconexão, para a aquisição."
         },
         "es": {
+            "category": "Dispositivos/Virtual/Osciloscopio",
             "display_name": "Conexión VirtOsc",
             "description": "Abre una conexión VISA a un osciloscopio VirtOsc. Al desconectar, detiene la adquisición."
         }
@@ -61,6 +63,7 @@ class VirtOscTimebaseBlock(BaseBlock):
     ]
     i18n = {
         "pt-BR": {
+            "category": "Dispositivos/Virtual/Osciloscópio",
             "display_name": "Base de Tempo VirtOsc",
             "description": "Configura a escala da base de tempo horizontal, offset e tamanho de pontos em um dispositivo VirtOsc.",
             "pins": {
@@ -73,6 +76,7 @@ class VirtOscTimebaseBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Dispositivos/Virtual/Osciloscopio",
             "display_name": "Base de Tiempo VirtOsc",
             "description": "Configura la escala de la base de tiempo horizontal, offset y tamaño de puntos en un dispositivo VirtOsc.",
             "pins": {
@@ -130,6 +134,7 @@ class VirtOscChannelBlock(BaseBlock):
     ]
     i18n = {
         "pt-BR": {
+            "category": "Dispositivos/Virtual/Osciloscópio",
             "display_name": "Canal VirtOsc",
             "description": "Configura parâmetros verticais (escala, offset, estado ativo) de um canal de entrada específico em um dispositivo VirtOsc.",
             "pins": {
@@ -143,6 +148,7 @@ class VirtOscChannelBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Dispositivos/Virtual/Osciloscopio",
             "display_name": "Canal VirtOsc",
             "description": "Configura parámetros verticales (escala, offset, estado activo) de un canal de entrada específico en un dispositivo VirtOsc.",
             "pins": {
@@ -201,6 +207,7 @@ class VirtOscTriggerBlock(BaseBlock):
     ]
     i18n = {
         "pt-BR": {
+            "category": "Dispositivos/Virtual/Osciloscópio",
             "display_name": "Trigger VirtOsc",
             "description": "Define o modo de operação do trigger (ex: auto, free) em um dispositivo VirtOsc.",
             "pins": {
@@ -211,6 +218,7 @@ class VirtOscTriggerBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Dispositivos/Virtual/Osciloscopio",
             "display_name": "Trigger VirtOsc",
             "description": "Establece el modo de operación del trigger (ej: auto, free) en un dispositivo VirtOsc.",
             "pins": {
@@ -256,6 +264,7 @@ class VirtOscStateBlock(BaseBlock):
     ]
     i18n = {
         "pt-BR": {
+            "category": "Dispositivos/Virtual/Osciloscópio",
             "display_name": "Estado VirtOsc",
             "description": "Coloca o estado de varredura do dispositivo VirtOsc em RUN ou STOP.",
             "pins": {
@@ -266,6 +275,7 @@ class VirtOscStateBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Dispositivos/Virtual/Osciloscopio",
             "display_name": "Estado VirtOsc",
             "description": "Establece el estado de barrido del dispositivo VirtOsc en RUN o STOP.",
             "pins": {
@@ -316,6 +326,7 @@ class VirtOscAcquireBlock(BaseBlock):
     ]
     i18n = {
         "pt-BR": {
+            "category": "Dispositivos/Virtual/Osciloscópio",
             "display_name": "Adquirir VirtOsc",
             "description": "Aciona a aquisição, fornece arrays de forma de onda e transmite telemetria de plotagem visual.",
             "pins": {
@@ -328,6 +339,7 @@ class VirtOscAcquireBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Dispositivos/Virtual/Osciloscopio",
             "display_name": "Adquirir VirtOsc",
             "description": "Activa la recuperación de adquisición, emite arrays de forma de onda y transmite telemetría de trazado visual.",
             "pins": {

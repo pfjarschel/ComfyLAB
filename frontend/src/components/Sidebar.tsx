@@ -67,9 +67,7 @@ const CategoryTreeItem = ({
     getBlockTitle(a).localeCompare(getBlockTitle(b))
   );
 
-  const displayCategoryName = isTopLevel 
-    ? t(`sidebar.categories.${catName.toUpperCase()}`, catName)
-    : catName;
+  const displayCategoryName = catName;
 
   return (
     <div>

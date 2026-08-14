@@ -49,6 +49,7 @@ class FFTBlock(BaseBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Matemática/Sinais",
             "display_name": "Espectro FFT",
             "description": "Calcula a Transformada Discreta de Fourier (magnitude do espectro) de um sinal.",
             "pins": {
@@ -62,6 +63,7 @@ class FFTBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Matemáticas/Señales",
             "display_name": "Espectro FFT",
             "description": "Calcula la Transformada Discreta de Fourier (magnitud del espectro) de una señal.",
             "pins": {
@@ -153,6 +155,7 @@ class IFFTBlock(BaseBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Matemática/Sinais",
             "display_name": "FFT Inversa",
             "description": "Reconstrói um sinal no domínio do tempo a partir de arrays de Magnitude (Espectro) e Fase.",
             "pins": {
@@ -165,6 +168,7 @@ class IFFTBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Matemáticas/Señales",
             "display_name": "FFT Inversa",
             "description": "Reconstruye una señal en el dominio del tiempo a partir de matrices de Magnitud (Espectro) y Fase.",
             "pins": {
@@ -246,6 +250,7 @@ class FilterBlock(BaseBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Matemática/Sinais",
             "display_name": "Filtro de Sinal",
             "description": "Filtra um ndarray 1D usando média móvel ou filtros Butterworth com frequência normalizada.",
             "pins": {
@@ -262,6 +267,7 @@ class FilterBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Matemáticas/Señales",
             "display_name": "Filtro de Señal",
             "description": "Filtra un ndarray 1D usando promedio móvil o filtros Butterworth con frecuencia normalizada.",
             "pins": {
@@ -370,6 +376,7 @@ class Interpolate1DBlock(BaseBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Matemática/Sinais",
             "display_name": "Interpolação 1D",
             "description": "Interpola um sinal 1D para um novo eixo X.",
             "pins": {
@@ -381,6 +388,7 @@ class Interpolate1DBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Matemáticas/Señales",
             "display_name": "Interpolación 1D",
             "description": "Interpola una señal 1D a un nuevo eje X.",
             "pins": {
@@ -451,6 +459,7 @@ class Interpolate2DBlock(BaseBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Matemática/Sinais",
             "display_name": "Interpolação 2D",
             "description": "Redimensiona um ndarray 2D (matriz) usando interpolação.",
             "pins": {
@@ -462,6 +471,7 @@ class Interpolate2DBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Matemáticas/Señales",
             "display_name": "Interpolación 2D",
             "description": "Redimensiona un ndarray 2D (matriz) usando interpolación.",
             "pins": {
@@ -551,6 +561,7 @@ class FunctionGeneratorBlock(BaseBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Matemática/Sinais",
             "display_name": "Gerador de Funções",
             "description": "Calcula o valor instantâneo de uma forma de onda com base no tempo atual do sistema.",
             "pins": {
@@ -566,6 +577,7 @@ class FunctionGeneratorBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Matemáticas/Señales",
             "display_name": "Generador de Funciones",
             "description": "Calcula el valor instantáneo de una forma de onda basado en el tiempo actual del sistema.",
             "pins": {

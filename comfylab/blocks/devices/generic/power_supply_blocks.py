@@ -22,10 +22,12 @@ class GenericPowerSupplyConnectBlock(BaseDeviceConnectBlock):
     description = "Opens a VISA session to a SCPI Power Supply. On teardown, turns output OFF."
     i18n = {
         "pt-BR": {
+            "category": "Dispositivos/Genérico/Fonte de Alimentação",
             "display_name": "Conexão Genérica de Fonte de Alimentação",
             "description": "Abre uma sessão VISA para uma Fonte de Alimentação SCPI. Na desconexão, desliga a saída."
         },
         "es": {
+            "category": "Dispositivos/Genérico/Fuente de Alimentación",
             "display_name": "Conexión Genérica de Fuente de Alimentación",
             "description": "Abre una sesión VISA para una Fuente de Alimentación SCPI. Al desconectar, apaga la salida."
         }
@@ -62,6 +64,7 @@ class GenericPowerSupplySetChannelBlock(BaseBlock):
     ]
     i18n = {
         "pt-BR": {
+            "category": "Dispositivos/Genérico/Fonte de Alimentação",
             "display_name": "Configurar Canal Genérico de Fonte de Alimentação",
             "description": "Configura a tensão (V) e o limite de corrente (A) em um canal de Fonte de Alimentação SCPI.",
             "pins": {
@@ -75,6 +78,7 @@ class GenericPowerSupplySetChannelBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Dispositivos/Genérico/Fuente de Alimentación",
             "display_name": "Configurar Canal Genérico de Fuente de Alimentación",
             "description": "Configura el voltaje (V) y el límite de corriente (A) en un canal de Fuente de Alimentación SCPI.",
             "pins": {
@@ -129,6 +133,7 @@ class GenericPowerSupplyMeasureBlock(BaseBlock):
     ]
     i18n = {
         "pt-BR": {
+            "category": "Dispositivos/Genérico/Fonte de Alimentação",
             "display_name": "Medição Genérica de Fonte de Alimentação",
             "description": "Consulta leituras em tempo real de tensão (V) e corrente (A) de saída de um canal de Fonte de Alimentação.",
             "pins": {
@@ -141,6 +146,7 @@ class GenericPowerSupplyMeasureBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Dispositivos/Genérico/Fuente de Alimentación",
             "display_name": "Medición Genérica de Fuente de Alimentación",
             "description": "Consulta lecturas en tiempo real de voltaje (V) y corriente (A) de salida de un canal de Fuente de Alimentación.",
             "pins": {

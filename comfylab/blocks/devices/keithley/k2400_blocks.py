@@ -23,10 +23,12 @@ class Keithley2400ConnectBlock(BaseDeviceConnectBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/Keithley",
             "display_name": "Conectar SMU Keithley 2400",
             "description": "Abre uma sessão VISA para um SMU Keithley 2400/2450. Ao desmontar, desliga a saída."
         },
         "es": {
+            "category": "Instrumentos/Keithley",
             "display_name": "Conectar SMU Keithley 2400",
             "description": "Abre una sesión VISA a un SMU Keithley 2400/2450. Al desmontar, apaga la salida."
         }
@@ -63,6 +65,7 @@ class Keithley2400SourceVoltageBlock(BaseBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/Keithley",
             "display_name": "Keithley 2400 Fornecer Tensão",
             "description": "Configura o setpoint de tensão (V), limite de conformidade de corrente (A) e ativa a saída em um SMU Keithley.",
             "pins": {
@@ -73,6 +76,7 @@ class Keithley2400SourceVoltageBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Instrumentos/Keithley",
             "display_name": "Keithley 2400 Proveer Voltaje",
             "description": "Configura el punto de ajuste de voltaje (V), límite de conformidad de corriente (A) y habilita la salida en un SMU Keithley.",
             "pins": {
@@ -123,6 +127,7 @@ class Keithley2400ReadBlock(BaseBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/Keithley",
             "display_name": "Keithley 2400 Medir V & I",
             "description": "Aciona a medição em tempo real da tensão (V) e corrente (A) de saída em um SMU Keithley 2400.",
             "pins": {
@@ -132,6 +137,7 @@ class Keithley2400ReadBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Instrumentos/Keithley",
             "display_name": "Keithley 2400 Medir V e I",
             "description": "Activa la medición en tiempo real del voltaje (V) y corriente (A) de salida en un SMU Keithley 2400.",
             "pins": {

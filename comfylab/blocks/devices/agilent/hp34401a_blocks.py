@@ -23,10 +23,12 @@ class HP34401AConnectBlock(BaseDeviceConnectBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/Agilent",
             "display_name": "Conectar DMM HP 34401A",
             "description": "Abre uma sessão VISA para um Multímetro de 6½ Dígitos HP / Agilent 34401A."
         },
         "es": {
+            "category": "Instrumentos/Agilent",
             "display_name": "Conectar DMM HP 34401A",
             "description": "Abre una sesión VISA a un Multímetro de 6½ Dígitos HP / Agilent 34401A."
         }
@@ -55,6 +57,7 @@ class HP34401AMeasureBlock(BaseBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/Agilent",
             "display_name": "Medir HP 34401A",
             "description": "Configura o modo (VOLT:DC, CURR:DC, RES, etc.) e aciona a leitura em um DMM HP 34401A.",
             "pins": {
@@ -65,6 +68,7 @@ class HP34401AMeasureBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Instrumentos/Agilent",
             "display_name": "Medir HP 34401A",
             "description": "Configura el modo (VOLT:DC, CURR:DC, RES, etc.) y activa la lectura en un DMM HP 34401A.",
             "pins": {

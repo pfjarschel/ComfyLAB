@@ -50,6 +50,7 @@ class XYPlotBlock(BaseBlock):
         "pt-BR": {
             "display_name": "Gráfico XY",
             "description": "Recebe listas de dados X e Y e os envia para a interface para plotagem XY.",
+            "category": "Gráficos",
             "pins": {
                 "Plot": "Plotar",
                 "XLabel": "Rótulo X",
@@ -65,6 +66,7 @@ class XYPlotBlock(BaseBlock):
         "es": {
             "display_name": "Gráfico XY",
             "description": "Recibe listas de datos X e Y y los envía a la interfaz para graficar XY.",
+            "category": "Gráficos",
             "pins": {
                 "Plot": "Graficar",
                 "XLabel": "Etiqueta X",
@@ -141,6 +143,7 @@ class PlotBlock(BaseBlock):
         "pt-BR": {
             "display_name": "Gráfico de Tempo",
             "description": "Recebe valores de dados e os envia para a interface para plotagem ao vivo.",
+            "category": "Gráficos",
             "pins": {
                 "Plot": "Plotar",
                 "InputData": "Dados de Entrada",
@@ -158,6 +161,7 @@ class PlotBlock(BaseBlock):
         "es": {
             "display_name": "Gráfico de Tiempo",
             "description": "Recibe valores de datos y los envía a la interfaz para graficar en vivo.",
+            "category": "Gráficos",
             "pins": {
                 "Plot": "Graficar",
                 "InputData": "Datos de Entrada",
@@ -250,6 +254,7 @@ class HeatmapPlotBlock(BaseBlock):
         "pt-BR": {
             "display_name": "Mapa de Calor",
             "description": "Plota uma matriz 2D de valores com extensões e mapeamento de cores opcionais.",
+            "category": "Gráficos",
             "pins": {
                 "Plot": "Plotar",
                 "Colormap": "Mapa de Cores",
@@ -270,6 +275,7 @@ class HeatmapPlotBlock(BaseBlock):
         "es": {
             "display_name": "Mapa de Calor",
             "description": "Grafica una matriz 2D de valores con extensiones y mapeo de colores opcionales.",
+            "category": "Gráficos",
             "pins": {
                 "Plot": "Graficar",
                 "Colormap": "Mapa de Colores",

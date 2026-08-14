@@ -25,10 +25,12 @@ class AQ6370ConnectBlock(BaseDeviceConnectBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/Yokogawa",
             "display_name": "Conectar Yokogawa AQ6370",
             "description": "Abre uma sessão VISA para um Analisador de Espectro Óptico Yokogawa AQ6370."
         },
         "es": {
+            "category": "Instrumentos/Yokogawa",
             "display_name": "Conectar Yokogawa AQ6370",
             "description": "Abre una sesión VISA a un Analizador de Espectro Óptico Yokogawa AQ6370."
         }
@@ -61,6 +63,7 @@ class AQ6370SweepConfigBlock(BaseBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/Yokogawa",
             "display_name": "Configuração de Varredura Yokogawa AQ6370",
             "description": "Configura comprimento de onda central, span, RBW, sensibilidade, modo de varredura e traço ativo em um OSA Yokogawa AQ6370.",
             "pins": {
@@ -71,6 +74,7 @@ class AQ6370SweepConfigBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Instrumentos/Yokogawa",
             "display_name": "Configuración de Barrido Yokogawa AQ6370",
             "description": "Configura la longitud de onda central, span, RBW, sensibilidad, modo de barrido y traza activa en un OSA Yokogawa AQ6370.",
             "pins": {
@@ -132,6 +136,7 @@ class AQ6370AcquireBlock(BaseBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/Yokogawa",
             "display_name": "Yokogawa AQ6370 Obter Dados do Traço",
             "description": "Busca vetores de comprimento de onda e potência diretamente da memória do OSA Yokogawa sem acionar uma varredura.",
             "pins": {
@@ -142,6 +147,7 @@ class AQ6370AcquireBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Instrumentos/Yokogawa",
             "display_name": "Yokogawa AQ6370 Obtener Datos de Traza",
             "description": "Obtiene arreglos de longitud de onda y potencia directamente de la memoria del OSA Yokogawa sin activar un barrido.",
             "pins": {
@@ -208,6 +214,7 @@ class AQ6370SweepAndAcquireBlock(BaseBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/Yokogawa",
             "display_name": "Yokogawa AQ6370 Varrer e Adquirir",
             "description": "Aciona uma única varredura, aguarda a conclusão e busca os vetores do traço de um OSA Yokogawa.",
             "pins": {
@@ -218,6 +225,7 @@ class AQ6370SweepAndAcquireBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Instrumentos/Yokogawa",
             "display_name": "Yokogawa AQ6370 Barrer y Adquirir",
             "description": "Activa un solo barrido, espera la finalización y obtiene los arreglos de traza de un OSA Yokogawa.",
             "pins": {

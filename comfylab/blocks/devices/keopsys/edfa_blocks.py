@@ -23,10 +23,12 @@ class KeopsysEDFAConnectBlock(BaseDeviceConnectBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/Keopsys",
             "display_name": "Conectar EDFA Keopsys",
             "description": "Abre uma sessão VISA para um EDFA Keopsys. Ao desmontar, desliga o diodo de bombeamento."
         },
         "es": {
+            "category": "Instrumentos/Keopsys",
             "display_name": "Conectar EDFA Keopsys",
             "description": "Abre una sesión VISA a un EDFA Keopsys. Al desmontar, apaga el diodo de bombeo."
         }
@@ -64,6 +66,7 @@ class KeopsysEDFAConfigBlock(BaseBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/Keopsys",
             "display_name": "Configuração EDFA Keopsys",
             "description": "Configura o modo de operação (ACC/APC), setpoint (corrente/potência) e o estado de bombeamento em um EDFA Keopsys.",
             "pins": {
@@ -75,6 +78,7 @@ class KeopsysEDFAConfigBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Instrumentos/Keopsys",
             "display_name": "Configuración EDFA Keopsys",
             "description": "Configura el modo de operación (ACC/APC), punto de ajuste (corriente/potencia) y el estado de bombeo en un EDFA Keopsys.",
             "pins": {

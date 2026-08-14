@@ -22,15 +22,15 @@ class ThorlabsLTS200ConnectBlock(BaseDeviceConnectBlock):
     description = "Opens a VISA session to a Thorlabs LTS200 Linear Stage."
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/Thorlabs",
             "display_name": "Conectar Thorlabs LTS200",
             "description": "Abre uma sessão VISA com um Estágio Linear Thorlabs LTS200.",
-            "category": "Equipamentos"
-        },
+                    },
         "es": {
+            "category": "Instrumentos/Thorlabs",
             "display_name": "Conectar Thorlabs LTS200",
             "description": "Abre una sesión VISA con una Platina Lineal Thorlabs LTS200.",
-            "category": "Equipos"
-        }
+                    }
     }
 
 
@@ -54,6 +54,7 @@ class ThorlabsLTS200MoveBlock(BaseBlock):
     ]
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/Thorlabs",
             "display_name": "Mover Thorlabs LTS200",
             "description": "Move um estágio Thorlabs LTS200 para uma posição especificada (mm).",
             "pins": {
@@ -64,6 +65,7 @@ class ThorlabsLTS200MoveBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Instrumentos/Thorlabs",
             "display_name": "Mover Thorlabs LTS200",
             "description": "Mueve una platina Thorlabs LTS200 a una posición especificada (mm).",
             "pins": {

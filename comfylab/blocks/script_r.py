@@ -33,6 +33,27 @@ class RScriptBlock(BaseSubprocessScriptBlock):
     file_extension = ".R"
     executable_name = "Rscript"
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Script R",
+            "description": "Bloco de código R definido pelo usuário com entradas e saídas decoradas.",
+            "category": "Scripts",
+            "pins": {
+                "In": "Entrada",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Script R",
+            "description": "Bloque de código R definido por el usuario con entradas y salidas decoradas.",
+            "category": "Scripts",
+            "pins": {
+                "In": "Entrada",
+                "Out": "Salida"
+            }
+        }
+    }
+
     def _generate_script(self, code: str, inputs: Dict[str, Any], output_file_path: str) -> str:
         # Map Python values to R literals
         def to_r_literal(val):

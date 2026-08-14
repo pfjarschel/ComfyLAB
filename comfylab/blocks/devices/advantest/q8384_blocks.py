@@ -25,10 +25,12 @@ class AdvantestQ8384ConnectBlock(BaseDeviceConnectBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/Advantest",
             "display_name": "Conectar Advantest Q8384",
             "description": "Abre uma sessão VISA para um Analisador de Espectro Óptico Advantest Q8384."
         },
         "es": {
+            "category": "Instrumentos/Advantest",
             "display_name": "Conectar Advantest Q8384",
             "description": "Abre una sesión VISA a un Analizador de Espectro Óptico Advantest Q8384."
         }
@@ -58,6 +60,7 @@ class AdvantestQ8384SweepConfigBlock(BaseBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/Advantest",
             "display_name": "Configuração de Varredura Advantest Q8384",
             "description": "Configura comprimento de onda central, span, RBW e modo de varredura em um OSA Advantest Q8384.",
             "pins": {
@@ -67,6 +70,7 @@ class AdvantestQ8384SweepConfigBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Instrumentos/Advantest",
             "display_name": "Configuración de Barrido Advantest Q8384",
             "description": "Configura la longitud de onda central, span, RBW y modo de barrido en un OSA Advantest Q8384.",
             "pins": {
@@ -121,6 +125,7 @@ class AdvantestQ8384AcquireBlock(BaseBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/Advantest",
             "display_name": "Advantest Q8384 Obter Dados do Traço",
             "description": "Busca vetores de comprimento de onda e potência diretamente da memória do OSA Advantest sem acionar uma varredura.",
             "pins": {
@@ -130,6 +135,7 @@ class AdvantestQ8384AcquireBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Instrumentos/Advantest",
             "display_name": "Advantest Q8384 Obtener Datos de Traza",
             "description": "Obtiene arreglos de longitud de onda y potencia directamente de la memoria del OSA Advantest sin activar un barrido.",
             "pins": {
@@ -193,6 +199,7 @@ class AdvantestQ8384SweepAndAcquireBlock(BaseBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/Advantest",
             "display_name": "Advantest Q8384 Varrer e Adquirir",
             "description": "Aciona uma única varredura, aguarda a conclusão e busca os vetores do traço de um OSA Advantest Q8384.",
             "pins": {
@@ -202,6 +209,7 @@ class AdvantestQ8384SweepAndAcquireBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Instrumentos/Advantest",
             "display_name": "Advantest Q8384 Barrer y Adquirir",
             "description": "Activa un solo barrido, espera la finalización y obtiene los arreglos de traza de un OSA Advantest Q8384.",
             "pins": {

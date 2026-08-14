@@ -22,15 +22,15 @@ class ThorlabsMDT69XConnectBlock(BaseDeviceConnectBlock):
     description = "Opens a VISA session to a Thorlabs MDT693B/MDT694B Piezo Controller."
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/Thorlabs",
             "display_name": "Conectar Thorlabs MDT69X",
             "description": "Abre uma sessão VISA com um Controlador Piezo Thorlabs MDT693B/MDT694B.",
-            "category": "Equipamentos"
-        },
+                    },
         "es": {
+            "category": "Instrumentos/Thorlabs",
             "display_name": "Conectar Thorlabs MDT69X",
             "description": "Abre una sesión VISA con un Controlador Piezo Thorlabs MDT693B/MDT694B.",
-            "category": "Equipos"
-        }
+                    }
     }
 
 
@@ -54,6 +54,7 @@ class ThorlabsMDT69XSetVoltageBlock(BaseBlock):
     ]
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/Thorlabs",
             "display_name": "Definir Tensão Thorlabs MDT69X",
             "description": "Define a saída de tensão piezo (V) para um eixo do canal (X/Y/Z) em um Thorlabs MDT69X.",
             "pins": {
@@ -64,6 +65,7 @@ class ThorlabsMDT69XSetVoltageBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Instrumentos/Thorlabs",
             "display_name": "Ajustar Voltaje Thorlabs MDT69X",
             "description": "Ajusta la salida de voltaje piezo (V) para un eje del canal (X/Y/Z) en un Thorlabs MDT69X.",
             "pins": {

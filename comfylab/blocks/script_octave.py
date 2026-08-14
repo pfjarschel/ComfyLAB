@@ -44,6 +44,27 @@ class OctaveScriptBlock(BaseSubprocessScriptBlock):
     file_extension = ".m"
     executable_name = "octave"
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Script Octave",
+            "description": "Bloco de código GNU Octave definido pelo usuário com entradas e saídas decoradas.",
+            "category": "Scripts",
+            "pins": {
+                "In": "Entrada",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Script Octave",
+            "description": "Bloque de código GNU Octave definido por el usuario con entradas y salidas decoradas.",
+            "category": "Scripts",
+            "pins": {
+                "In": "Entrada",
+                "Out": "Salida"
+            }
+        }
+    }
+
     def _get_subprocess_args(self, script_file_path: str) -> List[str]:
         return ["octave", "--no-gui", "--no-window-system", "--silent", "--no-history", script_file_path]
 

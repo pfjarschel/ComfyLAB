@@ -48,6 +48,27 @@ class PythonScriptBlock(BaseScriptBlock):
     comment_pattern = DECORATOR_PATTERN
     default_code = DEFAULT_SCRIPT_CODE
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Script Python",
+            "description": "Bloco de código Python definido pelo usuário com entradas e saídas decoradas.",
+            "category": "Scripts",
+            "pins": {
+                "In": "Entrada",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Script Python",
+            "description": "Bloque de código Python definido por el usuario con entradas y salidas decoradas.",
+            "category": "Scripts",
+            "pins": {
+                "In": "Entrada",
+                "Out": "Salida"
+            }
+        }
+    }
+
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
         code = self.properties.get("code", "")
         if not code.strip():

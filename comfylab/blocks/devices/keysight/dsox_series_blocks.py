@@ -24,15 +24,15 @@ class KeysightDSOXConnectBlock(BaseDeviceConnectBlock):
     description = "Opens a VISA session to a Keysight InfiniiVision DSO-X 3000/2000/1000 oscilloscope."
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/Keysight",
             "display_name": "Conectar Keysight DSO-X",
             "description": "Abre uma sessão VISA com um osciloscópio Keysight InfiniiVision DSO-X 3000/2000/1000.",
-            "category": "Equipamentos"
-        },
+                    },
         "es": {
+            "category": "Instrumentos/Keysight",
             "display_name": "Conectar Keysight DSO-X",
             "description": "Abre una sesión VISA con un osciloscopio Keysight InfiniiVision DSO-X 3000/2000/1000.",
-            "category": "Equipos"
-        }
+                    }
     }
 
 
@@ -55,6 +55,7 @@ class KeysightDSOXTimebaseBlock(BaseBlock):
     ]
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/Keysight",
             "display_name": "Base de Tempo Keysight DSO-X",
             "description": "Configura a escala de base de tempo e posição no osciloscópio Keysight DSO-X.",
             "pins": {
@@ -64,6 +65,7 @@ class KeysightDSOXTimebaseBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Instrumentos/Keysight",
             "display_name": "Base de Tiempo Keysight DSO-X",
             "description": "Configura la escala de base de tiempo y posición en un osciloscopio Keysight DSO-X.",
             "pins": {
@@ -113,6 +115,7 @@ class KeysightDSOXChannelBlock(BaseBlock):
     ]
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/Keysight",
             "display_name": "Canal Keysight DSO-X",
             "description": "Configura os parâmetros verticais do canal em um osciloscópio Keysight DSO-X.",
             "pins": {
@@ -125,6 +128,7 @@ class KeysightDSOXChannelBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Instrumentos/Keysight",
             "display_name": "Canal Keysight DSO-X",
             "description": "Configura los parámetros verticales del canal en un osciloscopio Keysight DSO-X.",
             "pins": {
@@ -178,6 +182,7 @@ class KeysightDSOXAcquireBlock(BaseBlock):
     ]
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/Keysight",
             "display_name": "Adquirir Keysight DSO-X",
             "description": "Aciona a aquisição de forma de onda de alta velocidade de um Keysight DSO-X, gera arrays e transmite telemetria.",
             "pins": {
@@ -188,6 +193,7 @@ class KeysightDSOXAcquireBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Instrumentos/Keysight",
             "display_name": "Adquirir Keysight DSO-X",
             "description": "Activa la adquisición de forma de onda de alta velocidad de un Keysight DSO-X, genera arrays y transmite telemetría.",
             "pins": {

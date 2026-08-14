@@ -22,10 +22,12 @@ class GenericSigGenConnectBlock(BaseDeviceConnectBlock):
     description = "Opens a VISA session to a SCPI Signal / Function Generator."
     i18n = {
         "pt-BR": {
+            "category": "Dispositivos/Genérico/Gerador de Sinal",
             "display_name": "Conexão Genérica SigGen",
             "description": "Abre uma sessão VISA para um Gerador de Sinais / Funções SCPI."
         },
         "es": {
+            "category": "Dispositivos/Genérico/Generador de Señales",
             "display_name": "Conexión Genérica SigGen",
             "description": "Abre una sesión VISA para un Generador de Señales / Funciones SCPI."
         }
@@ -63,6 +65,7 @@ class GenericSigGenConfigWaveBlock(BaseBlock):
     ]
     i18n = {
         "pt-BR": {
+            "category": "Dispositivos/Genérico/Gerador de Sinal",
             "display_name": "Configurar Onda Genérica SigGen",
             "description": "Configura forma, frequência, amplitude e offset para um canal em um Gerador de Sinais SCPI.",
             "pins": {
@@ -77,6 +80,7 @@ class GenericSigGenConfigWaveBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Dispositivos/Genérico/Generador de Señales",
             "display_name": "Configurar Onda Genérica SigGen",
             "description": "Configura forma, frecuencia, amplitud y offset para un canal en un Generador de Señales SCPI.",
             "pins": {
@@ -131,6 +135,7 @@ class GenericSigGenOutputBlock(BaseBlock):
     ]
     i18n = {
         "pt-BR": {
+            "category": "Dispositivos/Genérico/Gerador de Sinal",
             "display_name": "Saída Genérica SigGen",
             "description": "Habilita ou desabilita o estado de transmissão de saída do canal em um Gerador de Sinais SCPI.",
             "pins": {
@@ -142,6 +147,7 @@ class GenericSigGenOutputBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Dispositivos/Genérico/Generador de Señales",
             "display_name": "Salida Genérica SigGen",
             "description": "Habilita o deshabilita el estado de transmisión de salida del canal en un Generador de Señales SCPI.",
             "pins": {

@@ -167,6 +167,7 @@ class LibraryLoadBlock(BaseBlock):
         "pt-BR": {
             "display_name": "Carregar DLL/SO",
             "description": "Carrega uma biblioteca compartilhada nativa (.dll no Windows, .so no Linux) e emite a referência. Conecte a um bloco 'Chamar DLL/SO' para invocar funções.",
+            "category": "Bibliotecas",
             "pins": {
                 "Load": "Carregar",
                 "LibraryPath": "Caminho da Biblioteca",
@@ -177,6 +178,7 @@ class LibraryLoadBlock(BaseBlock):
         "es": {
             "display_name": "Cargar DLL/SO",
             "description": "Carga una biblioteca compartida nativa (.dll en Windows, .so en Linux) y emite la referencia. Conecte a un bloque 'Llamar DLL/SO' para invocar funciones.",
+            "category": "Bibliotecas",
             "pins": {
                 "Load": "Cargar",
                 "LibraryPath": "Ruta de Biblioteca",
@@ -274,6 +276,7 @@ class LibraryCallBlock(BaseBlock):
         "pt-BR": {
             "display_name": "Chamar DLL/SO",
             "description": "Chama uma função em uma biblioteca nativa carregada usando uma assinatura configurável. Clique em '⚙️ Edit Signature' no bloco para definir os argumentos.",
+            "category": "Bibliotecas",
             "pins": {
                 "Call": "Chamar",
                 "Library": "Biblioteca",
@@ -287,6 +290,7 @@ class LibraryCallBlock(BaseBlock):
         "es": {
             "display_name": "Llamar DLL/SO",
             "description": "Llama a una función en una biblioteca nativa cargada utilizando una firma configurable. Haga clic en '⚙️ Edit Signature' en el bloque para definir los argumentos.",
+            "category": "Bibliotecas",
             "pins": {
                 "Call": "Llamar",
                 "Library": "Biblioteca",

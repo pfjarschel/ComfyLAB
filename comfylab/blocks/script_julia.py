@@ -33,6 +33,27 @@ class JuliaScriptBlock(BaseSubprocessScriptBlock):
     file_extension = ".jl"
     executable_name = "julia"
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Script Julia",
+            "description": "Bloco de código Julia definido pelo usuário com entradas e saídas decoradas.",
+            "category": "Scripts",
+            "pins": {
+                "In": "Entrada",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Script Julia",
+            "description": "Bloque de código Julia definido por el usuario con entradas y salidas decoradas.",
+            "category": "Scripts",
+            "pins": {
+                "In": "Entrada",
+                "Out": "Salida"
+            }
+        }
+    }
+
     def _generate_script(self, code: str, inputs: Dict[str, Any], output_file_path: str) -> str:
         # Generate inputs injection code in Julia syntax
         injection_lines = []

@@ -26,6 +26,25 @@ class NumberBlock(BaseBlock):
     
     outputs_def = [DataOut("Value", type_hint=float)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Número",
+            "description": "Emite um valor numérico constante.",
+            "category": "Constantes",
+            "pins": {
+                "Value": "Valor"
+            }
+        },
+        "es": {
+            "display_name": "Número",
+            "description": "Emite un valor numérico constante.",
+            "category": "Constantes",
+            "pins": {
+                "Value": "Valor"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Value":
             return float(self.properties.get("value", 0.0))
@@ -43,6 +62,25 @@ class BooleanBlock(BaseBlock):
     
     outputs_def = [DataOut("Value", type_hint=bool)]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Booleano",
+            "description": "Emite um valor booleano constante (Verdadeiro/Falso).",
+            "category": "Constantes",
+            "pins": {
+                "Value": "Valor"
+            }
+        },
+        "es": {
+            "display_name": "Booleano",
+            "description": "Emite un valor booleano constante (Verdadero/Falso).",
+            "category": "Constantes",
+            "pins": {
+                "Value": "Valor"
+            }
+        }
+    }
+
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Value":
             return bool(self.properties.get("value", False))
@@ -59,6 +97,25 @@ class StringBlock(BaseBlock):
     ui_behavior = {"custom_widget": "constant_string"}
     
     outputs_def = [DataOut("Value", type_hint=str)]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Texto",
+            "description": "Emite um texto constante.",
+            "category": "Constantes",
+            "pins": {
+                "Value": "Valor"
+            }
+        },
+        "es": {
+            "display_name": "Texto",
+            "description": "Emite un texto constante.",
+            "category": "Constantes",
+            "pins": {
+                "Value": "Valor"
+            }
+        }
+    }
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
         if pin_name == "Value":

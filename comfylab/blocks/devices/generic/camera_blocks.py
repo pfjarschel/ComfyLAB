@@ -36,6 +36,7 @@ class GenericCameraConnectBlock(BaseBlock):
     ]
     i18n = {
         "pt-BR": {
+            "category": "Dispositivos/Genérico/Câmera",
             "display_name": "Conexão Genérica de Câmera",
             "description": "Abre uma sessão para uma webcam USB ou câmera UVC (índice 0, 1, 2...).",
             "pins": {
@@ -48,6 +49,7 @@ class GenericCameraConnectBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Dispositivos/Genérico/Cámara",
             "display_name": "Conexión Genérica de Cámara",
             "description": "Abre una sesión para una cámara web USB o cámara UVC (índice 0, 1, 2...).",
             "pins": {
@@ -114,6 +116,7 @@ class GenericCameraCaptureBlock(BaseBlock):
     ]
     i18n = {
         "pt-BR": {
+            "category": "Dispositivos/Genérico/Câmera",
             "display_name": "Captura Genérica de Câmera",
             "description": "Captura um array de quadro de imagem de um fluxo de câmera aberto.",
             "pins": {
@@ -124,6 +127,7 @@ class GenericCameraCaptureBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Dispositivos/Genérico/Cámara",
             "display_name": "Captura Genérica de Cámara",
             "description": "Captura un array de cuadro de imagen de un flujo de cámara abierto.",
             "pins": {

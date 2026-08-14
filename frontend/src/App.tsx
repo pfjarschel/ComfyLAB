@@ -40,6 +40,7 @@ import { BlockInspectorPanel } from './components/BlockInspectorPanel';
 import { TopBar } from './components/TopBar';
 import { TabBar } from './components/TabBar';
 import { Sidebar } from './components/Sidebar';
+import { getBlockTitle, getBlockDescription, getBlockCategory } from './utils/blockI18n';
 import './App.css';
 import dagre from '@dagrejs/dagre';
 
@@ -3239,9 +3240,9 @@ return {
   if (blockRegistry) {
     const query = searchQuery.toLowerCase().trim();
     Object.entries(blockRegistry).forEach(([type, nodeSchema]: [string, any]) => {
-      const name = (nodeSchema.name || '').toLowerCase();
-      const desc = (nodeSchema.description || '').toLowerCase();
-      const catString = nodeSchema.category || 'Other';
+      const name = (getBlockTitle(nodeSchema) || nodeSchema.name || '').toLowerCase();
+      const desc = (getBlockDescription(nodeSchema) || nodeSchema.description || '').toLowerCase();
+      const catString = getBlockCategory(nodeSchema) || nodeSchema.category || 'Other';
       
       const parts = catString.split(/(?<!\\)\//).map(p => p.replace(/\\(\/)/g, '$1'));
       

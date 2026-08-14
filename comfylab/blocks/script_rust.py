@@ -45,6 +45,27 @@ class RustScriptBlock(BaseSubprocessScriptBlock):
     file_extension = ".rs"
     executable_name = "cargo"
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Script Rust",
+            "description": "Bloco de código Rust definido pelo usuário com entradas e saídas decoradas.",
+            "category": "Scripts",
+            "pins": {
+                "In": "Entrada",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Script Rust",
+            "description": "Bloque de código Rust definido por el usuario con entradas y salidas decoradas.",
+            "category": "Scripts",
+            "pins": {
+                "In": "Entrada",
+                "Out": "Salida"
+            }
+        }
+    }
+
     async def _run_subprocess(self, code: str, inputs: Dict[str, Any], timeout: float):
         persist_cache = self.properties.get("persist_cache", True)
         if persist_cache:

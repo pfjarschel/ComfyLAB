@@ -22,15 +22,15 @@ class ThorlabsPM100DConnectBlock(BaseDeviceConnectBlock):
     description = "Opens a VISA session to a Thorlabs Optical Power Meter."
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/Thorlabs",
             "display_name": "Conectar Thorlabs PM100D",
             "description": "Abre uma sessão VISA com um Medidor de Potência Óptica Thorlabs.",
-            "category": "Equipamentos"
-        },
+                    },
         "es": {
+            "category": "Instrumentos/Thorlabs",
             "display_name": "Conectar Thorlabs PM100D",
             "description": "Abre una sesión VISA con un Medidor de Potencia Óptica Thorlabs.",
-            "category": "Equipos"
-        }
+                    }
     }
 
 
@@ -54,6 +54,7 @@ class ThorlabsPM100DConfigBlock(BaseBlock):
     ]
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/Thorlabs",
             "display_name": "Configuração Thorlabs PM100D",
             "description": "Configura o comprimento de onda operacional (nm), unidade de exibição (W ou dBm) e contagem de média em um Thorlabs PM100D.",
             "pins": {
@@ -64,6 +65,7 @@ class ThorlabsPM100DConfigBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Instrumentos/Thorlabs",
             "display_name": "Configuración Thorlabs PM100D",
             "description": "Configura la longitud de onda operativa (nm), unidad de visualización (W o dBm) y el conteo de promedios en un Thorlabs PM100D.",
             "pins": {
@@ -116,6 +118,7 @@ class ThorlabsPM100DReadBlock(BaseBlock):
     ]
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/Thorlabs",
             "display_name": "Ler Potência Thorlabs PM100D",
             "description": "Aciona uma leitura de potência óptica de um medidor de potência Thorlabs PM100D.",
             "pins": {
@@ -124,6 +127,7 @@ class ThorlabsPM100DReadBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Instrumentos/Thorlabs",
             "display_name": "Leer Potencia Thorlabs PM100D",
             "description": "Activa una lectura de potencia óptica de un medidor de potencia Thorlabs PM100D.",
             "pins": {

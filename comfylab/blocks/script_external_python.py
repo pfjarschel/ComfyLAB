@@ -35,6 +35,27 @@ class ExternalPythonScriptBlock(BaseSubprocessScriptBlock):
     default_code = DEFAULT_EXTERNAL_PYTHON_CODE
     file_extension = ".py"
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Python Externo",
+            "description": "Executa código Python em um subprocesso isolado com ambientes Python personalizados.",
+            "category": "Scripts",
+            "pins": {
+                "In": "Entrada",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Python Externo",
+            "description": "Ejecuta código Python en un subproceso aislado con entornos Python personalizados.",
+            "category": "Scripts",
+            "pins": {
+                "In": "Entrada",
+                "Out": "Salida"
+            }
+        }
+    }
+
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         # We need the Python comment pattern from script.py
         self.comment_pattern = DECORATOR_PATTERN

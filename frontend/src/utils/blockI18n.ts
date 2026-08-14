@@ -57,15 +57,7 @@ export function getBlockCategory(block: BlockSchemaLike, lang?: Language): strin
   if (block.i18n?.[activeLang]?.category) {
     return block.i18n[activeLang].category!;
   }
-
-  const categoryRaw = block.category || 'LOGIC';
-  // Try i18n lookup key for core categories
-  const normalizedCategory = categoryRaw.toUpperCase().replace(/\s+/g, '_');
-  const i18nCategory = i18n.t(`sidebar.categories.${normalizedCategory}`, '');
-  if (i18nCategory && i18nCategory !== `sidebar.categories.${normalizedCategory}`) {
-    return i18nCategory;
-  }
-  return categoryRaw;
+  return block.category || 'Logic';
 }
 
 /**

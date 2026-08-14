@@ -23,10 +23,12 @@ class SR830ConnectBlock(BaseDeviceConnectBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/SRS",
             "display_name": "Conectar SRS SR830",
             "description": "Abre uma sessão VISA para um Amplificador Lock-In SRS SR830/SR850/SR860."
         },
         "es": {
+            "category": "Instrumentos/SRS",
             "display_name": "Conectar SRS SR830",
             "description": "Abre una sesión VISA a un Amplificador Lock-In SRS SR830/SR850/SR860."
         }
@@ -54,6 +56,7 @@ class SR830ReferenceBlock(BaseBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/SRS",
             "display_name": "Configuração de Referência SRS SR830",
             "description": "Configura frequência de referência, fase e amplitude de saída senoidal em um SRS SR830.",
             "pins": {
@@ -64,6 +67,7 @@ class SR830ReferenceBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Instrumentos/SRS",
             "display_name": "Configuración de Referencia SRS SR830",
             "description": "Configura la frecuencia de referencia, fase y amplitud de salida senoidal en un SRS SR830.",
             "pins": {
@@ -115,6 +119,7 @@ class SR830ReadBlock(BaseBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/SRS",
             "display_name": "SRS SR830 Ler Snapshot",
             "description": "Consulta snapshot simultâneo de X, Y, R e Fase de um amplificador lock-in SRS SR830.",
             "pins": {
@@ -123,6 +128,7 @@ class SR830ReadBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Instrumentos/SRS",
             "display_name": "SRS SR830 Leer Snapshot",
             "description": "Consulta un snapshot simultáneo de X, Y, R y Fase de un amplificador lock-in SRS SR830.",
             "pins": {

@@ -115,6 +115,27 @@ class JavaScriptScriptBlock(BaseJavaScriptBlock):
     default_code = DEFAULT_JS_CODE
     is_ts = False
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Script JavaScript",
+            "description": "Bloco de código JavaScript definido pelo usuário com entradas e saídas decoradas.",
+            "category": "Scripts",
+            "pins": {
+                "In": "Entrada",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Script JavaScript",
+            "description": "Bloque de código JavaScript definido por el usuario con entradas y salidas decoradas.",
+            "category": "Scripts",
+            "pins": {
+                "In": "Entrada",
+                "Out": "Salida"
+            }
+        }
+    }
+
 
 class TypeScriptScriptBlock(BaseJavaScriptBlock):
     icon = "🟦"
@@ -122,6 +143,27 @@ class TypeScriptScriptBlock(BaseJavaScriptBlock):
     description = "User-defined TypeScript code block with decorated inputs and outputs."
     default_code = DEFAULT_TS_CODE
     is_ts = True
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Script TypeScript",
+            "description": "Bloco de código TypeScript definido pelo usuário com entradas e saídas decoradas.",
+            "category": "Scripts",
+            "pins": {
+                "In": "Entrada",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Script TypeScript",
+            "description": "Bloque de código TypeScript definido por el usuario con entradas y salidas decoradas.",
+            "category": "Scripts",
+            "pins": {
+                "In": "Entrada",
+                "Out": "Salida"
+            }
+        }
+    }
 
 
 async def validate_code(code: str, language: str = "javascript") -> dict:

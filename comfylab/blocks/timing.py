@@ -36,8 +36,9 @@ class SleepBlock(BaseBlock):
 
     i18n = {
         "pt-BR": {
-            "display_name": "Dormir",
+            "display_name": "Aguardar",
             "description": "Atrasa a execução por um número especificado de segundos.",
+            "category": "Temporização",
             "pins": {
                 "In": "Entrada",
                 "Delay": "Atraso",
@@ -45,8 +46,9 @@ class SleepBlock(BaseBlock):
             }
         },
         "es": {
-            "display_name": "Dormir",
+            "display_name": "Esperar",
             "description": "Retrasa la ejecución por un número especificado de segundos.",
+            "category": "Temporización",
             "pins": {
                 "In": "Entrada",
                 "Delay": "Retraso",
@@ -83,6 +85,7 @@ class MeasureTimeBlock(BaseBlock):
         "pt-BR": {
             "display_name": "Medir Tempo",
             "description": "Mede o tempo decorrido entre tokens de execução no bloco, e emite a duração em segundos.",
+            "category": "Temporização",
             "pins": {
                 "In": "Entrada",
                 "Body": "Corpo",
@@ -93,6 +96,7 @@ class MeasureTimeBlock(BaseBlock):
         "es": {
             "display_name": "Medir Tiempo",
             "description": "Mide el tiempo transcurrido entre tokens de ejecución en el bloque, y emite la duración en segundos.",
+            "category": "Temporización",
             "pins": {
                 "In": "Entrada",
                 "Body": "Cuerpo",
@@ -161,6 +165,7 @@ class TimerBlock(BaseBlock):
         "pt-BR": {
             "display_name": "Temporizador",
             "description": "Aciona a execução periodicamente em um intervalo especificado.",
+            "category": "Temporização",
             "pins": {
                 "Start": "Iniciar",
                 "Stop": "Parar",
@@ -174,6 +179,7 @@ class TimerBlock(BaseBlock):
         "es": {
             "display_name": "Temporizador",
             "description": "Desencadena la ejecución periódicamente en un intervalo especificado.",
+            "category": "Temporización",
             "pins": {
                 "Start": "Iniciar",
                 "Stop": "Detener",

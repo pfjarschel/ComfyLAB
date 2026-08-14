@@ -21,10 +21,12 @@ class VirtSigGenConnectBlock(BaseDeviceConnectBlock):
     description = "Opens a VISA connection to a VirtSigGen signal generator. On teardown, disables output."
     i18n = {
         "pt-BR": {
+            "category": "Dispositivos/Virtual/Gerador de Sinal",
             "display_name": "Conexão VirtSigGen",
             "description": "Abre uma conexão VISA para um gerador de sinais VirtSigGen. Na desconexão, desabilita a saída."
         },
         "es": {
+            "category": "Dispositivos/Virtual/Generador de Señales",
             "display_name": "Conexión VirtSigGen",
             "description": "Abre una conexión VISA a un generador de señales VirtSigGen. Al desconectar, deshabilita la salida."
         }
@@ -63,6 +65,7 @@ class VirtSigGenConfigWaveBlock(BaseBlock):
     ]
     i18n = {
         "pt-BR": {
+            "category": "Dispositivos/Virtual/Gerador de Sinal",
             "display_name": "Configurar Onda VirtSigGen",
             "description": "Configura a forma de onda, frequência, amplitude, offset, fase e ciclo de trabalho de um dispositivo VirtSigGen.",
             "pins": {
@@ -79,6 +82,7 @@ class VirtSigGenConfigWaveBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Dispositivos/Virtual/Generador de Señales",
             "display_name": "Configurar Onda VirtSigGen",
             "description": "Configura la forma de onda, frecuencia, amplitud, offset, fase y ciclo de trabajo de un dispositivo VirtSigGen.",
             "pins": {
@@ -159,6 +163,7 @@ class VirtSigGenConfigChirpBlock(BaseBlock):
     ]
     i18n = {
         "pt-BR": {
+            "category": "Dispositivos/Virtual/Gerador de Sinal",
             "display_name": "Configurar Chirp VirtSigGen",
             "description": "Configura o estado do chirp, span de variação de frequência e período de um dispositivo VirtSigGen.",
             "pins": {
@@ -171,6 +176,7 @@ class VirtSigGenConfigChirpBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Dispositivos/Virtual/Generador de Señales",
             "display_name": "Configurar Chirp VirtSigGen",
             "description": "Configura el estado de chirp del trigger, el span de variación de frecuencia y el período de un dispositivo VirtSigGen.",
             "pins": {
@@ -227,6 +233,7 @@ class VirtSigGenOutputBlock(BaseBlock):
     ]
     i18n = {
         "pt-BR": {
+            "category": "Dispositivos/Virtual/Gerador de Sinal",
             "display_name": "Saída VirtSigGen",
             "description": "Habilita ou desabilita o estado de saída (ON/OFF) de um dispositivo VirtSigGen.",
             "pins": {
@@ -238,6 +245,7 @@ class VirtSigGenOutputBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Dispositivos/Virtual/Generador de Señales",
             "display_name": "Salida VirtSigGen",
             "description": "Habilita o deshabilita el estado de salida (ON/OFF) de un dispositivo VirtSigGen.",
             "pins": {

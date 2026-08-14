@@ -22,10 +22,12 @@ class GenericDMMConnectBlock(BaseDeviceConnectBlock):
     description = "Opens a VISA session to a SCPI Digital Multimeter (DMM)."
     i18n = {
         "pt-BR": {
+            "category": "Dispositivos/Genérico/Multímetro",
             "display_name": "Conexão Genérica DMM",
             "description": "Abre uma sessão VISA para um Multímetro Digital (DMM) SCPI."
         },
         "es": {
+            "category": "Dispositivos/Genérico/Multímetro",
             "display_name": "Conexión Genérica DMM",
             "description": "Abre una sesión VISA para un Multímetro Digital (DMM) SCPI."
         }
@@ -53,6 +55,7 @@ class GenericDMMMeasureBlock(BaseBlock):
     ]
     i18n = {
         "pt-BR": {
+            "category": "Dispositivos/Genérico/Multímetro",
             "display_name": "Medição Genérica DMM",
             "description": "Configura o modo (VOLT:DC, CURR:DC, RES, etc.) e aciona a leitura em um DMM SCPI.",
             "pins": {
@@ -65,6 +68,7 @@ class GenericDMMMeasureBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Dispositivos/Genérico/Multímetro",
             "display_name": "Medición Genérica DMM",
             "description": "Configura el modo (VOLT:DC, CURR:DC, RES, etc.) y activa la lectura en un DMM SCPI.",
             "pins": {

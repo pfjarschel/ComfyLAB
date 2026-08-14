@@ -53,6 +53,27 @@ class LuaScriptBlock(BaseSubprocessScriptBlock):
     file_extension = ".lua"
     executable_name = "lua"
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Script Lua",
+            "description": "Bloco de código Lua definido pelo usuário com entradas e saídas decoradas.",
+            "category": "Scripts",
+            "pins": {
+                "In": "Entrada",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Script Lua",
+            "description": "Bloque de código Lua definido por el usuario con entradas y salidas decoradas.",
+            "category": "Scripts",
+            "pins": {
+                "In": "Entrada",
+                "Out": "Salida"
+            }
+        }
+    }
+
     async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
         if LUPA_AVAILABLE:
             code = self.properties.get("code", "")

@@ -24,10 +24,12 @@ class GenericESAConnectBlock(BaseDeviceConnectBlock):
     description = "Opens a VISA session to a SCPI Electrical Spectrum Analyzer (ESA)."
     i18n = {
         "pt-BR": {
+            "category": "Dispositivos/Genérico/Analisador de Espectro",
             "display_name": "Conexão Genérica ESA",
             "description": "Abre uma sessão VISA para um Analisador de Espectro Elétrico (ESA) SCPI."
         },
         "es": {
+            "category": "Dispositivos/Genérico/Analizador de Espectro",
             "display_name": "Conexión Genérica ESA",
             "description": "Abre una sesión VISA para un Analizador de Espectro Eléctrico (ESA) SCPI."
         }
@@ -58,6 +60,7 @@ class GenericESASweepConfigBlock(BaseBlock):
     ]
     i18n = {
         "pt-BR": {
+            "category": "Dispositivos/Genérico/Analisador de Espectro",
             "display_name": "Configuração de Varredura Genérica ESA",
             "description": "Configura centro/span de frequência, início/parada, RBW, VBW e pontos de varredura em um ESA SCPI.",
             "pins": {
@@ -71,6 +74,7 @@ class GenericESASweepConfigBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Dispositivos/Genérico/Analizador de Espectro",
             "display_name": "Configuración de Barrido Genérica ESA",
             "description": "Configura centro/span de frecuencia, inicio/parada, RBW, VBW y puntos de barrido en un ESA SCPI.",
             "pins": {
@@ -129,6 +133,7 @@ class GenericESAAcquireBlock(BaseBlock):
     ]
     i18n = {
         "pt-BR": {
+            "category": "Dispositivos/Genérico/Analisador de Espectro",
             "display_name": "Adquirir Traço Genérico ESA",
             "description": "Aciona a aquisição de traço de um ESA SCPI, fornece arrays e transmite telemetria de plotagem.",
             "pins": {
@@ -141,6 +146,7 @@ class GenericESAAcquireBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Dispositivos/Genérico/Analizador de Espectro",
             "display_name": "Adquirir Trazo Genérico ESA",
             "description": "Activa la adquisición de trazo de un ESA SCPI, emite arrays y transmite telemetría de trazado visual.",
             "pins": {

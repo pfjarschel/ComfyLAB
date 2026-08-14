@@ -23,10 +23,12 @@ class MCCDAQ1208LSConnectBlock(BaseDeviceConnectBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/MCC",
             "display_name": "Conectar MCC USB-1208LS",
             "description": "Abre uma sessão VISA para um módulo DAQ MCC USB-1208LS."
         },
         "es": {
+            "category": "Instrumentos/MCC",
             "display_name": "Conectar MCC USB-1208LS",
             "description": "Abre una sesión VISA a un módulo DAQ MCC USB-1208LS."
         }
@@ -53,6 +55,7 @@ class MCCDAQ1208LSAnalogReadBlock(BaseBlock):
 
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/MCC",
             "display_name": "MCC USB-1208LS Ler Analógico",
             "description": "Consulta a tensão de entrada analógica em tempo real (V) em um canal MCC USB-1208LS (0-7).",
             "pins": {
@@ -62,6 +65,7 @@ class MCCDAQ1208LSAnalogReadBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Instrumentos/MCC",
             "display_name": "MCC USB-1208LS Leer Analógico",
             "description": "Consulta el voltaje de entrada analógica en tiempo real (V) en un canal MCC USB-1208LS (0-7).",
             "pins": {

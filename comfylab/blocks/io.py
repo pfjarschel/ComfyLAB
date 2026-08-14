@@ -48,6 +48,7 @@ class FilePathGeneratorBlock(BaseBlock):
         "pt-BR": {
             "display_name": "Gerador de Caminho",
             "description": "Gera um caminho de arquivo usando um prefixo, carimbo de tempo atual e extensão.",
+            "category": "Entrada / Saída",
             "pins": {
                 "Prefix": "Prefixo",
                 "Extension": "Extensão",
@@ -59,6 +60,7 @@ class FilePathGeneratorBlock(BaseBlock):
         "es": {
             "display_name": "Generador de Ruta",
             "description": "Genera una ruta de archivo utilizando un prefijo, marca de tiempo actual y extensión.",
+            "category": "Entrada / Salida",
             "pins": {
                 "Prefix": "Prefijo",
                 "Extension": "Extensión",
@@ -115,6 +117,7 @@ class ImageDisplayBlock(BaseBlock):
         "pt-BR": {
             "display_name": "Exibição de Imagem",
             "description": "Carrega uma imagem da área de trabalho (caminho relativo) e a exibe.",
+            "category": "Saídas",
             "pins": {
                 "Display": "Exibir",
                 "FilePath": "Caminho do Arquivo",
@@ -124,6 +127,7 @@ class ImageDisplayBlock(BaseBlock):
         "es": {
             "display_name": "Visualización de Imagen",
             "description": "Carga una imagen del espacio de trabajo (ruta relativa) y la muestra.",
+            "category": "Salidas",
             "pins": {
                 "Display": "Mostrar",
                 "FilePath": "Ruta de Archivo",
@@ -169,6 +173,7 @@ class ArrayDisplayBlock(BaseBlock):
         "pt-BR": {
             "display_name": "Exibição de Array",
             "description": "Exibe um array numérico (2D tons de cinza ou 3D BGR/RGB) diretamente como uma imagem na interface.",
+            "category": "Saídas",
             "pins": {
                 "Display": "Exibir",
                 "Data": "Dados",
@@ -180,6 +185,7 @@ class ArrayDisplayBlock(BaseBlock):
         "es": {
             "display_name": "Visualización de Matriz",
             "description": "Muestra un arreglo numérico (2D escala de grises o 3D BGR/RGB) directamente como una imagen en la interfaz.",
+            "category": "Salidas",
             "pins": {
                 "Display": "Mostrar",
                 "Data": "Datos",
@@ -273,6 +279,7 @@ class ImageToArrayBlock(BaseBlock):
         "pt-BR": {
             "display_name": "Imagem para Array",
             "description": "Carrega uma imagem da área de trabalho (caminho relativo) e a converte em um array NumPy.",
+            "category": "Entrada / Saída",
             "pins": {
                 "FilePath": "Caminho do Arquivo",
                 "Grayscale": "Tons de Cinza",
@@ -282,6 +289,7 @@ class ImageToArrayBlock(BaseBlock):
         "es": {
             "display_name": "Imagen a Matriz",
             "description": "Carga una imagen del espacio de trabajo (ruta relativa) y la emite como un arreglo NumPy.",
+            "category": "Entrada / Salida",
             "pins": {
                 "FilePath": "Ruta de Archivo",
                 "Grayscale": "Escala de Grises",
@@ -346,6 +354,7 @@ class SaveDataBlock(BaseBlock):
         "pt-BR": {
             "display_name": "Salvar CSV",
             "description": "Salva linhas de dados estruturados em um arquivo CSV. Suporta anexar ou sobrescrever.",
+            "category": "Entrada / Saída",
             "pins": {
                 "Write": "Escrever",
                 "FilePath": "Caminho do Arquivo",
@@ -359,6 +368,7 @@ class SaveDataBlock(BaseBlock):
         "es": {
             "display_name": "Guardar CSV",
             "description": "Guarda filas de datos estructurados en un archivo CSV. Soporta anexar o sobrescribir.",
+            "category": "Entrada / Salida",
             "pins": {
                 "Write": "Escribir",
                 "FilePath": "Ruta de Archivo",
@@ -489,6 +499,7 @@ class SaveParquetBlock(BaseBlock):
         "pt-BR": {
             "display_name": "Salvar Parquet",
             "description": "Salva linhas de dados estruturados em um arquivo Parquet. Otimizado para grandes matrizes e dados colunares. Anexação é suportada via fastparquet.",
+            "category": "Entrada / Saída",
             "pins": {
                 "Write": "Escrever",
                 "FilePath": "Caminho do Arquivo",
@@ -501,6 +512,7 @@ class SaveParquetBlock(BaseBlock):
         "es": {
             "display_name": "Guardar Parquet",
             "description": "Guarda filas de datos estructurados en un archivo Parquet. Optimizado para grandes matrices y datos columnares. Se admite anexar mediante fastparquet.",
+            "category": "Entrada / Salida",
             "pins": {
                 "Write": "Escribir",
                 "FilePath": "Ruta de Archivo",
@@ -593,6 +605,35 @@ class LoadCSVBlock(BaseBlock):
         DataOut("Headers", type_hint=list)
     ]
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Carregar CSV",
+            "description": "Lê um arquivo CSV e gera seu conteúdo como Colunas (matriz 2D) e Cabeçalhos.",
+            "category": "Entrada / Saída",
+            "pins": {
+                "Read": "Ler",
+                "FilePath": "Caminho do Arquivo",
+                "SkipLines": "Pular Linhas",
+                "Out": "Saída",
+                "Columns": "Colunas",
+                "Headers": "Cabeçalhos"
+            }
+        },
+        "es": {
+            "display_name": "Cargar CSV",
+            "description": "Lee un archivo CSV y emite su contenido como Columnas (matriz 2D) y Encabezados.",
+            "category": "Entrada / Salida",
+            "pins": {
+                "Read": "Leer",
+                "FilePath": "Ruta de Archivo",
+                "SkipLines": "Saltar Líneas",
+                "Out": "Salida",
+                "Columns": "Columnas",
+                "Headers": "Encabezados"
+            }
+        }
+    }
+
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)
         self._loaded_columns: np.ndarray = np.array([])
@@ -646,6 +687,35 @@ class LoadParquetBlock(BaseBlock):
         DataOut("Columns", type_hint=np.ndarray),
         DataOut("Headers", type_hint=list)
     ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Carregar Parquet",
+            "description": "Lê um arquivo Parquet e gera Colunas e Cabeçalhos.",
+            "category": "Entrada / Saída",
+            "pins": {
+                "Read": "Ler",
+                "FilePath": "Caminho do Arquivo",
+                "ColumnsToLoad": "Colunas a Carregar",
+                "Out": "Saída",
+                "Columns": "Colunas",
+                "Headers": "Cabeçalhos"
+            }
+        },
+        "es": {
+            "display_name": "Cargar Parquet",
+            "description": "Lee un archivo Parquet y emite Columnas y Encabezados.",
+            "category": "Entrada / Salida",
+            "pins": {
+                "Read": "Leer",
+                "FilePath": "Ruta de Archivo",
+                "ColumnsToLoad": "Columnas a Cargar",
+                "Out": "Salida",
+                "Columns": "Columnas",
+                "Headers": "Encabezados"
+            }
+        }
+    }
 
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         super().__init__(block_id, properties)
@@ -717,6 +787,7 @@ class SaveJSONBlock(BaseBlock):
         "pt-BR": {
             "display_name": "Salvar JSON",
             "description": "Salva dados como um arquivo JSON. Converte arrays NumPy para listas automaticamente.",
+            "category": "Entrada / Saída",
             "pins": {
                 "Write": "Escrever",
                 "FilePath": "Caminho do Arquivo",
@@ -727,6 +798,7 @@ class SaveJSONBlock(BaseBlock):
         "es": {
             "display_name": "Guardar JSON",
             "description": "Guarda datos como un archivo JSON. Convierte automáticamente matrices NumPy a listas.",
+            "category": "Entrada / Salida",
             "pins": {
                 "Write": "Escribir",
                 "FilePath": "Ruta de Archivo",
@@ -782,6 +854,7 @@ class LoadJSONBlock(BaseBlock):
         "pt-BR": {
             "display_name": "Carregar JSON",
             "description": "Lê um arquivo JSON e gera seu conteúdo como dados (geralmente um dicionário ou lista).",
+            "category": "Entrada / Saída",
             "pins": {
                 "Read": "Ler",
                 "FilePath": "Caminho do Arquivo",
@@ -792,6 +865,7 @@ class LoadJSONBlock(BaseBlock):
         "es": {
             "display_name": "Cargar JSON",
             "description": "Lee un archivo JSON y emite su contenido como datos (generalmente un diccionario o lista).",
+            "category": "Entrada / Salida",
             "pins": {
                 "Read": "Leer",
                 "FilePath": "Ruta de Archivo",
@@ -849,6 +923,7 @@ class ArrayToImageBlock(BaseBlock):
         "pt-BR": {
             "display_name": "Array para Imagem",
             "description": "Salva um array (2D tons de cinza ou MxNx3/4 cor) como um arquivo de imagem.",
+            "category": "Entrada / Saída",
             "pins": {
                 "Save": "Salvar",
                 "Data": "Dados",
@@ -860,6 +935,7 @@ class ArrayToImageBlock(BaseBlock):
         "es": {
             "display_name": "Matriz a Imagen",
             "description": "Guarda una matriz (2D escala de grises o MxNx3/4 color) como un archivo de imagen.",
+            "category": "Entrada / Salida",
             "pins": {
                 "Save": "Guardar",
                 "Data": "Datos",

@@ -24,15 +24,15 @@ class TBS1062ConnectBlock(BaseDeviceConnectBlock):
     description = "Opens a VISA session to a Tektronix TBS1062 oscilloscope. On teardown, stops acquisition."
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/Tektronix",
             "display_name": "Conectar Tektronix TBS1062",
             "description": "Abre uma sessão VISA com um osciloscópio Tektronix TBS1062. No encerramento, para a aquisição.",
-            "category": "Equipamentos"
-        },
+                    },
         "es": {
+            "category": "Instrumentos/Tektronix",
             "display_name": "Conectar Tektronix TBS1062",
             "description": "Abre una sesión VISA con un osciloscopio Tektronix TBS1062. Al finalizar, detiene la adquisición.",
-            "category": "Equipos"
-        }
+                    }
     }
 
     async def _device_teardown(self, device: Any, lock_manager: Any) -> None:
@@ -64,6 +64,7 @@ class TBS1062TimebaseBlock(BaseBlock):
     ]
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/Tektronix",
             "display_name": "Base de Tempo Tektronix TBS1062",
             "description": "Configura a escala de base de tempo horizontal e posição no Tektronix TBS1062.",
             "pins": {
@@ -73,6 +74,7 @@ class TBS1062TimebaseBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Instrumentos/Tektronix",
             "display_name": "Base de Tiempo Tektronix TBS1062",
             "description": "Configura la escala de base de tiempo horizontal y posición en un Tektronix TBS1062.",
             "pins": {
@@ -122,6 +124,7 @@ class TBS1062ChannelBlock(BaseBlock):
     ]
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/Tektronix",
             "display_name": "Canal Tektronix TBS1062",
             "description": "Configura os parâmetros verticais do canal (escala, posição, acoplamento, habilitar) em um TBS1062.",
             "pins": {
@@ -134,6 +137,7 @@ class TBS1062ChannelBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Instrumentos/Tektronix",
             "display_name": "Canal Tektronix TBS1062",
             "description": "Configura los parámetros verticales del canal (escala, posición, acoplamiento, habilitar) en un TBS1062.",
             "pins": {
@@ -187,6 +191,7 @@ class TBS1062AcquireBlock(BaseBlock):
     ]
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/Tektronix",
             "display_name": "Adquirir Tektronix TBS1062",
             "description": "Aciona a aquisição de um Tektronix TBS1062, gera arrays e transmite a telemetria visual do gráfico.",
             "pins": {
@@ -197,6 +202,7 @@ class TBS1062AcquireBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Instrumentos/Tektronix",
             "display_name": "Adquirir Tektronix TBS1062",
             "description": "Activa la adquisición de un Tektronix TBS1062, genera arrays y transmite la telemetría visual del gráfico.",
             "pins": {

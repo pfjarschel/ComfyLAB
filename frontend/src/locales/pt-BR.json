@@ -57,18 +57,7 @@
     "refresh": "Atualizar biblioteca de blocos",
     "hide": "Ocultar Biblioteca",
     "show": "Exibir Biblioteca",
-    "showTitle": "Exibir Biblioteca de Blocos",
-    "categories": {
-      "LOGIC": "Lógica e Controle",
-      "MATH": "Matemática e Processamento",
-      "INSTRUMENTS": "Instrumentos e VISA",
-      "DATA ACQUISITION": "Aquisição de Dados",
-      "IO": "Entrada / Saída",
-      "PLOTS": "Gráficos e Visualização",
-      "UTILITY": "Utilitários e Auxiliares",
-      "TEMPORARY": "Blocos Temporários",
-      "USER": "Usuário e Personalizados"
-    }
+    "showTitle": "Exibir Biblioteca de Blocos"
   },
   "inspector": {
     "title": "Inspetor de Blocos",

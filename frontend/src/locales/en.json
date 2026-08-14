@@ -58,18 +58,7 @@
     "refresh": "Refresh block library",
     "hide": "Hide Block Library",
     "show": "Show Library",
-    "showTitle": "Show Block Library",
-    "categories": {
-      "LOGIC": "Logic & Control",
-      "MATH": "Math & Processing",
-      "INSTRUMENTS": "Instruments & VISA",
-      "DATA ACQUISITION": "Data Acquisition",
-      "IO": "Input / Output",
-      "PLOTS": "Plots & Visualization",
-      "UTILITY": "Utility & Helpers",
-      "TEMPORARY": "Temporary Blocks",
-      "USER": "User & Custom"
-    }
+    "showTitle": "Show Block Library"
   },
   "inspector": {
     "title": "Block Inspector",

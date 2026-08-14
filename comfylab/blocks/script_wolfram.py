@@ -68,6 +68,27 @@ class WolframScriptBlock(BaseSubprocessScriptBlock):
     file_extension = ".wls"
     executable_name = "wolframscript"
 
+    i18n = {
+        "pt-BR": {
+            "display_name": "Script Wolfram",
+            "description": "Bloco de código Wolfram Language definido pelo usuário com entradas e saídas decoradas.",
+            "category": "Scripts",
+            "pins": {
+                "In": "Entrada",
+                "Out": "Saída"
+            }
+        },
+        "es": {
+            "display_name": "Script Wolfram",
+            "description": "Bloque de código Wolfram Language definido por el usuario con entradas y salidas decoradas.",
+            "category": "Scripts",
+            "pins": {
+                "In": "Entrada",
+                "Out": "Salida"
+            }
+        }
+    }
+
     def _get_subprocess_args(self, script_file_path: str) -> List[str]:
         return ["wolframscript", "-file", script_file_path]
 

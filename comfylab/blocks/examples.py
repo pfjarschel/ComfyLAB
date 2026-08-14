@@ -64,6 +64,7 @@ class RangeCheckBlock(BaseBlock):
         "pt-BR": {
             "display_name": "Verificação de Intervalo",
             "description": "Verifica se um valor está dentro de um intervalo e ramifica a execução.",
+            "category": "Lógica",
             "pins": {
                 "In": "Entrada",
                 "Value": "Valor",
@@ -77,6 +78,7 @@ class RangeCheckBlock(BaseBlock):
         "es": {
             "display_name": "Comprobación de Rango",
             "description": "Comprueba si un valor está dentro de un rango y ramifica la ejecución.",
+            "category": "Lógica",
             "pins": {
                 "In": "Entrada",
                 "Value": "Valor",
@@ -147,6 +149,7 @@ class ArrayStatsBlock(BaseBlock):
         "pt-BR": {
             "display_name": "Estatísticas de Array",
             "description": "Calcula mínimo, máximo e média de um ndarray.",
+            "category": "Matemática",
             "pins": {
                 "Compute": "Calcular",
                 "Array": "Array",
@@ -160,6 +163,7 @@ class ArrayStatsBlock(BaseBlock):
         "es": {
             "display_name": "Estadísticas de Matriz",
             "description": "Calcula mínimo, máximo y media de un ndarray.",
+            "category": "Matemáticas",
             "pins": {
                 "Compute": "Calcular",
                 "Array": "Matriz",
@@ -249,6 +253,7 @@ class CounterBlock(BaseBlock):
         "pt-BR": {
             "display_name": "Contador",
             "description": "Mantém um contador que incrementa a cada execução.",
+            "category": "Utilitários",
             "pins": {
                 "Increment": "Incrementar",
                 "Step": "Passo",
@@ -259,6 +264,7 @@ class CounterBlock(BaseBlock):
         "es": {
             "display_name": "Contador",
             "description": "Mantiene un contador que se incrementa en cada ejecución.",
+            "category": "Utilidades",
             "pins": {
                 "Increment": "Incrementar",
                 "Step": "Paso",

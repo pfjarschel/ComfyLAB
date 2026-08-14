@@ -22,15 +22,15 @@ class DGE2000ConnectBlock(BaseDeviceConnectBlock):
     description = "Opens a VISA session to an Owon DGE2000 function generator. On teardown, disables output."
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/Owon",
             "display_name": "Conectar Owon DGE2000",
             "description": "Abre uma sessão VISA com um gerador de funções Owon DGE2000. No encerramento, desativa as saídas.",
-            "category": "Equipamentos"
-        },
+                    },
         "es": {
+            "category": "Instrumentos/Owon",
             "display_name": "Conectar Owon DGE2000",
             "description": "Abre una sesión VISA con un generador de funciones Owon DGE2000. Al finalizar, desactiva las salidas.",
-            "category": "Equipos"
-        }
+                    }
     }
 
     async def _device_teardown(self, device: Any, lock_manager: Any) -> None:
@@ -68,6 +68,7 @@ class DGE2000ConfigWaveBlock(BaseBlock):
     ]
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/Owon",
             "display_name": "Configurar Onda Owon DGE2000",
             "description": "Configura formato, frequência, amplitude, offset e fase para um canal em um Owon DGE2000.",
             "pins": {
@@ -81,6 +82,7 @@ class DGE2000ConfigWaveBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Instrumentos/Owon",
             "display_name": "Configurar Onda Owon DGE2000",
             "description": "Configura formato, frecuencia, amplitud, offset y fase para un canal en un Owon DGE2000.",
             "pins": {
@@ -135,6 +137,7 @@ class DGE2000OutputBlock(BaseBlock):
     ]
     i18n = {
         "pt-BR": {
+            "category": "Instrumentos/Owon",
             "display_name": "Saída Owon DGE2000",
             "description": "Habilita ou desabilita o estado de transmissão de saída do canal em um Owon DGE2000.",
             "pins": {
@@ -144,6 +147,7 @@ class DGE2000OutputBlock(BaseBlock):
             }
         },
         "es": {
+            "category": "Instrumentos/Owon",
             "display_name": "Salida Owon DGE2000",
             "description": "Habilita o deshabilita el estado de transmisión de salida del canal en un Owon DGE2000.",
             "pins": {
