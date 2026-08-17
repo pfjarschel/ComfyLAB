@@ -33,6 +33,7 @@ from comfylab.blocks.script_wolfram import parse_wolfram_decorators
 from comfylab.blocks.script_sage import parse_sage_decorators, validate_code as validate_sage
 from comfylab.blocks.script_maxima import parse_maxima_decorators, validate_code as validate_maxima
 from comfylab.blocks.script_powershell import parse_powershell_decorators, validate_code as validate_powershell
+from comfylab.blocks.script_csharp import parse_csharp_decorators, validate_code as validate_csharp
 from backend.manager import TelemetryConnectionManager
 from backend.auth import verify_access_token
 from backend.ratelimit import is_blocked, record_failure, record_success, block_remaining
@@ -55,6 +56,9 @@ PARSER_REGISTRY = {
     "maxima": parse_maxima_decorators,
     "powershell": parse_powershell_decorators,
     "pwsh": parse_powershell_decorators,
+    "csharp": parse_csharp_decorators,
+    "cs": parse_csharp_decorators,
+    "dotnet": parse_csharp_decorators,
 }
 
 VALIDATOR_REGISTRY = {
@@ -69,6 +73,9 @@ VALIDATOR_REGISTRY = {
     "maxima": validate_maxima,
     "powershell": validate_powershell,
     "pwsh": validate_powershell,
+    "csharp": validate_csharp,
+    "cs": validate_csharp,
+    "dotnet": validate_csharp,
 }
 
 # Import comfylab.blocks to trigger dynamic recursive auto-discovery

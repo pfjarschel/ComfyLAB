@@ -77,7 +77,7 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
 
   const isScriptNode = data.action && data.action.startsWith('script/');
   const isCluster = data.action && (data.action.startsWith('user/cluster/') || data.action.startsWith('workspace/cluster/'));
-  const isLibraryCallNode = !!data.action && ['ffi/call', 'library/call', 'dll/so/call'].includes(data.action.toLowerCase().replace(/\\/g, ''));
+  const isLibraryCallNode = !!data.action && ['ffi/call', 'library/call', 'dll/so/call', 'external_libraries/dll/call'].includes(data.action.toLowerCase().replace(/\\/g, ''));
 
   // Helper: map a C type string to a frontend pin colour type
   const libraryCTypeToPin = (cType: string): string => {

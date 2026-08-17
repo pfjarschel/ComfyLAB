@@ -137,16 +137,9 @@ def _coerce_value(val: Any, c_type_str: str) -> Any:
 # Block 1 — Library Loader
 # ---------------------------------------------------------------------------
 
-@register_block(r"dll\/SO/load")
+@register_block("external_libraries/dll/load")
 class LibraryLoadBlock(BaseBlock):
-    """
-    Loads a native shared library (.dll / .so) and outputs a handle for use
-    with Library Call blocks. Calling convention (cdecl vs stdcall) is detected
-    automatically — the user only needs to supply the file path.
-
-    The library handle is cached for the duration of the graph run and
-    released automatically on teardown, consistent with VISA device blocks.
-    """
+    category = "External Libraries/DLL"
     icon = "🔗"
     display_name = "Load DLL/SO"
     description = (
@@ -167,7 +160,7 @@ class LibraryLoadBlock(BaseBlock):
         "pt-BR": {
             "display_name": "Carregar DLL/SO",
             "description": "Carrega uma biblioteca compartilhada nativa (.dll no Windows, .so no Linux) e emite a referência. Conecte a um bloco 'Chamar DLL/SO' para invocar funções.",
-            "category": "Bibliotecas",
+            "category": "Bibliotecas Externas/DLL",
             "pins": {
                 "Load": "Carregar",
                 "LibraryPath": "Caminho da Biblioteca",
@@ -178,7 +171,7 @@ class LibraryLoadBlock(BaseBlock):
         "es": {
             "display_name": "Cargar DLL/SO",
             "description": "Carga una biblioteca compartida nativa (.dll en Windows, .so en Linux) y emite la referencia. Conecte a un bloque 'Llamar DLL/SO' para invocar funciones.",
-            "category": "Bibliotecas",
+            "category": "Bibliotecas Externas/DLL",
             "pins": {
                 "Load": "Cargar",
                 "LibraryPath": "Ruta de Biblioteca",
@@ -226,30 +219,9 @@ class LibraryLoadBlock(BaseBlock):
 # Block 2 — Function Call
 # ---------------------------------------------------------------------------
 
-@register_block(r"dll\/SO/call")
+@register_block("external_libraries/dll/call")
 class LibraryCallBlock(BaseBlock):
-    """
-    Invokes a named function from a loaded native library handle.
-
-    The argument signature is configured via the 'library_args' property (set
-    through the dedicated Library Signature Editor panel in the frontend). Each
-    argument entry has:
-        name      — matches the DataIn/DataOut pin name on this block
-        c_type    — one of the supported ctypes type strings (e.g. "float32")
-        direction — one of:
-                      "in"    Input         (input pin only)
-                      "out"   Output        (output pin; scalar pointer if
-                                             size_arg is blank, array buffer
-                                             if size_arg names an input arg)
-                      "inout" Input/Output  (input pin + output pin; array
-                                             buffer modified in-place)
-        size_arg  — (only for "out" with a buffer) the name of the Input
-                    argument that holds the element count.
-
-    All ctypes pointer mechanics are handled transparently. The C call runs
-    in a worker thread (Guardrail A). Buffer sizes are validated before the
-    call (Guardrail B).
-    """
+    category = "External Libraries/DLL"
     icon = "⚡"
     display_name = "Call DLL/SO"
     description = (
@@ -276,7 +248,7 @@ class LibraryCallBlock(BaseBlock):
         "pt-BR": {
             "display_name": "Chamar DLL/SO",
             "description": "Chama uma função em uma biblioteca nativa carregada usando uma assinatura configurável. Clique em '⚙️ Edit Signature' no bloco para definir os argumentos.",
-            "category": "Bibliotecas",
+            "category": "Bibliotecas Externas/DLL",
             "pins": {
                 "Call": "Chamar",
                 "Library": "Biblioteca",
@@ -290,7 +262,7 @@ class LibraryCallBlock(BaseBlock):
         "es": {
             "display_name": "Llamar DLL/SO",
             "description": "Llama a una función en una biblioteca nativa cargada utilizando una firma configurable. Haga clic en '⚙️ Edit Signature' en el bloque para definir los argumentos.",
-            "category": "Bibliotecas",
+            "category": "Bibliotecas Externas/DLL",
             "pins": {
                 "Call": "Llamar",
                 "Library": "Biblioteca",

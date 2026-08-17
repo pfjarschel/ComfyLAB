@@ -199,6 +199,7 @@
     "enableSage": "🌿 Habilitar Bloque de Script SageMath",
     "enableMaxima": "🧮 Habilitar Bloque de Script Maxima",
     "enablePowershell": "⚡ Habilitar Bloque de Script PowerShell",
+    "enableCsharp": "🟣 Habilitar Bloque de Script C# (.NET)",
     "systemDependencies": "Verificación de Dependencias del Sistema",
     "refresh": "🔄 Actualizar",
     "checkingBinaries": "Comprobando binarios en el PATH del sistema...",

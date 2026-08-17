@@ -115,6 +115,8 @@ def generate_block_class_code(
         return _build_maxima_template(display_name, class_name, type_name, category, icon, description, inputs, outputs, original_code)
     elif language in ("powershell", "pwsh"):
         return _build_powershell_template(display_name, class_name, type_name, category, icon, description, inputs, outputs, original_code)
+    elif language in ("csharp", "cs", "dotnet"):
+        return _build_csharp_template(display_name, class_name, type_name, category, icon, description, inputs, outputs, original_code)
     elif language == "rust":
         return _build_rust_template(display_name, class_name, type_name, category, icon, description, inputs, outputs, original_code, destination, clean_name)
     else:
@@ -293,6 +295,10 @@ def _build_maxima_template(display_name, class_name, type_name, category, icon, 
 def _build_powershell_template(display_name, class_name, type_name, category, icon, description, inputs, outputs, original_code):
     return _build_inheritance_template(display_name, class_name, type_name, category, icon, description, original_code,
         "comfylab.blocks.script_powershell", "PowerShellScriptBlock", "parse_powershell_decorators", "powershell")
+
+def _build_csharp_template(display_name, class_name, type_name, category, icon, description, inputs, outputs, original_code):
+    return _build_inheritance_template(display_name, class_name, type_name, category, icon, description, original_code,
+        "comfylab.blocks.script_csharp", "CSharpScriptBlock", "parse_csharp_decorators", "csharp")
 
 
 def _build_rust_template(display_name, class_name, type_name, category, icon, description, inputs, outputs, original_code, destination, clean_name):

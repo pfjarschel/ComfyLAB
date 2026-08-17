@@ -449,6 +449,8 @@ function Flow() {
     enable_wolfram_scripting: boolean;
     enable_sage_scripting: boolean;
     enable_maxima_scripting: boolean;
+    enable_powershell_scripting: boolean;
+    enable_csharp_scripting: boolean;
     external_python_path: string;
     creator_identity: string;
     trusted_origins: string[];
@@ -467,6 +469,8 @@ function Flow() {
     enable_wolfram_scripting: false,
     enable_sage_scripting: false,
     enable_maxima_scripting: false,
+    enable_powershell_scripting: false,
+    enable_csharp_scripting: false,
     external_python_path: '',
     creator_identity: '',
     trusted_origins: [],
@@ -2251,6 +2255,10 @@ return {
           case 'script/powershell':
           case 'script/pwsh':
             return `# @input name="value" type="number" default=1.0\n# @output name="result" type="number"\n\n$result = $value * 2\n`;
+          case 'script/csharp':
+          case 'script/cs':
+          case 'script/dotnet':
+            return `// @input name="value" type="number" default=1.0\n// @output name="result" type="number"\n\nresult = value * 2;\n`;
           case 'script/python':
           default:
             return `# @input name="value" type="number" default=1.0\n# @output name="result" type="number"\n\nresult = value * 2\n`;

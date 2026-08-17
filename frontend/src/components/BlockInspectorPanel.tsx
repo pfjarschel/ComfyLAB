@@ -90,7 +90,7 @@ export const BlockInspectorPanel = ({
   const action = block.data?.action;
   const isScriptNode = action === 'script/python';
   const isCluster = action && (action.startsWith('user/cluster/') || action.startsWith('workspace/cluster/'));
-  const isLibraryCallNode = !!action && ['ffi/call', 'library/call', 'dll/so/call'].includes(action.toLowerCase().replace(/\\/g, ''));
+  const isLibraryCallNode = !!action && ['ffi/call', 'library/call', 'dll/so/call', 'external_libraries/dll/call'].includes(action.toLowerCase().replace(/\\/g, ''));
 
   // Get layout details from registry
   const registryLayout = blockRegistry?.[action] as NodeSchema | undefined;

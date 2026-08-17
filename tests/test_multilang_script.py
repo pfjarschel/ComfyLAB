@@ -11,6 +11,7 @@ from comfylab.blocks.script_wolfram import parse_wolfram_decorators, WolframScri
 from comfylab.blocks.script_sage import parse_sage_decorators, SageScriptBlock
 from comfylab.blocks.script_maxima import parse_maxima_decorators, MaximaScriptBlock
 from comfylab.blocks.script_powershell import parse_powershell_decorators, PowerShellScriptBlock
+from comfylab.blocks.script_csharp import parse_csharp_decorators, CSharpScriptBlock
 
 
 class TestParseMultilangDecorators:
@@ -87,6 +88,15 @@ class TestParseMultilangDecorators:
         assert len(outputs) == 1
         assert inputs[0]['name'] == 'factor'
         assert inputs[0]['default'] == 3.5
+        assert outputs[0]['name'] == 'total'
+
+    def test_parse_csharp_decorators(self):
+        code = '// @input name="factor" type="number" default=4.0\n// @output name="total" type="number"\n// @reference path="System.dll"\n'
+        inputs, outputs = parse_csharp_decorators(code)
+        assert len(inputs) == 1
+        assert len(outputs) == 1
+        assert inputs[0]['name'] == 'factor'
+        assert inputs[0]['default'] == 4.0
         assert outputs[0]['name'] == 'total'
 
 
@@ -416,6 +426,37 @@ class TestMultilangExecution:
         engine = ExecutionEngine()
         engine.load_blueprint(blueprint)
         await engine.run(start_block_id="powershell_script", start_pin_name="In")
+
+        assert engine.blocks["print"].last_printed == 42.0
+
+    @pytest.mark.asyncio
+    async def test_csharp_execution(self):
+        if not shutil.which("dotnet"):
+            pytest.skip("dotnet CLI is not available in PATH.")
+
+        blueprint = {
+            "blocks": [
+                {
+                    "id": "csharp_script",
+                    "type": "script/csharp",
+                    "properties": {
+                        "code": '// @input name="value" type="number" default=7.0\n// @output name="result" type="number"\n\nresult = value * 6;\n'
+                    }
+                },
+                {"id": "print", "type": "outputs/basic/print", "properties": {}}
+            ],
+            "links": [
+                {"id": "l1", "type": "exec", "source_block": "csharp_script", "source_pin": "Out", "target_block": "print", "target_pin": "In"},
+                {"id": "l2", "type": "data", "source_block": "csharp_script", "source_pin": "result", "target_block": "print", "target_pin": "Value"}
+            ]
+        }
+
+        from comfylab.engine.registry import register_block
+        register_block("script/csharp")(CSharpScriptBlock)
+
+        engine = ExecutionEngine()
+        engine.load_blueprint(blueprint)
+        await engine.run(start_block_id="csharp_script", start_pin_name="In")
 
         assert engine.blocks["print"].last_printed == 42.0
 

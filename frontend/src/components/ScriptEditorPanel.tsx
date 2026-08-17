@@ -47,6 +47,10 @@ const getLanguageDefaultCode = (type: string) => {
     case 'script/powershell':
     case 'script/pwsh':
       return `# @input name="value" type="number" default=1.0\n# @output name="result" type="number"\n\n$result = $value * 2\n`;
+    case 'script/csharp':
+    case 'script/cs':
+    case 'script/dotnet':
+      return `// @input name="value" type="number" default=1.0\n// @output name="result" type="number"\n\nresult = value * 2;\n`;
     case 'script/python':
     default:
       return `# @input name="value" type="number" default=1.0\n# @output name="result" type="number"\n\nresult = value * 2\n`;
@@ -404,6 +408,8 @@ export const ScriptEditorPanel = ({
         return { name: 'Maxima', langKey: 'maxima', icon: '🧮', commentChar: '/*', hint: 'scope: CAS symbols, matrices, context, workspace' };
       case 'script/powershell': case 'script/pwsh': case 'powershell': case 'pwsh':
         return { name: 'PowerShell', langKey: 'powershell', icon: '⚡', commentChar: '#', hint: 'scope: COM, .NET, context, workspace' };
+      case 'script/csharp': case 'script/cs': case 'script/dotnet': case 'csharp': case 'cs': case 'dotnet':
+        return { name: 'C#', langKey: 'csharp', icon: '🟣', commentChar: '//', hint: 'scope: .NET, System, context, workspace' };
       case 'script/python':
       default:
         return { name: 'Python', langKey: 'python', icon: '🐍', commentChar: '#', hint: 'scope: numpy, math, context, workspace' };

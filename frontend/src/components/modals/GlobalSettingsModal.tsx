@@ -32,6 +32,7 @@ interface GlobalSettingsProps {
     enable_sage_scripting: boolean;
     enable_maxima_scripting: boolean;
     enable_powershell_scripting: boolean;
+    enable_csharp_scripting: boolean;
     external_python_path: string;
     creator_identity: string;
     trusted_origins: string[];
@@ -384,6 +385,14 @@ export const GlobalSettingsModal = ({
                       onChange={(e) => setSettings({ ...settings, enable_powershell_scripting: e.target.checked })}
                     />
                     <span>{t('settingsModal.enablePowershell', '⚡ Enable PowerShell Script Block')}</span>
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '0.85rem' }}>
+                    <input
+                      type="checkbox"
+                      checked={settings.enable_csharp_scripting}
+                      onChange={(e) => setSettings({ ...settings, enable_csharp_scripting: e.target.checked })}
+                    />
+                    <span>{t('settingsModal.enableCsharp', '🟣 Enable C# (.NET) Script Block')}</span>
                   </label>
                 </div>
               </div>

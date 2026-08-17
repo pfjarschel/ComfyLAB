@@ -82,6 +82,7 @@ async def check_dependencies() -> Dict[str, Any]:
             powershell_ver = f"Windows PowerShell {powershell_ver}"
     ps_display_ver = pwsh_ver if pwsh_ver != "Not Found" else powershell_ver
     ps_installed = ps_display_ver != "Not Found"
+    dotnet_ver = await get_binary_version("dotnet", "--version")
 
     # 3. Compile instructions for missing toolchains
     instructions = {}
@@ -107,6 +108,8 @@ async def check_dependencies() -> Dict[str, Any]:
         instructions["maxima"] = "Install Maxima CAS from https://maxima.sourceforge.io/ or via package manager ('sudo apt install maxima' / 'brew install maxima' / 'mamba install -c conda-forge maxima')."
     if not ps_installed:
         instructions["powershell"] = "Install PowerShell (e.g. 'winget install Microsoft.PowerShell' on Windows, 'brew install powershell' on macOS, or via package manager on Linux). Learn more at https://learn.microsoft.com/powershell/."
+    if dotnet_ver == "Not Found":
+        instructions["dotnet"] = "Install .NET SDK from https://dotnet.microsoft.com/download (e.g. 'sudo apt install dotnet-sdk-8.0' or 'brew install dotnet')."
 
     return {
         "status": "success",
@@ -175,6 +178,11 @@ async def check_dependencies() -> Dict[str, Any]:
                 "installed": ps_installed,
                 "version": ps_display_ver,
                 "description": "PowerShell Command-line Shell & Scripting Language"
+            },
+            "dotnet": {
+                "installed": dotnet_ver != "Not Found",
+                "version": dotnet_ver,
+                "description": ".NET SDK & C# CLI Runner"
             }
         },
         "instructions": instructions
