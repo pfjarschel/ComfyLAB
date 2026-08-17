@@ -35,6 +35,8 @@ DEFAULT_CONFIG = {
     "enable_r_scripting": False,
     "enable_octave_scripting": False,
     "enable_wolfram_scripting": False,
+    "enable_sage_scripting": False,
+    "enable_maxima_scripting": False,
     "external_python_path": "",
     "creator_identity": "",
     "trusted_origins": [],

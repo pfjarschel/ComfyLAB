@@ -33,8 +33,10 @@ async def get_binary_version(binary: str, version_arg: str = "--version") -> str
         )
         stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=2.0)
         output = stdout.decode().strip() or stderr.decode().strip()
-        # Clean up output to make it single line and short
-        first_line = output.split('\n')[0] if output else "Installed"
+        output = stdout.decode().strip() or stderr.decode().strip()
+        # Clean up output to make it single line and short, filtering out loader comments
+        lines = [line.strip() for line in output.split('\n') if line.strip() and not line.strip().startswith(";;;")]
+        first_line = lines[0] if lines else "Installed"
         return first_line
     except Exception as e:
         logger.error(f"Failed to get version for {binary}: {e}")
@@ -65,6 +67,10 @@ async def check_dependencies() -> Dict[str, Any]:
     r_ver = await get_binary_version("Rscript", "--version")
     octave_ver = await get_binary_version("octave", "--version")
     wolfram_ver = await get_binary_version("wolframscript", "--version")
+    sage_ver = await get_binary_version("sage", "-V")
+    if sage_ver != "Not Found" and not sage_ver.lower().startswith("sage"):
+        sage_ver = f"SageMath {sage_ver}"
+    maxima_ver = await get_binary_version("maxima", "--version")
 
     # 3. Compile instructions for missing toolchains
     instructions = {}
@@ -84,6 +90,10 @@ async def check_dependencies() -> Dict[str, Any]:
         instructions["octave"] = "Install GNU Octave from the official page: https://www.gnu.org/software/octave/download (e.g. 'sudo apt install octave' or 'brew install octave')."
     if wolfram_ver == "Not Found":
         instructions["wolfram"] = "Install Wolfram Engine and WolframScript. Learn more at https://www.wolfram.com/wolframscript/."
+    if sage_ver == "Not Found":
+        instructions["sage"] = "Install SageMath from the official page: https://www.sagemath.org/download.html or via mamba/conda ('mamba install -c conda-forge sage')."
+    if maxima_ver == "Not Found":
+        instructions["maxima"] = "Install Maxima CAS from https://maxima.sourceforge.io/ or via package manager ('sudo apt install maxima' / 'brew install maxima' / 'mamba install -c conda-forge maxima')."
 
     return {
         "status": "success",
@@ -137,6 +147,16 @@ async def check_dependencies() -> Dict[str, Any]:
                 "installed": wolfram_ver != "Not Found",
                 "version": wolfram_ver,
                 "description": "Wolfram Engine & wolframscript CLI"
+            },
+            "sage": {
+                "installed": sage_ver != "Not Found",
+                "version": sage_ver,
+                "description": "SageMath Open-Source Mathematics Software"
+            },
+            "maxima": {
+                "installed": maxima_ver != "Not Found",
+                "version": maxima_ver,
+                "description": "Maxima Computer Algebra System (CAS)"
             }
         },
         "instructions": instructions

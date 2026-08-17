@@ -30,6 +30,8 @@ from comfylab.blocks.script_r import validate_code as validate_r
 from comfylab.blocks.script_rust import parse_rust_decorators
 from comfylab.blocks.script_octave import parse_octave_decorators
 from comfylab.blocks.script_wolfram import parse_wolfram_decorators
+from comfylab.blocks.script_sage import parse_sage_decorators, validate_code as validate_sage
+from comfylab.blocks.script_maxima import parse_maxima_decorators, validate_code as validate_maxima
 from backend.manager import TelemetryConnectionManager
 from backend.auth import verify_access_token
 from backend.ratelimit import is_blocked, record_failure, record_success, block_remaining
@@ -47,6 +49,9 @@ PARSER_REGISTRY = {
     "octave": parse_octave_decorators,
     "matlab": parse_octave_decorators,
     "wolfram": parse_wolfram_decorators,
+    "sage": parse_sage_decorators,
+    "sagemath": parse_sage_decorators,
+    "maxima": parse_maxima_decorators,
 }
 
 VALIDATOR_REGISTRY = {
@@ -56,6 +61,9 @@ VALIDATOR_REGISTRY = {
     "typescript": lambda code: validate_js(code, "typescript"),
     "julia": validate_julia,
     "r": validate_r,
+    "sage": validate_sage,
+    "sagemath": validate_sage,
+    "maxima": validate_maxima,
 }
 
 # Import comfylab.blocks to trigger dynamic recursive auto-discovery

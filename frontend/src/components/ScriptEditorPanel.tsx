@@ -39,6 +39,11 @@ const getLanguageDefaultCode = (type: string) => {
       return `% @input name="value" type="number" default=1.0\n% @output name="result" type="number"\n\nresult = value * 2;\n`;
     case 'script/wolfram':
       return `(* @input name="value" type="number" default=1.0 *)\n(* @output name="result" type="number" *)\n\nresult = value * 2;\n`;
+    case 'script/sage':
+    case 'script/sagemath':
+      return `# @input name="value" type="number" default=1.0\n# @output name="result" type="number"\n\nresult = value * 2\n`;
+    case 'script/maxima':
+      return `/* @input name="value" type="number" default=1.0 */\n/* @output name="result" type="number" */\n\nresult: value * 2;\n`;
     case 'script/python':
     default:
       return `# @input name="value" type="number" default=1.0\n# @output name="result" type="number"\n\nresult = value * 2\n`;
@@ -150,6 +155,54 @@ const handleEditorMount = (editor: any, monaco: any, langKey: string): { updateD
     monaco.languages.setLanguageConfiguration('wolfram', {
       comments: {
         blockComment: ['(*', '*)']
+      }
+    });
+  }
+
+  // Register maxima language if not present
+  if (!monaco.languages.getLanguages().some((l: any) => l.id === 'maxima')) {
+    monaco.languages.register({ id: 'maxima' });
+    monaco.languages.setMonarchTokensProvider('maxima', {
+      defaultToken: '',
+      keywords: [
+        'if', 'then', 'else', 'elseif', 'for', 'from', 'step', 'next', 'thru',
+        'while', 'unless', 'do', 'return', 'block', 'true', 'false', 'matrix',
+        'sin', 'cos', 'tan', 'exp', 'log', 'diff', 'integrate', 'sum', 'product',
+        'solve', 'float', 'bfloat', 'print', 'printf', 'openw', 'openr', 'close',
+        'quit', 'errcatch', 'args', 'length', 'sconcat', 'ssubst', 'string',
+        'integerp', 'floatnump', 'numberp', 'stringp', 'listp', 'matrixp'
+      ],
+      operators: [
+        '+', '-', '*', '/', '^', '**', ':', ':=', '::=', '::', '!', '!!',
+        '=', '#', '>', '<', '>=', '<=', 'and', 'or', 'not', '$', ';'
+      ],
+      tokenizer: {
+        root: [
+          [/[a-zA-Z_%][a-zA-Z0-9_%]*/, {
+            cases: {
+              '@keywords': 'keyword',
+              '@default': 'identifier'
+            }
+          }],
+          [/\/\*/, 'comment', '@comment'],
+          [/"([^"\\]|\\.)*"/, 'string'],
+          [/\d*\.\d+([eE][\-+]?\d+)?/, 'number.float'],
+          [/\d+/, 'number'],
+          [/[{}()\[\]]/, '@brackets'],
+          [/[+\-*\/=<>!&|@^:$#;]+/, 'operator']
+        ],
+        comment: [
+          [/[^\/*]+/, 'comment'],
+          [/\*\//, 'comment', '@pop'],
+          [/\/\*/, 'comment', '@push'],
+          [/[\/*]/, 'comment']
+        ]
+      }
+    });
+
+    monaco.languages.setLanguageConfiguration('maxima', {
+      comments: {
+        blockComment: ['/*', '*/']
       }
     });
   }
@@ -334,6 +387,10 @@ export const ScriptEditorPanel = ({
         return { name: 'Octave', langKey: 'matlab', icon: '📐', commentChar: '%', hint: 'scope: context, workspace' };
       case 'script/wolfram': case 'wolfram':
         return { name: 'Wolfram', langKey: 'wolfram', icon: '🧠', commentChar: '(*', hint: 'scope: context, workspace' };
+      case 'script/sage': case 'sage': case 'sagemath':
+        return { name: 'SageMath', langKey: 'python', icon: '🌿', commentChar: '#', hint: 'scope: sage.all, numpy, context, workspace' };
+      case 'script/maxima': case 'maxima':
+        return { name: 'Maxima', langKey: 'maxima', icon: '🧮', commentChar: '/*', hint: 'scope: CAS symbols, matrices, context, workspace' };
       case 'script/python':
       default:
         return { name: 'Python', langKey: 'python', icon: '🐍', commentChar: '#', hint: 'scope: numpy, math, context, workspace' };

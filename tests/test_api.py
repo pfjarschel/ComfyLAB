@@ -29,9 +29,10 @@ def isolated_config(tmp_path, monkeypatch):
         "script_timeout": 30.0,
         "visa_backend": "",
         "enable_lua_scripting": False,
-        "enable_julia_scripting": False,
-        "enable_js_scripting": False,
-        "enable_rust_scripting": False,
+        "enable_octave_scripting": False,
+        "enable_wolfram_scripting": False,
+        "enable_sage_scripting": False,
+        "enable_maxima_scripting": False,
         "external_python_path": "",
         "creator_identity": identity,
         "trusted_origins": [],
@@ -277,6 +278,8 @@ def test_save_settings_preserves_custom_users_and_identity():
         "enable_r_scripting": False,
         "enable_octave_scripting": False,
         "enable_wolfram_scripting": False,
+        "enable_sage_scripting": False,
+        "enable_maxima_scripting": False,
         "external_python_path": "/usr/bin/python3"
     }
     

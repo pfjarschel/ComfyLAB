@@ -196,6 +196,8 @@
     "enableR": "📊 Habilitar Bloque de Script R",
     "enableOctave": "📐 Habilitar Bloque de Script Octave",
     "enableWolfram": "🧠 Habilitar Bloque de Script Wolfram",
+    "enableSage": "🌿 Habilitar Bloque de Script SageMath",
+    "enableMaxima": "🧮 Habilitar Bloque de Script Maxima",
     "systemDependencies": "Verificación de Dependencias del Sistema",
     "refresh": "🔄 Actualizar",
     "checkingBinaries": "Comprobando binarios en el PATH del sistema...",

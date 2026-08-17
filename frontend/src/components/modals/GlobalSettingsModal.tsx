@@ -29,6 +29,8 @@ interface GlobalSettingsProps {
     enable_r_scripting: boolean;
     enable_octave_scripting: boolean;
     enable_wolfram_scripting: boolean;
+    enable_sage_scripting: boolean;
+    enable_maxima_scripting: boolean;
     external_python_path: string;
     creator_identity: string;
     trusted_origins: string[];
@@ -357,6 +359,22 @@ export const GlobalSettingsModal = ({
                       onChange={(e) => setSettings({ ...settings, enable_wolfram_scripting: e.target.checked })}
                     />
                     <span>{t('settingsModal.enableWolfram', '🧠 Enable Wolfram Script Block')}</span>
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '0.85rem' }}>
+                    <input
+                      type="checkbox"
+                      checked={settings.enable_sage_scripting}
+                      onChange={(e) => setSettings({ ...settings, enable_sage_scripting: e.target.checked })}
+                    />
+                    <span>{t('settingsModal.enableSage', '🌿 Enable SageMath Script Block')}</span>
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '0.85rem' }}>
+                    <input
+                      type="checkbox"
+                      checked={settings.enable_maxima_scripting}
+                      onChange={(e) => setSettings({ ...settings, enable_maxima_scripting: e.target.checked })}
+                    />
+                    <span>{t('settingsModal.enableMaxima', '🧮 Enable Maxima Script Block')}</span>
                   </label>
                 </div>
               </div>

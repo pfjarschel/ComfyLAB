@@ -8,6 +8,8 @@ from comfylab.blocks.script_julia import JuliaScriptBlock
 from comfylab.blocks.script_r import RScriptBlock
 from comfylab.blocks.script_octave import parse_octave_decorators, OctaveScriptBlock
 from comfylab.blocks.script_wolfram import parse_wolfram_decorators, WolframScriptBlock
+from comfylab.blocks.script_sage import parse_sage_decorators, SageScriptBlock
+from comfylab.blocks.script_maxima import parse_maxima_decorators, MaximaScriptBlock
 
 
 class TestParseMultilangDecorators:
@@ -58,6 +60,24 @@ class TestParseMultilangDecorators:
         assert inputs[0]['name'] == 'param'
         assert inputs[0]['default'] == 3.14
         assert outputs[0]['name'] == 'res'
+
+    def test_parse_sage_decorators(self):
+        code = '# @input name="factor" type="number" default=2.0\n# @output name="scaled" type="number"\n'
+        inputs, outputs = parse_sage_decorators(code)
+        assert len(inputs) == 1
+        assert len(outputs) == 1
+        assert inputs[0]['name'] == 'factor'
+        assert inputs[0]['default'] == 2.0
+        assert outputs[0]['name'] == 'scaled'
+
+    def test_parse_maxima_decorators(self):
+        code = '/* @input name="coeff" type="number" default=4.5 */\n/* @output name="ans" type="number" */\n'
+        inputs, outputs = parse_maxima_decorators(code)
+        assert len(inputs) == 1
+        assert len(outputs) == 1
+        assert inputs[0]['name'] == 'coeff'
+        assert inputs[0]['default'] == 4.5
+        assert outputs[0]['name'] == 'ans'
 
 
 class TestMultilangExecution:
@@ -287,7 +307,74 @@ class TestMultilangExecution:
 
         engine = ExecutionEngine()
         engine.load_blueprint(blueprint)
-        await engine.run(start_block_id="wolfram_script", start_pin_name="In")
+        try:
+            await engine.run(start_block_id="wolfram_script", start_pin_name="In")
+        except RuntimeError as e:
+            if "license" in str(e).lower() or "not activated" in str(e).lower():
+                pytest.skip("Wolfram Engine is installed but not activated/licensed.")
+            raise
 
         assert engine.blocks["print"].last_printed == 40.0
+
+    @pytest.mark.asyncio
+    async def test_sage_execution(self):
+        if not shutil.which("sage"):
+            pytest.skip("sage is not available in PATH.")
+
+        blueprint = {
+            "blocks": [
+                {
+                    "id": "sage_script",
+                    "type": "script/sage",
+                    "properties": {
+                        "code": '# @input name="value" type="number" default=4.0\n# @output name="result" type="number"\n\nresult = value * 6\n'
+                    }
+                },
+                {"id": "print", "type": "outputs/basic/print", "properties": {}}
+            ],
+            "links": [
+                {"id": "l1", "type": "exec", "source_block": "sage_script", "source_pin": "Out", "target_block": "print", "target_pin": "In"},
+                {"id": "l2", "type": "data", "source_block": "sage_script", "source_pin": "result", "target_block": "print", "target_pin": "Value"}
+            ]
+        }
+
+        from comfylab.engine.registry import register_block
+        register_block("script/sage")(SageScriptBlock)
+
+        engine = ExecutionEngine()
+        engine.load_blueprint(blueprint)
+        await engine.run(start_block_id="sage_script", start_pin_name="In")
+
+        assert engine.blocks["print"].last_printed == 24
+
+    @pytest.mark.asyncio
+    async def test_maxima_execution(self):
+        if not shutil.which("maxima"):
+            pytest.skip("maxima is not available in PATH.")
+
+        blueprint = {
+            "blocks": [
+                {
+                    "id": "maxima_script",
+                    "type": "script/maxima",
+                    "properties": {
+                        "code": '/* @input name="value" type="number" default=5.0 */\n/* @output name="result" type="number" */\n\nresult: value * 3;\n'
+                    }
+                },
+                {"id": "print", "type": "outputs/basic/print", "properties": {}}
+            ],
+            "links": [
+                {"id": "l1", "type": "exec", "source_block": "maxima_script", "source_pin": "Out", "target_block": "print", "target_pin": "In"},
+                {"id": "l2", "type": "data", "source_block": "maxima_script", "source_pin": "result", "target_block": "print", "target_pin": "Value"}
+            ]
+        }
+
+        from comfylab.engine.registry import register_block
+        register_block("script/maxima")(MaximaScriptBlock)
+
+        engine = ExecutionEngine()
+        engine.load_blueprint(blueprint)
+        await engine.run(start_block_id="maxima_script", start_pin_name="In")
+
+        assert engine.blocks["print"].last_printed == 15.0
 

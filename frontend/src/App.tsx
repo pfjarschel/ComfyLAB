@@ -447,6 +447,8 @@ function Flow() {
     enable_r_scripting: boolean;
     enable_octave_scripting: boolean;
     enable_wolfram_scripting: boolean;
+    enable_sage_scripting: boolean;
+    enable_maxima_scripting: boolean;
     external_python_path: string;
     creator_identity: string;
     trusted_origins: string[];
@@ -463,6 +465,8 @@ function Flow() {
     enable_r_scripting: false,
     enable_octave_scripting: false,
     enable_wolfram_scripting: false,
+    enable_sage_scripting: false,
+    enable_maxima_scripting: false,
     external_python_path: '',
     creator_identity: '',
     trusted_origins: [],
@@ -2239,6 +2243,11 @@ return {
             return `% @input name="value" type="number" default=1.0\n% @output name="result" type="number"\n\nresult = value * 2;\n`;
           case 'script/wolfram':
             return `(* @input name="value" type="number" default=1.0 *)\n(* @output name="result" type="number" *)\n\nresult = value * 2;\n`;
+          case 'script/sage':
+          case 'script/sagemath':
+            return `# @input name="value" type="number" default=1.0\n# @output name="result" type="number"\n\nresult = value * 2\n`;
+          case 'script/maxima':
+            return `/* @input name="value" type="number" default=1.0 */\n/* @output name="result" type="number" */\n\nresult: value * 2;\n`;
           case 'script/python':
           default:
             return `# @input name="value" type="number" default=1.0\n# @output name="result" type="number"\n\nresult = value * 2\n`;
