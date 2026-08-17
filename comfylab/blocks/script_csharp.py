@@ -177,8 +177,10 @@ class Program {{
 """
 
         try:
-            cs_file.write_text(program_content, encoding="utf-8")
-            csproj_file.write_text(csproj_content, encoding="utf-8")
+            if not cs_file.exists() or cs_file.read_text(encoding="utf-8") != program_content:
+                cs_file.write_text(program_content, encoding="utf-8")
+            if not csproj_file.exists() or csproj_file.read_text(encoding="utf-8") != csproj_content:
+                csproj_file.write_text(csproj_content, encoding="utf-8")
 
             dotnet_exe = shutil.which("dotnet") or "dotnet"
             process = await asyncio.create_subprocess_exec(
@@ -203,7 +205,13 @@ class Program {{
                 self._computed_outputs = {}
 
         finally:
-            shutil.rmtree(proj_dir, ignore_errors=True)
+            if output_file.exists():
+                output_file.unlink()
+
+    async def teardown(self):
+        tmp_dir = get_temp_dir()
+        proj_dir = tmp_dir / f"csharp_proj_{self.id}"
+        shutil.rmtree(proj_dir, ignore_errors=True)
 
 
 async def validate_code(code: str) -> dict:
