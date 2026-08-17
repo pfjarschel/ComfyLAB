@@ -1011,6 +1011,70 @@ class LinspaceBlock(BaseBlock):
         return None
 
 
+@register_block("Numeric Arrays/manipulation/logspace")
+class LogspaceBlock(BaseBlock):
+    """Generates a logarithmic sequence of values, equivalent to numpy.logspace."""
+    icon = "📶"
+    display_name = "Logspace"
+    description = "Generates an ndarray of numbers spaced evenly on a log scale: Base^Start to Base^Stop."
+
+    inputs_def = [
+        DataIn("Start", type_hint=float, default=0.0, widget="number"),
+        DataIn("Stop", type_hint=float, default=3.0, widget="number"),
+        DataIn("Steps", type_hint=int, default=4, widget="number", min_val=1),
+        DataIn("Base", type_hint=float, default=10.0, widget="number")
+    ]
+    outputs_def = [
+        DataOut("Array", type_hint=np.ndarray)
+    ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Logspace",
+            "description": "Gera um ndarray de números uniformemente espaçados em uma escala logarítmica: Base^Início até Base^Fim.",
+            "category": "Matrizes Numéricas",
+            "pins": {
+                "Start": "Início",
+                "Stop": "Fim",
+                "Steps": "Passos",
+                "Base": "Base",
+                "Array": "Matriz"
+            }
+        },
+        "es": {
+            "display_name": "Logspace",
+            "description": "Genera un ndarray de números espaciados uniformemente en una escala logarítmica: Base^Inicio hasta Base^Fin.",
+            "category": "Matrices Numéricas",
+            "pins": {
+                "Start": "Inicio",
+                "Stop": "Fin",
+                "Steps": "Pasos",
+                "Base": "Base",
+                "Array": "Matriz"
+            }
+        }
+    }
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Array":
+            start = float(await context.pull(self.id, "Start"))
+            stop = float(await context.pull(self.id, "Stop"))
+            steps = int(await context.pull(self.id, "Steps"))
+            base_val = await context.pull(self.id, "Base")
+            try:
+                base = float(base_val) if base_val is not None else 10.0
+            except (ValueError, TypeError):
+                base = 10.0
+
+            steps = max(1, steps)
+            if steps == 1:
+                return np.array([base ** start], dtype=float)
+
+            return np.logspace(start, stop, steps, base=base)
+        return None
+
+
+
 @register_block("Numeric Arrays/operations/moving_average")
 class MovingAverageBlock(BaseBlock):
     """Calculates a moving average over a sliding window."""

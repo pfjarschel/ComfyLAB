@@ -199,7 +199,14 @@
     "systemDependencies": "Verificación de Dependencias del Sistema",
     "refresh": "🔄 Actualizar",
     "checkingBinaries": "Comprobando binarios en el PATH del sistema...",
-    "missingDependencies": "⚠️ Instrucciones para Dependencias Faltantes:"
+    "missingDependencies": "⚠️ Instrucciones para Dependencias Faltantes:",
+    "serverSection": "Operaciones del Servidor",
+    "restartServer": "Reiniciar Servidor",
+    "restartServerHint": "Reinicia el proceso del servidor ComfyLAB y recarga todos los servicios.",
+    "confirmRestart": "¿Está seguro de que desea reiniciar el servidor? Cualquier ejecución en curso se detendrá.",
+    "restartingServer": "Reiniciando servidor, por favor espere...",
+    "serverRestarted": "¡Servidor reiniciado con éxito!",
+    "restartTimeout": "Se agotó el tiempo de espera para reiniciar el servidor. Compruebe si el servidor está en ejecución."
   },
   "clusterModal": {
     "title": "Crear Cluster de Bloques",
@@ -318,13 +325,9 @@
     "showTokenTitle": "Mostrar Token de Acceso",
     "license": "Distribuido bajo la Licencia Pública General GNU v3.0"
   },
-  "quickStart": {
-    "title": "Guía de Inicio Rápido de ComfyLAB",
-    "subtitle": "Referencia completa y manual de usuario para automatización de laboratorio",
-    "searchPlaceholder": "Buscar en la guía..."
-  },
-  "modals": {
+   "modals": {
     "confirmTitle": "Confirmar Acción",
+    "alertTitle": "Notificación",
     "confirm": "Confirmar",
     "cancel": "Cancelar",
     "loadBlueprintTitle": "Cargar Blueprint",
@@ -343,7 +346,7 @@
   },
   "whiteboard": {
     "title": "Notas y Pizarra",
-    "placeholder": "Escribe tus notas de flujo de trabajo, procedimientos experimentales o registros de laboratorio aquí...",
+    "placeholder": "Escribe tus notas de flujo de trabajo, procedimientos experimentais o registros de laboratorio aquí...",
     "drawingTools": "Herramientas de Dibujo",
     "exitDrawingMode": "Salir del Modo de Dibujo",
     "selectMove": "Seleccionar / Mover",
@@ -386,6 +389,7 @@
     "finish": "Finalizar"
   },
   "common": {
+    "ok": "OK",
     "cancel": "Cancelar",
     "save": "Guardar",
     "delete": "Eliminar",

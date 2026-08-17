@@ -22,11 +22,13 @@ interface TimePlotWidgetProps {
   blockId: string;
   strokeColor?: string;
   dataKey?: string;
+  xLog?: boolean;
+  yLog?: boolean;
   onChange?: (name: string, value: any) => void;
   savedLayout?: any;
 }
 
-export const TimePlotWidget = ({ blockId, strokeColor = '#34d399', dataKey = 'waveform', onChange, savedLayout }: TimePlotWidgetProps) => {
+export const TimePlotWidget = ({ blockId, strokeColor = '#34d399', dataKey = 'waveform', xLog = false, yLog = false, onChange, savedLayout }: TimePlotWidgetProps) => {
   return (
     <ResizablePlotContainer 
       minHeight="120px"
@@ -40,6 +42,8 @@ export const TimePlotWidget = ({ blockId, strokeColor = '#34d399', dataKey = 'wa
           blockId={blockId}
           strokeColor={strokeColor}
           dataKey={dataKey}
+          xLog={xLog}
+          yLog={yLog}
           width={width}
           height={height}
           onChange={onChange}
@@ -54,13 +58,15 @@ interface PlotlyTimeRendererProps {
   blockId: string;
   strokeColor: string;
   dataKey: string;
+  xLog?: boolean;
+  yLog?: boolean;
   width: number;
   height: number;
   onChange?: (name: string, value: any) => void;
   savedLayout?: any;
 }
 
-const PlotlyTimeRenderer = ({ blockId, strokeColor, dataKey, width, height, onChange, savedLayout }: PlotlyTimeRendererProps) => {
+const PlotlyTimeRenderer = ({ blockId, strokeColor, dataKey, xLog = false, yLog = false, width, height, onChange, savedLayout }: PlotlyTimeRendererProps) => {
   const { getNode } = useReactFlow();
   const [plotData, setPlotData] = useState<any[]>([]);
   const [timeData, setTimeData] = useState<number[]>([]);
@@ -68,6 +74,20 @@ const PlotlyTimeRenderer = ({ blockId, strokeColor, dataKey, width, height, onCh
   const [traceLabels, setTraceLabels] = useState<string[]>([]);
   const [limits, setLimits] = useState<{x_min?: number, x_max?: number, y_min?: number, y_max?: number}>({});
   const [dragMode, setDragMode] = useState<string>(savedLayout?.dragmode || 'zoom');
+  const [isXLog, setIsXLog] = useState<boolean>(Boolean(xLog));
+  const [isYLog, setIsYLog] = useState<boolean>(Boolean(yLog));
+
+  useEffect(() => {
+    if (xLog !== undefined) {
+      setIsXLog(Boolean(xLog));
+    }
+  }, [xLog]);
+
+  useEffect(() => {
+    if (yLog !== undefined) {
+      setIsYLog(Boolean(yLog));
+    }
+  }, [yLog]);
 
   useEffect(() => {
     if (savedLayout?.dragmode && savedLayout.dragmode !== dragMode) {
@@ -102,6 +122,17 @@ const PlotlyTimeRenderer = ({ blockId, strokeColor, dataKey, width, height, onCh
           y_min: results.y_min,
           y_max: results.y_max
         });
+
+        if (results.x_log !== undefined) {
+          setIsXLog(Boolean(results.x_log));
+        } else if (block?.data?.XLog !== undefined) {
+          setIsXLog(Boolean(block.data.XLog));
+        }
+        if (results.y_log !== undefined) {
+          setIsYLog(Boolean(results.y_log));
+        } else if (block?.data?.YLog !== undefined) {
+          setIsYLog(Boolean(block.data.YLog));
+        }
       }
     };
 
@@ -126,6 +157,7 @@ const PlotlyTimeRenderer = ({ blockId, strokeColor, dataKey, width, height, onCh
 
   const xaxis: any = {
     title: { text: timeData.length > 0 ? 'Time (s)' : 'Time Index', font: { size: 14, color: textColor } },
+    type: isXLog ? 'log' : 'linear',
     tickfont: { size: 12, color: textColor },
     gridcolor: gridColor,
     zerolinecolor: gridColor,
@@ -134,7 +166,13 @@ const PlotlyTimeRenderer = ({ blockId, strokeColor, dataKey, width, height, onCh
   };
 
   if (limits.x_min != null && limits.x_max != null) {
-    xaxis.range = [limits.x_min, limits.x_max];
+    if (isXLog) {
+      if (limits.x_min > 0 && limits.x_max > 0) {
+        xaxis.range = [Math.log10(limits.x_min), Math.log10(limits.x_max)];
+      }
+    } else {
+      xaxis.range = [limits.x_min, limits.x_max];
+    }
   } else if (savedLayout && savedLayout['xaxis.autorange']) {
     xaxis.autorange = true;
   } else if (savedLayout && savedLayout['xaxis.range[0]'] != null && savedLayout['xaxis.range[1]'] != null) {
@@ -143,6 +181,7 @@ const PlotlyTimeRenderer = ({ blockId, strokeColor, dataKey, width, height, onCh
 
   const yaxis: any = {
     title: { text: yLabel, font: { size: 14, color: textColor } },
+    type: isYLog ? 'log' : 'linear',
     tickfont: { size: 12, color: textColor },
     gridcolor: gridColor,
     zerolinecolor: gridColor,
@@ -151,7 +190,13 @@ const PlotlyTimeRenderer = ({ blockId, strokeColor, dataKey, width, height, onCh
   };
 
   if (limits.y_min != null && limits.y_max != null) {
-    yaxis.range = [limits.y_min, limits.y_max];
+    if (isYLog) {
+      if (limits.y_min > 0 && limits.y_max > 0) {
+        yaxis.range = [Math.log10(limits.y_min), Math.log10(limits.y_max)];
+      }
+    } else {
+      yaxis.range = [limits.y_min, limits.y_max];
+    }
   } else if (savedLayout && savedLayout['yaxis.autorange']) {
     yaxis.autorange = true;
   } else if (savedLayout && savedLayout['yaxis.range[0]'] != null && savedLayout['yaxis.range[1]'] != null) {

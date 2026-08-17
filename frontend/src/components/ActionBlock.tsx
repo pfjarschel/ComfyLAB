@@ -1369,6 +1369,8 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
             blockId={id} 
             strokeColor="#34d399" 
             dataKey="history" 
+            xLog={data.XLog}
+            yLog={data.YLog}
             onChange={handleChange} 
             savedLayout={data.plot_layout} 
           />
@@ -1379,6 +1381,8 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
             blockId={id} 
             xLabel={data.results?.x_label} 
             yLabel={data.results?.y_label} 
+            xLog={data.XLog}
+            yLog={data.YLog}
             onChange={handleChange} 
             savedLayout={data.plot_layout} 
           />

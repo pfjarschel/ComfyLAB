@@ -55,6 +55,7 @@ import { PackageImportModal } from './components/modals/PackageImportModal';
 import { CanvasContextMenu } from './components/modals/CanvasContextMenu';
 import { UploadFileModal } from './components/modals/UploadFileModal';
 import { ConfirmModal } from './components/modals/ConfirmModal';
+import { AlertModal } from './components/modals/AlertModal';
 import { AboutModal } from './components/modals/AboutModal';
 import { QuickStartModal } from './components/modals/QuickStartModal';
 import { SplashScreenModal } from './components/modals/SplashScreenModal';
@@ -471,6 +472,7 @@ function Flow() {
   const [settingsTab, setSettingsTab] = useState<'general' | 'diagnostics'>('general');
   const [diagnosticsData, setDiagnosticsData] = useState<any>(null);
   const [loadingDiagnostics, setLoadingDiagnostics] = useState(false);
+  const [isRestartingServer, setIsRestartingServer] = useState(false);
 
   // Splash Screen, Example, About & Quick Start Modal States
   const [aboutModalOpen, setAboutModalOpen] = useState(false);
@@ -617,6 +619,26 @@ function Flow() {
       });
     });
   }, []);
+
+  // Custom Alert Modal State
+  const [alertDialog, setAlertDialog] = useState<{
+    title?: string;
+    message: string;
+    onClose: () => void;
+  } | null>(null);
+
+  const alertAsync = useCallback((message: string, title?: string): Promise<void> => {
+    return new Promise((resolve) => {
+      setAlertDialog({
+        title,
+        message,
+        onClose: () => {
+          setAlertDialog(null);
+          resolve();
+        }
+      });
+    });
+  }, []);
   const [importDestination, setImportDestination] = useState<'workspace' | 'user'>('workspace');
   const [trustAndSign, setTrustAndSign] = useState(true);
   const [deletePackageAfterImport, setDeletePackageAfterImport] = useState(true);
@@ -674,7 +696,7 @@ function Flow() {
       setBlockRegistry(templatesRes.data);
     } catch (err) {
       console.error("Failed to authorize blocks:", err);
-      alert(t('app.alertFailedAuthorize', "Failed to authorize blocks."));
+      await alertAsync(t('app.alertFailedAuthorize', "Failed to authorize blocks."));
     }
   };
 
@@ -1992,6 +2014,53 @@ return {
     }
   };
 
+  const handleRestartServer = async () => {
+    const confirmed = await confirmAsync(
+      t('settingsModal.confirmRestart', 'Are you sure you want to restart the server? Any ongoing executions will be terminated.')
+    );
+    if (!confirmed) return;
+
+    setIsRestartingServer(true);
+    try {
+      await axios.post(`${BACKEND_URL}/settings/restart`);
+    } catch {
+      // Backend may close connection immediately when restarting
+    }
+
+    setSettingsOpen(false);
+
+    // Poll until the server is back online
+    const startTime = Date.now();
+    const pollInterval = 1000;
+    const maxWaitMs = 20000;
+
+    const checkServerOnline = async () => {
+      while (Date.now() - startTime < maxWaitMs) {
+        await new Promise((resolve) => setTimeout(resolve, pollInterval));
+        try {
+          const res = await axios.get(`${BACKEND_URL}/settings`, { timeout: 2000 });
+          if (res.status === 200) {
+            await fetchSettings();
+            await fetchRegistry();
+            setIsRestartingServer(false);
+            setErrorMessage(null);
+            await alertAsync(
+              t('settingsModal.serverRestarted', 'Server restarted successfully!'),
+              t('settingsModal.serverSection', 'Server Operations')
+            );
+            return;
+          }
+        } catch {
+          // Keep polling until online
+        }
+      }
+      setIsRestartingServer(false);
+      setErrorMessage(t('settingsModal.restartTimeout', 'Server restart timed out. Please check if the server is running.'));
+    };
+
+    checkServerOnline();
+  };
+
   // Base block data factory
   const registryRef = useRef<any>(null);
   registryRef.current = blockRegistry;
@@ -2514,9 +2583,9 @@ return {
 
 
   // Group selected blocks into a cluster
-  const handleGroupIntoCluster = useCallback(() => {
+  const handleGroupIntoCluster = useCallback(async () => {
     if (selectedBlockIds.size < 2) {
-      alert(t('app.alertGroupClusterSelect', 'Select at least 2 blocks on the canvas to group into a cluster.\n\nClick blocks while holding Shift, or drag a selection box.'));
+      await alertAsync(t('app.alertGroupClusterSelect', 'Select at least 2 blocks on the canvas to group into a cluster.\n\nClick blocks while holding Shift, or drag a selection box.'));
       return;
     }
 
@@ -2706,7 +2775,7 @@ return {
 
   const handleBlueprintUpload = (file: File) => {
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
         const content = e.target?.result as string;
         const payload = JSON.parse(content);
@@ -2730,10 +2799,10 @@ return {
           
           loadBlueprintData(payload, file.name.replace(/\.json$/, ''));
         } else {
-          alert(t('app.alertInvalidBlueprint', 'Invalid blueprint format.'));
+          await alertAsync(t('app.alertInvalidBlueprint', 'Invalid blueprint format.'));
         }
       } catch (err) {
-        alert(t('app.alertFailedParseJSON', 'Failed to parse blueprint JSON.'));
+        await alertAsync(t('app.alertFailedParseJSON', 'Failed to parse blueprint JSON.'));
       }
     };
     reader.readAsText(file);
@@ -2810,7 +2879,7 @@ return {
         }
         loadBlueprintData(payload, filename);
       } else {
-        alert(t('app.alertInvalidWorkspaceBlueprint', 'Invalid blueprint format in workspace file.'));
+        await alertAsync(t('app.alertInvalidWorkspaceBlueprint', 'Invalid blueprint format in workspace file.'));
       }
     } catch (err: any) {
       setErrorMessage(err.response?.data?.detail || 'Failed to load blueprint from workspace.');
@@ -2825,7 +2894,7 @@ return {
       if (bpData.blocks && Array.isArray(bpData.blocks) && bpData.edges && Array.isArray(bpData.edges)) {
         loadBlueprintData(bpData, `[Example] ${filename}`, true);
       } else {
-        alert(t('app.alertInvalidExampleBlueprint', 'Invalid example blueprint format.'));
+        await alertAsync(t('app.alertInvalidExampleBlueprint', 'Invalid example blueprint format.'));
       }
     } catch (err: any) {
       setErrorMessage(err.response?.data?.detail || 'Failed to load example blueprint.');
@@ -2891,7 +2960,7 @@ return {
     if (rootNodes.length === 0) return;
     const trimmed = saveFilenameInput.trim();
     if (!trimmed) {
-      alert(t('app.alertEnterFilename', 'Please enter a filename.'));
+      await alertAsync(t('app.alertEnterFilename', 'Please enter a filename.'));
       return;
     }
 
@@ -3493,7 +3562,7 @@ return {
                 }
               } catch (err) {
                 console.error('Failed to clear temporary files:', err);
-                alert(t('app.alertFailedClearTemp', 'Failed to clear temporary files.'));
+                await alertAsync(t('app.alertFailedClearTemp', 'Failed to clear temporary files.'));
               }
             }
           }}
@@ -3504,7 +3573,7 @@ return {
                 await axios.post(`${BACKEND_URL}/blocks/clear_persistent`);
               } catch (err) {
                 console.error('Failed to clear persistent blocks:', err);
-                alert(t('app.alertFailedClearPersistent', 'Failed to clear persistent block states.'));
+                await alertAsync(t('app.alertFailedClearPersistent', 'Failed to clear persistent block states.'));
               }
             }
           }}
@@ -3609,6 +3678,14 @@ return {
                 <span className="error-icon">⚠️</span>
                 <span className="error-message">Error: {errorMessage}</span>
                 <button className="error-close-btn" onClick={() => setErrorMessage(null)} title={t('canvasTools.clearError', 'Clear error')}>✕</button>
+              </div>
+            )}
+            {isRestartingServer && (
+              <div className="canvas-error-alert glass-panel" style={{ border: '1px solid #3b82f6', background: 'rgba(59, 130, 246, 0.1)', display: 'flex', alignItems: 'center', gap: '10px', zIndex: 10 }}>
+                <span className="error-icon" style={{ animation: 'spin 1.2s linear infinite', display: 'inline-block' }}>🔄</span>
+                <span className="error-message" style={{ color: 'var(--text-color)', flex: 1, margin: 0 }}>
+                  {t('settingsModal.restartingServer', 'Restarting server, please wait...')}
+                </span>
               </div>
             )}
             {unauthorizedBlocksCount > 0 && (
@@ -4136,10 +4213,15 @@ return {
           diagnosticsData={diagnosticsData}
           loadingDiagnostics={loadingDiagnostics}
           fetchDiagnostics={fetchDiagnostics}
+          onRestartServer={handleRestartServer}
+          isRestartingServer={isRestartingServer}
           onSave={async () => {
             const success = await handleSaveSettings();
             if (success) {
-              alert(t('app.alertSettingsSaved', 'Settings saved and dynamic blocks reloaded successfully!'));
+              await alertAsync(
+                t('app.alertSettingsSaved', 'Settings saved and dynamic blocks reloaded successfully!'),
+                t('settingsModal.title', 'Global Settings')
+              );
               setSettingsOpen(false);
             }
           }}
@@ -4237,6 +4319,15 @@ return {
             message={confirmDialog.message}
             onConfirm={confirmDialog.onConfirm}
             onCancel={confirmDialog.onCancel}
+          />
+        )}
+
+        {/* --- ALERT MODAL --- */}
+        {alertDialog && (
+          <AlertModal
+            title={alertDialog.title}
+            message={alertDialog.message}
+            onClose={alertDialog.onClose}
           />
         )}
 

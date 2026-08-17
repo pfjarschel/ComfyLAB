@@ -42,7 +42,9 @@ class XYPlotBlock(BaseBlock):
         DataIn("XMin", type_hint=float, optional=True),
         DataIn("XMax", type_hint=float, optional=True),
         DataIn("YMin", type_hint=float, optional=True),
-        DataIn("YMax", type_hint=float, optional=True)
+        DataIn("YMax", type_hint=float, optional=True),
+        DataIn("XLog", type_hint=bool, default=False, widget="checkbox", optional=True),
+        DataIn("YLog", type_hint=bool, default=False, widget="checkbox", optional=True)
     ]
     outputs_def = [ExecOut("Out")]
 
@@ -60,6 +62,8 @@ class XYPlotBlock(BaseBlock):
                 "XMax": "X Máx",
                 "YMin": "Y Mín",
                 "YMax": "Y Máx",
+                "XLog": "X Log",
+                "YLog": "Y Log",
                 "Out": "Saída"
             }
         },
@@ -76,6 +80,8 @@ class XYPlotBlock(BaseBlock):
                 "XMax": "X Máx",
                 "YMin": "Y Mín",
                 "YMax": "Y Máx",
+                "XLog": "X Log",
+                "YLog": "Y Log",
                 "Out": "Salida"
             }
         }
@@ -98,6 +104,8 @@ class XYPlotBlock(BaseBlock):
         x_max = await context.pull(self.id, "XMax")
         y_min = await context.pull(self.id, "YMin")
         y_max = await context.pull(self.id, "YMax")
+        x_log = await context.pull(self.id, "XLog")
+        y_log = await context.pull(self.id, "YLog")
 
         # Send telemetry payload
         payload = {
@@ -109,6 +117,8 @@ class XYPlotBlock(BaseBlock):
             "x_max": float(x_max) if x_max is not None else None,
             "y_min": float(y_min) if y_min is not None else None,
             "y_max": float(y_max) if y_max is not None else None,
+            "x_log": bool(x_log) if x_log is not None else False,
+            "y_log": bool(y_log) if y_log is not None else False,
             "labels": labels_list
         }
         await context.send_telemetry(self.id, payload)
@@ -135,7 +145,9 @@ class PlotBlock(BaseBlock):
         DataIn("XMin", type_hint=float, optional=True),
         DataIn("XMax", type_hint=float, optional=True),
         DataIn("YMin", type_hint=float, optional=True),
-        DataIn("YMax", type_hint=float, optional=True)
+        DataIn("YMax", type_hint=float, optional=True),
+        DataIn("XLog", type_hint=bool, default=False, widget="checkbox", optional=True),
+        DataIn("YLog", type_hint=bool, default=False, widget="checkbox", optional=True)
     ]
     outputs_def = [ExecOut("Out")]
 
@@ -155,6 +167,8 @@ class PlotBlock(BaseBlock):
                 "XMax": "X Máx",
                 "YMin": "Y Mín",
                 "YMax": "Y Máx",
+                "XLog": "X Log",
+                "YLog": "Y Log",
                 "Out": "Saída"
             }
         },
@@ -173,6 +187,8 @@ class PlotBlock(BaseBlock):
                 "XMax": "X Máx",
                 "YMin": "Y Mín",
                 "YMax": "Y Máx",
+                "XLog": "X Log",
+                "YLog": "Y Log",
                 "Out": "Salida"
             }
         }
@@ -191,6 +207,8 @@ class PlotBlock(BaseBlock):
         x_max = await context.pull(self.id, "XMax")
         y_min = await context.pull(self.id, "YMin")
         y_max = await context.pull(self.id, "YMax")
+        x_log = await context.pull(self.id, "XLog")
+        y_log = await context.pull(self.id, "YLog")
 
         # Convert np.ndarray to list for JSON telemetry serialization
         val_serialized = val.tolist() if isinstance(val, np.ndarray) else val
@@ -210,6 +228,8 @@ class PlotBlock(BaseBlock):
             "x_max": float(x_max) if x_max is not None else None,
             "y_min": float(y_min) if y_min is not None else None,
             "y_max": float(y_max) if y_max is not None else None,
+            "x_log": bool(x_log) if x_log is not None else False,
+            "y_log": bool(y_log) if y_log is not None else False,
             "labels": labels_list,
             "y_label": str(y_label) if y_label else "Value",
             "timestamp": timestamp

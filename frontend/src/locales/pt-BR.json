@@ -199,7 +199,14 @@
     "systemDependencies": "Verificação de Dependências do Sistema",
     "refresh": "🔄 Atualizar",
     "checkingBinaries": "Verificando binários no PATH do sistema...",
-    "missingDependencies": "⚠️ Instruções para Dependências Ausentes:"
+    "missingDependencies": "⚠️ Instruções para Dependências Ausentes:",
+    "serverSection": "Operações do Servidor",
+    "restartServer": "Reiniciar Servidor",
+    "restartServerHint": "Reinicia o processo do servidor ComfyLAB e recarrega todos os serviços.",
+    "confirmRestart": "Tem certeza de que deseja reiniciar o servidor? Qualquer execução em andamento será interrompida.",
+    "restartingServer": "Reiniciando servidor, aguarde...",
+    "serverRestarted": "Servidor reiniciado com sucesso!",
+    "restartTimeout": "O tempo limite para reiniciar o servidor expirou. Verifique se o servidor está em execução."
   },
   "clusterModal": {
     "title": "Criar Cluster de Blocos",
@@ -325,6 +332,7 @@
   },
   "modals": {
     "confirmTitle": "Confirmar Ação",
+    "alertTitle": "Notificação",
     "confirm": "Confirmar",
     "cancel": "Cancelar",
     "loadBlueprintTitle": "Carregar Blueprint",
@@ -386,6 +394,7 @@
     "finish": "Concluir"
   },
   "common": {
+    "ok": "OK",
     "cancel": "Cancelar",
     "save": "Salvar",
     "delete": "Excluir",

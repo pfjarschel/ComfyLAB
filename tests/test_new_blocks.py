@@ -302,3 +302,130 @@ async def test_file_path_generator_and_logger():
         os.rmdir("test_outputs")
     except Exception:
         pass
+
+
+@pytest.mark.asyncio
+async def test_linear_to_db_and_db_to_linear():
+    import numpy as np
+    blueprint = {
+        "blocks": [
+            {"id": "l2db_scalar", "type": "math/operations/linear_to_db", "properties": {"X": 100.0, "Reference": 1.0, "Factor": 10.0}},
+            {"id": "l2db_voltage", "type": "math/operations/linear_to_db", "properties": {"X": 10.0, "Reference": 1.0, "Factor": 20.0}},
+            {"id": "l2db_array", "type": "math/operations/linear_to_db", "properties": {"X": [1.0, 10.0, 100.0], "Reference": 1.0, "Factor": 10.0}},
+            {"id": "db2l_scalar", "type": "math/operations/db_to_linear", "properties": {"X": 20.0, "Reference": 1.0, "Factor": 10.0}},
+            {"id": "db2l_voltage", "type": "math/operations/db_to_linear", "properties": {"X": 20.0, "Reference": 1.0, "Factor": 20.0}},
+            {"id": "db2l_array", "type": "math/operations/db_to_linear", "properties": {"X": [0.0, 10.0, 20.0], "Reference": 1.0, "Factor": 10.0}}
+        ],
+        "links": []
+    }
+    engine = ExecutionEngine()
+    engine.load_blueprint(blueprint)
+    context = ExecutionContext(engine, "test_run", engine.lock_manager)
+
+    # 1. Scalar power 10*log10(100/1) = 20 dB
+    res_l2db = await engine.blocks["l2db_scalar"].pull_data(context, "Result")
+    assert abs(res_l2db - 20.0) < 1e-5
+
+    # 2. Voltage 20*log10(10/1) = 20 dB
+    res_v = await engine.blocks["l2db_voltage"].pull_data(context, "Result")
+    assert abs(res_v - 20.0) < 1e-5
+
+    # 3. Array [1, 10, 100] -> [0, 10, 20] dB
+    res_arr = await engine.blocks["l2db_array"].pull_data(context, "Result")
+    assert isinstance(res_arr, np.ndarray)
+    np.testing.assert_allclose(res_arr, [0.0, 10.0, 20.0], rtol=1e-5)
+
+    # 4. Scalar dB to Linear: 1 * 10^(20 / 10) = 100.0
+    res_db2l = await engine.blocks["db2l_scalar"].pull_data(context, "Result")
+    assert abs(res_db2l - 100.0) < 1e-5
+
+    # 5. Voltage dB to Linear: 1 * 10^(20 / 20) = 10.0
+    res_db2l_v = await engine.blocks["db2l_voltage"].pull_data(context, "Result")
+    assert abs(res_db2l_v - 10.0) < 1e-5
+
+    # 6. Array dB to Linear: [0, 10, 20] -> [1, 10, 100]
+    res_db2l_arr = await engine.blocks["db2l_array"].pull_data(context, "Result")
+    assert isinstance(res_db2l_arr, np.ndarray)
+    np.testing.assert_allclose(res_db2l_arr, [1.0, 10.0, 100.0], rtol=1e-5)
+
+
+@pytest.mark.asyncio
+async def test_plots_log_scale_telemetry():
+    xy_telemetry = None
+    time_telemetry = None
+
+    async def mock_telemetry(run_id, message):
+        nonlocal xy_telemetry, time_telemetry
+        if message.get("type") == "telemetry":
+            if message.get("block_id") == "xy_plot_node":
+                xy_telemetry = message.get("data")
+            elif message.get("block_id") == "time_plot_node":
+                time_telemetry = message.get("data")
+
+    engine = ExecutionEngine()
+    engine.telemetry_callback = mock_telemetry
+
+    blueprint = {
+        "blocks": [
+            {"id": "xy_plot_node", "type": "outputs/plots/xy_plot", "properties": {
+                "X": [1, 10, 100], "Y": [0.1, 1.0, 10.0], "XLog": True, "YLog": True
+            }},
+            {"id": "time_plot_node", "type": "outputs/plots/plot", "properties": {
+                "InputData": 42.0, "XLog": False, "YLog": True
+            }}
+        ],
+        "links": []
+    }
+    engine.load_blueprint(blueprint)
+
+    await engine.run(start_block_id="xy_plot_node", start_pin_name="Plot")
+    assert xy_telemetry is not None
+    assert xy_telemetry["x_log"] is True
+    assert xy_telemetry["y_log"] is True
+    assert xy_telemetry["x"] == [1, 10, 100]
+    assert xy_telemetry["y"] == [0.1, 1.0, 10.0]
+
+    await engine.run(start_block_id="time_plot_node", start_pin_name="Plot")
+    assert time_telemetry is not None
+    assert time_telemetry["x_log"] is False
+    assert time_telemetry["y_log"] is True
+    assert time_telemetry["value"] == 42.0
+
+
+@pytest.mark.asyncio
+async def test_logspace_block():
+    import numpy as np
+    blueprint = {
+        "blocks": [
+            {"id": "log_def", "type": "Numeric Arrays/manipulation/logspace", "properties": {
+                "Start": 0.0, "Stop": 3.0, "Steps": 4, "Base": 10.0
+            }},
+            {"id": "log_custom_base", "type": "Numeric Arrays/manipulation/logspace", "properties": {
+                "Start": 1.0, "Stop": 4.0, "Steps": 4, "Base": 2.0
+            }},
+            {"id": "log_single", "type": "Numeric Arrays/manipulation/logspace", "properties": {
+                "Start": 2.0, "Stop": 5.0, "Steps": 1, "Base": 10.0
+            }}
+        ],
+        "links": []
+    }
+    engine = ExecutionEngine()
+    engine.load_blueprint(blueprint)
+    context = ExecutionContext(engine, "test_run", engine.lock_manager)
+
+    # 1. 10^0, 10^1, 10^2, 10^3 -> [1.0, 10.0, 100.0, 1000.0]
+    res_def = await engine.blocks["log_def"].pull_data(context, "Array")
+    assert isinstance(res_def, np.ndarray)
+    np.testing.assert_allclose(res_def, [1.0, 10.0, 100.0, 1000.0], rtol=1e-5)
+
+    # 2. 2^1, 2^2, 2^3, 2^4 -> [2.0, 4.0, 8.0, 16.0]
+    res_base2 = await engine.blocks["log_custom_base"].pull_data(context, "Array")
+    assert isinstance(res_base2, np.ndarray)
+    np.testing.assert_allclose(res_base2, [2.0, 4.0, 8.0, 16.0], rtol=1e-5)
+
+    # 3. Single step -> 10^2 = 100.0
+    res_single = await engine.blocks["log_single"].pull_data(context, "Array")
+    assert isinstance(res_single, np.ndarray)
+    np.testing.assert_allclose(res_single, [100.0], rtol=1e-5)
+
+

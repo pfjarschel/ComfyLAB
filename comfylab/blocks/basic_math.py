@@ -584,3 +584,137 @@ class LinearScaleBlock(BaseBlock):
             except (ValueError, TypeError):
                 return None
         return None
+
+
+@register_block("math/operations/linear_to_db")
+class LinearToDBBlock(BaseBlock):
+    """Converts linear scale values to decibels (dB) using a reference value: Factor * log10(X / Reference)."""
+    icon = "📶"
+    display_name = "Linear to dB"
+    description = "Converts linear scale values to decibels (dB) using a reference value: Factor * log10(X / Reference)."
+
+    inputs_def = [
+        DataIn("X", type_hint=Any, default=1.0, widget="number"),
+        DataIn("Reference", type_hint=float, default=1.0, widget="number"),
+        DataIn("Factor", type_hint=float, default=10.0, widget="number")
+    ]
+    outputs_def = [
+        DataOut("Result", type_hint=Any)
+    ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Linear para dB",
+            "description": "Converte valores em escala linear para decibéis (dB) usando um valor de referência: Fator * log10(X / Referência).",
+            "category": "Matemática",
+            "pins": {
+                "X": "X",
+                "Reference": "Referência",
+                "Factor": "Fator",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "Lineal a dB",
+            "description": "Convierte valores en escala lineal a decibelios (dB) usando un valor de referencia: Factor * log10(X / Referencia).",
+            "category": "Matemáticas",
+            "pins": {
+                "X": "X",
+                "Reference": "Referencia",
+                "Factor": "Factor",
+                "Result": "Resultado"
+            }
+        }
+    }
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Result":
+            x = await context.pull(self.id, "X")
+            if x is None:
+                return None
+            ref_val = await context.pull(self.id, "Reference")
+            factor_val = await context.pull(self.id, "Factor")
+            try:
+                ref = float(ref_val) if ref_val is not None else 1.0
+            except (ValueError, TypeError):
+                ref = 1.0
+            try:
+                factor = float(factor_val) if factor_val is not None else 10.0
+            except (ValueError, TypeError):
+                factor = 10.0
+
+            if ref == 0:
+                ref = 1.0
+
+            x_np = np.asarray(x, dtype=float)
+            with np.errstate(divide='ignore', invalid='ignore'):
+                res = factor * np.log10(x_np / ref)
+            return format_output(res)
+        return None
+
+
+@register_block("math/operations/db_to_linear")
+class DBToLinearBlock(BaseBlock):
+    """Converts decibel (dB) values to linear scale using a reference value: Reference * 10^(X / Factor)."""
+    icon = "📶"
+    display_name = "dB to Linear"
+    description = "Converts decibel (dB) values to linear scale using a reference value: Reference * 10^(X / Factor)."
+
+    inputs_def = [
+        DataIn("X", type_hint=Any, default=0.0, widget="number"),
+        DataIn("Reference", type_hint=float, default=1.0, widget="number"),
+        DataIn("Factor", type_hint=float, default=10.0, widget="number")
+    ]
+    outputs_def = [
+        DataOut("Result", type_hint=Any)
+    ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "dB para Linear",
+            "description": "Converte valores em decibéis (dB) para escala linear usando um valor de referência: Referência * 10^(X / Fator).",
+            "category": "Matemática",
+            "pins": {
+                "X": "X",
+                "Reference": "Referência",
+                "Factor": "Fator",
+                "Result": "Resultado"
+            }
+        },
+        "es": {
+            "display_name": "dB a Lineal",
+            "description": "Convierte valores en decibelios (dB) a escala lineal usando un valor de referencia: Referencia * 10^(X / Factor).",
+            "category": "Matemáticas",
+            "pins": {
+                "X": "X",
+                "Reference": "Referencia",
+                "Factor": "Factor",
+                "Result": "Resultado"
+            }
+        }
+    }
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Result":
+            x = await context.pull(self.id, "X")
+            if x is None:
+                return None
+            ref_val = await context.pull(self.id, "Reference")
+            factor_val = await context.pull(self.id, "Factor")
+            try:
+                ref = float(ref_val) if ref_val is not None else 1.0
+            except (ValueError, TypeError):
+                ref = 1.0
+            try:
+                factor = float(factor_val) if factor_val is not None else 10.0
+            except (ValueError, TypeError):
+                factor = 10.0
+
+            if factor == 0:
+                factor = 10.0
+
+            x_np = np.asarray(x, dtype=float)
+            res = ref * (10.0 ** (x_np / factor))
+            return format_output(res)
+        return None
+

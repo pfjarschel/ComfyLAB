@@ -44,6 +44,8 @@ interface GlobalSettingsProps {
   diagnosticsData: any;
   loadingDiagnostics: boolean;
   fetchDiagnostics: () => void;
+  onRestartServer?: () => void;
+  isRestartingServer?: boolean;
   onSave: () => void;
   onClose: () => void;
 }
@@ -61,6 +63,8 @@ export const GlobalSettingsModal = ({
   diagnosticsData,
   loadingDiagnostics,
   fetchDiagnostics,
+  onRestartServer,
+  isRestartingServer,
   onSave,
   onClose,
 }: GlobalSettingsProps) => {
@@ -258,6 +262,37 @@ export const GlobalSettingsModal = ({
                   </button>
                 </div>
               </div>
+
+              {/* Server Operations */}
+              {onRestartServer && (
+                <div className="setting-group" style={{ marginTop: '12px' }}>
+                  <label className="setting-label">{t('settingsModal.serverSection', 'Server Operations')}</label>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '6px', gap: '12px' }}>
+                    <span className="setting-description" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0, lineHeight: '1.4' }}>
+                      {t('settingsModal.restartServerHint', 'Restarts the ComfyLAB server process and reloads all services.')}
+                    </span>
+                    <button
+                      type="button"
+                      className="button-secondary"
+                      onClick={onRestartServer}
+                      disabled={isRestartingServer}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '6px 12px',
+                        fontSize: '0.8rem',
+                        whiteSpace: 'nowrap',
+                        borderColor: '#f59e0b',
+                        color: '#f59e0b',
+                        cursor: isRestartingServer ? 'not-allowed' : 'pointer'
+                      }}
+                    >
+                      <span>🔄</span> {isRestartingServer ? t('settingsModal.restartingServer', 'Restarting...') : t('settingsModal.restartServer', 'Restart Server')}
+                    </button>
+                  </div>
+                </div>
+              )}
             </>
           )}
 

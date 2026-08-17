@@ -94,3 +94,72 @@ async def save_settings(payload: SettingsPayload):
         
     return updated
 
+
+def _do_server_restart():
+    from backend.main import is_test_environment
+    if is_test_environment():
+        logger.info("Test environment detected, skipping actual process restart.")
+        return
+    import time
+    import sys
+    import os
+    import subprocess
+    import multiprocessing
+    from pathlib import Path
+
+    time.sleep(0.3)
+    logger.info("Executing server process restart...")
+
+    orig_argv_str = " ".join(getattr(sys, "orig_argv", []))
+    is_spawned_worker = (
+        multiprocessing.current_process().name != "MainProcess"
+        or "spawn_main" in orig_argv_str
+        or "--multiprocessing-fork" in orig_argv_str
+    )
+
+    # 1. If running under a uvicorn reloader supervisor (spawned worker process),
+    # touch main.py so the supervisor detects changes and cleanly restarts the worker
+    if is_spawned_worker:
+        logger.info("Detected uvicorn reload supervisor. Triggering reload via main.py touch.")
+        main_file = Path(__file__).resolve().parent.parent / "main.py"
+        if main_file.exists():
+            main_file.touch()
+        return
+
+    # 2. Frozen standalone binary (PyInstaller)
+    if getattr(sys, "frozen", False):
+        args = [sys.executable] + [arg for arg in sys.argv[1:] if not arg.startswith("--multiprocessing")]
+        if os.name == 'nt':
+            subprocess.Popen(args, env=os.environ.copy())
+            os._exit(0)
+        else:
+            os.execv(sys.executable, args)
+        return
+
+    # 3. Direct single-process uvicorn or python execution
+    if hasattr(sys, "orig_argv") and sys.orig_argv:
+        args = [sys.executable] + list(sys.orig_argv[1:])
+    else:
+        if sys.argv and sys.argv[0].endswith("__main__.py"):
+            pkg = Path(sys.argv[0]).parent.name
+            args = [sys.executable, "-m", pkg] + list(sys.argv[1:])
+        else:
+            args = [sys.executable] + list(sys.argv)
+
+    if os.name == 'nt':
+        subprocess.Popen(args, env=os.environ.copy())
+        os._exit(0)
+    else:
+        os.execv(sys.executable, args)
+
+
+@router.post("/settings/restart")
+@router.post("/restart")
+async def restart_server():
+    """Triggers an in-place restart of the ComfyLAB server process."""
+    import threading
+    logger.info("Server restart requested via API.")
+    threading.Thread(target=_do_server_restart, daemon=True).start()
+    return {"status": "restarting", "message": "Server is restarting..."}
+
+

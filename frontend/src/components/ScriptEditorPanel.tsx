@@ -682,7 +682,7 @@ export const ScriptEditorPanel = ({
                 className="button-primary" 
                 onClick={async () => {
                   if (!publishForm.displayName.trim()) {
-                    alert(t('scriptEditor.enterDisplayName', 'Please enter a display name for the block.'));
+                    setValidationError(t('scriptEditor.enterDisplayName', 'Please enter a display name for the block.'));
                     return;
                   }
                   
@@ -718,7 +718,7 @@ export const ScriptEditorPanel = ({
                     }
                   } catch (err: any) {
                     console.error('Publish failed:', err);
-                    alert(err.response?.data?.detail || t('scriptEditor.publishFailed', 'Failed to publish block.'));
+                    setValidationError(err.response?.data?.detail || t('scriptEditor.publishFailed', 'Failed to publish block.'));
                   } finally {
                     setIsValidating(false);
                   }

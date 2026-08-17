@@ -200,7 +200,14 @@
     "systemDependencies": "System Dependencies Check",
     "refresh": "🔄 Refresh",
     "checkingBinaries": "Checking system PATH binaries...",
-    "missingDependencies": "⚠️ Missing Dependencies Instructions:"
+    "missingDependencies": "⚠️ Missing Dependencies Instructions:",
+    "serverSection": "Server Operations",
+    "restartServer": "Restart Server",
+    "restartServerHint": "Restarts the ComfyLAB server process and reloads all services.",
+    "confirmRestart": "Are you sure you want to restart the server? Any ongoing executions will be terminated.",
+    "restartingServer": "Restarting server, please wait...",
+    "serverRestarted": "Server restarted successfully!",
+    "restartTimeout": "Server restart timed out. Please check if the server is running."
   },
   "clusterModal": {
     "title": "Create Block Cluster",
@@ -325,6 +332,7 @@
   },
   "modals": {
     "confirmTitle": "Confirm Action",
+    "alertTitle": "Notification",
     "confirm": "Confirm",
     "cancel": "Cancel",
     "loadBlueprintTitle": "Load Blueprint",
@@ -386,6 +394,7 @@
     "finish": "Finish"
   },
   "common": {
+    "ok": "OK",
     "cancel": "Cancel",
     "save": "Save",
     "delete": "Delete",

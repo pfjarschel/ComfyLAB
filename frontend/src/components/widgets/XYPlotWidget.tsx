@@ -22,11 +22,13 @@ interface XYPlotWidgetProps {
   blockId: string;
   xLabel?: string;
   yLabel?: string;
+  xLog?: boolean;
+  yLog?: boolean;
   onChange?: (name: string, value: any) => void;
   savedLayout?: any;
 }
 
-export const XYPlotWidget = ({ blockId, xLabel = 'X', yLabel = 'Y', onChange, savedLayout }: XYPlotWidgetProps) => {
+export const XYPlotWidget = ({ blockId, xLabel = 'X', yLabel = 'Y', xLog = false, yLog = false, onChange, savedLayout }: XYPlotWidgetProps) => {
 
   return (
     <ResizablePlotContainer 
@@ -41,6 +43,8 @@ export const XYPlotWidget = ({ blockId, xLabel = 'X', yLabel = 'Y', onChange, sa
           blockId={blockId}
           xLabel={xLabel}
           yLabel={yLabel}
+          xLog={xLog}
+          yLog={yLog}
           width={width}
           height={height}
           onChange={onChange}
@@ -55,18 +59,34 @@ interface PlotlyXYRendererProps {
   blockId: string;
   xLabel: string;
   yLabel: string;
+  xLog?: boolean;
+  yLog?: boolean;
   width: number;
   height: number;
   onChange?: (name: string, value: any) => void;
   savedLayout?: any;
 }
 
-const PlotlyXYRenderer = ({ blockId, xLabel, yLabel, width, height, onChange, savedLayout }: PlotlyXYRendererProps) => {
+const PlotlyXYRenderer = ({ blockId, xLabel, yLabel, xLog = false, yLog = false, width, height, onChange, savedLayout }: PlotlyXYRendererProps) => {
   const { getNode } = useReactFlow();
   const [plotData, setPlotData] = useState<{x: any[], y: any[], labels?: any[]}>({ x: [], y: [] });
   const [labels, setLabels] = useState({ x: xLabel, y: yLabel });
   const [limits, setLimits] = useState<{x_min?: number, x_max?: number, y_min?: number, y_max?: number}>({});
   const [dragMode, setDragMode] = useState<string>(savedLayout?.dragmode || 'zoom');
+  const [isXLog, setIsXLog] = useState<boolean>(Boolean(xLog));
+  const [isYLog, setIsYLog] = useState<boolean>(Boolean(yLog));
+
+  useEffect(() => {
+    if (xLog !== undefined) {
+      setIsXLog(Boolean(xLog));
+    }
+  }, [xLog]);
+
+  useEffect(() => {
+    if (yLog !== undefined) {
+      setIsYLog(Boolean(yLog));
+    }
+  }, [yLog]);
 
   useEffect(() => {
     if (savedLayout?.dragmode && savedLayout.dragmode !== dragMode) {
@@ -103,6 +123,17 @@ const PlotlyXYRenderer = ({ blockId, xLabel, yLabel, width, height, onChange, sa
         y_min: results.y_min,
         y_max: results.y_max
       });
+
+      if (results.x_log !== undefined) {
+        setIsXLog(Boolean(results.x_log));
+      } else if (block?.data?.XLog !== undefined) {
+        setIsXLog(Boolean(block.data.XLog));
+      }
+      if (results.y_log !== undefined) {
+        setIsYLog(Boolean(results.y_log));
+      } else if (block?.data?.YLog !== undefined) {
+        setIsYLog(Boolean(block.data.YLog));
+      }
     };
 
     // Initial update
@@ -126,6 +157,7 @@ const PlotlyXYRenderer = ({ blockId, xLabel, yLabel, width, height, onChange, sa
 
   const xaxis: any = {
     title: { text: labels.x || 'X', font: { size: 14, color: textColor } },
+    type: isXLog ? 'log' : 'linear',
     tickfont: { size: 12, color: textColor },
     gridcolor: gridColor,
     zerolinecolor: gridColor,
@@ -134,7 +166,13 @@ const PlotlyXYRenderer = ({ blockId, xLabel, yLabel, width, height, onChange, sa
   };
 
   if (limits.x_min != null && limits.x_max != null) {
-    xaxis.range = [limits.x_min, limits.x_max];
+    if (isXLog) {
+      if (limits.x_min > 0 && limits.x_max > 0) {
+        xaxis.range = [Math.log10(limits.x_min), Math.log10(limits.x_max)];
+      }
+    } else {
+      xaxis.range = [limits.x_min, limits.x_max];
+    }
   } else if (savedLayout && savedLayout['xaxis.autorange']) {
     xaxis.autorange = true;
   } else if (savedLayout && savedLayout['xaxis.range[0]'] != null && savedLayout['xaxis.range[1]'] != null) {
@@ -143,6 +181,7 @@ const PlotlyXYRenderer = ({ blockId, xLabel, yLabel, width, height, onChange, sa
 
   const yaxis: any = {
     title: { text: labels.y || 'Y', font: { size: 14, color: textColor } },
+    type: isYLog ? 'log' : 'linear',
     tickfont: { size: 12, color: textColor },
     gridcolor: gridColor,
     zerolinecolor: gridColor,
@@ -151,7 +190,13 @@ const PlotlyXYRenderer = ({ blockId, xLabel, yLabel, width, height, onChange, sa
   };
 
   if (limits.y_min != null && limits.y_max != null) {
-    yaxis.range = [limits.y_min, limits.y_max];
+    if (isYLog) {
+      if (limits.y_min > 0 && limits.y_max > 0) {
+        yaxis.range = [Math.log10(limits.y_min), Math.log10(limits.y_max)];
+      }
+    } else {
+      yaxis.range = [limits.y_min, limits.y_max];
+    }
   } else if (savedLayout && savedLayout['yaxis.autorange']) {
     yaxis.autorange = true;
   } else if (savedLayout && savedLayout['yaxis.range[0]'] != null && savedLayout['yaxis.range[1]'] != null) {

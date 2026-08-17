@@ -318,6 +318,24 @@ def test_clear_block_data_endpoint():
     assert response.json()["status"] == "success"
 
 
+def test_restart_server_endpoint():
+    client = TestClient(app)
+    
+    # Test POST /settings/restart
+    response = client.post("/settings/restart")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "restarting"
+    assert "Server is restarting" in data["message"]
+
+    # Test POST /restart
+    response = client.post("/restart")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "restarting"
+
+
+
 
 
 

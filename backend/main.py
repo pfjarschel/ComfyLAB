@@ -66,7 +66,7 @@ app = FastAPI(
     description="Backend API serving the ComfyLAB push/pull block execution engine and WebSocket telemetry."
 )
 
-API_PATHS = {"/run", "/pause", "/resume", "/abort", "/status", "/blocks", "/parse_script", "/validate_script", "/workspace", "/settings"}
+API_PATHS = {"/run", "/pause", "/resume", "/abort", "/status", "/blocks", "/parse_script", "/validate_script", "/workspace", "/settings", "/restart"}
 
 def is_test_environment() -> bool:
     """Checks if the application is running under an active test runner (pytest/unittest)."""
