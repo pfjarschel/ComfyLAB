@@ -31,6 +31,7 @@ SCRIPTING_TOGGLES = {
     "enable_wolfram_scripting": ("comfylab.blocks.script_wolfram", "WolframScriptBlock", "script/wolfram"),
     "enable_sage_scripting": ("comfylab.blocks.script_sage", "SageScriptBlock", "script/sage"),
     "enable_maxima_scripting": ("comfylab.blocks.script_maxima", "MaximaScriptBlock", "script/maxima"),
+    "enable_powershell_scripting": ("comfylab.blocks.script_powershell", "PowerShellScriptBlock", "script/powershell"),
 }
 
 router = APIRouter()
@@ -49,6 +50,7 @@ class SettingsPayload(BaseModel):
     enable_wolfram_scripting: bool = False
     enable_sage_scripting: bool = False
     enable_maxima_scripting: bool = False
+    enable_powershell_scripting: bool = False
     external_python_path: str = ""
     creator_identity: str = ""
     trusted_origins: List[str] = []

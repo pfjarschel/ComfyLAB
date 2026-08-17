@@ -2248,6 +2248,9 @@ return {
             return `# @input name="value" type="number" default=1.0\n# @output name="result" type="number"\n\nresult = value * 2\n`;
           case 'script/maxima':
             return `/* @input name="value" type="number" default=1.0 */\n/* @output name="result" type="number" */\n\nresult: value * 2;\n`;
+          case 'script/powershell':
+          case 'script/pwsh':
+            return `# @input name="value" type="number" default=1.0\n# @output name="result" type="number"\n\n$result = $value * 2\n`;
           case 'script/python':
           default:
             return `# @input name="value" type="number" default=1.0\n# @output name="result" type="number"\n\nresult = value * 2\n`;

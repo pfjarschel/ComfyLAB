@@ -10,6 +10,7 @@ from comfylab.blocks.script_octave import parse_octave_decorators, OctaveScriptB
 from comfylab.blocks.script_wolfram import parse_wolfram_decorators, WolframScriptBlock
 from comfylab.blocks.script_sage import parse_sage_decorators, SageScriptBlock
 from comfylab.blocks.script_maxima import parse_maxima_decorators, MaximaScriptBlock
+from comfylab.blocks.script_powershell import parse_powershell_decorators, PowerShellScriptBlock
 
 
 class TestParseMultilangDecorators:
@@ -78,6 +79,15 @@ class TestParseMultilangDecorators:
         assert inputs[0]['name'] == 'coeff'
         assert inputs[0]['default'] == 4.5
         assert outputs[0]['name'] == 'ans'
+
+    def test_parse_powershell_decorators(self):
+        code = '# @input name="factor" type="number" default=3.5\n# @output name="total" type="number"\n'
+        inputs, outputs = parse_powershell_decorators(code)
+        assert len(inputs) == 1
+        assert len(outputs) == 1
+        assert inputs[0]['name'] == 'factor'
+        assert inputs[0]['default'] == 3.5
+        assert outputs[0]['name'] == 'total'
 
 
 class TestMultilangExecution:
@@ -377,4 +387,35 @@ class TestMultilangExecution:
         await engine.run(start_block_id="maxima_script", start_pin_name="In")
 
         assert engine.blocks["print"].last_printed == 15.0
+
+    @pytest.mark.asyncio
+    async def test_powershell_execution(self):
+        if not shutil.which("pwsh") and not shutil.which("powershell") and not shutil.which("powershell.exe"):
+            pytest.skip("Neither pwsh nor powershell is available in PATH.")
+
+        blueprint = {
+            "blocks": [
+                {
+                    "id": "powershell_script",
+                    "type": "script/powershell",
+                    "properties": {
+                        "code": '# @input name="value" type="number" default=6.0\n# @output name="result" type="number"\n\n$result = $value * 7\n'
+                    }
+                },
+                {"id": "print", "type": "outputs/basic/print", "properties": {}}
+            ],
+            "links": [
+                {"id": "l1", "type": "exec", "source_block": "powershell_script", "source_pin": "Out", "target_block": "print", "target_pin": "In"},
+                {"id": "l2", "type": "data", "source_block": "powershell_script", "source_pin": "result", "target_block": "print", "target_pin": "Value"}
+            ]
+        }
+
+        from comfylab.engine.registry import register_block
+        register_block("script/powershell")(PowerShellScriptBlock)
+
+        engine = ExecutionEngine()
+        engine.load_blueprint(blueprint)
+        await engine.run(start_block_id="powershell_script", start_pin_name="In")
+
+        assert engine.blocks["print"].last_printed == 42.0
 

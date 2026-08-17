@@ -183,7 +183,7 @@ class BaseSubprocessScriptBlock(BaseScriptBlock):
                 raise RuntimeError(f"{self.display_name} execution failed with exit code {process.returncode}: {err_msg}")
 
             if output_file.exists():
-                outputs_data = json.loads(output_file.read_text(encoding="utf-8"))
+                outputs_data = json.loads(output_file.read_text(encoding="utf-8-sig"))
                 self._computed_outputs = outputs_data
             else:
                 self._computed_outputs = {}

@@ -44,6 +44,9 @@ const getLanguageDefaultCode = (type: string) => {
       return `# @input name="value" type="number" default=1.0\n# @output name="result" type="number"\n\nresult = value * 2\n`;
     case 'script/maxima':
       return `/* @input name="value" type="number" default=1.0 */\n/* @output name="result" type="number" */\n\nresult: value * 2;\n`;
+    case 'script/powershell':
+    case 'script/pwsh':
+      return `# @input name="value" type="number" default=1.0\n# @output name="result" type="number"\n\n$result = $value * 2\n`;
     case 'script/python':
     default:
       return `# @input name="value" type="number" default=1.0\n# @output name="result" type="number"\n\nresult = value * 2\n`;
@@ -206,6 +209,14 @@ const handleEditorMount = (editor: any, monaco: any, langKey: string): { updateD
       }
     });
   }
+
+  // Set configuration for powershell comments support (ctrl+/ shortcut support)
+  monaco.languages.setLanguageConfiguration('powershell', {
+    comments: {
+      lineComment: '#',
+      blockComment: ['<#', '#>']
+    }
+  });
 
   let tsUpdateFn: ((text: string) => void) | undefined;
 
@@ -391,6 +402,8 @@ export const ScriptEditorPanel = ({
         return { name: 'SageMath', langKey: 'python', icon: '🌿', commentChar: '#', hint: 'scope: sage.all, numpy, context, workspace' };
       case 'script/maxima': case 'maxima':
         return { name: 'Maxima', langKey: 'maxima', icon: '🧮', commentChar: '/*', hint: 'scope: CAS symbols, matrices, context, workspace' };
+      case 'script/powershell': case 'script/pwsh': case 'powershell': case 'pwsh':
+        return { name: 'PowerShell', langKey: 'powershell', icon: '⚡', commentChar: '#', hint: 'scope: COM, .NET, context, workspace' };
       case 'script/python':
       default:
         return { name: 'Python', langKey: 'python', icon: '🐍', commentChar: '#', hint: 'scope: numpy, math, context, workspace' };

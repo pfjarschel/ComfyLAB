@@ -113,6 +113,8 @@ def generate_block_class_code(
         return _build_sage_template(display_name, class_name, type_name, category, icon, description, inputs, outputs, original_code)
     elif language == "maxima":
         return _build_maxima_template(display_name, class_name, type_name, category, icon, description, inputs, outputs, original_code)
+    elif language in ("powershell", "pwsh"):
+        return _build_powershell_template(display_name, class_name, type_name, category, icon, description, inputs, outputs, original_code)
     elif language == "rust":
         return _build_rust_template(display_name, class_name, type_name, category, icon, description, inputs, outputs, original_code, destination, clean_name)
     else:
@@ -287,6 +289,10 @@ def _build_sage_template(display_name, class_name, type_name, category, icon, de
 def _build_maxima_template(display_name, class_name, type_name, category, icon, description, inputs, outputs, original_code):
     return _build_inheritance_template(display_name, class_name, type_name, category, icon, description, original_code,
         "comfylab.blocks.script_maxima", "MaximaScriptBlock", "parse_maxima_decorators", "maxima")
+
+def _build_powershell_template(display_name, class_name, type_name, category, icon, description, inputs, outputs, original_code):
+    return _build_inheritance_template(display_name, class_name, type_name, category, icon, description, original_code,
+        "comfylab.blocks.script_powershell", "PowerShellScriptBlock", "parse_powershell_decorators", "powershell")
 
 
 def _build_rust_template(display_name, class_name, type_name, category, icon, description, inputs, outputs, original_code, destination, clean_name):

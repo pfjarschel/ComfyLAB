@@ -20,14 +20,15 @@ logger = logging.getLogger("backend.routers.diagnostics")
 
 router = APIRouter(prefix="/diagnostics")
 
-async def get_binary_version(binary: str, version_arg: str = "--version") -> str:
-    """Runs the binary with version argument and returns the captured version string."""
+async def get_binary_version(binary: str, *args: str) -> str:
+    """Runs the binary with version arguments and returns the captured version string."""
     path = shutil.which(binary)
     if not path:
         return "Not Found"
+    cmd_args = list(args) if args else ["--version"]
     try:
         process = await asyncio.create_subprocess_exec(
-            binary, version_arg,
+            binary, *cmd_args,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE
         )
@@ -71,6 +72,16 @@ async def check_dependencies() -> Dict[str, Any]:
     if sage_ver != "Not Found" and not sage_ver.lower().startswith("sage"):
         sage_ver = f"SageMath {sage_ver}"
     maxima_ver = await get_binary_version("maxima", "--version")
+    pwsh_ver = await get_binary_version("pwsh", "--version")
+    powershell_ver = "Not Found"
+    if pwsh_ver == "Not Found":
+        powershell_ver = await get_binary_version("powershell", "-Command", "$PSVersionTable.PSVersion.ToString()")
+        if powershell_ver == "Not Found":
+            powershell_ver = await get_binary_version("powershell.exe", "-Command", "$PSVersionTable.PSVersion.ToString()")
+        if powershell_ver != "Not Found" and not powershell_ver.lower().startswith("powershell"):
+            powershell_ver = f"Windows PowerShell {powershell_ver}"
+    ps_display_ver = pwsh_ver if pwsh_ver != "Not Found" else powershell_ver
+    ps_installed = ps_display_ver != "Not Found"
 
     # 3. Compile instructions for missing toolchains
     instructions = {}
@@ -94,6 +105,8 @@ async def check_dependencies() -> Dict[str, Any]:
         instructions["sage"] = "Install SageMath from the official page: https://www.sagemath.org/download.html or via mamba/conda ('mamba install -c conda-forge sage')."
     if maxima_ver == "Not Found":
         instructions["maxima"] = "Install Maxima CAS from https://maxima.sourceforge.io/ or via package manager ('sudo apt install maxima' / 'brew install maxima' / 'mamba install -c conda-forge maxima')."
+    if not ps_installed:
+        instructions["powershell"] = "Install PowerShell (e.g. 'winget install Microsoft.PowerShell' on Windows, 'brew install powershell' on macOS, or via package manager on Linux). Learn more at https://learn.microsoft.com/powershell/."
 
     return {
         "status": "success",
@@ -157,6 +170,11 @@ async def check_dependencies() -> Dict[str, Any]:
                 "installed": maxima_ver != "Not Found",
                 "version": maxima_ver,
                 "description": "Maxima Computer Algebra System (CAS)"
+            },
+            "powershell": {
+                "installed": ps_installed,
+                "version": ps_display_ver,
+                "description": "PowerShell Command-line Shell & Scripting Language"
             }
         },
         "instructions": instructions

@@ -33,6 +33,7 @@ def isolated_config(tmp_path, monkeypatch):
         "enable_wolfram_scripting": False,
         "enable_sage_scripting": False,
         "enable_maxima_scripting": False,
+        "enable_powershell_scripting": False,
         "external_python_path": "",
         "creator_identity": identity,
         "trusted_origins": [],
@@ -280,6 +281,7 @@ def test_save_settings_preserves_custom_users_and_identity():
         "enable_wolfram_scripting": False,
         "enable_sage_scripting": False,
         "enable_maxima_scripting": False,
+        "enable_powershell_scripting": False,
         "external_python_path": "/usr/bin/python3"
     }
     

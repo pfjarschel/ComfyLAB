@@ -199,6 +199,7 @@
     "enableWolfram": "🧠 Enable Wolfram Script Block",
     "enableSage": "🌿 Enable SageMath Script Block",
     "enableMaxima": "🧮 Enable Maxima Script Block",
+    "enablePowershell": "⚡ Enable PowerShell Script Block",
     "systemDependencies": "System Dependencies Check",
     "refresh": "🔄 Refresh",
     "checkingBinaries": "Checking system PATH binaries...",

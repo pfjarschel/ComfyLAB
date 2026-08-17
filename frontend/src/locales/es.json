@@ -198,6 +198,7 @@
     "enableWolfram": "🧠 Habilitar Bloque de Script Wolfram",
     "enableSage": "🌿 Habilitar Bloque de Script SageMath",
     "enableMaxima": "🧮 Habilitar Bloque de Script Maxima",
+    "enablePowershell": "⚡ Habilitar Bloque de Script PowerShell",
     "systemDependencies": "Verificación de Dependencias del Sistema",
     "refresh": "🔄 Actualizar",
     "checkingBinaries": "Comprobando binarios en el PATH del sistema...",

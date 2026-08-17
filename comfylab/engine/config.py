@@ -37,6 +37,7 @@ DEFAULT_CONFIG = {
     "enable_wolfram_scripting": False,
     "enable_sage_scripting": False,
     "enable_maxima_scripting": False,
+    "enable_powershell_scripting": False,
     "external_python_path": "",
     "creator_identity": "",
     "trusted_origins": [],
