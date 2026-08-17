@@ -18,7 +18,7 @@ import type { NodeProps } from '@xyflow/react';
 import { RegistryContext } from '../context/RegistryContext';
 import { getPinColor } from '../constants/blockLayouts';
 import type { NodeSchema } from '../constants/blockLayouts';
-import { getBlockTitle, getPinLabel } from '../utils/blockI18n';
+import { getBlockTitle } from '../utils/blockI18n';
 import { useTranslation } from '../i18n';
 import { NumericTextInput } from './common/NumericTextInput';
 import { TimePlotWidget } from './widgets/TimePlotWidget';
@@ -1742,7 +1742,7 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
       )}
 
       {/* --- STATUS BAR --- */}
-      <div ref={statusBarRef} id={`block-status-${id}`} className={`block-status ${data.status || 'idle'}`}>
+      <div ref={statusBarRef} id={`block-status-${id}`} className={`block-status nodrag ${data.status || 'idle'}`}>
         <span id={`block-msg-${id}`}>
           {data.status === 'running' ? '⏳ Running...' : data.status === 'stopped' ? '⏹️ Stopped' : (data.resultMessage || 'Idle')}
         </span>

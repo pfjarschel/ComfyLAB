@@ -30,6 +30,7 @@ interface TableTelemetryPayload {
 
 export const TableViewWidget: React.FC<TableViewWidgetProps> = ({ blockId }) => {
   const [tableData, setTableData] = useState<TableTelemetryPayload | null>(null);
+  const [copied, setCopied] = useState(false);
   const { getNode } = useReactFlow();
 
   useEffect(() => {
@@ -64,6 +65,31 @@ export const TableViewWidget: React.FC<TableViewWidgetProps> = ({ blockId }) => 
     window.addEventListener(eventName, handleTelemetry);
     return () => window.removeEventListener(eventName, handleTelemetry);
   }, [blockId, getNode]);
+
+  const handleCopyTSV = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!tableData) return;
+    const headers = tableData.headers || [];
+    const rows = tableData.rows || [];
+    if (!headers.length && !rows.length) return;
+    
+    const headerLine = headers.join('\t');
+    const rowLines = rows.map((row) => 
+      row.map((cell) => {
+        if (cell === null || cell === undefined) return '';
+        const s = String(cell);
+        if (s.includes('\t') || s.includes('\n') || s.includes('"')) {
+          return `"${s.replace(/"/g, '""')}"`;
+        }
+        return s;
+      }).join('\t')
+    );
+    
+    const tsvContent = headerLine ? [headerLine, ...rowLines].join('\n') : rowLines.join('\n');
+    navigator.clipboard.writeText(tsvContent);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
 
   return (
     <ResizablePlotContainer 
@@ -120,26 +146,54 @@ export const TableViewWidget: React.FC<TableViewWidgetProps> = ({ blockId }) => 
               fontSize: '0.7rem',
               color: '#94a3b8',
               userSelect: 'none',
-              lineHeight: 1.2
+              lineHeight: 1.2,
+              gap: '6px'
             }}>
               <span>
                 {totalRows} {totalRows === 1 ? 'row' : 'rows'} × {totalCols} {totalCols === 1 ? 'col' : 'cols'}
               </span>
-              {tableData.truncated && (
-                <span 
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                {tableData.truncated && (
+                  <span 
+                    style={{
+                      color: '#f59e0b',
+                      background: 'rgba(245, 158, 11, 0.15)',
+                      padding: '1px 5px',
+                      borderRadius: '3px',
+                      fontWeight: 600,
+                      fontSize: '0.65rem'
+                    }}
+                    title="Dataset exceeds max row/col view limits (1000 x 1000)"
+                  >
+                    ⚠️ Max 1000 limit
+                  </span>
+                )}
+
+                <button
+                  onClick={handleCopyTSV}
+                  title={copied ? "Copied table as TSV to clipboard!" : "Copy table data as TSV (pasteable to Excel/Sheets)"}
                   style={{
-                    color: '#f59e0b',
-                    background: 'rgba(245, 158, 11, 0.15)',
-                    padding: '1px 5px',
+                    background: copied ? 'rgba(34, 197, 94, 0.25)' : 'rgba(255, 255, 255, 0.08)',
+                    border: `1px solid ${copied ? 'rgba(34, 197, 94, 0.6)' : 'rgba(255, 255, 255, 0.15)'}`,
+                    color: copied ? '#4ade80' : '#cbd5e1',
                     borderRadius: '3px',
-                    fontWeight: 600,
-                    fontSize: '0.65rem'
+                    padding: '1px 6px',
+                    fontSize: '0.65rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '3px',
+                    transition: 'all 0.15s ease',
+                    userSelect: 'none',
+                    lineHeight: 1.3
                   }}
-                  title="Dataset exceeds max row/col view limits (1000 x 1000)"
+                  onMouseDown={(e) => e.stopPropagation()}
                 >
-                  ⚠️ Max 1000 limit
-                </span>
-              )}
+                  <span>{copied ? '✓' : '📋'}</span>
+                  <span>{copied ? 'Copied TSV' : 'Copy Table'}</span>
+                </button>
+              </div>
             </div>
 
             {/* Scrollable Table Area */}
@@ -149,14 +203,17 @@ export const TableViewWidget: React.FC<TableViewWidgetProps> = ({ blockId }) => 
                 flex: 1,
                 overflow: 'auto',
                 position: 'relative',
-                background: 'rgba(2, 6, 23, 0.5)'
+                background: 'rgba(2, 6, 23, 0.5)',
+                userSelect: 'text',
+                cursor: 'text'
               }}
             >
               <table style={{
                 width: '100%',
                 borderCollapse: 'collapse',
                 textAlign: 'left',
-                whiteSpace: 'nowrap'
+                whiteSpace: 'nowrap',
+                userSelect: 'text'
               }}>
                 <thead>
                   <tr style={{
@@ -176,7 +233,9 @@ export const TableViewWidget: React.FC<TableViewWidgetProps> = ({ blockId }) => 
                       fontWeight: 600,
                       borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
                       textAlign: 'center',
-                      minWidth: '28px'
+                      minWidth: '28px',
+                      userSelect: 'none',
+                      cursor: 'default'
                     }}>
                       #
                     </th>
@@ -188,7 +247,9 @@ export const TableViewWidget: React.FC<TableViewWidgetProps> = ({ blockId }) => 
                           color: '#38bdf8',
                           fontWeight: 600,
                           borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
-                          borderLeft: '1px solid rgba(255, 255, 255, 0.05)'
+                          borderLeft: '1px solid rgba(255, 255, 255, 0.05)',
+                          userSelect: 'text',
+                          cursor: 'text'
                         }}
                       >
                         {String(head)}
@@ -221,7 +282,8 @@ export const TableViewWidget: React.FC<TableViewWidgetProps> = ({ blockId }) => 
                         fontSize: '0.68rem',
                         borderRight: '1px solid rgba(255, 255, 255, 0.08)',
                         textAlign: 'center',
-                        userSelect: 'none'
+                        userSelect: 'none',
+                        cursor: 'default'
                       }}>
                         {rIdx}
                       </td>
@@ -245,7 +307,9 @@ export const TableViewWidget: React.FC<TableViewWidgetProps> = ({ blockId }) => 
                               padding: '3px 8px',
                               color: cellColor,
                               borderBottom: '1px solid rgba(255, 255, 255, 0.03)',
-                              borderLeft: '1px solid rgba(255, 255, 255, 0.03)'
+                              borderLeft: '1px solid rgba(255, 255, 255, 0.03)',
+                              userSelect: 'text',
+                              cursor: 'text'
                             }}
                           >
                             {cellContent}

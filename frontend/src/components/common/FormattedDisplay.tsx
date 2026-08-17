@@ -54,7 +54,7 @@ export const FormattedDisplay = ({ value }: { value: unknown }) => {
   }, []);
 
   return (
-    <div ref={ref} style={{ display: 'inline-block' }}>
+    <div ref={ref} style={{ display: 'inline-block', userSelect: 'text', cursor: 'text' }}>
       {value === undefined || value === null ? (
         <span>---</span>
       ) : typeof value === 'number' ? (

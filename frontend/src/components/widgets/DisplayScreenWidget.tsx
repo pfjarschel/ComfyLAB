@@ -23,6 +23,8 @@ interface DisplayScreenWidgetProps {
 
 export const DisplayScreenWidget = ({ blockId, initialValue }: DisplayScreenWidgetProps) => {
   const [displayValue, setDisplayValue] = useState<any>(initialValue);
+  const [copied, setCopied] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const { getNode } = useReactFlow();
 
   useEffect(() => {
@@ -45,10 +47,25 @@ export const DisplayScreenWidget = ({ blockId, initialValue }: DisplayScreenWidg
     return () => window.removeEventListener(eventName, handleTelemetry);
   }, [blockId, getNode]);
 
+  const handleCopy = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (displayValue === undefined || displayValue === null) return;
+    const textToCopy = typeof displayValue === 'object' 
+      ? JSON.stringify(displayValue, null, 2) 
+      : String(displayValue);
+    navigator.clipboard.writeText(textToCopy);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  const hasValue = displayValue !== undefined && displayValue !== null;
+
   return (
     <div
       className="display-screen nodrag"
-      title={displayValue !== undefined && displayValue !== null ? String(displayValue) : undefined}
+      title={hasValue ? String(displayValue) : undefined}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       style={{
         background: 'rgba(2, 6, 23, 0.85)',
         border: '1px solid rgba(148, 163, 184, 0.3)',
@@ -66,8 +83,42 @@ export const DisplayScreenWidget = ({ blockId, initialValue }: DisplayScreenWidg
         boxSizing: 'border-box',
         position: 'relative',
         overflow: 'hidden',
+        userSelect: 'text',
+        cursor: 'text',
       }}
     >
+      {/* Quick Copy Button */}
+      {hasValue && (
+        <button
+          onClick={handleCopy}
+          title={copied ? "Copied!" : "Copy raw value"}
+          style={{
+            position: 'absolute',
+            top: '4px',
+            right: '4px',
+            zIndex: 10,
+            background: copied ? 'rgba(34, 197, 94, 0.25)' : 'rgba(15, 23, 42, 0.75)',
+            border: `1px solid ${copied ? 'rgba(34, 197, 94, 0.6)' : 'rgba(148, 163, 184, 0.25)'}`,
+            borderRadius: '4px',
+            padding: '2px 5px',
+            fontSize: '0.65rem',
+            color: copied ? '#4ade80' : '#94a3b8',
+            cursor: 'pointer',
+            opacity: isHovered || copied ? 1 : 0,
+            transition: 'opacity 0.2s ease, background 0.15s ease, color 0.15s ease',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '3px',
+            userSelect: 'none',
+            lineHeight: 1,
+          }}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          <span>{copied ? '✓' : '📋'}</span>
+          {copied && <span style={{ fontSize: '0.6rem', fontWeight: 600 }}>Copied</span>}
+        </button>
+      )}
+
       <div style={{
         position: 'absolute',
         top: '8px',
@@ -78,6 +129,8 @@ export const DisplayScreenWidget = ({ blockId, initialValue }: DisplayScreenWidg
         wordBreak: 'break-all',
         whiteSpace: 'pre-wrap',
         textAlign: 'center',
+        userSelect: 'text',
+        cursor: 'text',
       }}>
         <div style={{
           minHeight: '100%',
@@ -85,8 +138,10 @@ export const DisplayScreenWidget = ({ blockId, initialValue }: DisplayScreenWidg
           alignItems: 'center',
           justifyContent: 'center',
           width: '100%',
+          userSelect: 'text',
+          cursor: 'text',
         }}>
-          {displayValue !== undefined && displayValue !== null ? (
+          {hasValue ? (
             <FormattedDisplay value={displayValue} />
           ) : '---'}
         </div>

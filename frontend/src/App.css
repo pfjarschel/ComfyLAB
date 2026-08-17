@@ -175,6 +175,8 @@
   overflow-wrap: break-word;
   word-break: normal;
   display: block; /* Change from flex to block to allow scrollbar when text wraps */
+  user-select: text;
+  cursor: text;
 }
 
 /* Sleek custom scrollbar for block status */
