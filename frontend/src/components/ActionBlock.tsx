@@ -596,7 +596,10 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
         {/* --- HEADER --- */}
         <div className="action-block-header">
           <div className="block-icon">⚠️</div>
-          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '120px', fontWeight: 'bold' }}>
+          <span 
+            title={data.customName || 'Missing Block'}
+            style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 'bold' }}
+          >
             {data.customName || 'Missing Block'}
           </span>
         </div>
@@ -965,10 +968,14 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
             autoFocus
             onFocus={(e) => e.target.select()}
             className="nodrag block-name-input"
+            style={{ flex: 1, minWidth: 0 }}
           />
         ) : (
           <>
-            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '120px' }}>
+            <span 
+              title={data.customName ? `${data.customName} (${getBlockTitle(layout)})` : getBlockTitle(layout)}
+              style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+            >
               {data.customName || getBlockTitle(layout)}
             </span>
             {data.disabled && (
@@ -980,7 +987,8 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
                   marginLeft: '4px',
                   opacity: 0.9,
                   cursor: 'pointer',
-                  userSelect: 'none'
+                  userSelect: 'none',
+                  flexShrink: 0
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -1001,7 +1009,8 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
                   marginLeft: '4px',
                   opacity: 0.9,
                   cursor: 'pointer',
-                  userSelect: 'none'
+                  userSelect: 'none',
+                  flexShrink: 0
                 }}
               >
                 🔒
@@ -1015,7 +1024,8 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
                   fontSize: '0.75rem',
                   marginLeft: '4px',
                   opacity: 0.8,
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  flexShrink: 0
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -1033,11 +1043,31 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
                 setTempName(data.customName || layout.name); 
               }}
               title="Click to rename"
+              style={{ flexShrink: 0 }}
             >
               ✏️
             </span>
           </>
         )}
+      </div>
+
+      {/* --- SUBTITLE (Original Full Uncropped Name) --- */}
+      <div 
+        className="action-block-subtitle"
+        title={getBlockTitle(layout)}
+        style={{
+          fontSize: '0.72rem',
+          color: 'var(--text-muted, #94a3b8)',
+          lineHeight: 1.25,
+          marginTop: '-4px',
+          marginBottom: '8px',
+          wordBreak: 'break-word',
+          whiteSpace: 'normal',
+          userSelect: 'text',
+          cursor: 'default',
+        }}
+      >
+        {getBlockTitle(layout)}
       </div>
 
       {/* --- BODY WIDGETS --- */}
