@@ -1440,6 +1440,20 @@ return {
         isRunningRef.current = isRunning;
         const isPausedRef = useRef(isPaused);
         isPausedRef.current = isPaused;
+        const isDirtyRef = useRef(isDirty);
+        isDirtyRef.current = isDirty;
+
+        // Warn before leaving the page when there are unsaved changes or an active run
+        useEffect(() => {
+          const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            const hasUnsavedChanges = isDirtyRef.current || tabsRef.current.some((tab) => tab.isDirty);
+            if (!hasUnsavedChanges && !isRunningRef.current) return;
+            e.preventDefault();
+            e.returnValue = '';
+          };
+          window.addEventListener('beforeunload', handleBeforeUnload);
+          return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+        }, []);
 
   // --- HISTORY & UNDO/REDO UTILITIES ---
 
