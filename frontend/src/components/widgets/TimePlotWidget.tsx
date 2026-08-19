@@ -173,10 +173,12 @@ const PlotlyTimeRenderer = ({ blockId, strokeColor, dataKey, xLog = false, yLog 
     } else {
       xaxis.range = [limits.x_min, limits.x_max];
     }
-  } else if (savedLayout && savedLayout['xaxis.autorange']) {
-    xaxis.autorange = true;
-  } else if (savedLayout && savedLayout['xaxis.range[0]'] != null && savedLayout['xaxis.range[1]'] != null) {
+  } else if (savedLayout && !savedLayout['xaxis.autorange'] && savedLayout['xaxis.range[0]'] != null && savedLayout['xaxis.range[1]'] != null) {
     xaxis.range = [savedLayout['xaxis.range[0]'], savedLayout['xaxis.range[1]']];
+  } else if (savedLayout && !savedLayout['xaxis.autorange'] && Array.isArray(savedLayout['xaxis.range']) && savedLayout['xaxis.range'].length === 2) {
+    xaxis.range = savedLayout['xaxis.range'];
+  } else {
+    xaxis.autorange = true;
   }
 
   const yaxis: any = {
@@ -197,10 +199,12 @@ const PlotlyTimeRenderer = ({ blockId, strokeColor, dataKey, xLog = false, yLog 
     } else {
       yaxis.range = [limits.y_min, limits.y_max];
     }
-  } else if (savedLayout && savedLayout['yaxis.autorange']) {
-    yaxis.autorange = true;
-  } else if (savedLayout && savedLayout['yaxis.range[0]'] != null && savedLayout['yaxis.range[1]'] != null) {
+  } else if (savedLayout && !savedLayout['yaxis.autorange'] && savedLayout['yaxis.range[0]'] != null && savedLayout['yaxis.range[1]'] != null) {
     yaxis.range = [savedLayout['yaxis.range[0]'], savedLayout['yaxis.range[1]']];
+  } else if (savedLayout && !savedLayout['yaxis.autorange'] && Array.isArray(savedLayout['yaxis.range']) && savedLayout['yaxis.range'].length === 2) {
+    yaxis.range = savedLayout['yaxis.range'];
+  } else {
+    yaxis.autorange = true;
   }
 
   const colors = ['#60a5fa', '#f87171', '#34d399', '#fbbf24', '#a78bfa', '#2dd4bf'];
@@ -273,20 +277,41 @@ const PlotlyTimeRenderer = ({ blockId, strokeColor, dataKey, xLog = false, yLog 
           }
           if (onChange) {
             const newLayout = { ...(savedLayout || {}), ...e };
+            
             if (e['xaxis.autorange']) {
               delete newLayout['xaxis.range[0]'];
               delete newLayout['xaxis.range[1]'];
+              delete newLayout['xaxis.range'];
+              newLayout['xaxis.autorange'] = true;
+              setLimits(prev => ({ ...prev, x_min: undefined, x_max: undefined }));
             }
             if (e['xaxis.range[0]'] !== undefined) {
               delete newLayout['xaxis.autorange'];
             }
+            if (Array.isArray(e['xaxis.range'])) {
+              delete newLayout['xaxis.autorange'];
+              newLayout['xaxis.range[0]'] = e['xaxis.range'][0];
+              newLayout['xaxis.range[1]'] = e['xaxis.range'][1];
+              delete newLayout['xaxis.range'];
+            }
+
             if (e['yaxis.autorange']) {
               delete newLayout['yaxis.range[0]'];
               delete newLayout['yaxis.range[1]'];
+              delete newLayout['yaxis.range'];
+              newLayout['yaxis.autorange'] = true;
+              setLimits(prev => ({ ...prev, y_min: undefined, y_max: undefined }));
             }
             if (e['yaxis.range[0]'] !== undefined) {
               delete newLayout['yaxis.autorange'];
             }
+            if (Array.isArray(e['yaxis.range'])) {
+              delete newLayout['yaxis.autorange'];
+              newLayout['yaxis.range[0]'] = e['yaxis.range'][0];
+              newLayout['yaxis.range[1]'] = e['yaxis.range'][1];
+              delete newLayout['yaxis.range'];
+            }
+
             onChange('plot_layout', newLayout);
           }
         }}

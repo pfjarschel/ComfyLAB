@@ -271,6 +271,20 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
     }
   };
 
+  const handlePlotLayoutChange = (name: string, val: any) => {
+    handleChange(name, val);
+    if (name === 'plot_layout' && val) {
+      if (val['xaxis.autorange']) {
+        if (!isPinConnected('XMin') && data.XMin !== undefined && data.XMin !== null) handleChange('XMin', null);
+        if (!isPinConnected('XMax') && data.XMax !== undefined && data.XMax !== null) handleChange('XMax', null);
+      }
+      if (val['yaxis.autorange']) {
+        if (!isPinConnected('YMin') && data.YMin !== undefined && data.YMin !== null) handleChange('YMin', null);
+        if (!isPinConnected('YMax') && data.YMax !== undefined && data.YMax !== null) handleChange('YMax', null);
+      }
+    }
+  };
+
   // Calculates spatial offsets to stack left-aligned handles dynamically without overlap
   const getLeftHandleTop = (isExec: boolean, index: number) => {
     if (isExec) {
@@ -1401,7 +1415,7 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
             dataKey="history" 
             xLog={data.XLog}
             yLog={data.YLog}
-            onChange={handleChange} 
+            onChange={handlePlotLayoutChange} 
             savedLayout={data.plot_layout} 
           />
         )}
@@ -1413,7 +1427,7 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
             yLabel={data.results?.y_label} 
             xLog={data.XLog}
             yLog={data.YLog}
-            onChange={handleChange} 
+            onChange={handlePlotLayoutChange} 
             savedLayout={data.plot_layout} 
           />
         )}
@@ -1423,7 +1437,7 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
             blockId={id}
             xLabel={data.results?.x_label}
             yLabel={data.results?.y_label}
-            onChange={handleChange} 
+            onChange={handlePlotLayoutChange} 
             savedLayout={data.plot_layout} 
           />
         )}
