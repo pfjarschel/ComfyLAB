@@ -182,6 +182,20 @@ def test_imports_and_drivers():
     caen.close()
     print("  ✓ CAENDT5720B driver OK")
 
+    # 9. Keysight E36234A
+    from comfylab.devices.keysight.e36234a import KeysightE36234A
+    e36234 = KeysightE36234A(mock_dev)
+    e36234.set_channel(1, 12.0, 2.5)
+    e36234.set_output(True, 1)
+    e36234.set_protection(1, ovp_voltage=15.0, ocp_enable=True)
+    e36234.set_pairing_mode("SERIES")
+    v = e36234.measure_voltage(1)
+    i = e36234.measure_current(1)
+    p = e36234.measure_power(1)
+    all_res = e36234.measure_all()
+    assert len(all_res) == 2
+    print("  ✓ KeysightE36234A driver OK")
+
 
 def test_registry_loading():
     print("\nTesting Block Registry auto-discovery & loading...")
@@ -252,6 +266,14 @@ def test_registry_loading():
         "devices/caen/dt5720b/channel",
         "devices/caen/dt5720b/acquire",
         "devices/caen/dt5720b/pulse_stats",
+
+        # Keysight E36234A
+        "devices/keysight/e36234a/connect",
+        "devices/keysight/e36234a/channel",
+        "devices/keysight/e36234a/output",
+        "devices/keysight/e36234a/measure",
+        "devices/keysight/e36234a/measure_all",
+        "devices/keysight/e36234a/pairing",
     ]
 
     for btype in expected_block_types:
