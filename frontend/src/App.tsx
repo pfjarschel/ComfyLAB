@@ -1161,7 +1161,8 @@ function Flow() {
       setErrorMessage(`Cluster block '${blockId}' not found. Try closing and reopening.`);
       return;
     }
-    if (!actionType.startsWith('user/cluster/') && !actionType.startsWith('workspace/cluster/')) return;
+    if (actionType.startsWith('cluster/boundary/') || actionType === 'cluster/input' || actionType === 'cluster/output') return;
+    if (!actionType.startsWith('user/cluster/') && !actionType.startsWith('workspace/cluster/') && !actionType.startsWith('builtin/cluster/') && !actionType.startsWith('cluster/') && !actionType.startsWith('clusters/')) return;
 
     try {
       const url = `${BACKEND_URL}/cluster/${encodeURIComponent(actionType)}`;
@@ -1976,7 +1977,8 @@ return {
     const curLevelIndex = currentLevelIndexRef.current;
     if (curLevelIndex === 0) return;
     const currentLevel = canvasStackRef.current[curLevelIndex];
-    if (currentLevel && (currentLevel.type.startsWith('user/cluster/') || currentLevel.type.startsWith('workspace/cluster/'))) {
+    if (currentLevel && (currentLevel.type.startsWith('user/cluster/') || currentLevel.type.startsWith('workspace/cluster/') || currentLevel.type.startsWith('cluster/'))) {
+      if (currentLevel.type.startsWith('builtin/cluster/')) return;
       try {
         const exclude = ['action', 'status', 'resultMessage', 'onChange', 'results', 'onEditScript', 'onEditFFISignature', 'onEditLibrarySignature', 'onNavigateInto', 'onInspect'];
 
@@ -2003,7 +2005,7 @@ return {
 
         await axios.post(`${BACKEND_URL}/blocks/publish_cluster`, {
           display_name: existingDef.display_name || existingDef.name || currentLevel.type,
-          category: existingDef.category || 'User/Clusters',
+          category: existingDef.category || 'Clusters',
           icon: existingDef.icon || '📦',
           description: existingDef.description || '',
           internal_blueprint: { blocks: blueprintNodes, links: blueprintLinks },

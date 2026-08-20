@@ -1,0 +1,228 @@
+{
+  "blocks": [
+    {
+      "id": "block_1784773146938_0",
+      "type": "actionNode",
+      "position": {
+        "x": 0,
+        "y": 51
+      },
+      "data": {
+        "action": "visa/core/resource_manager"
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "127px"
+      }
+    },
+    {
+      "id": "block_1784773151836_1",
+      "type": "actionNode",
+      "position": {
+        "x": 290,
+        "y": 255
+      },
+      "data": {
+        "action": "outputs/basic/display",
+        "Value": ""
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "231px"
+      },
+      "width": 420,
+      "height": 387
+    },
+    {
+      "id": "block_1784773238839_5",
+      "type": "actionNode",
+      "position": {
+        "x": 1080,
+        "y": 0
+      },
+      "data": {
+        "action": "visa/core/query",
+        "Device": null,
+        "Command": "*IDN?"
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "231px"
+      }
+    },
+    {
+      "id": "block_1784773282769_6",
+      "type": "actionNode",
+      "position": {
+        "x": 790,
+        "y": 16
+      },
+      "data": {
+        "action": "visa/core/device",
+        "Address": "GPIB0::2::INSTR",
+        "ReadTermination": "\n",
+        "WriteTermination": "\r\n",
+        "Timeout": 2
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "199px"
+      }
+    },
+    {
+      "id": "block_1784773312961_7",
+      "type": "actionNode",
+      "position": {
+        "x": 395,
+        "y": 16
+      },
+      "data": {
+        "action": "Lists/operations/get",
+        "List": null,
+        "Index": 0
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "199px"
+      }
+    },
+    {
+      "id": "block_1784773438238_10",
+      "type": "actionNode",
+      "position": {
+        "x": 1370,
+        "y": 0
+      },
+      "data": {
+        "action": "outputs/basic/display",
+        "Value": ""
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "231px"
+      },
+      "width": 618,
+      "height": 231
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_1784773151941_0cbv2d",
+      "source": "block_1784773146938_0",
+      "sourceHandle": "Resources",
+      "target": "block_1784773151836_1",
+      "targetHandle": "Value",
+      "style": {
+        "stroke": "#06b6d4",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#06b6d4"
+      },
+      "type": "default"
+    },
+    {
+      "id": "edge_1784773284243_xsc608",
+      "source": "block_1784773282769_6",
+      "sourceHandle": "Device",
+      "target": "block_1784773238839_5",
+      "targetHandle": "Device",
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#64748b"
+      },
+      "type": "default"
+    },
+    {
+      "id": "edge_1784773291996_frl777",
+      "source": "block_1784773282769_6",
+      "sourceHandle": "Out",
+      "target": "block_1784773238839_5",
+      "targetHandle": "In",
+      "style": {
+        "stroke": "#a78bfa",
+        "strokeWidth": 2,
+        "animated": true
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#a78bfa"
+      },
+      "type": "default"
+    },
+    {
+      "source": "block_1784773146938_0",
+      "sourceHandle": "Resources",
+      "target": "block_1784773312961_7",
+      "targetHandle": "List",
+      "style": {
+        "stroke": "#06b6d4",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#06b6d4"
+      },
+      "id": "xy-edge__block_1784773146938_0Resources-block_1784773312961_7List"
+    },
+    {
+      "source": "block_1784773312961_7",
+      "sourceHandle": "Item",
+      "target": "block_1784773282769_6",
+      "targetHandle": "Address",
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#64748b"
+      },
+      "id": "xy-edge__block_1784773312961_7Item-block_1784773282769_6Address"
+    },
+    {
+      "id": "edge_1784773438343_kkr5ai",
+      "source": "block_1784773238839_5",
+      "sourceHandle": "Response",
+      "target": "block_1784773438238_10",
+      "targetHandle": "Value",
+      "style": {
+        "stroke": "#ec4899",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#ec4899"
+      },
+      "type": "default"
+    },
+    {
+      "source": "block_1784773238839_5",
+      "sourceHandle": "Out",
+      "target": "block_1784773438238_10",
+      "targetHandle": "In",
+      "style": {
+        "stroke": "#a78bfa",
+        "strokeWidth": 2,
+        "animated": true
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#a78bfa"
+      },
+      "id": "xy-edge__block_1784773238839_5Out-block_1784773438238_10In"
+    }
+  ],
+  "annotations": [],
+  "origin_uuid": "a15f7feb04b799d69f0ecadbc988fa3f91578e6d97eef6d871c299c97ce9069c"
+}

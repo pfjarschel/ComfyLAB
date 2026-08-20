@@ -391,6 +391,11 @@ class SaveDataBlock(BaseBlock):
 
         if isinstance(data, np.ndarray):
             data = data.tolist()
+        elif isinstance(data, list):
+            data = [x.tolist() if isinstance(x, np.ndarray) else x for x in data]
+        elif isinstance(data, dict):
+            data = {k: (v.tolist() if isinstance(v, np.ndarray) else v) for k, v in data.items()}
+
         if isinstance(headers, np.ndarray):
             headers = headers.tolist()
 

@@ -1,0 +1,163 @@
+{
+  "blocks": [
+    {
+      "id": "block_1784748556279_0",
+      "type": "actionNode",
+      "position": {
+        "x": 290,
+        "y": 124
+      },
+      "data": {
+        "action": "Numeric Arrays/manipulation/linspace",
+        "Start": 0,
+        "Stop": 10,
+        "Steps": 101,
+        "pinValues": {
+          "Array": "ndarray[101] float64"
+        }
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "239px"
+      }
+    },
+    {
+      "id": "block_1784748644513_2",
+      "type": "actionNode",
+      "position": {
+        "x": 870,
+        "y": 0
+      },
+      "data": {
+        "action": "outputs/plots/xy_plot",
+        "X": null,
+        "Y": null,
+        "XLabel": "X",
+        "YLabel": "Y",
+        "Labels": null,
+        "XMin": null,
+        "XMax": null,
+        "YMin": null,
+        "YMax": null
+      },
+      "style": {
+        "width": 300,
+        "height": 300,
+        "minHeight": "363px"
+      },
+      "width": 491,
+      "height": 489
+    },
+    {
+      "id": "block_1784748678166_3",
+      "type": "actionNode",
+      "position": {
+        "x": 563.6516516516516,
+        "y": 357.2635135135135
+      },
+      "data": {
+        "action": "math/functions/triangle",
+        "X": 0,
+        "Frequency": 1,
+        "Amplitude": 1,
+        "Phase": 0,
+        "Offset": 0,
+        "pinValues": {
+          "Result": "ndarray[101] float64"
+        }
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "319px"
+      }
+    },
+    {
+      "id": "block_1784748762751_6",
+      "type": "actionNode",
+      "position": {
+        "x": 0,
+        "y": 152
+      },
+      "data": {
+        "action": "constants/number",
+        "value": 101,
+        "customName": "N. Points",
+        "pinValues": {
+          "Value": "101"
+        }
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "185px"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "block_1784748556279_0",
+      "sourceHandle": "Array",
+      "target": "block_1784748678166_3",
+      "targetHandle": "X",
+      "style": {
+        "stroke": "#e5a50a",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#e5a50a"
+      },
+      "id": "xy-edge__block_1784748556279_0Array-block_1784748678166_3X"
+    },
+    {
+      "source": "block_1784748556279_0",
+      "sourceHandle": "Array",
+      "target": "block_1784748644513_2",
+      "targetHandle": "X",
+      "style": {
+        "stroke": "#e5a50a",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#e5a50a"
+      },
+      "id": "xy-edge__block_1784748556279_0Array-block_1784748644513_2X"
+    },
+    {
+      "source": "block_1784748762751_6",
+      "sourceHandle": "Value",
+      "target": "block_1784748556279_0",
+      "targetHandle": "Steps",
+      "style": {
+        "stroke": "#f97316",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#f97316"
+      },
+      "id": "xy-edge__block_1784748762751_6Value-block_1784748556279_0Steps"
+    },
+    {
+      "source": "block_1784748678166_3",
+      "sourceHandle": "Result",
+      "target": "block_1784748644513_2",
+      "targetHandle": "Y",
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#64748b"
+      },
+      "id": "xy-edge__block_1784748678166_3Result-block_1784748644513_2Y"
+    }
+  ],
+  "annotations": [],
+  "origin_uuid": "a15f7feb04b799d69f0ecadbc988fa3f91578e6d97eef6d871c299c97ce9069c"
+}

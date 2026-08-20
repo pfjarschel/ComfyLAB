@@ -76,7 +76,8 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
   const [measuredOptionalHeight, setMeasuredOptionalHeight] = useState(0);
 
   const isScriptNode = data.action && data.action.startsWith('script/');
-  const isCluster = data.action && (data.action.startsWith('user/cluster/') || data.action.startsWith('workspace/cluster/'));
+  const isBoundary = data.action && (data.action.startsWith('cluster/boundary/') || data.action === 'cluster/input' || data.action === 'cluster/output');
+  const isCluster = !isBoundary && data.action && (data.action.startsWith('user/cluster/') || data.action.startsWith('workspace/cluster/') || data.action.startsWith('builtin/cluster/') || data.action.startsWith('cluster/') || data.action.startsWith('clusters/'));
   const isLibraryCallNode = !!data.action && ['ffi/call', 'library/call', 'dll/so/call', 'external_libraries/dll/call'].includes(data.action.toLowerCase().replace(/\\/g, ''));
 
   // Helper: map a C type string to a frontend pin colour type

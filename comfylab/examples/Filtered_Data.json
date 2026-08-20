@@ -1,0 +1,731 @@
+{
+  "blocks": [
+    {
+      "id": "block_1784748556279_0",
+      "type": "actionNode",
+      "position": {
+        "x": 290,
+        "y": 936.5
+      },
+      "data": {
+        "action": "Numeric Arrays/manipulation/linspace",
+        "Start": 0,
+        "Stop": 10,
+        "Steps": 101,
+        "pinValues": {
+          "Array": "ndarray[1001] float64"
+        }
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "239px"
+      }
+    },
+    {
+      "id": "block_1784748644513_2",
+      "type": "actionNode",
+      "position": {
+        "x": 1160,
+        "y": 747.5
+      },
+      "data": {
+        "action": "outputs/plots/xy_plot",
+        "X": null,
+        "Y": null,
+        "XLabel": "X",
+        "YLabel": "Y",
+        "Labels": null,
+        "XMin": null,
+        "XMax": null,
+        "YMin": null,
+        "YMax": null
+      },
+      "style": {
+        "width": 300,
+        "height": 300,
+        "minHeight": "363px"
+      },
+      "width": 491,
+      "height": 489
+    },
+    {
+      "id": "block_1784748678166_3",
+      "type": "actionNode",
+      "position": {
+        "x": 580,
+        "y": 897.5
+      },
+      "data": {
+        "action": "math/functions/triangle",
+        "X": 0,
+        "Frequency": 1,
+        "Amplitude": 1,
+        "Phase": 0,
+        "Offset": 0,
+        "pinValues": {
+          "Result": "ndarray[1001] float64"
+        }
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "319px"
+      }
+    },
+    {
+      "id": "block_1784748737344_4",
+      "type": "actionNode",
+      "position": {
+        "x": 870,
+        "y": 925.5
+      },
+      "data": {
+        "action": "control_flow/loops/while_loop",
+        "Condition": true
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "133px"
+      }
+    },
+    {
+      "id": "block_1784748756858_5",
+      "type": "actionNode",
+      "position": {
+        "x": 580,
+        "y": 578
+      },
+      "data": {
+        "action": "math/random/random_array",
+        "Shape": "100",
+        "Min": -0.5,
+        "Max": 0.5,
+        "IntegerMode": false,
+        "pinValues": {
+          "Array": "ndarray[1001] float64"
+        }
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "277px"
+      }
+    },
+    {
+      "id": "block_1784748762751_6",
+      "type": "actionNode",
+      "position": {
+        "x": 0,
+        "y": 625
+      },
+      "data": {
+        "action": "constants/number",
+        "value": 1001,
+        "customName": "N. Points",
+        "pinValues": {
+          "Value": "1001"
+        }
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "185px"
+      }
+    },
+    {
+      "id": "block_1784748838417_9",
+      "type": "actionNode",
+      "position": {
+        "x": 870,
+        "y": 593
+      },
+      "data": {
+        "action": "Numeric Arrays/operations/add_subtract",
+        "Array": null,
+        "Operand": 1,
+        "Operation": "add",
+        "pinValues": {
+          "Result": "ndarray[1001] float64"
+        }
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "249px"
+      }
+    },
+    {
+      "id": "block_1784749428998_10",
+      "type": "actionNode",
+      "position": {
+        "x": 1731,
+        "y": 554
+      },
+      "data": {
+        "action": "math/signal_processing/fft",
+        "Signal": null,
+        "X": null,
+        "pinValues": {
+          "Frequencies": "ndarray[501] float64",
+          "Spectrum": "ndarray[501] float64"
+        }
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "327px"
+      }
+    },
+    {
+      "id": "block_1784749430925_nxr3grq",
+      "type": "actionNode",
+      "position": {
+        "x": 3453,
+        "y": 81
+      },
+      "data": {
+        "action": "math/signal_processing/fft",
+        "Signal": null,
+        "X": null,
+        "pinValues": {
+          "Frequencies": "ndarray[501] float64",
+          "Spectrum": "ndarray[501] float64"
+        }
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "327px"
+      }
+    },
+    {
+      "id": "block_1784749443386_11",
+      "type": "actionNode",
+      "position": {
+        "x": 2592,
+        "y": 274.5
+      },
+      "data": {
+        "action": "math/signal_processing/filter",
+        "Signal": null,
+        "FilterType": "Low-pass",
+        "Cutoff": 0.05,
+        "LowCutoff": 0.1,
+        "HighCutoff": 0.3,
+        "Order": 2,
+        "Window": 5,
+        "pinValues": {
+          "Filtered": "ndarray[1001] float64"
+        }
+      },
+      "style": {
+        "width": 210,
+        "minHeight": "337px"
+      }
+    },
+    {
+      "id": "block_1784749445816_c0y63vi",
+      "type": "actionNode",
+      "position": {
+        "x": 2021,
+        "y": 473
+      },
+      "data": {
+        "action": "outputs/plots/xy_plot",
+        "X": null,
+        "Y": null,
+        "XLabel": "X",
+        "YLabel": "Y",
+        "Labels": null,
+        "XMin": null,
+        "XMax": null,
+        "YMin": null,
+        "YMax": null,
+        "plot_layout": {
+          "xaxis.range[0]": 0,
+          "xaxis.range[1]": 5.134819190586763
+        }
+      },
+      "style": {
+        "width": 300,
+        "height": 300,
+        "minHeight": "363px"
+      },
+      "width": 491,
+      "height": 489
+    },
+    {
+      "id": "block_1784749496232_o16c8un",
+      "type": "actionNode",
+      "position": {
+        "x": 3743,
+        "y": 0
+      },
+      "data": {
+        "action": "outputs/plots/xy_plot",
+        "X": null,
+        "Y": null,
+        "XLabel": "X",
+        "YLabel": "Y",
+        "Labels": null,
+        "XMin": null,
+        "XMax": null,
+        "YMin": null,
+        "YMax": null,
+        "plot_layout": {
+          "xaxis.range[0]": 0,
+          "xaxis.range[1]": 5.364174382683574
+        }
+      },
+      "style": {
+        "width": 300,
+        "height": 300,
+        "minHeight": "363px"
+      },
+      "width": 491,
+      "height": 489
+    },
+    {
+      "id": "block_1784749498355_xozv4zp",
+      "type": "actionNode",
+      "position": {
+        "x": 2910.6081081081084,
+        "y": 573.8063063063063
+      },
+      "data": {
+        "action": "outputs/plots/xy_plot",
+        "X": null,
+        "Y": null,
+        "XLabel": "X",
+        "YLabel": "Y",
+        "Labels": null,
+        "XMin": null,
+        "XMax": null,
+        "YMin": null,
+        "YMax": null
+      },
+      "style": {
+        "width": 300,
+        "height": 300,
+        "minHeight": "363px"
+      },
+      "width": 491,
+      "height": 489
+    }
+  ],
+  "edges": [
+    {
+      "source": "block_1784748556279_0",
+      "sourceHandle": "Array",
+      "target": "block_1784748678166_3",
+      "targetHandle": "X",
+      "style": {
+        "stroke": "#e5a50a",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#e5a50a"
+      },
+      "id": "xy-edge__block_1784748556279_0Array-block_1784748678166_3X",
+      "selected": false
+    },
+    {
+      "source": "block_1784748556279_0",
+      "sourceHandle": "Array",
+      "target": "block_1784748644513_2",
+      "targetHandle": "X",
+      "style": {
+        "stroke": "#e5a50a",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#e5a50a"
+      },
+      "id": "xy-edge__block_1784748556279_0Array-block_1784748644513_2X",
+      "selected": false
+    },
+    {
+      "source": "block_1784748762751_6",
+      "sourceHandle": "Value",
+      "target": "block_1784748556279_0",
+      "targetHandle": "Steps",
+      "style": {
+        "stroke": "#f97316",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#f97316"
+      },
+      "id": "xy-edge__block_1784748762751_6Value-block_1784748556279_0Steps",
+      "selected": false
+    },
+    {
+      "source": "block_1784748762751_6",
+      "sourceHandle": "Value",
+      "target": "block_1784748756858_5",
+      "targetHandle": "Shape",
+      "style": {
+        "stroke": "#f97316",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#f97316"
+      },
+      "id": "xy-edge__block_1784748762751_6Value-block_1784748756858_5Shape",
+      "selected": false
+    },
+    {
+      "source": "block_1784748737344_4",
+      "sourceHandle": "LoopBody",
+      "target": "block_1784748644513_2",
+      "targetHandle": "Plot",
+      "style": {
+        "stroke": "#a78bfa",
+        "strokeWidth": 2,
+        "animated": true
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#a78bfa"
+      },
+      "id": "xy-edge__block_1784748737344_4LoopBody-block_1784748644513_2Plot",
+      "selected": false
+    },
+    {
+      "source": "block_1784748678166_3",
+      "sourceHandle": "Result",
+      "target": "block_1784748838417_9",
+      "targetHandle": "Array",
+      "style": {
+        "stroke": "#64748b",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#64748b"
+      },
+      "id": "xy-edge__block_1784748678166_3Result-block_1784748838417_9Array",
+      "selected": false
+    },
+    {
+      "source": "block_1784748756858_5",
+      "sourceHandle": "Array",
+      "target": "block_1784748838417_9",
+      "targetHandle": "Operand",
+      "style": {
+        "stroke": "#e5a50a",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#e5a50a"
+      },
+      "id": "xy-edge__block_1784748756858_5Array-block_1784748838417_9Operand",
+      "selected": false
+    },
+    {
+      "source": "block_1784748838417_9",
+      "sourceHandle": "Result",
+      "target": "block_1784748644513_2",
+      "targetHandle": "Y",
+      "style": {
+        "stroke": "#e5a50a",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#e5a50a"
+      },
+      "id": "xy-edge__block_1784748838417_9Result-block_1784748644513_2Y",
+      "selected": false
+    },
+    {
+      "id": "edge_1784749451930_ngd2xz",
+      "source": "block_1784748644513_2",
+      "sourceHandle": "Out",
+      "target": "block_1784749428998_10",
+      "targetHandle": "Analyze",
+      "style": {
+        "stroke": "#a78bfa",
+        "strokeWidth": 2,
+        "animated": true
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#a78bfa"
+      },
+      "type": "default",
+      "selected": false
+    },
+    {
+      "source": "block_1784748838417_9",
+      "sourceHandle": "Result",
+      "target": "block_1784749428998_10",
+      "targetHandle": "Signal",
+      "style": {
+        "stroke": "#e5a50a",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#e5a50a"
+      },
+      "id": "xy-edge__block_1784748838417_9Result-block_1784749428998_10Signal",
+      "selected": false
+    },
+    {
+      "source": "block_1784749428998_10",
+      "sourceHandle": "Spectrum",
+      "target": "block_1784749445816_c0y63vi",
+      "targetHandle": "Y",
+      "style": {
+        "stroke": "#e5a50a",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#e5a50a"
+      },
+      "id": "xy-edge__block_1784749428998_10Spectrum-block_1784749445816_c0y63viY",
+      "selected": false
+    },
+    {
+      "source": "block_1784749428998_10",
+      "sourceHandle": "Frequencies",
+      "target": "block_1784749445816_c0y63vi",
+      "targetHandle": "X",
+      "style": {
+        "stroke": "#e5a50a",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#e5a50a"
+      },
+      "id": "xy-edge__block_1784749428998_10Frequencies-block_1784749445816_c0y63viX",
+      "selected": false
+    },
+    {
+      "source": "block_1784748556279_0",
+      "sourceHandle": "Array",
+      "target": "block_1784749428998_10",
+      "targetHandle": "X",
+      "style": {
+        "stroke": "#e5a50a",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#e5a50a"
+      },
+      "id": "xy-edge__block_1784748556279_0Array-block_1784749428998_10X",
+      "selected": false
+    },
+    {
+      "id": "edge_1784749502512_l9qmdf",
+      "source": "block_1784749445816_c0y63vi",
+      "sourceHandle": "Out",
+      "target": "block_1784749443386_11",
+      "targetHandle": "Filter",
+      "style": {
+        "stroke": "#a78bfa",
+        "strokeWidth": 2,
+        "animated": true
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#a78bfa"
+      },
+      "type": "default"
+    },
+    {
+      "source": "block_1784748838417_9",
+      "sourceHandle": "Result",
+      "target": "block_1784749443386_11",
+      "targetHandle": "Signal",
+      "style": {
+        "stroke": "#e5a50a",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#e5a50a"
+      },
+      "id": "xy-edge__block_1784748838417_9Result-block_1784749443386_11Signal"
+    },
+    {
+      "source": "block_1784749443386_11",
+      "sourceHandle": "Out",
+      "target": "block_1784749498355_xozv4zp",
+      "targetHandle": "Plot",
+      "style": {
+        "stroke": "#a78bfa",
+        "strokeWidth": 2,
+        "animated": true
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#a78bfa"
+      },
+      "id": "xy-edge__block_1784749443386_11Out-block_1784749498355_xozv4zpPlot"
+    },
+    {
+      "source": "block_1784749443386_11",
+      "sourceHandle": "Filtered",
+      "target": "block_1784749498355_xozv4zp",
+      "targetHandle": "Y",
+      "style": {
+        "stroke": "#e5a50a",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#e5a50a"
+      },
+      "id": "xy-edge__block_1784749443386_11Filtered-block_1784749498355_xozv4zpY"
+    },
+    {
+      "source": "block_1784748556279_0",
+      "sourceHandle": "Array",
+      "target": "block_1784749498355_xozv4zp",
+      "targetHandle": "X",
+      "style": {
+        "stroke": "#e5a50a",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#e5a50a"
+      },
+      "id": "xy-edge__block_1784748556279_0Array-block_1784749498355_xozv4zpX"
+    },
+    {
+      "id": "edge_1784749534848_v3usgv",
+      "source": "block_1784749498355_xozv4zp",
+      "sourceHandle": "Out",
+      "target": "block_1784749430925_nxr3grq",
+      "targetHandle": "Analyze",
+      "style": {
+        "stroke": "#a78bfa",
+        "strokeWidth": 2,
+        "animated": true
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#a78bfa"
+      },
+      "type": "default"
+    },
+    {
+      "id": "edge_1784749539446_5r2qwg",
+      "source": "block_1784749430925_nxr3grq",
+      "sourceHandle": "Out",
+      "target": "block_1784749496232_o16c8un",
+      "targetHandle": "Plot",
+      "style": {
+        "stroke": "#a78bfa",
+        "strokeWidth": 2,
+        "animated": true
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#a78bfa"
+      },
+      "type": "default"
+    },
+    {
+      "source": "block_1784749430925_nxr3grq",
+      "sourceHandle": "Spectrum",
+      "target": "block_1784749496232_o16c8un",
+      "targetHandle": "Y",
+      "style": {
+        "stroke": "#e5a50a",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#e5a50a"
+      },
+      "id": "xy-edge__block_1784749430925_nxr3grqSpectrum-block_1784749496232_o16c8unY"
+    },
+    {
+      "source": "block_1784749430925_nxr3grq",
+      "sourceHandle": "Frequencies",
+      "target": "block_1784749496232_o16c8un",
+      "targetHandle": "X",
+      "style": {
+        "stroke": "#e5a50a",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#e5a50a"
+      },
+      "id": "xy-edge__block_1784749430925_nxr3grqFrequencies-block_1784749496232_o16c8unX"
+    },
+    {
+      "source": "block_1784748556279_0",
+      "sourceHandle": "Array",
+      "target": "block_1784749430925_nxr3grq",
+      "targetHandle": "X",
+      "style": {
+        "stroke": "#e5a50a",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#e5a50a"
+      },
+      "id": "xy-edge__block_1784748556279_0Array-block_1784749430925_nxr3grqX"
+    },
+    {
+      "source": "block_1784749443386_11",
+      "sourceHandle": "Filtered",
+      "target": "block_1784749430925_nxr3grq",
+      "targetHandle": "Signal",
+      "style": {
+        "stroke": "#e5a50a",
+        "strokeWidth": 1.5,
+        "animated": false
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#e5a50a"
+      },
+      "id": "xy-edge__block_1784749443386_11Filtered-block_1784749430925_nxr3grqSignal"
+    },
+    {
+      "source": "block_1784749428998_10",
+      "sourceHandle": "Out",
+      "target": "block_1784749445816_c0y63vi",
+      "targetHandle": "Plot",
+      "style": {
+        "stroke": "#a78bfa",
+        "strokeWidth": 2,
+        "animated": true
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "#a78bfa"
+      },
+      "id": "xy-edge__block_1784749428998_10Out-block_1784749445816_c0y63viPlot"
+    }
+  ],
+  "annotations": [],
+  "origin_uuid": "a15f7feb04b799d69f0ecadbc988fa3f91578e6d97eef6d871c299c97ce9069c"
+}

@@ -12,6 +12,7 @@
 
 import re
 import json
+from pathlib import Path
 from typing import List, Dict, Any, Optional
 
 from fastapi import APIRouter, HTTPException
@@ -251,9 +252,26 @@ async def publish_cluster(payload: PublishClusterPayload):
 
 
 def _find_cluster_file(type_name: str):
-    """Resolves a cluster type name to its definition file, searching global, workspace, and temp dirs."""
+    """Resolves a cluster type name to its definition file, searching built-in, global, workspace, and temp dirs."""
+    from comfylab.engine.registry import BLOCK_REGISTRY
+    cls = BLOCK_REGISTRY.get(type_name)
+    if cls and getattr(cls, "_cluster_file_path", None):
+        cls_path = Path(cls._cluster_file_path)
+        if cls_path.exists():
+            return cls_path
+
     slug = type_name.split("/")[-1] if "/" in type_name else type_name
     candidates = []
+    
+    # Built-in clusters
+    try:
+        import comfylab
+        core_clusters_dir = Path(comfylab.__file__).parent / "clusters"
+        if core_clusters_dir.exists():
+            candidates.append(core_clusters_dir / f"{slug}.cluster.json")
+    except Exception:
+        pass
+
     candidates.append(get_global_user_clusters_dir() / f"{slug}.cluster.json")
     ws = get_workspace_path()
     if ws:

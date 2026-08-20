@@ -115,6 +115,22 @@ def run_pyinstaller(script_dir):
         shutil.copytree(script_dir / "comfylab" / "devices", dest_devices_dir, ignore=copy_ignore_stage)
         print(f" -> Copied device driver source modules next to binary: {dest_devices_dir}")
 
+        # Copy comfylab/clusters next to the compiled binary
+        if (script_dir / "comfylab" / "clusters").exists():
+            dest_clusters_dir = dist_dir / "comfylab" / "clusters"
+            if dest_clusters_dir.exists():
+                shutil.rmtree(dest_clusters_dir)
+            shutil.copytree(script_dir / "comfylab" / "clusters", dest_clusters_dir, ignore=copy_ignore_stage)
+            print(f" -> Copied core cluster definitions next to binary: {dest_clusters_dir}")
+
+        # Copy comfylab/examples next to the compiled binary
+        if (script_dir / "comfylab" / "examples").exists():
+            dest_examples_dir = dist_dir / "comfylab" / "examples"
+            if dest_examples_dir.exists():
+                shutil.rmtree(dest_examples_dir)
+            shutil.copytree(script_dir / "comfylab" / "examples", dest_examples_dir, ignore=copy_ignore_stage)
+            print(f" -> Copied example blueprints next to binary: {dest_examples_dir}")
+
         if output_binary.exists():
             print(f"\n\033[1;32m[Build Finished] Standalone binary compiled: dist/standalone/{output_binary.name}\033[0m")
         else:
@@ -190,6 +206,22 @@ def run_staged_build(script_dir):
             if dest_devices.exists():
                 shutil.rmtree(dest_devices)
             shutil.copytree(staged_devices, dest_devices)
+
+        staged_clusters = stage_dir / "dist" / "standalone" / "comfylab" / "clusters"
+        dest_clusters = dest_dist_dir / "comfylab" / "clusters"
+        if staged_clusters.exists():
+            print(f" -> Copying core clusters folder back to: {dest_clusters}")
+            if dest_clusters.exists():
+                shutil.rmtree(dest_clusters)
+            shutil.copytree(staged_clusters, dest_clusters)
+
+        staged_examples = stage_dir / "dist" / "standalone" / "comfylab" / "examples"
+        dest_examples = dest_dist_dir / "comfylab" / "examples"
+        if staged_examples.exists():
+            print(f" -> Copying examples folder back to: {dest_examples}")
+            if dest_examples.exists():
+                shutil.rmtree(dest_examples)
+            shutil.copytree(staged_examples, dest_examples)
             
         print(f"\n\033[1;32m=========================================================\033[0m")
         print(f"\033[1;32m  Standalone Binary Compiled Successfully!\033[0m")

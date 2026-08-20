@@ -63,7 +63,7 @@ export const CreateClusterModal = ({
   const { t } = useTranslation();
   const [form, setForm] = useState({
     displayName: '',
-    category: 'User/Clusters',
+    category: 'Clusters',
     icon: '📦',
     description: '',
     destination: 'global' as 'global' | 'workspace'

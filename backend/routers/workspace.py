@@ -125,7 +125,12 @@ def get_examples_dir() -> Path:
     else:
         base_dir = Path(__file__).resolve().parent.parent.parent
     
-    examples_dir = base_dir / "examples"
+    # Check comfylab/examples first, fallback to examples
+    examples_dir = base_dir / "comfylab" / "examples"
+    if not examples_dir.exists():
+        fallback_dir = base_dir / "examples"
+        if fallback_dir.exists():
+            return fallback_dir
     examples_dir.mkdir(parents=True, exist_ok=True)
     return examples_dir
 

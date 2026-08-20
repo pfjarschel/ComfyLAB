@@ -10,7 +10,9 @@ added_files = [
     ('frontend/dist', 'frontend/dist'),
     ('backend/adjectives.txt', 'backend'),
     ('backend/nouns.txt', 'backend'),
-    ('examples', 'examples')
+    ('examples', 'examples'),
+    ('comfylab/examples', 'comfylab/examples'),
+    ('comfylab/clusters', 'comfylab/clusters')
 ]
 
 if os.path.exists('VERSION'):
@@ -26,6 +28,15 @@ for pkg in ['pyvisa_py', 'scipy', 'pandas', 'pyarrow', 'fastparquet', 'PIL', 'cv
 hidden_imports = [
     'pyvisa',
     'pyvisa_py',
+    'usb',
+    'usb.core',
+    'usb.backend',
+    'usb.backend.libusb1',
+    'usb.backend.libusb0',
+    'serial',
+    'serial.tools',
+    'serial.tools.list_ports',
+    'gpib_ctypes',
     'uvicorn',
     'fastapi',
     'websockets',
@@ -72,7 +83,7 @@ hidden_imports = [
 ]
 
 # Ensure all submodules for key data science/hardware packages are collected
-for pkg in ['scipy', 'pandas', 'pyvisa_py', 'uvicorn', 'PIL', 'pyarrow', 'fastparquet', 'cv2']:
+for pkg in ['scipy', 'pandas', 'pyvisa_py', 'usb', 'serial', 'gpib_ctypes', 'uvicorn', 'PIL', 'pyarrow', 'fastparquet', 'cv2']:
     try:
         hidden_imports += collect_submodules(pkg)
     except Exception:

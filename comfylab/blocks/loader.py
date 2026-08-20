@@ -144,6 +144,21 @@ def load_all_blocks():
 
 
 def load_all_clusters():
+    # 1. Load Built-in Core clusters (comfylab/clusters/)
+    try:
+        from comfylab.blocks.cluster import load_clusters_from_directory
+        if getattr(sys, 'frozen', False):
+            core_clusters_dir = Path(os.path.dirname(sys.executable)) / "comfylab" / "clusters"
+        else:
+            core_clusters_dir = Path(__file__).resolve().parent.parent / "clusters"
+        if core_clusters_dir.exists():
+            count = load_clusters_from_directory(str(core_clusters_dir))
+            if count > 0:
+                logger.info(f"Loaded {count} built-in clusters from {core_clusters_dir}.")
+    except Exception as e:
+        logger.error(f"Error loading built-in core clusters: {e}")
+
+    # 2. Load Global User clusters (~/.comfylab/user_clusters)
     try:
         from comfylab.engine.config import get_global_user_clusters_dir
         from comfylab.blocks.cluster import load_clusters_from_directory
@@ -154,6 +169,7 @@ def load_all_clusters():
     except Exception as e:
         logger.error(f"Error loading global user clusters: {e}")
 
+    # 3. Load Workspace clusters (<workspace>/clusters)
     try:
         from comfylab.blocks.cluster import load_clusters_from_directory
         from backend.workspace import get_workspace_path

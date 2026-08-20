@@ -373,7 +373,7 @@ def register_cluster_block(cluster_def: ClusterDefinitionModel, file_path: str =
     DynamicClusterBlock.__name__ = type_name.replace("/", "_").replace("-", "_")
     DynamicClusterBlock.__qualname__ = DynamicClusterBlock.__name__
 
-    _CLUSTER_TYPE_PREFIXES = ("user/cluster/", "workspace/cluster/")
+    _CLUSTER_TYPE_PREFIXES = ("user/cluster/", "workspace/cluster/", "builtin/cluster/", "cluster/", "clusters/")
     _BOUNDARY_TYPES = ("cluster/input", "cluster/output", "cluster/boundary/input", "cluster/boundary/output")
     missing_regular = []
     for bn in internal_blueprint.get("blocks", []):

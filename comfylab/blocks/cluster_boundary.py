@@ -18,6 +18,7 @@ from comfylab.blocks.base import BaseBlock, ExecIn, ExecOut, DataIn, DataOut, Ex
 @register_block("cluster/boundary/input")
 class ClusterInputBlock(BaseBlock):
     """Anchor block representing a cluster input pin inside its sub-graph."""
+    category = "Clusters/Boundary"
     icon = "📥"
     display_name = "Cluster Input"
     description = "Exposes a cluster input boundary pin. Connect this to blocks inside the cluster."
@@ -36,7 +37,7 @@ class ClusterInputBlock(BaseBlock):
         "pt-BR": {
             "display_name": "Entrada de Cluster",
             "description": "Expõe um pino de limite de entrada de cluster. Conecte isso a blocos dentro do cluster.",
-            "category": "Clusters",
+            "category": "Clusters/Boundary",
             "pins": {
                 "Name": "Nome",
                 "Type": "Tipo",
@@ -48,7 +49,7 @@ class ClusterInputBlock(BaseBlock):
         "es": {
             "display_name": "Entrada de Clúster",
             "description": "Expone un pin de límite de entrada de clúster. Conecte esto a bloques dentro del clúster.",
-            "category": "Clusters",
+            "category": "Clusters/Boundary",
             "pins": {
                 "Name": "Nombre",
                 "Type": "Tipo",
@@ -74,6 +75,7 @@ class ClusterInputBlock(BaseBlock):
 @register_block("cluster/boundary/output")
 class ClusterOutputBlock(BaseBlock):
     """Anchor block representing a cluster output pin inside its sub-graph."""
+    category = "Clusters/Boundary"
     icon = "📤"
     display_name = "Cluster Output"
     description = "Exposes a cluster output boundary pin. Connect blocks inside the cluster to this."
@@ -90,7 +92,7 @@ class ClusterOutputBlock(BaseBlock):
         "pt-BR": {
             "display_name": "Saída de Cluster",
             "description": "Expõe um pino de limite de saída de cluster. Conecte blocos dentro do cluster a isso.",
-            "category": "Clusters",
+            "category": "Clusters/Boundary",
             "pins": {
                 "Name": "Nome",
                 "Type": "Tipo",
@@ -101,7 +103,7 @@ class ClusterOutputBlock(BaseBlock):
         "es": {
             "display_name": "Salida de Clúster",
             "description": "Expone un pin de límite de salida de clúster. Conecte bloques dentro del clúster a esto.",
-            "category": "Clusters",
+            "category": "Clusters/Boundary",
             "pins": {
                 "Name": "Nombre",
                 "Type": "Tipo",
