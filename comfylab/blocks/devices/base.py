@@ -15,7 +15,15 @@ from comfylab.blocks.visa import visa_rm_wrapper, locked_device
 logger = logging.getLogger("comfylab.blocks.devices.base")
 
 
-class BaseDeviceConnectBlock(BaseBlock):
+class BaseDeviceBlock(BaseBlock):
+    """
+    Base class for manufacturer-specific hardware instrument blocks in ComfyLAB.
+    Sets is_device = True for dynamic library discovery and filtering.
+    """
+    is_device: bool = True
+
+
+class BaseDeviceConnectBlock(BaseDeviceBlock):
     """
     Base class for device connect blocks in ComfyLAB.
     Opens a VISA connection to the configured address, runs `_device_initialize`,
@@ -24,6 +32,7 @@ class BaseDeviceConnectBlock(BaseBlock):
     icon = "🔗"
     display_name = "Device Connect"
     description = "Opens a VISA connection with device-specific init/teardown hooks."
+    is_device: bool = True
 
     inputs_def = [
         ExecIn("Open"),

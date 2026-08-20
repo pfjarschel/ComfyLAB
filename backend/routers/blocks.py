@@ -51,6 +51,16 @@ async def reload_block_registry():
     await run_in_threadpool(reload_registry)
     return get_all_blocks_schema()
 
+
+@router.get("/blocks/visa/scan")
+async def scan_visa_devices(interface: Optional[str] = "USB, GPIB, TCPIP", timeout: Optional[float] = 0.5):
+    """
+    Scans available VISA resources and returns a list of responding instruments.
+    """
+    from comfylab.blocks.visa import discover_visa_devices
+    devices = await run_in_threadpool(discover_visa_devices, interface, timeout or 0.5)
+    return {"devices": devices, "count": len(devices)}
+
 # ----------------------------------------------------------------------------
 # BLOCK PUBLISHING
 # ----------------------------------------------------------------------------

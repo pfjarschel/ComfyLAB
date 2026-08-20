@@ -183,6 +183,9 @@ class BaseBlock:
     # Allows blocks to dictate frontend behaviors (e.g., {"suppress_value_msg": True})
     ui_behavior: Dict[str, Any] = {}
 
+    # Distinguishes manufacturer-specific hardware instruments from general blocks
+    is_device: bool = False
+
     def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
         self.id = block_id
         self.properties = properties or {}

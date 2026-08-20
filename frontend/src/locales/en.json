@@ -62,7 +62,11 @@
     "refresh": "Refresh block library",
     "hide": "Hide Block Library",
     "show": "Show Library",
-    "showTitle": "Show Block Library"
+    "showTitle": "Show Block Library",
+    "connectedOnly": "Connected",
+    "connectedOnlyTitle": "Filter to show only connected instruments in the lab",
+    "scanningVisa": "Scanning for connected instruments...",
+    "connectedCount": "{{count}} connected"
   },
   "inspector": {
     "title": "Block Inspector",

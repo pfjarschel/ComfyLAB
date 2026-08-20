@@ -61,7 +61,11 @@
     "refresh": "Atualizar biblioteca de blocos",
     "hide": "Ocultar Biblioteca",
     "show": "Exibir Biblioteca",
-    "showTitle": "Exibir Biblioteca de Blocos"
+    "showTitle": "Exibir Biblioteca de Blocos",
+    "connectedOnly": "Conectados",
+    "connectedOnlyTitle": "Filtrar para exibir apenas instrumentos conectados no laboratório",
+    "scanningVisa": "Buscando instrumentos conectados...",
+    "connectedCount": "{{count}} conectados"
   },
   "inspector": {
     "title": "Inspetor de Blocos",

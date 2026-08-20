@@ -6,8 +6,8 @@ from comfylab.engine.registry import get_all_blocks_schema
 def test_visa_blocks_registration():
     schema = get_all_blocks_schema()
     
-    # Assert they are present in the global registry
     assert "visa/core/resource_manager" in schema
+    assert "visa/core/find_device" in schema
     assert "visa/core/device" in schema
     assert "visa/core/write" in schema
     assert "visa/core/read" in schema
@@ -18,6 +18,11 @@ def test_visa_blocks_registration():
     assert rm_schema["category"] == "VISA/Core"
     assert len(rm_schema["dataOuts"]) == 1
     assert rm_schema["dataOuts"][0]["name"] == "Resources"
+    assert rm_schema["isDevice"] is False
+
+    fd_schema = schema["visa/core/find_device"]
+    assert fd_schema["name"] == "VISA Find Device"
+    assert fd_schema["isDevice"] is False
 
 @pytest.mark.asyncio
 async def test_visa_blocks_mock_execution():
@@ -371,3 +376,167 @@ async def test_pfj_osc_connect_chains_with_other_pfj_blocks():
         await engine._teardown_all()
         write_calls = [call[0][0] for call in mock_device.write.call_args_list]
         assert "stop" in write_calls
+
+
+def test_match_visa_device():
+    from comfylab.blocks.visa import match_visa_device
+
+    dev_keysight = {
+        "address": "USB0::0x0957::0x17A6::MY50340123::INSTR",
+        "idn": "KEYSIGHT TECHNOLOGIES,DSO-X 3024A,MY50340123,02.43.2018020600",
+        "vendor": "KEYSIGHT TECHNOLOGIES",
+        "model": "DSO-X 3024A"
+    }
+
+    # Empty query matches all
+    assert match_visa_device(dev_keysight, "") is True
+    assert match_visa_device(dev_keysight, "   ") is True
+
+    # Case-insensitive substring match
+    assert match_visa_device(dev_keysight, "keysight") is True
+    assert match_visa_device(dev_keysight, "DSO-X") is True
+    assert match_visa_device(dev_keysight, "3024A") is True
+    assert match_visa_device(dev_keysight, "Tektronix") is False
+
+    # Address matching
+    assert match_visa_device(dev_keysight, "0x0957") is True
+    assert match_visa_device(dev_keysight, "MY50340123") is True
+
+    # Comma-separated multi-token match (all tokens must match)
+    assert match_visa_device(dev_keysight, "Keysight, 3024") is True
+    assert match_visa_device(dev_keysight, "Keysight, Tektronix") is False
+
+    # Regex matching
+    assert match_visa_device(dev_keysight, r"DSO-?X\s*3024[A-Z]?") is True
+    assert match_visa_device(dev_keysight, r"^USB\d+::") is True
+
+
+def test_discover_visa_devices():
+    from comfylab.blocks.visa import discover_visa_devices, visa_rm_wrapper
+
+    with patch("comfylab.blocks.visa.pyvisa") as mock_pyvisa:
+        mock_rm = MagicMock()
+        mock_pyvisa.ResourceManager.return_value = mock_rm
+        visa_rm_wrapper._rm = None
+
+        mock_rm.list_resources.return_value = [
+            "USB0::0x0957::0x17A6::MY50340123::INSTR",
+            "GPIB0::24::INSTR",
+            "ASRL1::INSTR"
+        ]
+
+        dev_usb = MagicMock()
+        dev_usb.query.return_value = "KEYSIGHT TECHNOLOGIES,DSO-X 3024A,MY50340123,02.43"
+
+        dev_gpib = MagicMock()
+        dev_gpib.query.return_value = "KEITHLEY INSTRUMENTS INC.,MODEL 2400,1234567,C30"
+
+        dev_asrl = MagicMock()
+        dev_asrl.query.return_value = "GENERIC,SERIAL_DEV,111,1.0"
+
+        def open_side_effect(addr):
+            if addr.startswith("USB"): return dev_usb
+            if addr.startswith("GPIB"): return dev_gpib
+            if addr.startswith("ASRL"): return dev_asrl
+            raise ValueError(f"Unknown {addr}")
+
+        mock_rm.open_resource.side_effect = open_side_effect
+
+        # Default scan: USB, GPIB, TCPIP (safely excludes ASRL)
+        res_default = discover_visa_devices()
+        assert len(res_default) == 2
+        addresses = [d["address"] for d in res_default]
+        assert "USB0::0x0957::0x17A6::MY50340123::INSTR" in addresses
+        assert "GPIB0::24::INSTR" in addresses
+        assert "ASRL1::INSTR" not in addresses
+
+        # Scan including Serial
+        res_all = discover_visa_devices("All (incl. Serial)")
+        assert len(res_all) == 3
+
+        # USB only
+        res_usb = discover_visa_devices("USB")
+        assert len(res_usb) == 1
+        assert res_usb[0]["model"] == "DSO-X 3024A"
+
+
+@pytest.mark.asyncio
+async def test_visa_find_device_block_execution():
+    with patch("comfylab.blocks.visa.pyvisa") as mock_pyvisa:
+        mock_rm = MagicMock()
+        mock_pyvisa.ResourceManager.return_value = mock_rm
+
+        from comfylab.blocks.visa import visa_rm_wrapper
+        visa_rm_wrapper._rm = None
+
+        mock_rm.list_resources.return_value = [
+            "USB0::0x0957::0x17A6::MY50340123::INSTR",
+            "GPIB0::24::INSTR"
+        ]
+
+        dev_usb = MagicMock()
+        dev_usb.query.return_value = "KEYSIGHT TECHNOLOGIES,DSO-X 3024A,MY50340123,02.43"
+
+        dev_gpib = MagicMock()
+        dev_gpib.query.return_value = "KEITHLEY INSTRUMENTS INC.,MODEL 2400,1234567,C30"
+
+        def open_side_effect(addr, **kwargs):
+            if addr.startswith("USB"): return dev_usb
+            if addr.startswith("GPIB"): return dev_gpib
+            raise ValueError(f"Unknown {addr}")
+
+        mock_rm.open_resource.side_effect = open_side_effect
+
+        blueprint = {
+            "blocks": [
+                {"id": "find", "type": "visa/core/find_device", "properties": {
+                    "Query": "3024A"
+                }},
+                {"id": "connect", "type": "visa/core/device", "properties": {}},
+                {"id": "query", "type": "visa/core/query", "properties": {"Command": "*IDN?"}}
+            ],
+            "links": [
+                # find -> connect -> query
+                {"id": "l1", "type": "exec", "source_block": "find", "source_pin": "Out", "target_block": "connect", "target_pin": "Open"},
+                {"id": "l2", "type": "exec", "source_block": "connect", "source_pin": "Out", "target_block": "query", "target_pin": "In"},
+                # find Address output -> connect Address input
+                {"id": "l3", "type": "data", "source_block": "find", "source_pin": "Address", "target_block": "connect", "target_pin": "Address"},
+                # connect Device -> query Device
+                {"id": "l4", "type": "data", "source_block": "connect", "source_pin": "Device", "target_block": "query", "target_pin": "Device"}
+            ]
+        }
+
+        engine = ExecutionEngine()
+        engine.load_blueprint(blueprint)
+        await engine.run(start_block_id="find", start_pin_name="In")
+
+        find_block = engine.blocks["find"]
+        assert find_block._found is True
+        assert find_block._matched_address == "USB0::0x0957::0x17A6::MY50340123::INSTR"
+        assert "KEYSIGHT" in find_block._matched_idn
+        assert len(find_block._all_devices) == 2
+
+
+def test_visa_scan_api_endpoint():
+    from fastapi.testclient import TestClient
+    from backend.main import app
+    from comfylab.blocks.visa import visa_rm_wrapper
+
+    with patch("comfylab.blocks.visa.pyvisa") as mock_pyvisa:
+        mock_rm = MagicMock()
+        mock_pyvisa.ResourceManager.return_value = mock_rm
+        visa_rm_wrapper._rm = None
+
+        mock_rm.list_resources.return_value = ["GPIB0::24::INSTR"]
+        dev_mock = MagicMock()
+        dev_mock.query.return_value = "KEITHLEY INSTRUMENTS INC.,MODEL 2400,1234567,C30"
+        mock_rm.open_resource.return_value = dev_mock
+
+        client = TestClient(app)
+        response = client.get("/blocks/visa/scan")
+        assert response.status_code == 200
+        data = response.json()
+        assert "devices" in data
+        assert data["count"] == 1
+        assert data["devices"][0]["model"] == "MODEL 2400"
+

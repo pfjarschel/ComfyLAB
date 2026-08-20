@@ -296,6 +296,73 @@ function detectBoundaryPins(
   return { exec_ins, exec_outs, data_ins, data_outs };
 }
 
+// Helper to extract clean alphanumeric tokens from strings
+const extractSearchTokens = (text: string): string[] => {
+  if (!text) return [];
+  return text
+    .toLowerCase()
+    .split(/[^a-z0-9]+/g)
+    .filter(t => t.length >= 2);
+};
+
+const isBlockMatchingConnectedDevices = (nodeSchema: any, discoveredDevices: any[]): boolean => {
+  if (!discoveredDevices || discoveredDevices.length === 0) {
+    return false;
+  }
+
+  const blockText = [
+    nodeSchema.type || '',
+    nodeSchema.name || '',
+    nodeSchema.display_name || '',
+    nodeSchema.category || '',
+    nodeSchema.description || '',
+    ...(nodeSchema.dataIns || []).map((p: any) => (p.defaultVal !== undefined ? String(p.defaultVal) : ''))
+  ].join(' ').toLowerCase();
+
+  const blockTokens = extractSearchTokens(blockText);
+  if (blockTokens.length === 0) return false;
+
+  for (const dev of discoveredDevices) {
+    const devAddr = (dev.address || '').toLowerCase();
+    if (devAddr && blockText.includes(devAddr)) {
+      return true;
+    }
+
+    const modelTokens = extractSearchTokens(dev.model || dev.idn || '');
+    const vendorTokens = extractSearchTokens(dev.vendor || '');
+
+    const hasModelMatch = modelTokens.some(tok => {
+      if (tok.length < 3) return false;
+      return blockTokens.some(btok => btok.includes(tok) || tok.includes(btok));
+    });
+
+    const hasVendorMatch = vendorTokens.some(tok => {
+      if (tok.length < 3) return false;
+      return blockTokens.some(btok => btok.includes(tok) || tok.includes(btok));
+    });
+
+    if (hasModelMatch || (hasVendorMatch && modelTokens.length === 0)) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
+const pruneEmptyCategories = (tree: Record<string, SidebarCategoryNode>) => {
+  Object.keys(tree).forEach(key => {
+    const node = tree[key];
+    if (node.children) {
+      pruneEmptyCategories(node.children);
+    }
+    const hasChildren = Object.keys(node.children || {}).length > 0;
+    const hasDirect = (node.directNodes || []).length > 0;
+    if (!hasChildren && !hasDirect) {
+      delete tree[key];
+    }
+  });
+};
+
 function Flow() {
   const { t } = useTranslation();
   const [quickConnectMenu, setQuickConnectMenu] = useState<{
@@ -341,6 +408,9 @@ function Flow() {
   const [inspectorOpen, setInspectorOpen] = useState(false);
   const [inspectedBlockId, setInspectedBlockId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [connectedDevices, setConnectedDevices] = useState<any[]>([]);
+  const [isScanningVisa, setIsScanningVisa] = useState(false);
+  const [connectedOnly, setConnectedOnly] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuContainerRef = useRef<HTMLDivElement>(null);
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
@@ -683,6 +753,30 @@ function Flow() {
       setErrorMessage('Failed to load block templates from backend.');
     }
   }, []);
+
+  const scanConnectedDevices = useCallback(async () => {
+    setIsScanningVisa(true);
+    try {
+      const res = await axios.get(`${BACKEND_URL}/blocks/visa/scan`);
+      if (res.data && Array.isArray(res.data.devices)) {
+        setConnectedDevices(res.data.devices);
+      }
+    } catch (err) {
+      console.error('Failed to scan VISA devices:', err);
+    } finally {
+      setIsScanningVisa(false);
+    }
+  }, []);
+
+  const handleReloadRegistry = useCallback(async () => {
+    try {
+      const res = await axios.post(`${BACKEND_URL}/blocks/reload`);
+      setBlockRegistry(res.data);
+      scanConnectedDevices();
+    } catch (err) {
+      console.error('Failed to reload block registry:', err);
+    }
+  }, [scanConnectedDevices]);
 
   const fetchUnauthorizedNodes = useCallback(async () => {
     try {
@@ -3414,39 +3508,46 @@ return {
     );
   }
 
-
-
   // Group and filter categories into a recursive tree structure
   const filteredTree: Record<string, SidebarCategoryNode> = {};
 
   if (blockRegistry) {
     const query = searchQuery.toLowerCase().trim();
     Object.entries(blockRegistry).forEach(([type, nodeSchema]: [string, any]) => {
+      const isDevice = Boolean(nodeSchema?.isDevice);
+      const isConnected = isDevice && isBlockMatchingConnectedDevices({ type, ...nodeSchema }, connectedDevices);
+
+      // If connected-only filter is active and this is an un-connected device block, skip it!
+      if (connectedOnly && isDevice && !isConnected) {
+        return;
+      }
+
       const name = (getBlockTitle(nodeSchema) || nodeSchema.name || '').toLowerCase();
       const desc = (getBlockDescription(nodeSchema) || nodeSchema.description || '').toLowerCase();
       const catString = getBlockCategory(nodeSchema) || nodeSchema.category || 'Other';
-      
-      const parts = catString.split(/(?<!\\)\//).map(p => p.replace(/\\(\/)/g, '$1'));
+      const parts: string[] = (catString || '').split(/(?<!\\)\//).map((p: string) => p.replace(/\\(\/)/g, '$1'));
       
       const isMatch = !query || 
                       name.includes(query) || 
                       desc.includes(query) || 
-                      parts.some(p => p.toLowerCase().includes(query));
+                      parts.some((p: string) => p.toLowerCase().includes(query));
       
       if (!isMatch) return;
 
       let currentLevel = filteredTree;
-      parts.forEach((part, idx) => {
+      parts.forEach((part: string, idx: number) => {
         if (!currentLevel[part]) {
           currentLevel[part] = { directNodes: [], children: {} };
         }
         if (idx === parts.length - 1) {
-          currentLevel[part].directNodes.push({ type, ...nodeSchema });
+          currentLevel[part].directNodes.push({ type, ...nodeSchema, isDevice, isConnected });
         } else {
           currentLevel = currentLevel[part].children;
         }
       });
     });
+
+    pruneEmptyCategories(filteredTree);
   }
 
   if (authRequired) {
@@ -3459,15 +3560,6 @@ return {
       />
     );
   }
-
-  const handleReloadRegistry = async () => {
-    try {
-      const res = await axios.post(`${BACKEND_URL}/blocks/reload`);
-      setBlockRegistry(res.data);
-    } catch (err) {
-      console.error('Failed to reload block registry:', err);
-    }
-  };
 
   return (
     <RegistryContext.Provider value={blockRegistry}>
@@ -3703,6 +3795,18 @@ return {
             setSearchQuery={setSearchQuery}
             filteredTree={filteredTree}
             onReloadRegistry={handleReloadRegistry}
+            connectedOnly={connectedOnly}
+            setConnectedOnly={(val) => {
+              setConnectedOnly(prev => {
+                const nextVal = typeof val === 'function' ? val(prev) : val;
+                if (nextVal && connectedDevices.length === 0) {
+                  scanConnectedDevices();
+                }
+                return nextVal;
+              });
+            }}
+            isScanningVisa={isScanningVisa}
+            connectedCount={connectedDevices.length}
           />
 
           {/* --- CANVAS WRAPPER --- */}

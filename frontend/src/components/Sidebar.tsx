@@ -22,6 +22,8 @@ export interface SidebarNode {
   icon: string;
   description: string;
   i18n?: Record<string, any>;
+  isDevice?: boolean;
+  isConnected?: boolean;
 }
 
 export interface SidebarCategoryNode {
@@ -36,6 +38,10 @@ interface SidebarProps {
   setSearchQuery: (query: string) => void;
   filteredTree: Record<string, SidebarCategoryNode>;
   onReloadRegistry: () => void;
+  connectedOnly: boolean;
+  setConnectedOnly: (value: boolean | ((prev: boolean) => boolean)) => void;
+  isScanningVisa?: boolean;
+  connectedCount?: number;
 }
 
 interface CategoryTreeItemProps {
@@ -57,7 +63,6 @@ const CategoryTreeItem = ({
   expandedMap,
   toggleExpand,
 }: CategoryTreeItemProps) => {
-  const { t } = useTranslation();
   const isExpanded = searchQuery.trim() !== '' || expandedMap[path];
   const isTopLevel = level === 0;
   const isUserCat = isTopLevel && catName.toLowerCase() === 'user';
@@ -87,6 +92,7 @@ const CategoryTreeItem = ({
             {sortedDirectNodes.map((block) => {
               const title = getBlockTitle(block);
               const desc = getBlockDescription(block);
+              const isConnected = block.isConnected;
               return (
                 <div 
                   key={block.type} 
@@ -94,9 +100,26 @@ const CategoryTreeItem = ({
                   onDragStart={(e) => { e.dataTransfer.setData('application/reactflow', block.type); }} 
                   draggable
                   title={desc}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                 >
-                  <span style={{ fontSize: '0.95rem' }}>{block.icon || '⚙️'}</span> 
-                  <span>{title}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <span style={{ fontSize: '0.95rem', flexShrink: 0 }}>{block.icon || '⚙️'}</span> 
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{title}</span>
+                  </div>
+                  {isConnected && (
+                    <span 
+                      title="Connected in lab" 
+                      style={{
+                        width: '8px',
+                        height: '8px',
+                        borderRadius: '50%',
+                        backgroundColor: '#22c55e',
+                        boxShadow: '0 0 6px rgba(34, 197, 94, 0.7)',
+                        flexShrink: 0,
+                        marginLeft: '6px'
+                      }} 
+                    />
+                  )}
                 </div>
               );
             })}
@@ -128,6 +151,10 @@ export const Sidebar = ({
   setSearchQuery,
   filteredTree,
   onReloadRegistry,
+  connectedOnly,
+  setConnectedOnly,
+  isScanningVisa,
+  connectedCount,
 }: SidebarProps) => {
   const { t } = useTranslation();
   const [expandedMap, setExpandedMap] = useState<Record<string, boolean>>({});
@@ -168,22 +195,67 @@ export const Sidebar = ({
           </button>
         </div>
       </div>
-      <div className="sidebar-search-container">
-        <input
-          type="text"
-          placeholder={t('sidebar.search', 'Search blocks...')}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="sidebar-search-input"
-        />
-        {searchQuery && (
-          <button 
-            className="sidebar-search-clear"
-            onClick={() => setSearchQuery('')}
-            title={t('common.cancel', 'Clear search')}
+      <div className="sidebar-search-container" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+          <div style={{ position: 'relative', flex: 1 }}>
+            <input
+              type="text"
+              placeholder={t('sidebar.search', 'Search blocks...')}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="sidebar-search-input"
+              style={{ width: '100%', paddingRight: searchQuery ? '24px' : '8px' }}
+            />
+            {searchQuery && (
+              <button 
+                className="sidebar-search-clear"
+                onClick={() => setSearchQuery('')}
+                title={t('common.cancel', 'Clear search')}
+                style={{ position: 'absolute', right: '6px', top: '50%', transform: 'translateY(-50%)' }}
+              >
+                ✕
+              </button>
+            )}
+          </div>
+          <button
+            className={`button-secondary ${connectedOnly ? 'active' : ''}`}
+            onClick={() => setConnectedOnly(prev => !prev)}
+            title={t('sidebar.connectedOnlyTitle', 'Filter to show only connected instruments in the lab')}
+            style={{
+              height: '32px',
+              padding: '0 8px',
+              fontSize: '0.78rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              backgroundColor: connectedOnly ? 'rgba(34, 197, 94, 0.2)' : undefined,
+              borderColor: connectedOnly ? '#22c55e' : undefined,
+              color: connectedOnly ? '#4ade80' : undefined,
+              flexShrink: 0
+            }}
           >
-            ✕
+            <span style={{ fontSize: '0.9rem' }}>⚡</span>
+            <span>{t('sidebar.connectedOnly', 'Connected')}</span>
+            {typeof connectedCount === 'number' && connectedCount > 0 && (
+              <span style={{
+                backgroundColor: connectedOnly ? '#22c55e' : 'rgba(100, 116, 139, 0.3)',
+                color: connectedOnly ? '#0f172a' : '#94a3b8',
+                fontSize: '0.7rem',
+                fontWeight: 'bold',
+                padding: '1px 5px',
+                borderRadius: '10px',
+                marginLeft: '2px'
+              }}>
+                {connectedCount}
+              </span>
+            )}
           </button>
+        </div>
+        {isScanningVisa && (
+          <div style={{ fontSize: '0.75rem', color: '#60a5fa', display: 'flex', alignItems: 'center', gap: '6px', paddingLeft: '4px' }}>
+            <span style={{ display: 'inline-block', width: '10px', height: '10px', border: '2px solid rgba(96,165,250,0.3)', borderTopColor: '#60a5fa', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+            <span>{t('sidebar.scanningVisa', 'Scanning for connected instruments...')}</span>
+          </div>
         )}
       </div>
       <div className="sidebar-content">

@@ -300,10 +300,16 @@ def get_all_blocks_schema() -> Dict[str, Any]:
             "unauthorized": getattr(cls, "unauthorized", False),
             "creator_identity": getattr(cls, "creator_identity", ""),
             "broken": getattr(cls, "broken", False),
-            "broken_reason": getattr(cls, "broken_reason", ""),
             "defaultWidth": getattr(cls, "default_width", None),
             "defaultHeight": getattr(cls, "default_height", None),
-            "isPassthrough": getattr(cls, "is_passthrough", False)
+            "isPassthrough": getattr(cls, "is_passthrough", False),
+            "isDevice": bool(
+                getattr(cls, "is_device", False) or (
+                    getattr(cls, "__module__", "").startswith("comfylab.blocks.devices")
+                    and not getattr(cls, "__module__", "").startswith("comfylab.blocks.devices.generic")
+                    and not getattr(cls, "__module__", "").startswith("comfylab.blocks.devices.virtual")
+                )
+            )
         }
     _schema_cache = schema
     return schema
