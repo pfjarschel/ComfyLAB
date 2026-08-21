@@ -1,0 +1,76 @@
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV WINEPREFIX=/root/.wine
+ENV WINEARCH=win64
+ENV WINEDEBUG=-all
+
+# Install 32-bit & 64-bit Wine, Xvfb, curl, Node.js, and build utilities
+RUN dpkg --add-architecture i386 && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        wine64 \
+        wine32 \
+        wine \
+        winetricks \
+        xvfb \
+        cabextract \
+        curl \
+        wget \
+        ca-certificates \
+        zip \
+        unzip \
+        git && \
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Initialize Wine environment headlessly
+RUN xvfb-run -a wineboot --init && \
+    xvfb-run -a wineserver -w
+
+# Download and install official Windows Python 3.11 64-bit
+ENV PYTHON_VERSION=3.11.9
+RUN wget -q https://www.python.org/ftp/python/${PYTHON_VERSION}/python-${PYTHON_VERSION}-amd64.exe -O /tmp/python-installer.exe && \
+    xvfb-run -a wine /tmp/python-installer.exe /quiet InstallAllUsers=1 PrependPath=1 TargetDir=C:\\Python311 && \
+    rm -f /tmp/python-installer.exe && \
+    xvfb-run -a wineserver -w
+
+# Verify Wine Python installation
+RUN xvfb-run -a wine "C:\\Python311\\python.exe" --version
+
+# Upgrade pip, install wheel & PyInstaller
+RUN xvfb-run -a wine "C:\\Python311\\python.exe" -m pip install --no-cache-dir --upgrade pip setuptools wheel pyinstaller
+
+# Pre-install Windows binary wheels for ComfyLAB requirements so builds are fast
+RUN xvfb-run -a wine "C:\\Python311\\python.exe" -m pip install --no-cache-dir \
+    "pydantic>=2.0.0" \
+    "fastapi>=0.100.0" \
+    "uvicorn>=0.22.0" \
+    "python-multipart>=0.0.6" \
+    "websockets>=11.0" \
+    "httpx>=0.24.0" \
+    "cryptography>=41.0.0" \
+    "numpy>=1.20.0" \
+    "pyvisa>=1.13.0" \
+    "pyvisa-py>=0.7.0" \
+    "pyusb>=1.2.1" \
+    "pyserial>=3.5" \
+    "gpib-ctypes>=0.3.0" \
+    "zeroconf>=0.38.0" \
+    "psutil>=5.9.0" \
+    "scipy>=1.7.0" \
+    "pandas>=2.0.0" \
+    "pyarrow>=14.0.0" \
+    "fastparquet>=2023.10.0" \
+    "Pillow>=10.0.0" \
+    "nidaqmx>=0.6.5" \
+    "opencv-python>=4.5.0"
+
+WORKDIR /workspace
+
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
