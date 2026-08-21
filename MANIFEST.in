@@ -1,0 +1,15 @@
+include VERSION
+include LICENSE
+include README.md
+include requirements.txt
+recursive-include backend *.txt *.py
+recursive-include comfylab *.json *.py
+recursive-include frontend/dist *
+prune frontend/node_modules
+prune frontend/src
+prune frontend/public
+prune tests
+prune .pytest_cache
+prune build
+prune dist
+global-exclude *.py[cod] __pycache__ *.so *.dylib *.dll

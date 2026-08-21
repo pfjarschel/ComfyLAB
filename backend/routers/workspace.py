@@ -120,12 +120,24 @@ async def list_workspace_blueprints():
 
 def get_examples_dir() -> Path:
     """Returns the path to the built-in examples directory."""
-    if hasattr(sys, "_MEIPASS"):
-        base_dir = Path(getattr(sys, "_MEIPASS"))
-    else:
-        base_dir = Path(__file__).resolve().parent.parent.parent
+    if getattr(sys, 'frozen', False):
+        exe_examples = Path(sys.executable).parent / "comfylab" / "examples"
+        if exe_examples.exists():
+            return exe_examples
+        if hasattr(sys, "_MEIPASS"):
+            meipass_examples = Path(getattr(sys, "_MEIPASS")) / "comfylab" / "examples"
+            if meipass_examples.exists():
+                return meipass_examples
     
-    # Check comfylab/examples first, fallback to examples
+    try:
+        import comfylab
+        pkg_examples = Path(comfylab.__file__).resolve().parent / "examples"
+        if pkg_examples.exists():
+            return pkg_examples
+    except Exception:
+        pass
+
+    base_dir = Path(__file__).resolve().parent.parent.parent
     examples_dir = base_dir / "comfylab" / "examples"
     if not examples_dir.exists():
         fallback_dir = base_dir / "examples"

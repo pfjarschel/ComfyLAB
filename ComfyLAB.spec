@@ -10,10 +10,14 @@ added_files = [
     ('frontend/dist', 'frontend/dist'),
     ('backend/adjectives.txt', 'backend'),
     ('backend/nouns.txt', 'backend'),
-    ('examples', 'examples'),
-    ('comfylab/examples', 'comfylab/examples'),
-    ('comfylab/clusters', 'comfylab/clusters')
 ]
+
+for src_path, dst_path in [
+    ('comfylab/examples', 'comfylab/examples'),
+    ('comfylab/clusters', 'comfylab/clusters'),
+]:
+    if os.path.exists(src_path):
+        added_files.append((src_path, dst_path))
 
 if os.path.exists('VERSION'):
     added_files.append(('VERSION', '.'))

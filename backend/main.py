@@ -47,8 +47,16 @@ _WORD_DIR = Path(__file__).parent
 
 def _load_wordlist(filename):
     path = _WORD_DIR / filename
-    with open(path) as f:
-        return [line.strip() for line in f if line.strip()]
+    if path.exists():
+        with open(path, "r", encoding="utf-8") as f:
+            return [line.strip() for line in f if line.strip()]
+    try:
+        import importlib.resources as pkg_resources
+        content = pkg_resources.files("backend").joinpath(filename).read_text(encoding="utf-8")
+        return [line.strip() for line in content.splitlines() if line.strip()]
+    except Exception:
+        pass
+    return ["comfy", "lab"]
 
 # Generate adjective-noun remote access token
 def generate_server_token():
@@ -77,7 +85,7 @@ def is_test_environment() -> bool:
     )
 
 def get_frontend_dist_path() -> Path:
-    """Resolves the pre-compiled frontend assets directory across development, production, and frozen standalone modes."""
+    """Resolves the pre-compiled frontend assets directory across development, production, wheel, and frozen standalone modes."""
     if getattr(sys, 'frozen', False):
         meipass = getattr(sys, '_MEIPASS', None)
         if meipass:
@@ -93,7 +101,22 @@ def get_frontend_dist_path() -> Path:
     if source_dist.exists():
         return source_dist
 
+    try:
+        import importlib.resources as pkg_resources
+        for pkg_name in ("frontend", "comfylab"):
+            try:
+                pkg_dist = Path(str(pkg_resources.files(pkg_name).joinpath("dist" if pkg_name == "frontend" else "frontend/dist")))
+                if pkg_dist.exists():
+                    return pkg_dist
+            except Exception:
+                pass
+    except Exception:
+        pass
+
     cwd_dist = Path.cwd() / "frontend" / "dist"
+    if cwd_dist.exists():
+        return cwd_dist
+
     return source_dist
 
 def get_frontend_port() -> int:

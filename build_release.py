@@ -109,6 +109,8 @@ def assemble_release(script_dir):
     print(" -> Copying compiled web assets...")
     (release_dir / "frontend").mkdir(exist_ok=True)
     shutil.copytree(script_dir / "frontend" / "dist", release_dir / "frontend" / "dist")
+    if (script_dir / "frontend" / "__init__.py").exists():
+        shutil.copy2(script_dir / "frontend" / "__init__.py", release_dir / "frontend" / "__init__.py")
     
     # 4. Copy configurations, license, and entrypoint launchers
     print(" -> Copying wrappers and documentation...")
@@ -119,10 +121,11 @@ def assemble_release(script_dir):
     shutil.copy2(script_dir / "LICENSE", release_dir / "LICENSE")
     shutil.copy2(script_dir / "README.md", release_dir / "README.md")
     
-    if (script_dir / "examples").exists():
-        print(" -> Copying example blueprints...")
-        shutil.copytree(script_dir / "examples", release_dir / "examples", ignore=copy_ignore)
-
+    if (script_dir / "pyproject.toml").exists():
+        shutil.copy2(script_dir / "pyproject.toml", release_dir / "pyproject.toml")
+    if (script_dir / "MANIFEST.in").exists():
+        shutil.copy2(script_dir / "MANIFEST.in", release_dir / "MANIFEST.in")
+    
     if (script_dir / "VERSION").exists():
         shutil.copy2(script_dir / "VERSION", release_dir / "VERSION")
     
@@ -236,9 +239,19 @@ def run_staged_build(script_dir, version):
         except Exception:
             pass
 
+def build_wheel_package(script_dir):
+    print("\n[Build Wheel] Building Python wheel and sdist package (pip/PyPI)...")
+    try:
+        subprocess.run([sys.executable, "-m", "build", "--outdir", str(script_dir / "dist")], cwd=str(script_dir), check=True)
+        print("\033[1;32m[Success] Python wheel and sdist package built successfully in dist/\033[0m")
+    except Exception as e:
+        print(f"\033[1;31mError building wheel: {e}\033[0m")
+        print("Ensure 'build' is installed: pip install build")
+
 def main():
     parser = argparse.ArgumentParser(description="ComfyLAB Release Builder")
     parser.add_argument("--bump", choices=["major", "minor", "patch"], help="Auto-increment the version number before building")
+    parser.add_argument("--wheel", action="store_true", help="Build wheel and sdist distribution package using python -m build")
     args = parser.parse_args()
 
     script_dir = Path(__file__).parent.resolve()
@@ -260,5 +273,9 @@ def main():
         release_dir = assemble_release(script_dir)
         compress_release(script_dir, release_dir, version)
 
+    if args.wheel:
+        build_wheel_package(script_dir)
+
 if __name__ == "__main__":
     main()
+

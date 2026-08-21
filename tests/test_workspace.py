@@ -197,3 +197,21 @@ class TestScriptBlockWorkspaceIntegration:
             # Ensure workspace path is cleaned up from sys.path
             assert os.path.realpath(tmpdir) not in sys.path
             assert tmpdir not in sys.path
+
+
+class TestExamplesWorkspace:
+
+    def test_get_examples_dir_resolution(self):
+        from backend.routers.workspace import get_examples_dir
+        examples_dir = get_examples_dir()
+        assert examples_dir.exists()
+        assert examples_dir.is_dir()
+        assert "comfylab" in str(examples_dir) or "examples" in str(examples_dir)
+
+    @pytest.mark.asyncio
+    async def test_list_example_blueprints(self):
+        from backend.routers.workspace import list_example_blueprints
+        res = await list_example_blueprints()
+        assert "examples" in res
+        assert isinstance(res["examples"], list)
+        assert len(res["examples"]) > 0
