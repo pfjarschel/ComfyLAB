@@ -14,6 +14,7 @@ pyusb>=1.2.1
 pyserial>=3.5
 gpib-ctypes>=0.3.0
 zeroconf>=0.38.0
+psutil>=5.9.0
 scipy>=1.7.0
 pandas>=2.0.0
 pyarrow>=14.0.0

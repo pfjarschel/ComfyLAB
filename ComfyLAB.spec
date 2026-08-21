@@ -37,6 +37,8 @@ hidden_imports = [
     'serial.tools',
     'serial.tools.list_ports',
     'gpib_ctypes',
+    'zeroconf',
+    'psutil',
     'uvicorn',
     'fastapi',
     'websockets',
@@ -83,7 +85,7 @@ hidden_imports = [
 ]
 
 # Ensure all submodules for key data science/hardware packages are collected
-for pkg in ['scipy', 'pandas', 'pyvisa_py', 'usb', 'serial', 'gpib_ctypes', 'uvicorn', 'PIL', 'pyarrow', 'fastparquet', 'cv2']:
+for pkg in ['scipy', 'pandas', 'pyvisa_py', 'usb', 'serial', 'gpib_ctypes', 'zeroconf', 'psutil', 'uvicorn', 'PIL', 'pyarrow', 'fastparquet', 'cv2']:
     try:
         hidden_imports += collect_submodules(pkg)
     except Exception:
