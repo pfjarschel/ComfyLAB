@@ -1,6 +1,12 @@
 # ComfyLAB — Visual Lab Automation Environment
 
+[![PyPI version](https://img.shields.io/pypi/v/comfylab.svg)](https://pypi.org/project/comfylab/)
+[![Python versions](https://img.shields.io/pypi/pyversions/comfylab.svg)](https://pypi.org/project/comfylab/)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+
 ComfyLAB (**Comf**ortable **L**ab **A**utomation **B**locks) is a visual, block-based software platform for automating scientific and test & measurement laboratory experiments. It allows researchers, students, and engineers to connect instruments, run analysis code, and view live plots using an intuitive drag-and-drop workspace.
+
+> Developed and maintained by the **Electronics and Instrumentation team** from the **"Gleb Wataghin" Physics Institute (IFGW)** at the **University of Campinas (UNICAMP)**.
 
 ![ComfyLAB Main Interface](etc/landing_page.png)
 
@@ -22,6 +28,85 @@ ComfyLAB (**Comf**ortable **L**ab **A**utomation **B**locks) is a visual, block-
 
 ---
 
+## 🚀 Getting Started
+
+You can install and run ComfyLAB in multiple ways:
+
+### Option 1: Install from PyPI (Quickest & Recommended)
+
+Install ComfyLAB directly from PyPI via `pip`:
+
+```bash
+pip install comfylab
+```
+
+Then start the application from anywhere:
+
+```bash
+comfylab
+```
+*(or run via `python -m comfylab`)*
+
+ComfyLAB will launch the backend server and automatically open the application in your default web browser.
+
+---
+
+### Option 2: Pre-compiled Releases (Run-Ready)
+
+#### A. Standalone Single-File Binary (Zero-Dependency)
+1. Download `ComfyLAB.exe` (Windows) or `ComfyLAB` (Linux/macOS) from the **GitHub Releases** page.
+2. Launch the application:
+   * **Windows**: Double-click `ComfyLAB.exe`.
+   * **Linux / macOS**: Make it executable (`chmod +x ComfyLAB`) and run `./ComfyLAB` in a terminal.
+3. Automatically opens in your default browser at `http://localhost:8000`.
+
+#### B. Base Release Package (ZIP Archive)
+1. Download the release `.zip` package from the **GitHub Releases** page and extract it.
+2. Launch the application:
+   * **Windows**: Double-click `start.bat`.
+   * **Linux / macOS**: Run `bash start.sh` in terminal.
+3. The bootstrapper script automatically initializes a local virtual environment, verifies dependencies, starts the backend, and opens your browser.
+
+---
+
+### Option 3: Running from Source (Developer Mode)
+If you cloned the source code from GitHub:
+
+1. Ensure you have **Python 3.10+** and **Node.js (npm)** installed.
+2. Run the bootstrapper:
+   * **Linux / macOS**: `bash start.sh`
+   * **Windows**: Run `start.bat` in Command Prompt.
+3. The bootstrapper will:
+   * Initialize the local `.venv` environment and install Python requirements.
+   * Run `npm install` inside `frontend/` if needed.
+   * Launch the FastAPI backend (port `8000`) and the Vite dev server (port `5173`) concurrently with hot-reloading at `http://localhost:5173`.
+
+---
+
+### 🎛️ Command Line Options
+
+You can customize the startup configuration with command-line flags (supported across `comfylab`, `python -m comfylab`, `start.sh`, and `start.bat`):
+
+| Argument | Default | Description |
+| :--- | :--- | :--- |
+| `--host <ip>` | `0.0.0.0` | Binding address for the server (use `0.0.0.0` for lab network access). |
+| `--port <int>` | `8000` | Port for the FastAPI backend (and web UI in production mode). |
+| `--local` | *(disabled)* | Restrict server access to localhost only (`127.0.0.1`). |
+| `--lite` | *(disabled)* | Launch in Lite Mode (reduces visual effects/animations for lower-power hardware). |
+| `--dev` | *(disabled)* | Force Development Mode (runs Vite dev server and FastAPI concurrently with hot-reload). |
+| `--vite-port <int>` | `5173` | Port for the Vite dev server (development mode only). |
+
+**Examples:**
+```bash
+# Run locally with lite visual mode on custom port
+comfylab --local --port 8080 --lite
+
+# Run via python module runner
+python -m comfylab --host 0.0.0.0 --port 9000
+```
+
+---
+
 ## 🧩 Block Categories & Capabilities
 
 ComfyLAB provides a rich, modular ecosystem of blocks for building automation workflows:
@@ -30,9 +115,9 @@ ComfyLAB provides a rich, modular ecosystem of blocks for building automation wo
 - **Logic & Control Flow**: Boolean operations (AND, OR, NOT, XOR), comparisons, execution branches (If/Else), For/While loops, and sequential execution blocks.
 - **Data Structures & Arrays**: Lists, Dictionaries, and multi-dimensional NDArrays (reshaping, slicing, linear algebra, statistics, and array-to-image conversion).
 - **Signal Processing**: FFT & power spectral analysis, bandpass/lowpass/highpass filtering, detrending, windowing, and peak finding algorithms.
-- **File I/O & Storage**: Read and write CSV files, JSON data, and raw text files with automatic path resolution.
+- **File I/O & Storage**: Read and write CSV files, JSON data, Parquet, and raw text files with automatic path resolution.
 - **Visualization**: Interactive single and multi-trace line plots, scatter plots, and heatmaps/image viewers.
-- **Instruments & VISA**: Direct VISA SCPI command/query execution and built-in drivers for oscilloscopes and signal generators.
+- **Instruments & VISA**: Direct VISA SCPI command/query execution and built-in drivers for oscilloscopes, signal generators, DMMs, optical spectrum analyzers, and power supplies.
 - **Multi-Language Scripting**: Polyglot code execution blocks supporting 9 scripting languages (Python, Rust, JavaScript, TypeScript, Julia, R, Lua, Octave, Wolfram).
 - **Clusters**: Group complex sub-graphs into custom reusable cluster blocks with dynamic input/output boundaries.
 - **Utility & Timing**: Delays, timestamps, stopwatches, type conversion, console logging, and debugging inspectors.
@@ -42,7 +127,7 @@ ComfyLAB provides a rich, modular ecosystem of blocks for building automation wo
 ## 📸 Example Workflows
 
 | Experiment Automation Pipeline | Interactive Data Analysis & Plotting |
-| :---: | :---: |
+| :--- | :--- |
 | ![ComfyLAB Example Workflow 1](etc/example_1.png) | ![ComfyLAB Example Workflow 2](etc/example_2.png) |
 
 ---
@@ -85,83 +170,31 @@ graph TD
 
 ```
 ComfyLAB/  (root)
+├── pyproject.toml              # Modern PEP 517/518 packaging configuration (PyPI)
+├── MANIFEST.in                 # Source distribution inclusion/exclusion rules
 ├── LICENSE                     # Software license (GPLv3)
 ├── README.md                   # This document
 ├── requirements.txt            # Python package dependencies
 ├── VERSION                     # Application version tracking
 ├── start.sh                    # Linux/macOS venv bootstrapper
 ├── start.bat                   # Windows venv bootstrapper
-├── start.py                    # Cross-platform concurrent process coordinator
+├── start.py                    # Cross-platform startup launcher (delegates to comfylab.cli)
 ├── pyinstaller_entry.py        # PyInstaller application entry point
 ├── build_exe.py                # Builds the standalone single-file executable
-├── build_release.py            # Builds the full release ZIP package
+├── build_release.py            # Builds the release ZIP and PyPI wheel packages
 ├── ComfyLAB.spec               # PyInstaller spec (frozen core + external blocks)
 ├── backend/                    # FastAPI API routers & WebSockets server
-├── comfylab/                   # Core Python Engine
+├── comfylab/                   # Core Python Package & Execution Engine
+│   ├── __main__.py             # Entry point for `python -m comfylab`
+│   ├── cli.py                  # Unified CLI coordinator & argument handler
 │   ├── engine/                 # Models, executor, lock manager, registry, security, config
-│   └── blocks/                 # Block protocol (base), category modules (math, lists,
-│                               #   ndarrays, logic, strings, io, signal, plots, visa, ...),
-│                               #   scripting layers, cluster support, VISA instruments/
-├── frontend/                   # Vite + React + React Flow web UI
+│   ├── blocks/                 # Block protocol (base), category modules, scripts, VISA
+│   ├── clusters/               # Built-in cluster sub-graph definitions
+│   ├── devices/                # Extensible instrument driver modules
+│   └── examples/               # Built-in example experiment workflows (.json)
+├── frontend/                   # React + Vite + React Flow web UI
 └── tests/                      # Automated pytest integration & unit tests
 ```
-
----
-
-## 🚀 Getting Started
-
-You can run ComfyLAB either by downloading a pre-compiled release package or running directly from the source code.
-
-### Option A: Pre-compiled Releases (Run-Ready)
-For most users in the lab, this is the easiest way to run the software. It doesn't require compiling the React frontend or installing Node.js/Python manually.
-
-#### A1: Standalone Single-File Binary (Zero-Dependency, limited to bundled python packages)
-1. Download the pre-compiled `ComfyLAB.exe` (Windows) or `ComfyLAB` (Linux/macOS) binary from the **GitHub Releases** page.
-2. Launch the application:
-   * **Windows**: Double-click `ComfyLAB.exe`.
-   * **Linux / macOS**: Make it executable (`chmod +x ComfyLAB`) and run `./ComfyLAB` in a terminal.
-3. It will automatically start the server and open ComfyLAB in your default web browser at `http://localhost:8000`.
-
-#### A2: Base Release Package (ZIP Archive, more freedom, extensible)
-1. Download the latest release `.zip` package from the **GitHub Releases** page.
-2. Extract the archive onto your computer.
-3. Launch the application:
-   * **Windows**: Double-click `start.bat`.
-   * **Linux / macOS**: Open a terminal in the folder and run `bash start.sh`.
-4. The bootstrapper script will automatically:
-   * Set up an isolated Python virtual environment (`.venv`) locally in the directory.
-   * Verify and install all Python dependencies from `requirements.txt`.
-   * Start the backend and automatically open ComfyLAB in your default web browser at `http://localhost:8000`.
-   * Cleanly terminate all processes when you close the terminal or press `Ctrl+C`.
-
----
-
-### Option B: Running from Source (Developer Mode, most freedom, needs npm)
-If you cloned the source code from GitHub:
-
-1. Ensure you have **Python 3.8+** and **Node.js (npm)** installed on your machine.
-2. Open a terminal in the repository root (`src/`) and run the bootstrapper:
-   * **Linux / macOS**: `bash start.sh`
-   * **Windows**: Run `start.bat` in Command Prompt.
-3. The bootstrapper will:
-   * Verify/initialize the local `.venv` environment and pip install requirements.
-   * Detect that the pre-compiled frontend assets are missing and switch to **Development Mode**.
-   * Run `npm install` inside the `frontend/` directory to fetch Node packages if missing.
-   * Launch the FastAPI backend (port `8000`) and the Vite development server (port `5173`) concurrently.
-   * Automatically open the browser to the hot-reloading development UI at `http://localhost:5173`.
-
----
-
-### 🎛️ Command Line Arguments
-You can customize the startup configuration by passing arguments to `start.sh` or `start.bat`. These arguments are automatically forwarded to the underlying process coordinator:
-
-| Argument | Default | Description |
-| :--- | :--- | :--- |
-| `--port <int>` | `8000` | Port for the FastAPI backend (and the UI in production mode). |
-| `--vite-port <int>` | `5173` | Port for the Vite dev server (development mode only). |
-| `--local` | *(disabled)* | Restricts server access to localhost only (`127.0.0.1`). By default, ComfyLAB binds to `0.0.0.0` to allow remote network access from other computers on the lab network. |
-| `--dev` | *(disabled)* | Forces Development Mode (runs the Vite dev server and FastAPI backend concurrently), even if a pre-compiled `frontend/dist` directory exists. |
-| `--host <ip>` | `0.0.0.0` | Custom host binding address. |
 
 ---
 
@@ -169,37 +202,35 @@ You can customize the startup configuration by passing arguments to `start.sh` o
 
 ComfyLAB provides automated build scripts in the root directory to generate production distribution packages.
 
-### 1. Build Portable ZIP Package
-To compile the frontend React bundle, stage the required production files (excluding test code, Node modules, and Python caches), and create a `.zip` archive:
+### 1. Build Portable ZIP Release Package
+To compile the frontend and package a ready-to-run release `.zip`:
 ```bash
 python3 build_release.py
-```
-To automatically bump the version number before building:
-```bash
+# Optionally bump version before building:
 python3 build_release.py --bump [patch|minor|major]
 ```
-This generates `comfylab-release.zip` in the `dist/` directory.
-
-> **Note for cloud drives:** if the repository lives on a cloud/FUSE mount (e.g. pCloud, Dropbox), the build automatically stages everything to `~/.comfylab/release_stage` on your local disk — including the npm/vite frontend build — and only copies the finished `.zip` back to the repo. This avoids sync churn and npm flakiness on cloud filesystems.
 
 ### 2. Build Standalone Single-File Executable
-To compile and package the entire application (Python interpreter, FastAPI backend, core packages, and precompiled frontend UI assets) into a single, zero-dependency executable (`ComfyLAB` or `ComfyLAB.exe`):
+To compile the entire application into a single, zero-dependency executable (`ComfyLAB` or `ComfyLAB.exe`):
 ```bash
 python3 build_exe.py
-```
-Optionally bump version before building:
-```bash
+# Optionally bump version:
 python3 build_exe.py --bump [patch|minor|major]
 ```
-This installs `pyinstaller` if missing and generates the compiled standalone binary inside the `dist/standalone/` directory, alongside the external `comfylab/blocks` folder (which must stay next to the executable — keep them together when distributing).
 
 ---
 
 ## 🧪 Running the Verification Suite
-To execute all unit and integration tests (validating the execution state machine, VISA resource locking, scripting sandboxes, and safety teardown routines):
+To execute all unit and integration tests:
 ```bash
 python3 -m pytest tests/
 ```
+
+---
+
+## 🏛️ Development & Maintenance
+
+ComfyLAB is developed and maintained by the **Electronics and Instrumentation team** from the **"Gleb Wataghin" Physics Institute (IFGW)** at the **University of Campinas (UNICAMP)**, Brazil.
 
 ---
 
@@ -212,3 +243,4 @@ This project is licensed under the **GNU General Public License v3.0** - see the
 ## 🤖 AI Assistance Disclosure
 
 Portions of this codebase were developed with the assistance of AI coding tools. All design decisions, architecture, domain-specific logic, and final implementation choices were authored and reviewed by the project maintainer. AI tools were used as a productivity aid, in the same spirit as an IDE, a linter, or a documentation reference.
+
