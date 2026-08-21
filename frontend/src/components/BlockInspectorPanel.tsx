@@ -16,7 +16,7 @@ import { useContext, useState, useEffect } from 'react';
 import { RegistryContext } from '../context/RegistryContext';
 import { getPinColor } from './ActionBlock';
 import { useTranslation } from '../i18n';
-import { getBlockTitle, getBlockDescription, getBlockCategory, getPropertyLabel, getPinLabel } from '../utils/blockI18n';
+import { getBlockTitle, getBlockDescription, getBlockCategory, getPinLabel } from '../utils/blockI18n';
 
 interface PinSchema {
   name: string;

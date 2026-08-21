@@ -31,6 +31,8 @@ interface Annotation {
   cx?: number;
   cy?: number;
   r?: number;
+  rx?: number;
+  ry?: number;
   x1?: number;
   y1?: number;
   x2?: number;

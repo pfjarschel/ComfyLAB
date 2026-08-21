@@ -118,7 +118,6 @@ export const LoadWorkspaceModal = ({
                     }}
                     onClick={async (e) => {
                       e.stopPropagation();
-                      const type = bp.isPackage ? "package" : "blueprint";
                       if (await confirmAsync(`${t('modals.confirmDelete', 'Are you sure you want to delete')} ${bp.filename}?`)) {
                         onDeleteBlueprint(bp.filename, bp.isPackage);
                       }

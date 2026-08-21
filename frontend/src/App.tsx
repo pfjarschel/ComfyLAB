@@ -141,17 +141,6 @@ const BACKEND_URL = urls.http;
 const WS_BACKEND_URL = urls.ws;
 
 
-interface NodeSchema {
-  type: string;
-  name: string;
-  icon: string;
-  category: string;
-  description: string;
-  execIns: any[];
-  execOuts: any[];
-  dataIns: any[];
-  dataOuts: any[];
-}
 
 import type { SidebarCategoryNode } from './components/Sidebar';
 

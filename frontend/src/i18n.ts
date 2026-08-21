@@ -52,7 +52,12 @@ export const i18n = {
     }
     listeners.forEach((listener) => listener(lang));
   },
-  t(key: string, defaultVal?: string): string {
+  t(key: string, defaultValOrParams?: string | Record<string, any>, maybeParams?: Record<string, any>): string {
+    const defaultVal = typeof defaultValOrParams === 'string' ? defaultValOrParams : undefined;
+    const params = typeof defaultValOrParams === 'object' && defaultValOrParams !== null 
+      ? defaultValOrParams 
+      : maybeParams;
+
     const keys = key.split('.');
     let val: any = resources[currentLanguage];
     for (const k of keys) {
@@ -63,21 +68,35 @@ export const i18n = {
         break;
       }
     }
-    if (typeof val === 'string') return val;
+    let res = typeof val === 'string' ? val : undefined;
 
     // Fallback to English if current language missing key
-    let fallbackVal: any = resources['en'];
-    for (const k of keys) {
-      if (fallbackVal && typeof fallbackVal === 'object' && k in fallbackVal) {
-        fallbackVal = fallbackVal[k];
-      } else {
-        fallbackVal = undefined;
-        break;
+    if (res === undefined) {
+      let fallbackVal: any = resources['en'];
+      for (const k of keys) {
+        if (fallbackVal && typeof fallbackVal === 'object' && k in fallbackVal) {
+          fallbackVal = fallbackVal[k];
+        } else {
+          fallbackVal = undefined;
+          break;
+        }
+      }
+      if (typeof fallbackVal === 'string') {
+        res = fallbackVal;
       }
     }
-    if (typeof fallbackVal === 'string') return fallbackVal;
 
-    return defaultVal !== undefined ? defaultVal : key;
+    if (res === undefined) {
+      res = defaultVal !== undefined ? defaultVal : key;
+    }
+
+    if (params && typeof res === 'string') {
+      res = res.replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k) => {
+        return k in params && params[k] !== undefined ? String(params[k]) : `{{${k}}}`;
+      });
+    }
+
+    return res;
   },
   subscribe(listener: (lang: Language) => void) {
     listeners.add(listener);
@@ -97,7 +116,8 @@ export function useTranslation() {
   }, []);
 
   return {
-    t: (key: string, defaultVal?: string) => i18n.t(key, defaultVal),
+    t: (key: string, defaultValOrParams?: string | Record<string, any>, params?: Record<string, any>) =>
+      i18n.t(key, defaultValOrParams, params),
     i18n,
     currentLanguage: lang,
   };
