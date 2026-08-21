@@ -322,7 +322,8 @@ def register_cluster_block(cluster_def: ClusterDefinitionModel, file_path: str =
             return None
 
         async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
-            if pin_name in self._computed_outputs:
+            has_exec_in = bool(boundary.exec_ins)
+            if has_exec_in and pin_name in self._computed_outputs:
                 return self._computed_outputs[pin_name]
 
             for dout in boundary.data_outs:
@@ -344,11 +345,19 @@ def register_cluster_block(cluster_def: ClusterDefinitionModel, file_path: str =
                     block = self._sub_engine.blocks.get(mapped_block_id)
                     if block:
                         val = await block.pull_data(cluster_ctx, mapped_pin)
-                        self._computed_outputs[pin_name] = val
+                        if has_exec_in:
+                            self._computed_outputs[pin_name] = val
                         return val
                     return None
 
             return None
+
+        async def clear_data(self):
+            self._computed_outputs.clear()
+            if self._sub_engine:
+                for block in self._sub_engine.blocks.values():
+                    if hasattr(block, "clear_data"):
+                        await block.clear_data()
 
         def _ensure_sub_engine(self):
             if self._sub_engine is not None:

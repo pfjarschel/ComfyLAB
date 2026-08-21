@@ -3056,7 +3056,10 @@ return {
     const curLevelIndex = currentLevelIndexRef.current;
     const rootNodes = curLevelIndex === 0 ? blocks : (canvasStackRef.current[0]?.savedNodes || []);
     if (rootNodes.length === 0) return;
-    setSaveFilenameInput(currentBlueprintName || '');
+    const initialName = isExampleBlueprint
+      ? (currentBlueprintName || '').replace(/^\[Example\]\s*/, '')
+      : (currentBlueprintName || '');
+    setSaveFilenameInput(initialName);
     setSaveWorkspaceOpen(true);
   };
 
@@ -3064,6 +3067,11 @@ return {
     const curLevelIndex = currentLevelIndexRef.current;
     const rootNodes = curLevelIndex === 0 ? blocks : (canvasStackRef.current[0]?.savedNodes || []);
     if (!currentBlueprintName || rootNodes.length === 0) return;
+
+    if (isExampleBlueprint) {
+      triggerSaveToWorkspace();
+      return;
+    }
 
     if (curLevelIndex > 0) {
       await saveCurrentClusterEdits();
@@ -3118,6 +3126,7 @@ return {
         setErrorMessage(null);
         setSaveWorkspaceOpen(false);
         setCurrentBlueprintName(nameWithoutExt);
+        setIsExampleBlueprint(false);
         setIsDirty(false);
       }
     } catch (err: any) {
@@ -3479,7 +3488,7 @@ return {
           if (e.shiftKey) {
             triggerSaveToWorkspace();
           } else {
-            if (currentBlueprintName) {
+            if (currentBlueprintName && !isExampleBlueprint) {
               handleOverwriteToWorkspace();
             } else {
               triggerSaveToWorkspace();
@@ -3493,7 +3502,7 @@ return {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [handleUndo, handleRedo, handleCopy, handlePaste, handleDuplicate, triggerSaveToWorkspace, handleOverwriteToWorkspace, currentBlueprintName, closeContextMenu, commitActivePolyshape, canvasMode, setCanvasMode, editingTextId, setEditingTextId, drawTool, selectedAnnotationId, deleteSelectedAnnotation, isLocked]);
+  }, [handleUndo, handleRedo, handleCopy, handlePaste, handleDuplicate, triggerSaveToWorkspace, handleOverwriteToWorkspace, currentBlueprintName, isExampleBlueprint, closeContextMenu, commitActivePolyshape, canvasMode, setCanvasMode, editingTextId, setEditingTextId, drawTool, selectedAnnotationId, deleteSelectedAnnotation, isLocked]);
 
   if (loading) {
     return (
@@ -3610,7 +3619,7 @@ return {
             setMenuOpen(false);
             triggerSaveToWorkspace();
           }}
-          onOverwriteBlueprint={currentBlueprintName ? () => {
+          onOverwriteBlueprint={currentBlueprintName && !isExampleBlueprint ? () => {
             setMenuOpen(false);
             handleOverwriteToWorkspace();
           } : undefined}
