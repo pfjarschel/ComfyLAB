@@ -11,7 +11,7 @@ libc_path = ctypes.util.find_library("c") or "libc.so.6"
 
 @pytest.mark.asyncio
 async def test_library_loading():
-    klass = get_block_class(r"dll\/SO/load")
+    klass = get_block_class("external_libraries/dll/load")
     loader_block = klass("lib_loader", properties={"LibraryPath": lib_path})
     
     class MockContext:
@@ -32,7 +32,7 @@ async def test_library_loading():
 async def test_library_loading_empty_path():
     blueprint = {
         "blocks": [
-            {"id": "lib_loader", "type": r"dll\/SO/load", "properties": {"LibraryPath": ""}}
+            {"id": "lib_loader", "type": "external_libraries/dll/load", "properties": {"LibraryPath": ""}}
         ],
         "links": []
     }
@@ -48,7 +48,7 @@ async def test_library_loading_empty_path():
 async def test_library_loading_invalid_path():
     blueprint = {
         "blocks": [
-            {"id": "lib_loader", "type": r"dll\/SO/load", "properties": {"LibraryPath": "nonexistent_library.so"}}
+            {"id": "lib_loader", "type": "external_libraries/dll/load", "properties": {"LibraryPath": "nonexistent_library.so"}}
         ],
         "links": []
     }
@@ -64,10 +64,10 @@ async def test_library_loading_invalid_path():
 async def test_library_call_sqrt():
     blueprint = {
         "blocks": [
-            {"id": "lib_loader", "type": r"dll\/SO/load", "properties": {"LibraryPath": lib_path}},
+            {"id": "lib_loader", "type": "external_libraries/dll/load", "properties": {"LibraryPath": lib_path}},
             {
                 "id": "library_call",
-                "type": r"dll\/SO/call",
+                "type": "external_libraries/dll/call",
                 "properties": {
                     "FunctionName": "sqrt",
                     "ReturnType": "float64",
@@ -105,10 +105,10 @@ async def test_library_call_modf_pointer():
     # returns fractional part of x, writes integral part to iptr.
     blueprint = {
         "blocks": [
-            {"id": "lib_loader", "type": r"dll\/SO/load", "properties": {"LibraryPath": lib_path}},
+            {"id": "lib_loader", "type": "external_libraries/dll/load", "properties": {"LibraryPath": lib_path}},
             {
                 "id": "library_call",
-                "type": r"dll\/SO/call",
+                "type": "external_libraries/dll/call",
                 "properties": {
                     "FunctionName": "modf",
                     "ReturnType": "float64",
@@ -153,10 +153,10 @@ async def test_library_call_modf_pointer():
 async def test_library_call_invalid_function():
     blueprint = {
         "blocks": [
-            {"id": "lib_loader", "type": r"dll\/SO/load", "properties": {"LibraryPath": lib_path}},
+            {"id": "lib_loader", "type": "external_libraries/dll/load", "properties": {"LibraryPath": lib_path}},
             {
                 "id": "library_call",
-                "type": r"dll\/SO/call",
+                "type": "external_libraries/dll/call",
                 "properties": {
                     "FunctionName": "nonexistent_function_abc123",
                     "ReturnType": "void"
@@ -181,10 +181,10 @@ async def test_library_call_bounds_check():
     # Setup out_buffer with invalid size_arg <= 0
     blueprint = {
         "blocks": [
-            {"id": "lib_loader", "type": r"dll\/SO/load", "properties": {"LibraryPath": lib_path}},
+            {"id": "lib_loader", "type": "external_libraries/dll/load", "properties": {"LibraryPath": lib_path}},
             {
                 "id": "library_call",
-                "type": r"dll\/SO/call",
+                "type": "external_libraries/dll/call",
                 "properties": {
                     "FunctionName": "sqrt",
                     "ReturnType": "float64",
@@ -214,10 +214,10 @@ async def test_library_call_out_buffer_memset():
     # void* memset(void* s, int c, size_t n)
     blueprint = {
         "blocks": [
-            {"id": "lib_loader", "type": r"dll\/SO/load", "properties": {"LibraryPath": libc_path}},
+            {"id": "lib_loader", "type": "external_libraries/dll/load", "properties": {"LibraryPath": libc_path}},
             {
                 "id": "library_call",
-                "type": r"dll\/SO/call",
+                "type": "external_libraries/dll/call",
                 "properties": {
                     "FunctionName": "memset",
                     "ReturnType": "void", # we discard return value
@@ -251,10 +251,10 @@ async def test_library_call_inout_buffer_memset():
     # void* memset(void* s, int c, size_t n)
     blueprint = {
         "blocks": [
-            {"id": "lib_loader", "type": r"dll\/SO/load", "properties": {"LibraryPath": libc_path}},
+            {"id": "lib_loader", "type": "external_libraries/dll/load", "properties": {"LibraryPath": libc_path}},
             {
                 "id": "library_call",
-                "type": r"dll\/SO/call",
+                "type": "external_libraries/dll/call",
                 "properties": {
                     "FunctionName": "memset",
                     "ReturnType": "void",

@@ -1,11 +1,11 @@
 import pytest
 from unittest.mock import patch, AsyncMock
+from comfylab.blocks import external_com
 from comfylab.blocks.external_com import (
     COMOpenSessionBlock,
     COMInvokeMemberBlock,
     COMCloseSessionBlock,
-    COMControllerBlock,
-    _ACTIVE_COM_SESSIONS
+    COMControllerBlock
 )
 from comfylab.blocks.base import ExecutionContext
 from comfylab.engine.executor import ExecutionEngine
@@ -49,7 +49,7 @@ async def test_com_session_lifecycle():
 
     session_id = await open_block.pull_data(context, "Session")
     assert session_id is not None
-    assert session_id in _ACTIVE_COM_SESSIONS
+    assert session_id in external_com._ACTIVE_COM_SESSIONS
 
     # 2. Invoke Member
     call_block = COMInvokeMemberBlock("call_1", {
@@ -75,4 +75,4 @@ async def test_com_session_lifecycle():
 
     out_pin = await close_block.execute(context, "In")
     assert out_pin == "Out"
-    assert session_id not in _ACTIVE_COM_SESSIONS
+    assert session_id not in external_com._ACTIVE_COM_SESSIONS

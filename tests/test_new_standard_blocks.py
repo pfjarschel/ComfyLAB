@@ -293,7 +293,7 @@ async def test_table_view_block():
     # 4. Engine execution test
     blueprint = {
         "blocks": [
-            {"id": "tbl", "type": "outputs/basic/table", "properties": {"Data": [[10, 20], [30, 40]], "Headers": "ColA, ColB"}}
+            {"id": "tbl", "type": "outputs/basic/table_view", "properties": {"Data": [[10, 20], [30, 40]], "Headers": "ColA, ColB"}}
         ],
         "links": []
     }
