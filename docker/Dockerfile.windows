@@ -4,69 +4,78 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV WINEPREFIX=/root/.wine
 ENV WINEARCH=win64
 ENV WINEDEBUG=-all
+ENV PYTHON_VERSION=3.11.9
 
-# Install 32-bit & 64-bit Wine, Xvfb, curl, Node.js, and build utilities
+# Install dependencies and official WineHQ Stable (Wine 11.x)
 RUN dpkg --add-architecture i386 && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-        wine64 \
-        wine32 \
-        wine \
-        winetricks \
-        xvfb \
-        cabextract \
-        curl \
         wget \
         ca-certificates \
+        msitools \
+        curl \
         zip \
         unzip \
         git && \
-    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
-    apt-get install -y nodejs && \
+    mkdir -pm755 /etc/apt/keyrings && \
+    wget -q -O /etc/apt/keyrings/winehq-archive.key https://dl.winehq.org/wine-builds/winehq.key && \
+    wget -q -NP /etc/apt/sources.list.d/ https://dl.winehq.org/wine-builds/ubuntu/dists/jammy/winehq-jammy.sources && \
+    apt-get update && \
+    apt-get install -y --install-recommends winehq-stable && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Initialize Wine environment headlessly
-RUN xvfb-run -a wineboot --init && \
-    xvfb-run -a wineserver -w
+# Extract and install official Windows Python 3.11 directly into Wine prefix
+RUN mkdir -p /root/.wine/drive_c/Python311 && \
+    mkdir -p /tmp/pyinstall && \
+    cd /tmp/pyinstall && \
+    wget -q https://www.python.org/ftp/python/${PYTHON_VERSION}/amd64/core.msi && \
+    wget -q https://www.python.org/ftp/python/${PYTHON_VERSION}/amd64/lib.msi && \
+    wget -q https://www.python.org/ftp/python/${PYTHON_VERSION}/amd64/exe.msi && \
+    wget -q https://www.python.org/ftp/python/${PYTHON_VERSION}/amd64/dev.msi && \
+    wget -q https://www.python.org/ftp/python/${PYTHON_VERSION}/amd64/pip.msi && \
+    for f in *.msi; do msiextract "$f" -C /root/.wine/drive_c/Python311; done && \
+    rm -rf /tmp/pyinstall
 
-# Download and install official Windows Python 3.11 64-bit
-ENV PYTHON_VERSION=3.11.9
-RUN wget -q https://www.python.org/ftp/python/${PYTHON_VERSION}/python-${PYTHON_VERSION}-amd64.exe -O /tmp/python-installer.exe && \
-    xvfb-run -a wine /tmp/python-installer.exe /quiet InstallAllUsers=1 PrependPath=1 TargetDir=C:\\Python311 && \
-    rm -f /tmp/python-installer.exe && \
-    xvfb-run -a wineserver -w
+# Initialize Wine prefix and configure Windows 10 mode
+RUN wineboot --init && \
+    wineserver -w && \
+    wine reg add "HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion" /v CurrentVersion /t REG_SZ /d 10.0 /f && \
+    wine reg add "HKEY_LOCAL_MACHINE\\Software\\Microsoft\\Windows NT\\CurrentVersion" /v CurrentBuildNumber /t REG_SZ /d 19045 /f && \
+    wineserver -w
 
-# Verify Wine Python installation
-RUN xvfb-run -a wine "C:\\Python311\\python.exe" --version
+# Bootstrap pip
+RUN wget -q https://bootstrap.pypa.io/get-pip.py -O /tmp/get-pip.py && \
+    wine "C:\\Python311\\python.exe" /tmp/get-pip.py --no-warn-script-location && \
+    rm -f /tmp/get-pip.py && \
+    wineserver -w
 
-# Upgrade pip, install wheel & PyInstaller
-RUN xvfb-run -a wine "C:\\Python311\\python.exe" -m pip install --no-cache-dir --upgrade pip setuptools wheel pyinstaller
-
-# Pre-install Windows binary wheels for ComfyLAB requirements so builds are fast
-RUN xvfb-run -a wine "C:\\Python311\\python.exe" -m pip install --no-cache-dir \
-    "pydantic>=2.0.0" \
-    "fastapi>=0.100.0" \
-    "uvicorn>=0.22.0" \
-    "python-multipart>=0.0.6" \
-    "websockets>=11.0" \
-    "httpx>=0.24.0" \
-    "cryptography>=41.0.0" \
-    "numpy>=1.20.0" \
-    "pyvisa>=1.13.0" \
-    "pyvisa-py>=0.7.0" \
-    "pyusb>=1.2.1" \
-    "pyserial>=3.5" \
-    "gpib-ctypes>=0.3.0" \
-    "zeroconf>=0.38.0" \
-    "psutil>=5.9.0" \
-    "scipy>=1.7.0" \
-    "pandas>=2.0.0" \
-    "pyarrow>=14.0.0" \
-    "fastparquet>=2023.10.0" \
-    "Pillow>=10.0.0" \
-    "nidaqmx>=0.6.5" \
-    "opencv-python>=4.5.0"
+# Install PyInstaller and pre-install Windows binary wheels for ComfyLAB requirements
+RUN wine "C:\\Python311\\Scripts\\pip.exe" install --no-cache-dir --upgrade pip setuptools wheel pyinstaller && \
+    wine "C:\\Python311\\Scripts\\pip.exe" install --no-cache-dir \
+        "pydantic>=2.0.0" \
+        "fastapi>=0.100.0" \
+        "uvicorn>=0.22.0" \
+        "python-multipart>=0.0.6" \
+        "websockets>=11.0" \
+        "httpx>=0.24.0" \
+        "cryptography>=41.0.0" \
+        "numpy>=1.20.0" \
+        "pyvisa>=1.13.0" \
+        "pyvisa-py>=0.7.0" \
+        "pyusb>=1.2.1" \
+        "pyserial>=3.5" \
+        "gpib-ctypes>=0.3.0" \
+        "zeroconf>=0.38.0" \
+        "psutil>=5.9.0" \
+        "scipy>=1.7.0" \
+        "pandas>=2.0.0" \
+        "pyarrow>=14.0.0" \
+        "fastparquet>=2023.10.0" \
+        "Pillow>=10.0.0" \
+        "nidaqmx>=0.6.5" \
+        "opencv-python>=4.5.0" && \
+    wineserver -w
 
 WORKDIR /workspace
 

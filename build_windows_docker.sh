@@ -20,18 +20,50 @@ echo -e "\033[1;35m=========================================================\033
 
 # Build Docker image if not present or if requested
 if [[ "$1" == "--rebuild" ]] || ! docker image inspect "$IMAGE_NAME" &> /dev/null; then
-    echo "[Docker] Building builder image '$IMAGE_NAME' (this may take a few minutes on first run)..."
+    echo "[Docker] Building builder image '$IMAGE_NAME'..."
     docker build -t "$IMAGE_NAME" -f "$DOCKERFILE" "$SCRIPT_DIR"
     if [[ "$1" == "--rebuild" ]]; then
         shift
     fi
 fi
 
-echo "[Docker] Running Windows build inside Wine container..."
+# Create a fresh local staging directory in /tmp
+STAGE_DIR=$(mktemp -d /tmp/comfylab_win_XXXXXX)
+echo "[Stage] Staging project files to '$STAGE_DIR'..."
+
+# Copy source tree excluding heavy caches and previous build outputs (preserving frontend/dist)
+tar --exclude='node_modules' \
+    --exclude='.git' \
+    --exclude='__pycache__' \
+    --exclude='.pytest_cache' \
+    --exclude='.venv' \
+    --exclude='src/dist' \
+    --exclude='./src/dist' \
+    -cf - -C "$WORKSPACE_ROOT" . | tar -xf - -C "$STAGE_DIR"
+
+# Explicitly ensure frontend/dist is present in staging
+if [ -d "$SCRIPT_DIR/frontend/dist" ]; then
+    mkdir -p "$STAGE_DIR/src/frontend/dist"
+    cp -r "$SCRIPT_DIR/frontend/dist/"* "$STAGE_DIR/src/frontend/dist/"
+fi
+
+mkdir -p "$STAGE_DIR/src/dist"
+mkdir -p "$SCRIPT_DIR/dist"
+
+echo "[Docker] Running Windows PyInstaller compilation in Wine 11 container..."
 docker run --rm \
-    -v "$WORKSPACE_ROOT":/workspace \
+    -v "$STAGE_DIR":/workspace \
     -e HOST_UID="$(id -u)" \
     -e HOST_GID="$(id -g)" \
     "$IMAGE_NAME" "$@"
 
-echo -e "\n\033[1;32mDone! The Windows release package is in src/dist/\033[0m"
+# Copy the built Windows executable zip package back to the host src/dist
+echo "[Stage] Copying output release packages back to '$SCRIPT_DIR/dist'..."
+cp -u "$STAGE_DIR/src/dist/"*.zip "$SCRIPT_DIR/dist/" 2>/dev/null || cp "$STAGE_DIR/src/dist/"*.zip "$SCRIPT_DIR/dist/" 2>/dev/null || true
+
+# Clean up staging
+rm -rf "$STAGE_DIR" 2>/dev/null || docker run --rm -v /tmp:/tmp ubuntu:22.04 rm -rf "$STAGE_DIR"
+
+echo -e "\n\033[1;32m=========================================================\033[0m"
+echo -e "\033[1;32m  Done! The Windows release package is in src/dist/     \033[0m"
+echo -e "\033[1;32m=========================================================\033[0m"
