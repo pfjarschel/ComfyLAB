@@ -66,12 +66,18 @@ def register_block(type_name: str):
         # Security/Signature check
         try:
             abs_path = Path(inspect.getfile(cls)).resolve()
-            if getattr(sys, 'frozen', False):
-                ext_core_dir = Path(sys.executable).parent / "comfylab"
-                is_core = ext_core_dir.resolve() in abs_path.parents
-            else:
-                core_dir = Path(comfylab.__file__).parent.resolve()
-                is_core = core_dir in abs_path.parents or abs_path == core_dir
+            core_dir = Path(comfylab.__file__).parent.resolve()
+            is_core = (
+                type_name.startswith("builtin/cluster/")
+                or type_name.startswith("cluster/boundary/")
+                or core_dir in abs_path.parents
+                or abs_path == core_dir
+            )
+            if not is_core and getattr(sys, 'frozen', False):
+                ext_core_dir = (Path(sys.executable).parent / "comfylab").resolve()
+                meipass = getattr(sys, '_MEIPASS', None)
+                if ext_core_dir in abs_path.parents or (meipass and Path(meipass).resolve() in abs_path.parents):
+                    is_core = True
             if not hasattr(cls, "unauthorized"):
                 if not is_core:
                     is_test_env = any("pytest" in arg or "py.test" in arg for arg in sys.argv) or "pytest" in sys.modules

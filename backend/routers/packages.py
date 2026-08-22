@@ -16,6 +16,7 @@ import shutil
 import tempfile
 import logging
 import inspect
+import sys
 from pathlib import Path
 from typing import Dict, Any, List, Tuple
 from fastapi import APIRouter, HTTPException
@@ -115,7 +116,14 @@ def find_blueprint_dependencies(blueprint: dict) -> Tuple[List[Path], List[Path]
                 # Normal block: check if it's dynamic
                 try:
                     abs_path = Path(inspect.getfile(cls)).resolve()
-                    is_core = core_dir in abs_path.parents or abs_path == core_dir
+                    is_core = (
+                        core_dir in abs_path.parents
+                        or abs_path == core_dir
+                        or (getattr(sys, 'frozen', False) and (
+                            (Path(sys.executable).parent / "comfylab").resolve() in abs_path.parents
+                            or (getattr(sys, '_MEIPASS', None) and Path(getattr(sys, '_MEIPASS', None)).resolve() in abs_path.parents)
+                        ))
+                    )
                     if not is_core and abs_path.exists() and abs_path not in custom_block_files:
                         custom_block_files.add(abs_path)
                 except Exception:

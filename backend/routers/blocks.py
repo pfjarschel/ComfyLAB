@@ -269,6 +269,13 @@ def _find_cluster_file(type_name: str):
         core_clusters_dir = Path(comfylab.__file__).parent / "clusters"
         if core_clusters_dir.exists():
             candidates.append(core_clusters_dir / f"{slug}.cluster.json")
+        if getattr(sys, 'frozen', False):
+            frozen_core_dir = Path(sys.executable).parent / "comfylab" / "clusters"
+            if frozen_core_dir.exists():
+                candidates.append(frozen_core_dir / f"{slug}.cluster.json")
+            meipass_clusters = Path(getattr(sys, '_MEIPASS', '')) / "comfylab" / "clusters"
+            if meipass_clusters.exists():
+                candidates.append(meipass_clusters / f"{slug}.cluster.json")
     except Exception:
         pass
 

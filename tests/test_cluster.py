@@ -1,4 +1,5 @@
 import pytest
+from pathlib import Path
 from comfylab.engine.executor import ExecutionEngine
 from comfylab.blocks.cluster import register_cluster_block
 from comfylab.engine.models import ClusterDefinitionModel
@@ -253,4 +254,84 @@ async def test_cluster_boundary_blocks_exec_flow():
     assert cluster_block._sub_engine is not None
     assert cluster_block._sub_engine.blocks["cluster_trigger_cluster_d0_print_block"].last_printed == "Hello from boundary cluster"
     assert engine.blocks["print_done"].last_printed == "Cluster Executed"
+
+
+def test_builtin_clusters_registration_and_authorization():
+    """Verify that all core built-in clusters are recognized as system/authorized."""
+    from comfylab.blocks.loader import load_all_clusters
+    from comfylab.engine.registry import BLOCK_REGISTRY
+    import comfylab
+
+    load_all_clusters()
+
+    core_clusters_dir = Path(comfylab.__file__).parent / "clusters"
+    if core_clusters_dir.exists():
+        for cluster_file in core_clusters_dir.glob("*.cluster.json"):
+            import json
+            with open(cluster_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            type_name = data.get("type_name")
+            assert type_name in BLOCK_REGISTRY, f"Cluster {type_name} not found in BLOCK_REGISTRY"
+            cls = BLOCK_REGISTRY[type_name]
+            assert getattr(cls, "unauthorized", False) is False, f"Built-in cluster {type_name} marked as unauthorized"
+            assert getattr(cls, "creator_identity", "") == "system", f"Built-in cluster {type_name} has invalid creator identity"
+
+
+def test_builtin_clusters_frozen_mode_authorization(tmp_path, monkeypatch):
+    """Simulate frozen standalone PyInstaller execution and verify clusters remain authorized."""
+    import sys
+    import shutil
+    import comfylab
+    from comfylab.blocks.cluster import load_cluster_from_file
+    from comfylab.engine.registry import BLOCK_REGISTRY
+
+    exe_dir = tmp_path / "install"
+    exe_dir.mkdir()
+    clusters_dir = exe_dir / "comfylab" / "clusters"
+    clusters_dir.mkdir(parents=True)
+
+    core_clusters_dir = Path(comfylab.__file__).parent / "clusters"
+    test_cluster_file = next(core_clusters_dir.glob("*.cluster.json"))
+    shutil.copy(test_cluster_file, clusters_dir)
+
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+    monkeypatch.setattr(sys, "executable", str(exe_dir / "ComfyLAB"), raising=False)
+    monkeypatch.setattr(sys, "_MEIPASS", str(tmp_path / "_MEI12345"), raising=False)
+
+    dest_file = clusters_dir / test_cluster_file.name
+    cluster_def = load_cluster_from_file(str(dest_file))
+
+    cls = BLOCK_REGISTRY[cluster_def.type_name]
+    assert getattr(cls, "unauthorized", False) is False
+    assert getattr(cls, "creator_identity", "") == "system"
+
+    # Clean up
+    monkeypatch.undo()
+
+
+@pytest.mark.asyncio
+async def test_builtin_cluster_execution_in_blueprint():
+    """Verify that a blueprint using a built-in cluster loads and executes without authorization failure."""
+    from comfylab.blocks.loader import load_all_clusters
+    load_all_clusters()
+
+    parent_blueprint = {
+        "blocks": [
+            {"id": "c1", "type": "builtin/cluster/bode_export_dataset", "properties": {
+                "FilenamePrefix": "test_export",
+                "Frequencies": [10.0, 100.0],
+                "Gains_dB": [-3.0, -10.0],
+                "Vin_Vpp": [1.0, 1.0],
+                "Vout_Vpp": [0.7, 0.3]
+            }}
+        ],
+        "links": []
+    }
+
+    engine = ExecutionEngine()
+    engine.load_blueprint(parent_blueprint)
+    assert "c1" in engine.blocks
+    assert getattr(engine.blocks["c1"], "unauthorized", False) is False
+
+
 

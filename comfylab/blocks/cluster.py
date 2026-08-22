@@ -14,6 +14,7 @@ import asyncio
 import json
 import logging
 import os
+import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -428,9 +429,20 @@ def load_cluster_from_file(filepath: str):
         data = json.load(f)
         
     # Security/Signature check
-    core_dir = Path(comfylab.__file__).parent.resolve()
     abs_path = path.resolve()
-    is_core = core_dir in abs_path.parents or abs_path == core_dir
+    type_name = data.get("type_name", "")
+
+    # Core / Built-in determination
+    is_core = type_name.startswith("builtin/cluster/")
+    if not is_core:
+        core_dir = Path(comfylab.__file__).parent.resolve()
+        if core_dir in abs_path.parents or abs_path == core_dir:
+            is_core = True
+        elif getattr(sys, 'frozen', False):
+            ext_core_dir = (Path(sys.executable).parent / "comfylab").resolve()
+            meipass = getattr(sys, '_MEIPASS', None)
+            if ext_core_dir in abs_path.parents or (meipass and Path(meipass).resolve() in abs_path.parents):
+                is_core = True
 
     unauthorized = False
     creator = "system"
