@@ -24,6 +24,13 @@ import { NumericTextInput } from './common/NumericTextInput';
 import { TimePlotWidget } from './widgets/TimePlotWidget';
 import { XYPlotWidget } from './widgets/XYPlotWidget';
 import { HeatmapPlotWidget } from './widgets/HeatmapPlotWidget';
+import { HistogramPlotWidget } from './widgets/HistogramPlotWidget';
+import { DualYPlotWidget } from './widgets/DualYPlotWidget';
+import { PolarPlotWidget } from './widgets/PolarPlotWidget';
+import { BarPlotWidget } from './widgets/BarPlotWidget';
+import { BoxPlotWidget } from './widgets/BoxPlotWidget';
+import { Plot3DWidget } from './widgets/Plot3DWidget';
+import { WaterfallPlotWidget } from './widgets/WaterfallPlotWidget';
 import { DisplayScreenWidget } from './widgets/DisplayScreenWidget';
 import { ImageDisplayWidget } from './widgets/ImageDisplayWidget';
 import { ArrayDisplayWidget } from './widgets/ArrayDisplayWidget';
@@ -349,7 +356,21 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
       bodyHeight += 138;
     } else if (registryLayout?.ui_behavior?.custom_widget === 'display_area') {
       bodyHeight += 104;
-    } else if (registryLayout?.ui_behavior?.custom_widget === 'time_plot' || registryLayout?.ui_behavior?.custom_widget === 'xy_plot' || registryLayout?.ui_behavior?.custom_widget === 'heatmap_plot' || registryLayout?.ui_behavior?.custom_widget === 'image_display' || registryLayout?.ui_behavior?.custom_widget === 'array_display' || registryLayout?.ui_behavior?.custom_widget === 'table_view') {
+    } else if (
+      registryLayout?.ui_behavior?.custom_widget === 'time_plot' ||
+      registryLayout?.ui_behavior?.custom_widget === 'xy_plot' ||
+      registryLayout?.ui_behavior?.custom_widget === 'heatmap_plot' ||
+      registryLayout?.ui_behavior?.custom_widget === 'histogram_plot' ||
+      registryLayout?.ui_behavior?.custom_widget === 'dual_y_plot' ||
+      registryLayout?.ui_behavior?.custom_widget === 'polar_plot' ||
+      registryLayout?.ui_behavior?.custom_widget === 'bar_plot' ||
+      registryLayout?.ui_behavior?.custom_widget === 'box_plot' ||
+      registryLayout?.ui_behavior?.custom_widget === 'plot_3d' ||
+      registryLayout?.ui_behavior?.custom_widget === 'waterfall_plot' ||
+      registryLayout?.ui_behavior?.custom_widget === 'image_display' ||
+      registryLayout?.ui_behavior?.custom_widget === 'array_display' ||
+      registryLayout?.ui_behavior?.custom_widget === 'table_view'
+    ) {
       bodyHeight += 164;
     } else if (registryLayout?.ui_behavior?.custom_widget === 'calculator') {
       bodyHeight += 130;
@@ -377,7 +398,23 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
     }
 
     // Visual Override connection label rows (checks both showOptional and connected optional pins)
-    if (!registryLayout?.ui_behavior?.render_standard_inputs && (registryLayout?.ui_behavior?.custom_widget === 'display_area' || registryLayout?.ui_behavior?.custom_widget === 'time_plot' || registryLayout?.ui_behavior?.custom_widget === 'xy_plot' || registryLayout?.ui_behavior?.custom_widget === 'heatmap_plot' || registryLayout?.ui_behavior?.custom_widget === 'image_display' || registryLayout?.ui_behavior?.custom_widget === 'array_display' || registryLayout?.ui_behavior?.custom_widget === 'table_view' || registryLayout?.ui_behavior?.custom_widget === 'calculator')) {
+    if (!registryLayout?.ui_behavior?.render_standard_inputs && (
+      registryLayout?.ui_behavior?.custom_widget === 'display_area' ||
+      registryLayout?.ui_behavior?.custom_widget === 'time_plot' ||
+      registryLayout?.ui_behavior?.custom_widget === 'xy_plot' ||
+      registryLayout?.ui_behavior?.custom_widget === 'heatmap_plot' ||
+      registryLayout?.ui_behavior?.custom_widget === 'histogram_plot' ||
+      registryLayout?.ui_behavior?.custom_widget === 'dual_y_plot' ||
+      registryLayout?.ui_behavior?.custom_widget === 'polar_plot' ||
+      registryLayout?.ui_behavior?.custom_widget === 'bar_plot' ||
+      registryLayout?.ui_behavior?.custom_widget === 'box_plot' ||
+      registryLayout?.ui_behavior?.custom_widget === 'plot_3d' ||
+      registryLayout?.ui_behavior?.custom_widget === 'waterfall_plot' ||
+      registryLayout?.ui_behavior?.custom_widget === 'image_display' ||
+      registryLayout?.ui_behavior?.custom_widget === 'array_display' ||
+      registryLayout?.ui_behavior?.custom_widget === 'table_view' ||
+      registryLayout?.ui_behavior?.custom_widget === 'calculator'
+    )) {
       const visiblePins = (layout.dataIns || []).filter((pin: any) => !pin.optional || showOptional || edges.some(e => e.target === id && e.targetHandle === pin.name));
       bodyHeight += visiblePins.length * 32;
     }
@@ -395,7 +432,8 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
     return Math.max(execMinHeight, height + bodyHeight);
   };
 
-  const isXYPlot = data.action === 'outputs/plots/xy_plot';
+  const isPlot = data.action && (data.action.startsWith('outputs/plots/') || data.action === 'outputs/plots/plot');
+  const isXYPlot = isPlot;
   const calculatedMinHeight = calculateMinHeight();
 
   // Trigger React Flow's updateBlockInternals whenever the block's dimensions change
@@ -1443,6 +1481,62 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
           />
         )}
 
+        {registryLayout?.ui_behavior?.custom_widget === 'histogram_plot' && (
+          <HistogramPlotWidget 
+            blockId={id}
+            onChange={handlePlotLayoutChange} 
+            savedLayout={data.plot_layout} 
+          />
+        )}
+
+        {registryLayout?.ui_behavior?.custom_widget === 'dual_y_plot' && (
+          <DualYPlotWidget 
+            blockId={id}
+            onChange={handlePlotLayoutChange} 
+            savedLayout={data.plot_layout} 
+          />
+        )}
+
+        {registryLayout?.ui_behavior?.custom_widget === 'polar_plot' && (
+          <PolarPlotWidget 
+            blockId={id}
+            onChange={handlePlotLayoutChange} 
+            savedLayout={data.plot_layout} 
+          />
+        )}
+
+        {registryLayout?.ui_behavior?.custom_widget === 'bar_plot' && (
+          <BarPlotWidget 
+            blockId={id}
+            onChange={handlePlotLayoutChange} 
+            savedLayout={data.plot_layout} 
+          />
+        )}
+
+        {registryLayout?.ui_behavior?.custom_widget === 'box_plot' && (
+          <BoxPlotWidget 
+            blockId={id}
+            onChange={handlePlotLayoutChange} 
+            savedLayout={data.plot_layout} 
+          />
+        )}
+
+        {registryLayout?.ui_behavior?.custom_widget === 'plot_3d' && (
+          <Plot3DWidget 
+            blockId={id}
+            onChange={handlePlotLayoutChange} 
+            savedLayout={data.plot_layout} 
+          />
+        )}
+
+        {registryLayout?.ui_behavior?.custom_widget === 'waterfall_plot' && (
+          <WaterfallPlotWidget 
+            blockId={id}
+            onChange={handlePlotLayoutChange} 
+            savedLayout={data.plot_layout} 
+          />
+        )}
+
         {registryLayout?.ui_behavior?.custom_widget === 'image_display' && (
           <ImageDisplayWidget 
             blockId={id} 
@@ -1618,6 +1712,13 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
           'time_plot', 
           'xy_plot',
           'heatmap_plot',
+          'histogram_plot',
+          'dual_y_plot',
+          'polar_plot',
+          'bar_plot',
+          'box_plot',
+          'plot_3d',
+          'waterfall_plot',
           'calculator'
         ].includes(registryLayout?.ui_behavior?.custom_widget as string) && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
