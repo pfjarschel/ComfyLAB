@@ -64,7 +64,11 @@ interface TopBarProps {
   latestVersion?: string;
   updateInfo?: any;
   onCheckUpdate?: (force?: boolean) => Promise<any>;
+  dashboardOpen?: boolean;
+  onToggleDashboard?: () => void;
+  dashboardItemsCount?: number;
 }
+
 
 export const TopBar = ({
   menuOpen,
@@ -112,7 +116,11 @@ export const TopBar = ({
   latestVersion,
   updateInfo,
   onCheckUpdate,
+  dashboardOpen,
+  onToggleDashboard,
+  dashboardItemsCount = 0,
 }: TopBarProps) => {
+
   const [showAboutModal, setShowAboutModal] = useState(false);
   const [showQuickStartModal, setShowQuickStartModal] = useState(false);
   const { t, i18n } = useTranslation();
@@ -310,8 +318,46 @@ export const TopBar = ({
           </button>
         )}
 
+        {onToggleDashboard && (
+          <button
 
+            className={`button-secondary dashboard-toggle-btn ${dashboardOpen ? 'active' : ''}`}
+            onClick={onToggleDashboard}
+            style={{
+              height: '38px',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '0 12px',
+              background: dashboardOpen ? 'rgba(56, 189, 248, 0.2)' : undefined,
+              borderColor: dashboardOpen ? '#38bdf8' : undefined,
+              color: dashboardOpen ? '#38bdf8' : undefined,
+              fontWeight: 600,
+            }}
+            title={t('topbar.dashboardTitle', 'Toggle Blueprint Dashboard (D)')}
+          >
+            <span style={{ fontSize: '0.95rem' }}>📊</span>
+            <span>{t('topbar.dashboard', 'Dashboard')}</span>
+            {dashboardItemsCount > 0 && (
+              <span
+                style={{
+                  backgroundColor: dashboardOpen ? '#38bdf8' : 'rgba(100, 116, 139, 0.4)',
+                  color: dashboardOpen ? '#0f172a' : '#94a3b8',
+                  fontSize: '0.7rem',
+                  fontWeight: 'bold',
+                  padding: '1px 6px',
+                  borderRadius: '10px',
+                  marginLeft: '2px',
+                }}
+              >
+                {dashboardItemsCount}
+              </span>
+            )}
+          </button>
+        )}
       </div>
+
 
       {/* Right section: Theme and Title */}
       <div className="top-bar-right" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>

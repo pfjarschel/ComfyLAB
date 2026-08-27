@@ -55,7 +55,9 @@ interface CanvasContextMenuProps {
   onClearAllBlocksData: () => void;
   onReplaceBlock: (blockId: string, replacementAction: string) => void;
   onBlockDataChange: (id: string, key: string, value: any) => void;
+  onToggleDashboard?: (blockId: string) => void;
 }
+
 
 
 
@@ -92,7 +94,9 @@ export const CanvasContextMenu = ({
   onClearAllBlocksData,
   onReplaceBlock,
   onBlockDataChange,
+  onToggleDashboard,
 }: CanvasContextMenuProps) => {
+
   const { t } = useTranslation();
   const menuRef = useRef<HTMLDivElement>(null);
   const hasClamped = useRef(false);
@@ -277,6 +281,21 @@ export const CanvasContextMenu = ({
           <button className="context-menu-item" onClick={() => { onInspectBlock(contextMenu.targetId!); onClose(); }}>
             <span>ℹ️</span> {t('contextMenu.inspectBlock', 'Inspect Block')}
           </button>
+          {onToggleDashboard && (
+            <button
+              className="context-menu-item"
+              onClick={() => {
+                onToggleDashboard(contextMenu.targetId!);
+                onClose();
+              }}
+            >
+              <span>📊</span>{' '}
+              {blocks.find((n) => n.id === contextMenu.targetId)?.data?.inDashboard
+                ? t('dashboard.removeFromDashboard', 'Remove from Dashboard')
+                : t('dashboard.addToDashboard', 'Add to Dashboard')}
+            </button>
+          )}
+
           <button
             className="context-menu-item"
             onClick={() => {
@@ -346,8 +365,20 @@ export const CanvasContextMenu = ({
               <button className="context-menu-item" onClick={() => { onGroupIntoCluster(); onClose(); }}>
                 <span>📦</span> {t('contextMenu.groupCluster', 'Create Cluster from Selection')}
               </button>
+              {onToggleDashboard && (
+                <button
+                  className="context-menu-item"
+                  onClick={() => {
+                    selectedBlockIds.forEach((id) => onToggleDashboard(id));
+                    onClose();
+                  }}
+                >
+                  <span>📊</span> {t('dashboard.toggleSelectionDashboard', 'Toggle Dashboard for Selection')}
+                </button>
+              )}
             </>
           )}
+
           {(() => {
             const block = blocks.find(n => n.id === contextMenu.targetId);
             if (!block || !block.data?.action) return null;

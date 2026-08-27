@@ -79,8 +79,9 @@ const PlotlyBarRenderer = ({ blockId, width, height }: PlotlyBarRendererProps) =
         values: rawVals,
         categories: results?.categories || block?.data?.Categories,
         labels: results?.labels || block?.data?.Labels,
-        orientation: results?.orientation || (block?.data?.Orientation?.toLowerCase().startsWith('h') ? 'h' : 'v'),
-        barmode: (results?.barmode || block?.data?.BarMode || 'group').toLowerCase(),
+        orientation: results?.orientation || (String(block?.data?.Orientation || '').toLowerCase().startsWith('h') ? 'h' : 'v'),
+        barmode: String(results?.barmode || block?.data?.BarMode || 'group').toLowerCase(),
+
         x_label: results?.x_label || block?.data?.XLabel || 'Category',
         y_label: results?.y_label || block?.data?.YLabel || 'Value'
       });

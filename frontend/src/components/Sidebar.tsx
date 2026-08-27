@@ -42,7 +42,10 @@ interface SidebarProps {
   setConnectedOnly: (value: boolean | ((prev: boolean) => boolean)) => void;
   isScanningVisa?: boolean;
   connectedCount?: number;
+  width?: number;
+  onResizeHandleMouseDown?: (e: React.MouseEvent) => void;
 }
+
 
 interface CategoryTreeItemProps {
   catName: string;
@@ -155,6 +158,8 @@ export const Sidebar = ({
   setConnectedOnly,
   isScanningVisa,
   connectedCount,
+  width,
+  onResizeHandleMouseDown,
 }: SidebarProps) => {
   const { t } = useTranslation();
   const [expandedMap, setExpandedMap] = useState<Record<string, boolean>>({});
@@ -172,8 +177,19 @@ export const Sidebar = ({
   });
 
   return (
-    <div className="sidebar-container glass-panel nodrag nowheel">
+    <div 
+      className="sidebar-container glass-panel nodrag nowheel"
+      style={{ width: width ? `${width}px` : undefined }}
+    >
+      {onResizeHandleMouseDown && (
+        <div 
+          className="sidebar-resize-handle right-edge" 
+          onMouseDown={onResizeHandleMouseDown}
+          title="Drag to resize library"
+        />
+      )}
       <div className="sidebar-header">
+
         <h3>{t('sidebar.title', 'Block Library')}</h3>
         <div style={{ display: 'flex', gap: '6px' }}>
           <button

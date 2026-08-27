@@ -66,6 +66,9 @@ import { WhiteboardSidebar } from './components/widgets/WhiteboardSidebar';
 import { useWorkspaceHistory } from './hooks/useWorkspaceHistory';
 import { useWhiteboardState } from './hooks/useWhiteboardState';
 import { useFlowExecution } from './hooks/useFlowExecution';
+import { useResizable } from './hooks/useResizable';
+import { DashboardPanel } from './components/DashboardPanel';
+import type { DashboardItem } from './components/widgets/DashboardCard';
 
 interface Tab {
   id: string;
@@ -79,7 +82,9 @@ interface Tab {
   canvasStack: { breadcrumbLabel: string; type: string; savedNodes?: any[]; savedEdges?: any[]; savedAnnotations?: any[] }[];
   currentLevelIndex: number;
   viewport?: { x: number; y: number; zoom: number };
+  dashboard?: { items: DashboardItem[]; width?: number };
 }
+
 
 const blockTypes: any = {
   actionNode: ActionBlock,
@@ -397,7 +402,41 @@ function Flow() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [inspectorOpen, setInspectorOpen] = useState(false);
   const [inspectedBlockId, setInspectedBlockId] = useState<string | null>(null);
+
+  // Resizable sidebars & panels
+  const sidebarResizer = useResizable({
+    direction: 'left',
+    defaultWidth: 320,
+    minWidth: 250,
+    maxWidth: 700,
+    storageKey: 'comfylab_sidebar_width',
+  });
+
+  const inspectorResizer = useResizable({
+    direction: 'right',
+    defaultWidth: 320,
+    minWidth: 260,
+    maxWidth: 700,
+    storageKey: 'comfylab_inspector_width',
+  });
+
+  const dashboardResizer = useResizable({
+    direction: 'right',
+    defaultWidth: 440,
+    minWidth: 320,
+    maxWidth: 850,
+    storageKey: 'comfylab_dashboard_width',
+  });
+
+  // Dashboard state
+  const [dashboardOpen, setDashboardOpen] = useState(false);
+  const [dashboardMaximized, setDashboardMaximized] = useState(false);
+  const [dashboardItems, setDashboardItems] = useState<DashboardItem[]>([]);
+  const dashboardItemsRef = useRef<DashboardItem[]>([]);
+  dashboardItemsRef.current = dashboardItems;
+
   const [searchQuery, setSearchQuery] = useState('');
+
   const [connectedDevices, setConnectedDevices] = useState<any[]>([]);
   const [isScanningVisa, setIsScanningVisa] = useState(false);
   const [connectedOnly, setConnectedOnly] = useState(false);
@@ -1283,6 +1322,82 @@ function Flow() {
     setInspectorOpen(true);
   }, []);
 
+  // Toggle whole block in/out of dashboard
+  const toggleBlockDashboard = useCallback((blockId: string) => {
+    setDashboardItems((prev) => {
+      const exists = prev.some((i) => i.blockId === blockId && i.type === 'block');
+      if (exists) {
+        return prev.filter((i) => !(i.blockId === blockId && i.type === 'block'));
+      } else {
+        return [...prev, { id: `dash_${blockId}`, blockId, type: 'block', order: prev.length }];
+      }
+    });
+    setBlocks((prev) =>
+      prev.map((b) => {
+        if (b.id === blockId) {
+          return {
+            ...b,
+            data: {
+              ...b.data,
+              inDashboard: !b.data?.inDashboard,
+            },
+          };
+        }
+        return b;
+      })
+    );
+    setDashboardOpen(true);
+    setIsDirty(true);
+  }, [setBlocks, setIsDirty]);
+
+  // Toggle individual pin in/out of dashboard
+  const togglePinDashboard = useCallback((blockId: string, pinName: string) => {
+    setDashboardItems((prev) => {
+      const exists = prev.some((i) => i.blockId === blockId && i.type === 'pin' && i.pinName === pinName);
+      if (exists) {
+        return prev.filter((i) => !(i.blockId === blockId && i.type === 'pin' && i.pinName === pinName));
+      } else {
+        return [...prev, { id: `dash_${blockId}_${pinName}`, blockId, type: 'pin', pinName, order: prev.length }];
+      }
+    });
+    setBlocks((prev) =>
+      prev.map((b) => {
+        if (b.id === blockId) {
+          const currentPins: string[] = Array.isArray(b.data?.dashboardPins) ? [...b.data.dashboardPins] : [];
+          const exists = currentPins.includes(pinName);
+          const nextPins = exists ? currentPins.filter((p) => p !== pinName) : [...currentPins, pinName];
+          return {
+            ...b,
+            data: {
+              ...b.data,
+              dashboardPins: nextPins,
+            },
+          };
+        }
+        return b;
+      })
+    );
+    setDashboardOpen(true);
+    setIsDirty(true);
+  }, [setBlocks, setIsDirty]);
+
+  // Jump to block and center on canvas
+  const handleJumpToBlock = useCallback((blockId: string) => {
+    const node = blocksRef.current.find((b) => b.id === blockId);
+    if (!node) return;
+    if (reactFlowInstance) {
+      const nodeX = node.position.x + (node.width || 240) / 2;
+      const nodeY = node.position.y + (node.height || 140) / 2;
+      reactFlowInstance.setCenter(nodeX, nodeY, { zoom: 1.1, duration: 400 });
+    }
+    setBlocks((prev) =>
+      prev.map((b) => ({
+        ...b,
+        selected: b.id === blockId,
+      }))
+    );
+  }, [reactFlowInstance, setBlocks]);
+
   const pushStateToHistoryRef = useRef<() => void>(() => {});
 
   // Base block data factory
@@ -1296,9 +1411,12 @@ function Flow() {
     onEditLibrarySignature: onEditLibrarySignature,
     onNavigateInto: navigateToCluster,
     onInspect: handleInspectNode,
+    onToggleDashboard: toggleBlockDashboard,
+    onTogglePinDashboard: togglePinDashboard,
     onResizeStart: () => pushStateToHistoryRef.current(),
     onResizeEnd: () => setIsDirty(true),
-  }), [onBlockDataChange, onEditScript, onEditLibrarySignature, navigateToCluster, handleInspectNode, setIsDirty]);
+  }), [onBlockDataChange, onEditScript, onEditLibrarySignature, navigateToCluster, handleInspectNode, toggleBlockDashboard, togglePinDashboard, setIsDirty]);
+
 
   const {
     pushStateToHistory,
@@ -2048,13 +2166,20 @@ return {
         delete persistData.status;
         delete persistData.resultMessage;
         delete persistData.results;
+        delete persistData.onToggleDashboard;
+        delete persistData.onTogglePinDashboard;
         return { id, type, position, data: persistData, style, width, height };
       }),
       edges: rootEdges,
       annotations: rootAnnotations,
-      viewport: reactFlowInstance ? reactFlowInstance.getViewport() : viewport
+      viewport: reactFlowInstance ? reactFlowInstance.getViewport() : viewport,
+      dashboard: {
+        items: dashboardItemsRef.current,
+        width: dashboardResizer.width,
+      }
     };
-  }, [blocks, edges, annotations, reactFlowInstance, viewport]);
+  }, [blocks, edges, annotations, reactFlowInstance, viewport, dashboardResizer.width]);
+
 
   // Breadcrumb navigation: navigate to a specific level
   const handleBreadcrumbNavigate = useCallback(async (index: number) => {
@@ -2914,8 +3039,31 @@ return {
     } else {
       setShouldFitView(true);
     }
+
+    // Restore dashboard items
+    if (payload.dashboard && Array.isArray(payload.dashboard.items)) {
+      setDashboardItems(payload.dashboard.items);
+      if (payload.dashboard.width) {
+        dashboardResizer.setWidth(payload.dashboard.width);
+      }
+    } else {
+      const reconstructed: DashboardItem[] = [];
+      restoredNodes.forEach((node: any) => {
+        if (node.data?.inDashboard) {
+          reconstructed.push({ id: `dash_${node.id}`, blockId: node.id, type: 'block' });
+        }
+        if (Array.isArray(node.data?.dashboardPins)) {
+          node.data.dashboardPins.forEach((p: string) => {
+            reconstructed.push({ id: `dash_${node.id}_${p}`, blockId: node.id, type: 'pin', pinName: p });
+          });
+        }
+      });
+      setDashboardItems(reconstructed);
+    }
+
     fetchRegistry();
   };
+
 
   const handleBlueprintUpload = (file: File) => {
     const reader = new FileReader();
@@ -3188,7 +3336,11 @@ return {
           future: [...futureRef.current],
           canvasStack: canvasStackRef.current,
           currentLevelIndex: currentLevelIndexRef.current,
-          viewport: currentViewport
+          viewport: currentViewport,
+          dashboard: {
+            items: dashboardItemsRef.current,
+            width: dashboardResizer.width,
+          },
         };
       }
       return t;
@@ -3215,13 +3367,19 @@ return {
       
       setActiveTabId(targetTabId);
 
+      // Restore target tab dashboard
+      setDashboardItems(targetTab.dashboard?.items || []);
+      if (targetTab.dashboard?.width) {
+        dashboardResizer.setWidth(targetTab.dashboard.width);
+      }
+
       // 4. Restore target tab viewport
       if (reactFlowInstance) {
         const targetViewport = targetTab.viewport || { x: 50, y: 50, zoom: 0.9 };
         reactFlowInstance.setViewport(targetViewport, { duration: 0 });
       }
     }
-  }, [activeTabId, currentBlueprintName, isDirty, annotations, setAnnotations, reactFlowInstance, viewport]);
+  }, [activeTabId, currentBlueprintName, isDirty, annotations, setAnnotations, reactFlowInstance, viewport, dashboardResizer.width]);
 
   const addTab = useCallback(() => {
     // 1. Save current active tab state to tabs array first
@@ -3239,7 +3397,11 @@ return {
           future: [...futureRef.current],
           canvasStack: canvasStackRef.current,
           currentLevelIndex: currentLevelIndexRef.current,
-          viewport: currentViewport
+          viewport: currentViewport,
+          dashboard: {
+            items: dashboardItemsRef.current,
+            width: dashboardResizer.width,
+          },
         };
       }
       return t;
@@ -3259,7 +3421,8 @@ return {
       future: [],
       canvasStack: [{ breadcrumbLabel: 'Main', type: 'main' }],
       currentLevelIndex: 0,
-      viewport: defaultViewport
+      viewport: defaultViewport,
+      dashboard: { items: [], width: dashboardResizer.width },
     };
 
     const finalTabs = [...updatedTabs, newTab];
@@ -3270,6 +3433,8 @@ return {
     // Reset active states for the new tab
     setBlocks([]);
     setEdges([]);
+    setDashboardItems([]);
+
     setAnnotations([]);
     setCurrentBlueprintName('');
     setIsDirty(false);
@@ -3426,13 +3591,18 @@ return {
       const isInputFocused = activeElement && (
         activeElement.tagName === 'INPUT' ||
         activeElement.tagName === 'TEXTAREA' ||
-        activeElement.hasAttribute('contenteditable')
+        activeElement.hasAttribute('contenteditable') ||
+        activeElement.closest('.monaco-editor')
       );
       if (isInputFocused) return;
 
-      // Tool mode shortcuts (1: Select, 2: Pan, 3: Cut, 4: Draw)
+      // Tool mode shortcuts (1: Select, 2: Pan, 3: Cut, 4: Draw, d: Dashboard)
       if (!e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
-        if (e.key === '1') {
+        if (e.key === 'd' || e.key === 'D') {
+          e.preventDefault();
+          setDashboardOpen(prev => !prev);
+          return;
+        } else if (e.key === '1') {
           e.preventDefault();
           setCanvasMode('select');
         } else if (e.key === '2') {
@@ -3468,6 +3638,7 @@ return {
           
           const selectedBlockIds = new Set(selectedNodes.map(n => n.id));
           setBlocks(nds => nds.filter(n => !selectedBlockIds.has(n.id)));
+          setDashboardItems(prev => prev.filter(item => !selectedBlockIds.has(item.blockId)));
           setEdges(eds => eds.filter(edge => 
             !selectedEdges.some(se => se.id === edge.id) && 
             !selectedBlockIds.has(edge.source) && 
@@ -3476,6 +3647,7 @@ return {
           setSelectedBlockIds(new Set());
         }
       }
+
 
       const isCtrlOrMeta = e.ctrlKey || e.metaKey;
       if (isCtrlOrMeta) {
@@ -3787,7 +3959,11 @@ return {
               setPackageImportOpen(true);
             }
           }}
+          dashboardOpen={dashboardOpen}
+          onToggleDashboard={() => setDashboardOpen(prev => !prev)}
+          dashboardItemsCount={dashboardItems.length}
         />
+
 
         <input 
           id="blueprint-file-input" 
@@ -3837,7 +4013,10 @@ return {
             }}
             isScanningVisa={isScanningVisa}
             connectedCount={connectedDevices.length}
+            width={sidebarResizer.width}
+            onResizeHandleMouseDown={sidebarResizer.handleProps.onMouseDown}
           />
+
 
           {/* --- CANVAS WRAPPER --- */}
           <div className="flow-wrapper" ref={reactFlowWrapper} style={{ position: 'relative' }} onMouseDown={handleWrapperMouseDown}>
@@ -4166,7 +4345,9 @@ return {
               onClearAllBlocksData={handleClearAllBlocksData}
               onReplaceBlock={handleReplaceBlock}
               onBlockDataChange={onBlockDataChange}
+              onToggleDashboard={toggleBlockDashboard}
             />
+
 
           {quickConnectMenu?.show && (
             <div
@@ -4292,9 +4473,68 @@ return {
                 }}
                 onBlockDataChange={onBlockDataChange}
                 onReloadRegistry={handleReloadRegistry}
+                width={inspectorResizer.width}
+                onResizeHandleMouseDown={inspectorResizer.handleProps.onMouseDown}
+                onToggleDashboard={toggleBlockDashboard}
+                onTogglePinDashboard={togglePinDashboard}
+                isBlockInDashboard={dashboardItems.some((i) => i.blockId === inspectedBlockId && i.type === 'block')}
+                dashboardPins={dashboardItems.filter((i) => i.blockId === inspectedBlockId && i.type === 'pin').map((i) => i.pinName!).filter(Boolean)}
               />
             )}
-        </div>
+
+            {/* --- BLUEPRINT DASHBOARD PANEL --- */}
+            {dashboardOpen && canvasMode !== 'draw' && !activeScriptBlock && (
+              <DashboardPanel
+                isOpen={true}
+                onClose={() => setDashboardOpen(false)}
+                isMaximized={dashboardMaximized}
+                setIsMaximized={setDashboardMaximized}
+                items={dashboardItems}
+                blocks={blocks}
+                blockRegistry={blockRegistry}
+                onJumpToBlock={handleJumpToBlock}
+                onRemoveItem={(itemId) => {
+                  setDashboardItems((prev) => {
+                    const target = prev.find((i) => i.id === itemId);
+                    if (target) {
+                      if (target.type === 'block') {
+                        onBlockDataChange(target.blockId, 'inDashboard', false);
+                      } else if (target.type === 'pin' && target.pinName) {
+                        const block = blocksRef.current.find((b) => b.id === target.blockId);
+                        const currentPins = Array.isArray(block?.data?.dashboardPins) ? block.data.dashboardPins : [];
+                        onBlockDataChange(target.blockId, 'dashboardPins', currentPins.filter((p: string) => p !== target.pinName));
+                      }
+                    }
+                    return prev.filter((i) => i.id !== itemId);
+                  });
+                  setIsDirty(true);
+                }}
+                onReorderItems={(newItems) => {
+                  setDashboardItems(newItems);
+                  setIsDirty(true);
+                }}
+                onClearAll={async () => {
+                  if (await confirmAsync(t('dashboard.confirmClear', 'Are you sure you want to remove all items from the dashboard?'))) {
+                    dashboardItems.forEach((item) => {
+                      if (item.type === 'block') {
+                        onBlockDataChange(item.blockId, 'inDashboard', false);
+                      } else if (item.type === 'pin' && item.pinName) {
+                        const block = blocksRef.current.find((b) => b.id === item.blockId);
+                        const currentPins = Array.isArray(block?.data?.dashboardPins) ? block.data.dashboardPins : [];
+                        onBlockDataChange(item.blockId, 'dashboardPins', currentPins.filter((p: string) => p !== item.pinName));
+                      }
+                    });
+                    setDashboardItems([]);
+                    setIsDirty(true);
+                  }
+                }}
+                onBlockDataChange={onBlockDataChange}
+                width={dashboardResizer.width}
+                onResizeHandleMouseDown={dashboardResizer.handleProps.onMouseDown}
+              />
+            )}
+          </div>
+
         {/* --- GLOBAL SCRIPT EDITOR PANEL --- */}
         {activeScriptBlock && (
           <ScriptEditorPanel

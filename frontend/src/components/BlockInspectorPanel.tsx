@@ -49,6 +49,12 @@ interface BlockInspectorPanelProps {
   onClose: () => void;
   onBlockDataChange: (id: string, key: string, value: any) => void;
   onReloadRegistry?: () => void;
+  width?: number;
+  onResizeHandleMouseDown?: (e: React.MouseEvent) => void;
+  onToggleDashboard?: (blockId: string) => void;
+  onTogglePinDashboard?: (blockId: string, pinName: string) => void;
+  isBlockInDashboard?: boolean;
+  dashboardPins?: string[];
 }
 
 export const BlockInspectorPanel = ({
@@ -59,7 +65,14 @@ export const BlockInspectorPanel = ({
   onClose,
   onBlockDataChange,
   onReloadRegistry,
+  width,
+  onResizeHandleMouseDown,
+  onToggleDashboard,
+  onTogglePinDashboard,
+  isBlockInDashboard,
+  dashboardPins = [],
 }: BlockInspectorPanelProps) => {
+
   const { t } = useTranslation();
   const blockRegistry = useContext(RegistryContext) as Record<string, any> | null;
   const [isCopyingPath, setIsCopyingPath] = useState(false);
@@ -211,6 +224,7 @@ export const BlockInspectorPanel = ({
     <div
       className="sidebar-container right-sidebar glass-panel nodrag nowheel animate-slide-in-right"
       style={{
+        width: width ? `${width}px` : undefined,
         zIndex: 5,
         pointerEvents: 'auto',
         borderLeft: '1px solid var(--block-border)',
@@ -220,9 +234,16 @@ export const BlockInspectorPanel = ({
       }}
       onMouseDown={(e) => e.stopPropagation()}
     >
+      {onResizeHandleMouseDown && (
+        <div
+          className="sidebar-resize-handle left-edge"
+          onMouseDown={onResizeHandleMouseDown}
+          title="Drag to resize inspector"
+        />
+      )}
       {/* HEADER */}
       <div className="sidebar-header" style={{ padding: '16px 20px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '85%' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: 0 }}>
           <div
             className="block-icon"
             style={{
@@ -270,26 +291,39 @@ export const BlockInspectorPanel = ({
             </span>
           </div>
         </div>
-        <button
-          className="sidebar-close-btn"
-          onClick={onClose}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: '#94a3b8',
-            cursor: 'pointer',
-            fontSize: '1rem',
-            padding: '4px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'color 0.15s ease',
-          }}
-          title="Close Inspector (Esc)"
-        >
-          ✕
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+          {onToggleDashboard && (
+            <button
+              className={`block-dashboard-btn ${isBlockInDashboard ? 'active' : ''}`}
+              onClick={() => onToggleDashboard(blockId)}
+              title={isBlockInDashboard ? t('dashboard.removeFromDashboard', 'Remove from Dashboard') : t('dashboard.addToDashboard', 'Add block to Dashboard')}
+              style={{ fontSize: '0.85rem', padding: '3px 6px' }}
+            >
+              📊
+            </button>
+          )}
+          <button
+            className="sidebar-close-btn"
+            onClick={onClose}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#94a3b8',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              padding: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'color 0.15s ease',
+            }}
+            title="Close Inspector (Esc)"
+          >
+            ✕
+          </button>
+        </div>
       </div>
+
 
       <div className="sidebar-content" style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
         {/* METADATA SECTION */}
@@ -657,7 +691,18 @@ export const BlockInspectorPanel = ({
               const pinLabel = layout ? getPinLabel(layout, pin.name) : pin.label;
               return (
                 <div key={`in-data-${pin.name}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.7rem', padding: '4px 8px', background: 'var(--block-bg)', border: '1px solid var(--block-border)', borderRadius: '4px' }}>
-                  <span style={{ color, fontWeight: 600 }}>● {pinLabel}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ color, fontWeight: 600 }}>● {pinLabel}</span>
+                    {onTogglePinDashboard && (
+                      <button
+                        className={`pin-dashboard-btn ${dashboardPins.includes(pin.name) ? 'active' : ''}`}
+                        onClick={() => onTogglePinDashboard(blockId, pin.name)}
+                        title={dashboardPins.includes(pin.name) ? t('dashboard.removePinFromDashboard', 'Remove control from Dashboard') : t('dashboard.addPinToDashboard', 'Add control to Dashboard')}
+                      >
+                        📊
+                      </button>
+                    )}
+                  </div>
                   {edge ? (
                     <span style={{ color: 'var(--text-color)', textAlign: 'right', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '140px' }} title={`${getNodeNameById(edge.source)} (${edge.sourceHandle})`}>
                       ← {getNodeNameById(edge.source)}
@@ -668,6 +713,7 @@ export const BlockInspectorPanel = ({
                     </span>
                   )}
                 </div>
+
               );
             })}
             {(!layout || (layout.execIns.length === 0 && layout.dataIns.length === 0)) && (

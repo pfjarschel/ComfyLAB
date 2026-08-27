@@ -51,6 +51,10 @@ export type ActionBlockData = {
   
 
   onChange?: (id: string, key: string, value: any) => void;
+  inDashboard?: boolean;
+  dashboardPins?: string[];
+  onToggleDashboard?: (id: string) => void;
+  onTogglePinDashboard?: (id: string, pinName: string) => void;
   // Block properties
   value?: any;
   val1?: number;
@@ -65,6 +69,7 @@ export type ActionBlockData = {
   noise?: number;
   count?: number;
 };
+
 
 
 export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
@@ -1104,7 +1109,7 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
         )}
       </div>
 
-      {/* --- SUBTITLE (Original Full Uncropped Name) --- */}
+      {/* --- SUBTITLE (Original Full Uncropped Name & Dashboard Toggle) --- */}
       <div 
         className="action-block-subtitle"
         title={getBlockTitle(layout)}
@@ -1114,14 +1119,31 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
           lineHeight: 1.25,
           marginTop: '-4px',
           marginBottom: '8px',
-          wordBreak: 'break-word',
-          whiteSpace: 'normal',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: '4px',
           userSelect: 'text',
           cursor: 'default',
         }}
       >
-        {getBlockTitle(layout)}
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
+          {getBlockTitle(layout)}
+        </span>
+        {data.onToggleDashboard && (
+          <button
+            className={`block-dashboard-btn nodrag ${data.inDashboard ? 'active' : ''}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              data.onToggleDashboard!(id);
+            }}
+            title={data.inDashboard ? t('dashboard.removeFromDashboard', 'Remove from Dashboard') : t('dashboard.addToDashboard', 'Add to Dashboard')}
+          >
+            📊
+          </button>
+        )}
       </div>
+
 
       {/* --- BODY WIDGETS --- */}
       <div className="action-block-body">
@@ -1569,12 +1591,29 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
                 pinVal = pin.defaultVal !== undefined ? pin.defaultVal : (pin.type === 'boolean' || pin.widget === 'checkbox' ? false : (pin.type === 'number' || pin.widget === 'slider' || pin.widget === 'number' ? 0 : ''));
               }
 
+              const isPinInDashboard = Array.isArray(data.dashboardPins) && data.dashboardPins.includes(pin.name);
+              const pinDashBtn = data.onTogglePinDashboard ? (
+                <button
+                  className={`pin-dashboard-btn nodrag ${isPinInDashboard ? 'active' : ''}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    data.onTogglePinDashboard!(id, pin.name);
+                  }}
+                  title={isPinInDashboard ? t('dashboard.removePinFromDashboard', 'Remove control from Dashboard') : t('dashboard.addPinToDashboard', 'Add control to Dashboard')}
+                >
+                  📊
+                </button>
+              ) : null;
+
               let widgetContent = null;
 
               if (pin.widget === 'checkbox' || pin.type === 'boolean') {
                 widgetContent = (
                   <div className="input-row" style={{ justifyContent: 'space-between', padding: '4px 0', opacity: isConnected ? 0.5 : 1, transition: 'opacity 0.2s ease', width: '100%' }}>
-                    <span className="input-row-label" style={{ fontSize: '0.85rem' }}>{pin.label}: {pinVal ? 'ON' : 'OFF'}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <span className="input-row-label" style={{ fontSize: '0.85rem' }}>{pin.label}: {pinVal ? 'ON' : 'OFF'}</span>
+                      {pinDashBtn}
+                    </div>
                     <div 
                       className={`toggle-switch ${pinVal ? 'active' : ''} nodrag`} 
                       onClick={() => { if (!isConnected) handleChange(pin.name, !pinVal); }}
@@ -1608,8 +1647,11 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
               } else if (pin.widget === 'slider') {
                 widgetContent = (
                   <div className="input-group" style={{ opacity: isConnected ? 0.5 : 1, transition: 'opacity 0.2s ease', width: '100%' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-color)' }}>
-                      <label>{pin.label}</label>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem', color: 'var(--text-color)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <label>{pin.label}</label>
+                        {pinDashBtn}
+                      </div>
                       <span>{pinVal}</span>
                     </div>
                     <input
@@ -1628,7 +1670,10 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
               } else if (pin.widget === 'dropdown') {
                 widgetContent = (
                   <div className="input-group" style={{ opacity: isConnected ? 0.5 : 1, transition: 'opacity 0.2s ease', width: '100%' }}>
-                    <label>{pin.label}</label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginBottom: '2px' }}>
+                      <label>{pin.label}</label>
+                      {pinDashBtn}
+                    </div>
                     <select
                       value={pinVal}
                       onChange={(e) => handleChange(pin.name, e.target.value)}
@@ -1645,7 +1690,10 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
               } else if (pin.widget === 'number' || pin.type === 'number') {
                 widgetContent = (
                   <div className="input-row" style={{ opacity: isConnected ? 0.5 : 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '4px 0', transition: 'opacity 0.2s ease', width: '100%' }}>
-                    <span className="input-row-label" style={{ fontSize: '0.75rem', color: 'var(--text-color)' }}>{pin.label}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <span className="input-row-label" style={{ fontSize: '0.75rem', color: 'var(--text-color)' }}>{pin.label}</span>
+                      {pinDashBtn}
+                    </div>
                     <NumericTextInput
                       value={pinVal}
                       onChange={(v) => handleChange(pin.name, v)}
@@ -1660,7 +1708,10 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
               } else if (pin.widget === 'text' || pin.type === 'text') {
                 widgetContent = (
                   <div className="input-row" style={{ opacity: isConnected ? 0.5 : 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '4px 0', transition: 'opacity 0.2s ease', width: '100%' }}>
-                    <span className="input-row-label" style={{ fontSize: '0.75rem', color: 'var(--text-color)' }}>{pin.label}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <span className="input-row-label" style={{ fontSize: '0.75rem', color: 'var(--text-color)' }}>{pin.label}</span>
+                      {pinDashBtn}
+                    </div>
                     <input
                       type="text"
                       value={pinVal}
@@ -1674,12 +1725,16 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
               } else {
                 widgetContent = (
                   <div className="input-row" style={{ justifyContent: 'space-between', padding: '2px 0', opacity: 1, transition: 'opacity 0.2s ease', width: '100%' }}>
-                    <span className="input-row-label" style={{ fontSize: '0.7rem', color: 'var(--text-color)', textAlign: 'left' }}>
-                      ↳ {pin.label}
-                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <span className="input-row-label" style={{ fontSize: '0.7rem', color: 'var(--text-color)', textAlign: 'left' }}>
+                        ↳ {pin.label}
+                      </span>
+                      {pinDashBtn}
+                    </div>
                   </div>
                 );
               }
+
 
               return (
                 <div key={pin.name} style={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center' }}>
