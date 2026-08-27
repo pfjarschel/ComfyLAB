@@ -229,3 +229,32 @@ def test_apply_update_portable_zip(tmp_path, monkeypatch):
     assert data["install_type"] == "portable_zip"
     assert (fake_root / "VERSION").read_text().strip() == "0.5.0"
     assert (fake_root / "backend" / "main.py").read_text().strip() == "# new code"
+
+
+def test_check_updates_prefers_pypi_when_newer(monkeypatch):
+    client = TestClient(app)
+    monkeypatch.setattr("backend.routers.updates.get_current_version", lambda: "0.4.2")
+    monkeypatch.setattr("backend.routers.updates.detect_install_type", lambda: "pip")
+
+    mock_github = {
+        "tag_name": "v0.4.2",
+        "name": "ComfyLAB v0.4.2 Release",
+        "body": "Older release",
+        "html_url": "https://github.com/pfjarschel/ComfyLAB/releases/tag/v0.4.2",
+        "assets": [],
+    }
+    mock_pypi = {
+        "info": {
+            "version": "0.4.3",
+            "summary": "Brand new 0.4.3 on PyPI",
+        }
+    }
+
+    with patch("backend.routers.updates.fetch_github_release_info", new=AsyncMock(return_value=mock_github)):
+        with patch("backend.routers.updates.fetch_pypi_release_info", new=AsyncMock(return_value=mock_pypi)):
+            resp = client.get("/updates/check?force=true")
+            assert resp.status_code == 200
+            data = resp.json()
+            assert data["update_available"] is True
+            assert data["current_version"] == "0.4.2"
+            assert data["latest_version"] == "0.4.3"

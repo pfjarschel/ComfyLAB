@@ -180,6 +180,9 @@ def save_cached_update_info(data: Dict[str, Any]):
         logger.debug(f"Failed to write update cache file: {e}")
 
 
+PYPI_API_URL = "https://pypi.org/pypi/comfylab/json"
+
+
 async def fetch_github_release_info(timeout: float = 5.0) -> Dict[str, Any]:
     """Fetches latest release info from GitHub API."""
     headers = {
@@ -200,10 +203,22 @@ async def fetch_github_release_info(timeout: float = 5.0) -> Dict[str, Any]:
             raise HTTPException(status_code=resp.status_code, detail=f"GitHub API returned HTTP {resp.status_code}")
 
 
+async def fetch_pypi_release_info(timeout: float = 5.0) -> Optional[Dict[str, Any]]:
+    """Fetches latest release info from PyPI JSON API."""
+    try:
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            resp = await client.get(PYPI_API_URL, headers={"User-Agent": "ComfyLAB-UpdateChecker"})
+            if resp.status_code == 200:
+                return resp.json()
+    except Exception as e:
+        logger.debug(f"Failed to fetch PyPI release info: {e}")
+    return None
+
+
 @router.get("/check")
 async def check_updates(force: bool = Query(False)) -> Dict[str, Any]:
     """
-    Checks if a newer version of ComfyLAB is available on GitHub.
+    Checks if a newer version of ComfyLAB is available on GitHub or PyPI.
     Uses local cache with 6-hour TTL unless force=True.
     """
     current_version = get_current_version()
@@ -220,21 +235,19 @@ async def check_updates(force: bool = Query(False)) -> Dict[str, Any]:
             result["from_cache"] = True
             return result
 
+    raw_release = None
     try:
         raw_release = await fetch_github_release_info()
-    except HTTPException:
-        # If network/rate limit failed, fall back to cache if available
-        cached = load_cached_update_info()
-        if cached:
-            result = dict(cached)
-            result["current_version"] = current_version
-            result["install_type"] = install_type
-            result["update_available"] = is_newer_version(result.get("latest_version", current_version), current_version)
-            result["from_cache"] = True
-            result["network_warning"] = "Could not reach GitHub; showing cached update information."
-            return result
-        raise
     except Exception as e:
+        logger.debug(f"GitHub release check encountered an issue: {e}")
+
+    pypi_release = None
+    try:
+        pypi_release = await fetch_pypi_release_info()
+    except Exception as e:
+        logger.debug(f"PyPI release check encountered an issue: {e}")
+
+    if not raw_release and not pypi_release:
         cached = load_cached_update_info()
         if cached:
             result = dict(cached)
@@ -242,17 +255,43 @@ async def check_updates(force: bool = Query(False)) -> Dict[str, Any]:
             result["install_type"] = install_type
             result["update_available"] = is_newer_version(result.get("latest_version", current_version), current_version)
             result["from_cache"] = True
-            result["network_warning"] = f"Network error ({e}); showing cached update information."
+            result["network_warning"] = "Could not reach update servers; showing cached update information."
             return result
-        logger.error(f"Error checking GitHub releases: {e}")
-        raise HTTPException(status_code=502, detail=f"Failed to check for updates: {e}")
+        raise HTTPException(status_code=502, detail="Failed to check for updates from GitHub or PyPI.")
 
-    raw_tag = raw_release.get("tag_name", "")
-    latest_version = raw_tag.lstrip("vV")
-    release_name = raw_release.get("name") or f"ComfyLAB v{latest_version}"
-    release_notes = raw_release.get("body") or ""
-    release_url = raw_release.get("html_url") or f"https://github.com/{GITHUB_REPO}/releases/latest"
-    published_at = raw_release.get("published_at") or ""
+    latest_version = "0.0.0"
+    raw_tag = ""
+    release_name = ""
+    release_notes = ""
+    release_url = f"https://github.com/{GITHUB_REPO}/releases/latest"
+    published_at = ""
+    asset_url = None
+    asset_size = 0
+
+    if raw_release:
+        raw_tag = raw_release.get("tag_name", "")
+        latest_version = raw_tag.lstrip("vV")
+        release_name = raw_release.get("name") or f"ComfyLAB v{latest_version}"
+        release_notes = raw_release.get("body") or ""
+        release_url = raw_release.get("html_url") or release_url
+        published_at = raw_release.get("published_at") or ""
+        for asset in raw_release.get("assets", []):
+            asset_name = asset.get("name", "")
+            if asset_name.endswith(".zip") and "release" in asset_name.lower():
+                asset_url = asset.get("browser_download_url")
+                asset_size = asset.get("size", 0)
+                break
+
+    # If PyPI reports a newer version, use PyPI version info
+    if pypi_release:
+        pypi_version = pypi_release.get("info", {}).get("version", "")
+        if is_newer_version(pypi_version, latest_version):
+            latest_version = pypi_version
+            raw_tag = f"v{pypi_version}"
+            release_name = f"ComfyLAB v{pypi_version} (PyPI)"
+            release_url = f"https://pypi.org/project/comfylab/{pypi_version}/"
+            if not release_notes or not raw_release:
+                release_notes = pypi_release.get("info", {}).get("summary", "") or f"Release v{pypi_version} available on PyPI."
 
     # Find portable release zip asset if present
     asset_url = None

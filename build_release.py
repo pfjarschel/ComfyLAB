@@ -257,6 +257,13 @@ def run_staged_build(script_dir, version, build_wheel=False):
             shutil.rmtree(stage_dir)
         except Exception:
             pass
+        # Clean up any leftover local build artifacts that might shadow metadata
+        for leftover in [script_dir / "comfylab.egg-info", script_dir / "build"]:
+            if leftover.exists():
+                try:
+                    shutil.rmtree(leftover)
+                except Exception:
+                    pass
 
 def build_wheel_package(script_dir):
     print("\n[Build Wheel] Building Python wheel and sdist package (pip/PyPI)...")
