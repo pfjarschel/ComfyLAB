@@ -38,6 +38,25 @@ async def locked_device(context: ExecutionContext, device: Any, block_name: str 
         yield device
 
 
+VIRTUAL_ADDRESS_ALIASES: Dict[str, str] = {
+    "VIRT::OSC": "TCPIP0::127.0.0.1::51234::SOCKET",
+    "VIRTUAL::OSC": "TCPIP0::127.0.0.1::51234::SOCKET",
+    "VIRTUAL::OSCILLOSCOPE": "TCPIP0::127.0.0.1::51234::SOCKET",
+    "VIRT::SIGGEN": "TCPIP0::127.0.0.1::51235::SOCKET",
+    "VIRTUAL::SIGGEN": "TCPIP0::127.0.0.1::51235::SOCKET",
+    "VIRTUAL::SIGNAL_GENERATOR": "TCPIP0::127.0.0.1::51235::SOCKET",
+    "VIRT::RC": "TCPIP0::127.0.0.1::51236::SOCKET",
+    "VIRTUAL::RC": "TCPIP0::127.0.0.1::51236::SOCKET",
+}
+
+def resolve_visa_address(address: str) -> str:
+    """Translates virtual instrument aliases to their canonical VISA socket addresses."""
+    if not address:
+        return address
+    clean = str(address).strip()
+    return VIRTUAL_ADDRESS_ALIASES.get(clean.upper(), clean)
+
+
 class ManagedVISADevice:
     """
     Resilient wrapper around a PyVISA Resource handle.
@@ -50,7 +69,14 @@ class ManagedVISADevice:
     """
     def __init__(self, rm: Any, address: str, on_reconnect: Optional[Any] = None, **open_kwargs):
         self.rm = rm
-        self.address = address
+        resolved = resolve_visa_address(address)
+        if resolved in ("TCPIP0::127.0.0.1::51234::SOCKET", "TCPIP0::127.0.0.1::51235::SOCKET", "TCPIP0::127.0.0.1::51236::SOCKET"):
+            try:
+                from comfylab.virtual.manager import VirtualInstrumentManager
+                VirtualInstrumentManager.ensure_started()
+            except Exception as e:
+                logger.warning(f"Could not auto-start virtual instruments server: {e}")
+        self.address = resolved
         self.on_reconnect = on_reconnect
         self.open_kwargs = open_kwargs
         self._raw_device = None
@@ -289,6 +315,16 @@ def discover_visa_devices(interface_filter: Optional[str] = None, timeout_sec: f
         r_lower = r_str.lower()
         if include_all or any(r_lower.startswith(prefix) for prefix in allowed_prefixes):
             candidate_addresses.append(r_str)
+
+    if "virtual" in filter_clean or "virt" in filter_clean:
+        try:
+            from comfylab.virtual.manager import VirtualInstrumentManager, DEFAULT_OSC_PORT, DEFAULT_SIGGEN_PORT
+            if VirtualInstrumentManager.is_port_open(DEFAULT_OSC_PORT):
+                candidate_addresses.append("TCPIP0::127.0.0.1::51234::SOCKET")
+            if VirtualInstrumentManager.is_port_open(DEFAULT_SIGGEN_PORT):
+                candidate_addresses.append("TCPIP0::127.0.0.1::51235::SOCKET")
+        except Exception:
+            pass
 
     results = []
     timeout_ms = int(max(0.05, timeout_sec) * 1000)

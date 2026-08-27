@@ -88,7 +88,7 @@ async def test_visa_blocks_mock_execution():
 
 
 @pytest.mark.asyncio
-async def test_pfj_siggen_blocks_execution():
+async def test_virt_siggen_blocks_execution():
     with patch("comfylab.blocks.visa.pyvisa") as mock_pyvisa:
         mock_rm = MagicMock()
         mock_pyvisa.ResourceManager.return_value = mock_rm
@@ -103,7 +103,7 @@ async def test_pfj_siggen_blocks_execution():
         blueprint = {
             "blocks": [
                 {"id": "device", "type": "visa/core/device", "properties": {"Address": "GPIB0::2::INSTR"}},
-                {"id": "config_wave", "type": "visa/signal_generator/config_wave", "properties": {
+                {"id": "config_wave", "type": "devices/virtual/signal_generator/config_wave", "properties": {
                     "WaveType": "square",
                     "Frequency": 2500.0,
                     "Amplitude": 2.5,
@@ -111,12 +111,12 @@ async def test_pfj_siggen_blocks_execution():
                     "Phase": 90.0,
                     "DutyCycle": 30.0
                 }},
-                {"id": "config_chirp", "type": "visa/signal_generator/config_chirp", "properties": {
+                {"id": "config_chirp", "type": "devices/virtual/signal_generator/config_chirp", "properties": {
                     "Chirp": True,
                     "Variation": 150.0,
                     "Period": 2.0
                 }},
-                {"id": "set_output", "type": "visa/signal_generator/set_output", "properties": {
+                {"id": "set_output", "type": "devices/virtual/signal_generator/output", "properties": {
                     "Output": True
                 }}
             ],
@@ -137,22 +137,22 @@ async def test_pfj_siggen_blocks_execution():
 
         # Verify calls to device.write
         write_calls = [call[0][0] for call in mock_device.write.call_args_list]
-        assert "wave:wave square" in write_calls
-        assert "freq:freq 2500.0" in write_calls
-        assert "amp:amp 2.5" in write_calls
-        assert "amp:offs -0.5" in write_calls
-        assert "wave:phas 90.0" in write_calls
-        assert "wave:dc 30.0" in write_calls
-        assert "freq:chrp True" in write_calls
-        assert "freq:cvar 150.0" in write_calls
-        assert "freq:cper 2.0" in write_calls
-        assert "out True" in write_calls
+        assert ":SOURce1:FUNCtion SQUARE" in write_calls
+        assert ":SOURce1:FREQuency 2500.0" in write_calls
+        assert ":SOURce1:VOLTage 2.5" in write_calls
+        assert ":SOURce1:VOLTage:OFFSet -0.5" in write_calls
+        assert ":SOURce1:PHASe 90.0" in write_calls
+        assert ":SOURce1:PULSe:DCYCle 30.0" in write_calls
+        assert ":SOURce1:FREQuency:CHIRp ON" in write_calls
+        assert ":SOURce1:FREQuency:CVAR 150.0" in write_calls
+        assert ":SOURce1:FREQuency:CPER 2.0" in write_calls
+        assert ":OUTPut1:STATe ON" in write_calls
 
         await engine._teardown_all()
 
 
 @pytest.mark.asyncio
-async def test_pfj_osc_blocks_execution():
+async def test_virt_osc_blocks_execution():
     with patch("comfylab.blocks.visa.pyvisa") as mock_pyvisa:
         mock_rm = MagicMock()
         mock_pyvisa.ResourceManager.return_value = mock_rm
@@ -163,9 +163,9 @@ async def test_pfj_osc_blocks_execution():
 
         # Setup queries for time and waveform
         def mock_query(cmd):
-            if "horiz:data?" in cmd:
+            if ":TIMebase:DATA?" in cmd or "horiz:data?" in cmd:
                 return "0.0,0.1,0.2"
-            if "c1:data?" in cmd:
+            if ":CHANnel1:DATA?" in cmd or "c1:data?" in cmd:
                 return "1.2,1.5,1.8"
             return ""
         mock_device.query.side_effect = mock_query
@@ -176,24 +176,24 @@ async def test_pfj_osc_blocks_execution():
         blueprint = {
             "blocks": [
                 {"id": "device", "type": "visa/core/device", "properties": {"Address": "GPIB0::3::INSTR"}},
-                {"id": "timebase", "type": "visa/oscilloscope/timebase", "properties": {
+                {"id": "timebase", "type": "devices/virtual/oscilloscope/timebase", "properties": {
                     "Scale": 0.005,
                     "Offset": -0.001,
                     "Points": 2000
                 }},
-                {"id": "channel", "type": "visa/oscilloscope/channel", "properties": {
+                {"id": "channel", "type": "devices/virtual/oscilloscope/channel", "properties": {
                     "Channel": 1,
                     "Enable": True,
                     "Scale": 2.0,
                     "Offset": 0.1
                 }},
-                {"id": "trigger", "type": "visa/oscilloscope/trigger", "properties": {
+                {"id": "trigger", "type": "devices/virtual/oscilloscope/trigger", "properties": {
                     "Mode": "free"
                 }},
-                {"id": "state", "type": "visa/oscilloscope/state", "properties": {
+                {"id": "state", "type": "devices/virtual/oscilloscope/state", "properties": {
                     "State": "run"
                 }},
-                {"id": "acquire", "type": "visa/oscilloscope/acquire", "properties": {
+                {"id": "acquire", "type": "devices/virtual/oscilloscope/acquire", "properties": {
                     "Channel": 1
                 }}
             ],
@@ -224,14 +224,14 @@ async def test_pfj_osc_blocks_execution():
 
         # Verify calls to device.write
         write_calls = [call[0][0] for call in mock_device.write.call_args_list]
-        assert "horiz:scale 0.005" in write_calls
-        assert "horiz:offset -0.001" in write_calls
-        assert "acq:points 2000" in write_calls
-        assert "c1:enable True" in write_calls
-        assert "c1:scale 2.0" in write_calls
-        assert "c1:offset 0.1" in write_calls
-        assert "trig:free" in write_calls
-        assert "run" in write_calls
+        assert ":TIMebase:SCALe 0.005" in write_calls
+        assert ":TIMebase:POSition -0.001" in write_calls
+        assert ":ACQuire:POINts 2000" in write_calls
+        assert ":CHANnel1:DISPlay ON" in write_calls
+        assert ":CHANnel1:SCALe 2.0" in write_calls
+        assert ":CHANnel1:OFFSet 0.1" in write_calls
+        assert ":TRIGger:MODE FREE" in write_calls
+        assert ":RUN" in write_calls
 
         # Verify outputs from acquire block
         acquire_block = engine.blocks["acquire"]
@@ -248,7 +248,7 @@ async def test_pfj_osc_blocks_execution():
 
 
 @pytest.mark.asyncio
-async def test_pfj_osc_connect_block_teardown_sends_stop():
+async def test_virt_osc_connect_block_teardown_sends_stop():
     with patch("comfylab.blocks.visa.pyvisa") as mock_pyvisa:
         mock_rm = MagicMock()
         mock_pyvisa.ResourceManager.return_value = mock_rm
@@ -262,7 +262,7 @@ async def test_pfj_osc_connect_block_teardown_sends_stop():
 
         blueprint = {
             "blocks": [
-                {"id": "connect", "type": "visa/oscilloscope/connect", "properties": {
+                {"id": "connect", "type": "devices/virtual/oscilloscope/connect", "properties": {
                     "Address": "GPIB0::3::INSTR"
                 }}
             ],
@@ -277,14 +277,14 @@ async def test_pfj_osc_connect_block_teardown_sends_stop():
         connect_block = engine.blocks["connect"]
         assert connect_block._device is None
 
-        # Verify teardown sent 'stop' command
+        # Verify teardown sent ':STOP' command
         write_calls = [call[0][0] for call in mock_device.write.call_args_list]
-        assert "stop" in write_calls
+        assert ":STOP" in write_calls
         mock_device.close.assert_called()
 
 
 @pytest.mark.asyncio
-async def test_pfj_siggen_connect_block_teardown_sends_out_off():
+async def test_virt_siggen_connect_block_teardown_sends_out_off():
     with patch("comfylab.blocks.visa.pyvisa") as mock_pyvisa:
         mock_rm = MagicMock()
         mock_pyvisa.ResourceManager.return_value = mock_rm
@@ -298,7 +298,7 @@ async def test_pfj_siggen_connect_block_teardown_sends_out_off():
 
         blueprint = {
             "blocks": [
-                {"id": "connect", "type": "visa/signal_generator/connect", "properties": {
+                {"id": "connect", "type": "devices/virtual/signal_generator/connect", "properties": {
                     "Address": "GPIB0::2::INSTR"
                 }}
             ],
@@ -313,15 +313,15 @@ async def test_pfj_siggen_connect_block_teardown_sends_out_off():
         connect_block = engine.blocks["connect"]
         assert connect_block._device is None
 
-        # Verify teardown sent 'out False' command
+        # Verify teardown sent ':OUTPut1:STATe OFF' command
         write_calls = [call[0][0] for call in mock_device.write.call_args_list]
-        assert "out False" in write_calls
+        assert ":OUTPut1:STATe OFF" in write_calls
         mock_device.close.assert_called()
 
 
 @pytest.mark.asyncio
-async def test_pfj_osc_connect_chains_with_other_pfj_blocks():
-    """Verify that the PFJOsc connect block output Device handle is usable by other PFJ blocks."""
+async def test_virt_osc_connect_chains_with_other_virt_blocks():
+    """Verify that the VirtOsc connect block output Device handle is usable by other Virt blocks."""
     with patch("comfylab.blocks.visa.pyvisa") as mock_pyvisa:
         mock_rm = MagicMock()
         mock_pyvisa.ResourceManager.return_value = mock_rm
@@ -331,9 +331,9 @@ async def test_pfj_osc_connect_chains_with_other_pfj_blocks():
         mock_rm.open_resource.return_value = mock_device
 
         def mock_query(cmd):
-            if "horiz:data?" in cmd:
+            if ":TIMebase:DATA?" in cmd or "horiz:data?" in cmd:
                 return "0.0,0.1,0.2"
-            if "c1:data?" in cmd:
+            if ":CHANnel1:DATA?" in cmd or "c1:data?" in cmd:
                 return "1.0,2.0,3.0"
             return ""
         mock_device.query.side_effect = mock_query
@@ -343,13 +343,13 @@ async def test_pfj_osc_connect_chains_with_other_pfj_blocks():
 
         blueprint = {
             "blocks": [
-                {"id": "connect", "type": "visa/oscilloscope/connect", "properties": {
+                {"id": "connect", "type": "devices/virtual/oscilloscope/connect", "properties": {
                     "Address": "GPIB0::3::INSTR"
                 }},
-                {"id": "state", "type": "visa/oscilloscope/state", "properties": {
+                {"id": "state", "type": "devices/virtual/oscilloscope/state", "properties": {
                     "State": "run"
                 }},
-                {"id": "acquire", "type": "visa/oscilloscope/acquire", "properties": {
+                {"id": "acquire", "type": "devices/virtual/oscilloscope/acquire", "properties": {
                     "Channel": 1
                 }}
             ],
@@ -365,17 +365,16 @@ async def test_pfj_osc_connect_chains_with_other_pfj_blocks():
         engine.load_blueprint(blueprint)
         await engine.run(start_block_id="connect", start_pin_name="Open")
 
-        # Verify that state and acquire ran with the device handle
         write_calls = [call[0][0] for call in mock_device.write.call_args_list]
-        assert "run" in write_calls
+        assert ":RUN" in write_calls
 
         acquire_block = engine.blocks["acquire"]
         assert list(acquire_block._last_waveform) == [1.0, 2.0, 3.0]
 
-        # Teardown should send 'stop' as safety command
+        # Teardown should send ':STOP' as safety command
         await engine._teardown_all()
         write_calls = [call[0][0] for call in mock_device.write.call_args_list]
-        assert "stop" in write_calls
+        assert ":STOP" in write_calls
 
 
 def test_match_visa_device():

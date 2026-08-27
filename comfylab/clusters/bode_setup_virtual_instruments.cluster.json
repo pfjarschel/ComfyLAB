@@ -1,0 +1,342 @@
+{
+  "name": "Bode Setup Virtual Instruments",
+  "type_name": "builtin/cluster/bode_setup_virtual_instruments",
+  "category": "Clusters",
+  "icon": "🔌",
+  "display_name": "Bode Setup Virtual Instruments",
+  "description": "Initializes Virtual Signal Generator and Virtual Oscilloscope channels for Bode plot measurements.",
+  "internal_blueprint": {
+    "blocks": [
+      {
+        "id": "boundary_exec_in",
+        "type": "cluster/boundary/input",
+        "properties": {
+          "Name": "In",
+          "Type": "exec"
+        },
+        "position": {
+          "x": 0,
+          "y": 100
+        }
+      },
+      {
+        "id": "boundary_in_siggen_addr",
+        "type": "cluster/boundary/input",
+        "properties": {
+          "Name": "SigGenAddress",
+          "Type": "data",
+          "DataType": "text"
+        },
+        "position": {
+          "x": 0,
+          "y": 250
+        }
+      },
+      {
+        "id": "boundary_in_scope_addr",
+        "type": "cluster/boundary/input",
+        "properties": {
+          "Name": "ScopeAddress",
+          "Type": "data",
+          "DataType": "text"
+        },
+        "position": {
+          "x": 0,
+          "y": 400
+        }
+      },
+      {
+        "id": "block_siggen_connect",
+        "type": "devices/virtual/signal_generator/connect",
+        "properties": {
+          "Address": "VIRT::SIGGEN"
+        },
+        "position": {
+          "x": 300,
+          "y": 100
+        }
+      },
+      {
+        "id": "block_siggen_output",
+        "type": "devices/virtual/signal_generator/output",
+        "properties": {
+          "Enable": true
+        },
+        "position": {
+          "x": 600,
+          "y": 100
+        }
+      },
+      {
+        "id": "block_osc_connect",
+        "type": "devices/virtual/oscilloscope/connect",
+        "properties": {
+          "Address": "VIRT::OSC"
+        },
+        "position": {
+          "x": 900,
+          "y": 100
+        }
+      },
+      {
+        "id": "block_osc_state",
+        "type": "devices/virtual/oscilloscope/state",
+        "properties": {
+          "State": "run"
+        },
+        "position": {
+          "x": 1200,
+          "y": 100
+        }
+      },
+      {
+        "id": "block_osc_ch1",
+        "type": "devices/virtual/oscilloscope/channel",
+        "properties": {
+          "Channel": 1,
+          "Enable": true,
+          "Scale": 1.0,
+          "Offset": 0.0
+        },
+        "position": {
+          "x": 1500,
+          "y": 100
+        }
+      },
+      {
+        "id": "block_osc_ch2",
+        "type": "devices/virtual/oscilloscope/channel",
+        "properties": {
+          "Channel": 2,
+          "Enable": true,
+          "Scale": 1.0,
+          "Offset": 0.0
+        },
+        "position": {
+          "x": 1800,
+          "y": 100
+        }
+      },
+      {
+        "id": "boundary_exec_out",
+        "type": "cluster/boundary/output",
+        "properties": {
+          "Name": "Out",
+          "Type": "exec"
+        },
+        "position": {
+          "x": 2100,
+          "y": 100
+        }
+      },
+      {
+        "id": "boundary_out_siggen_dev",
+        "type": "cluster/boundary/output",
+        "properties": {
+          "Name": "SigGenDevice",
+          "Type": "data"
+        },
+        "position": {
+          "x": 2100,
+          "y": 250
+        }
+      },
+      {
+        "id": "boundary_out_scope_dev",
+        "type": "cluster/boundary/output",
+        "properties": {
+          "Name": "ScopeDevice",
+          "Type": "data"
+        },
+        "position": {
+          "x": 2100,
+          "y": 400
+        }
+      }
+    ],
+    "links": [
+      {
+        "id": "link_bin_exec_to_siggen_conn",
+        "type": "exec",
+        "source_block": "boundary_exec_in",
+        "source_pin": "Out",
+        "target_block": "block_siggen_connect",
+        "target_pin": "Open"
+      },
+      {
+        "id": "link_bin_siggen_addr_to_conn",
+        "type": "data",
+        "source_block": "boundary_in_siggen_addr",
+        "source_pin": "Value",
+        "target_block": "block_siggen_connect",
+        "target_pin": "Address"
+      },
+      {
+        "id": "link_siggen_conn_to_output",
+        "type": "exec",
+        "source_block": "block_siggen_connect",
+        "source_pin": "Out",
+        "target_block": "block_siggen_output",
+        "target_pin": "In"
+      },
+      {
+        "id": "link_siggen_dev_to_output",
+        "type": "data",
+        "source_block": "block_siggen_connect",
+        "source_pin": "Device",
+        "target_block": "block_siggen_output",
+        "target_pin": "Device"
+      },
+      {
+        "id": "link_siggen_output_to_osc_conn",
+        "type": "exec",
+        "source_block": "block_siggen_output",
+        "source_pin": "Out",
+        "target_block": "block_osc_connect",
+        "target_pin": "Open"
+      },
+      {
+        "id": "link_bin_scope_addr_to_osc_conn",
+        "type": "data",
+        "source_block": "boundary_in_scope_addr",
+        "source_pin": "Value",
+        "target_block": "block_osc_connect",
+        "target_pin": "Address"
+      },
+      {
+        "id": "link_osc_conn_to_state",
+        "type": "exec",
+        "source_block": "block_osc_connect",
+        "source_pin": "Out",
+        "target_block": "block_osc_state",
+        "target_pin": "In"
+      },
+      {
+        "id": "link_osc_dev_to_state",
+        "type": "data",
+        "source_block": "block_osc_connect",
+        "source_pin": "Device",
+        "target_block": "block_osc_state",
+        "target_pin": "Device"
+      },
+      {
+        "id": "link_osc_state_to_ch1",
+        "type": "exec",
+        "source_block": "block_osc_state",
+        "source_pin": "Out",
+        "target_block": "block_osc_ch1",
+        "target_pin": "In"
+      },
+      {
+        "id": "link_osc_dev_to_ch1",
+        "type": "data",
+        "source_block": "block_osc_connect",
+        "source_pin": "Device",
+        "target_block": "block_osc_ch1",
+        "target_pin": "Device"
+      },
+      {
+        "id": "link_osc_ch1_to_ch2",
+        "type": "exec",
+        "source_block": "block_osc_ch1",
+        "source_pin": "Out",
+        "target_block": "block_osc_ch2",
+        "target_pin": "In"
+      },
+      {
+        "id": "link_osc_dev_to_ch2",
+        "type": "data",
+        "source_block": "block_osc_connect",
+        "source_pin": "Device",
+        "target_block": "block_osc_ch2",
+        "target_pin": "Device"
+      },
+      {
+        "id": "link_osc_ch2_to_bout_exec",
+        "type": "exec",
+        "source_block": "block_osc_ch2",
+        "source_pin": "Out",
+        "target_block": "boundary_exec_out",
+        "target_pin": "In"
+      },
+      {
+        "id": "link_siggen_dev_to_bout",
+        "type": "data",
+        "source_block": "block_siggen_connect",
+        "source_pin": "Device",
+        "target_block": "boundary_out_siggen_dev",
+        "target_pin": "Value"
+      },
+      {
+        "id": "link_osc_dev_to_bout",
+        "type": "data",
+        "source_block": "block_osc_connect",
+        "source_pin": "Device",
+        "target_block": "boundary_out_scope_dev",
+        "target_pin": "Value"
+      }
+    ]
+  },
+  "boundary_pins": {
+    "exec_ins": [
+      {
+        "name": "In",
+        "maps_to": {
+          "block_id": "boundary_exec_in",
+          "pin": "Out"
+        }
+      }
+    ],
+    "exec_outs": [
+      {
+        "name": "Out",
+        "maps_from": {
+          "block_id": "boundary_exec_out",
+          "pin": "In"
+        }
+      }
+    ],
+    "data_ins": [
+      {
+        "name": "SigGenAddress",
+        "type": "text",
+        "default": "VIRT::SIGGEN",
+        "widget": "text",
+        "optional": false,
+        "maps_to": {
+          "block_id": "boundary_in_siggen_addr",
+          "pin": "Value"
+        }
+      },
+      {
+        "name": "ScopeAddress",
+        "type": "text",
+        "default": "VIRT::OSC",
+        "widget": "text",
+        "optional": false,
+        "maps_to": {
+          "block_id": "boundary_in_scope_addr",
+          "pin": "Value"
+        }
+      }
+    ],
+    "data_outs": [
+      {
+        "name": "SigGenDevice",
+        "type": "any",
+        "maps_from": {
+          "block_id": "boundary_out_siggen_dev",
+          "pin": "Value"
+        }
+      },
+      {
+        "name": "ScopeDevice",
+        "type": "any",
+        "maps_from": {
+          "block_id": "boundary_out_scope_dev",
+          "pin": "Value"
+        }
+      }
+    ]
+  }
+}
