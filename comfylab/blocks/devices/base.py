@@ -10,7 +10,7 @@ import logging
 from typing import Any, Dict, Optional
 
 from comfylab.blocks.base import BaseBlock, ExecIn, ExecOut, DataIn, DataOut, ExecutionContext
-from comfylab.blocks.visa import visa_rm_wrapper, locked_device
+from comfylab.blocks.visa import visa_rm_wrapper, locked_device, ManagedVISADevice
 
 logger = logging.getLogger("comfylab.blocks.devices.base")
 
@@ -99,7 +99,14 @@ class BaseDeviceConnectBlock(BaseDeviceBlock):
 
         # Open VISA resource under per-address resource lock
         async with context.lock_manager.acquire(address):
-            self._device = await asyncio.to_thread(rm.open_resource, address, **kwargs)
+            if self._device is not None:
+                try:
+                    await asyncio.to_thread(self._device.close)
+                except Exception:
+                    pass
+                self._device = None
+
+            self._device = await asyncio.to_thread(ManagedVISADevice, rm, address, **kwargs)
             self._lock_manager = context.lock_manager
             await self._device_initialize(self._device)
 

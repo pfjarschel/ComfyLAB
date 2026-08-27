@@ -14,8 +14,11 @@ import re
 import csv
 import io
 import struct
+import logging
 import numpy as np
 from typing import Any, Tuple, Optional, List, Dict
+
+logger = logging.getLogger("comfylab.devices.base")
 
 _FLOAT_REGEX = re.compile(r"[-+]?(?:(?:\d+\.?\d*)|(?:\.\d+))(?:[eE][-+]?\d+)?")
 
@@ -232,19 +235,47 @@ class BaseInstrumentDriver:
             raise ValueError("A valid PyVISA resource instance must be supplied.")
         self.device = visa_device
 
+    def clear(self) -> bool:
+        """
+        Sends a VISA device clear (viClear / USBTMC INITIATE_CLEAR) to reset bus endpoints and buffers.
+        Returns True if successful, False otherwise.
+        """
+        try:
+            if hasattr(self.device, "clear"):
+                self.device.clear()
+                return True
+        except Exception as e:
+            logger.debug(f"Device clear on {getattr(self.device, 'resource_name', self.device)} failed: {e}")
+        return False
+
     def write(self, command: str) -> Any:
-        """Sends a write command to the instrument."""
-        return self.device.write(command)
+        """Sends a write command to the instrument with automatic bus clear on error."""
+        try:
+            return self.device.write(command)
+        except Exception as e:
+            logger.warning(f"Error during write('{command}'): {e}. Clearing device bus.")
+            self.clear()
+            raise e
 
     def query(self, command: str) -> str:
-        """Sends a query command to the instrument and returns the stripped string response."""
-        res = self.device.query(command)
-        return res.strip() if isinstance(res, str) else res
+        """Sends a query command to the instrument and returns the stripped string response with auto bus clear on error."""
+        try:
+            res = self.device.query(command)
+            return res.strip() if isinstance(res, str) else res
+        except Exception as e:
+            logger.warning(f"Error during query('{command}'): {e}. Clearing device bus.")
+            self.clear()
+            raise e
 
     def query_raw(self, command: str) -> bytes:
-        """Queries raw binary bytes from the instrument."""
-        self.device.write(command)
-        return self.device.read_raw()
+        """Queries raw binary bytes from the instrument with auto bus clear on error."""
+        try:
+            self.device.write(command)
+            return self.device.read_raw()
+        except Exception as e:
+            logger.warning(f"Error during query_raw('{command}'): {e}. Clearing device bus.")
+            self.clear()
+            raise e
 
     def identify(self) -> str:
         """Queries standard IEEE 488.2 *IDN? response."""

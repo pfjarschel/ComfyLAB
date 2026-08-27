@@ -38,6 +38,153 @@ async def locked_device(context: ExecutionContext, device: Any, block_name: str 
         yield device
 
 
+class ManagedVISADevice:
+    """
+    Resilient wrapper around a PyVISA Resource handle.
+    Provides:
+    1. Automatic bus clearing (viClear / USBTMC INITIATE_CLEAR) on communication errors
+       to un-stall USB bulk endpoints and flush pending buffers.
+    2. Automatic session auto-healing (reconnecting to the instrument if connection was lost,
+       device was power-cycled, or the handle became invalid).
+    3. Safe session lifecycle (cleanly closes old handle when opening or re-opening).
+    """
+    def __init__(self, rm: Any, address: str, on_reconnect: Optional[Any] = None, **open_kwargs):
+        self.rm = rm
+        self.address = address
+        self.on_reconnect = on_reconnect
+        self.open_kwargs = open_kwargs
+        self._raw_device = None
+        self._open()
+
+    def _open(self) -> Any:
+        if self._raw_device is not None:
+            try:
+                self._raw_device.close()
+            except Exception:
+                pass
+            self._raw_device = None
+
+        self._raw_device = self.rm.open_resource(self.address, **self.open_kwargs)
+        return self._raw_device
+
+    @property
+    def raw_device(self) -> Any:
+        return self._raw_device
+
+    @property
+    def resource_name(self) -> str:
+        if self._raw_device is not None and hasattr(self._raw_device, "resource_name"):
+            return self._raw_device.resource_name
+        return self.address
+
+    def is_alive(self) -> bool:
+        if self._raw_device is None:
+            return False
+        try:
+            _ = getattr(self._raw_device, "session", None)
+            return True
+        except Exception:
+            return False
+
+    def reconnect(self) -> Any:
+        """Forces a clean close and re-open of the VISA session."""
+        logger.info(f"Reconnecting VISA device at {self.address}...")
+        dev = self._open()
+        if self.on_reconnect:
+            try:
+                self.on_reconnect(self)
+            except Exception as e:
+                logger.warning(f"Error in on_reconnect hook for {self.address}: {e}")
+        return dev
+
+    def clear(self) -> bool:
+        """Sends a device clear (viClear / USBTMC INITIATE_CLEAR)."""
+        if self._raw_device is None:
+            return False
+        try:
+            if hasattr(self._raw_device, "clear"):
+                self._raw_device.clear()
+                return True
+        except Exception as e:
+            logger.debug(f"Device clear on {self.address} failed: {e}")
+        return False
+
+    def close(self) -> None:
+        if self._raw_device is not None:
+            try:
+                self._raw_device.close()
+            except Exception as e:
+                logger.debug(f"Error closing {self.address}: {e}")
+            finally:
+                self._raw_device = None
+
+    def write(self, *args, **kwargs) -> Any:
+        try:
+            return self._raw_device.write(*args, **kwargs)
+        except Exception as e:
+            self._handle_error(e)
+            raise e
+
+    def query(self, *args, **kwargs) -> str:
+        try:
+            return self._raw_device.query(*args, **kwargs)
+        except Exception as e:
+            self._handle_error(e)
+            raise e
+
+    def read(self, *args, **kwargs) -> str:
+        try:
+            return self._raw_device.read(*args, **kwargs)
+        except Exception as e:
+            self._handle_error(e)
+            raise e
+
+    def read_raw(self, *args, **kwargs) -> bytes:
+        try:
+            return self._raw_device.read_raw(*args, **kwargs)
+        except Exception as e:
+            self._handle_error(e)
+            raise e
+
+    def _handle_error(self, err: Exception) -> None:
+        is_conn_lost = False
+        if pyvisa and hasattr(pyvisa, "errors") and isinstance(err, getattr(pyvisa.errors, "VisaIOError", ())):
+            lost_codes = {
+                getattr(pyvisa.constants, "VI_ERROR_CONN_LOST", -1073807194),
+                getattr(pyvisa.constants, "VI_ERROR_INV_OBJECT", -1073807346),
+                getattr(pyvisa.constants, "VI_ERROR_RSRC_NFOUND", -1073807343),
+                getattr(pyvisa.constants, "VI_ERROR_CLOSING_FAILED", -1073807238),
+            }
+            if getattr(err, "error_code", None) in lost_codes:
+                is_conn_lost = True
+        elif isinstance(err, (BrokenPipeError, ConnectionResetError)):
+            is_conn_lost = True
+
+        if is_conn_lost:
+            logger.warning(f"Connection to {self.address} lost ({err}). Attempting auto-reconnect...")
+            try:
+                self.reconnect()
+            except Exception as rec_err:
+                logger.error(f"Auto-reconnect to {self.address} failed: {rec_err}")
+        else:
+            self.clear()
+
+    def __getattr__(self, name: str) -> Any:
+        if self._raw_device is not None:
+            return getattr(self._raw_device, name)
+        raise AttributeError(f"'ManagedVISADevice' has no attribute '{name}' (raw device is closed)")
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        if name in ("rm", "address", "on_reconnect", "open_kwargs", "_raw_device"):
+            super().__setattr__(name, value)
+        elif self._raw_device is not None and hasattr(self._raw_device, name):
+            setattr(self._raw_device, name, value)
+            if name in ("read_termination", "write_termination", "timeout"):
+                self.open_kwargs[name] = value
+        else:
+            super().__setattr__(name, value)
+
+
 # Create singleton resource manager wrapper
 class VISAResourceManagerWrapper:
     def __init__(self):
@@ -398,9 +545,10 @@ class VISADeviceBlock(BaseBlock):
                     await asyncio.to_thread(self._device.close)
                 except Exception:
                     pass
+                self._device = None
             
             logger.info(f"Opening connection to VISA device at {address}")
-            self._device = await asyncio.to_thread(rm.open_resource, address)
+            self._device = await asyncio.to_thread(ManagedVISADevice, rm, address)
 
             # Configure communication parameters
             if read_termination is not None:

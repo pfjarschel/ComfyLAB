@@ -540,3 +540,72 @@ def test_visa_scan_api_endpoint():
         assert data["count"] == 1
         assert data["devices"][0]["model"] == "MODEL 2400"
 
+
+def test_managed_visa_device_auto_clear_on_timeout():
+    from comfylab.blocks.visa import ManagedVISADevice
+    import pyvisa
+
+    mock_rm = MagicMock()
+    mock_raw_dev = MagicMock()
+    mock_raw_dev.resource_name = "USB0::0x1234::INSTR"
+    mock_rm.open_resource.return_value = mock_raw_dev
+
+    # Simulate timeout error on query
+    tmo_err = pyvisa.errors.VisaIOError(pyvisa.constants.VI_ERROR_TMO)
+    mock_raw_dev.query.side_effect = tmo_err
+
+    managed = ManagedVISADevice(mock_rm, "USB0::0x1234::INSTR")
+    with pytest.raises(pyvisa.errors.VisaIOError):
+        managed.query("*IDN?")
+
+    # Auto-clear should have been executed to un-stall the USB endpoint
+    mock_raw_dev.clear.assert_called()
+
+
+def test_managed_visa_device_auto_reconnect_on_conn_lost():
+    from comfylab.blocks.visa import ManagedVISADevice
+    import pyvisa
+
+    mock_rm = MagicMock()
+    dev1 = MagicMock()
+    dev1.resource_name = "USB0::0x1234::INSTR"
+    dev2 = MagicMock()
+    dev2.resource_name = "USB0::0x1234::INSTR"
+    mock_rm.open_resource.side_effect = [dev1, dev2]
+
+    # First device encounters connection lost (e.g. instrument rebooted / cable unplugged)
+    conn_err = pyvisa.errors.VisaIOError(pyvisa.constants.VI_ERROR_CONN_LOST)
+    dev1.write.side_effect = conn_err
+
+    managed = ManagedVISADevice(mock_rm, "USB0::0x1234::INSTR")
+    assert managed.raw_device is dev1
+
+    with pytest.raises(pyvisa.errors.VisaIOError):
+        managed.write("*RST")
+
+    # dev1 should have been closed and dev2 opened via reconnect
+    dev1.close.assert_called()
+    assert mock_rm.open_resource.call_count == 2
+    assert managed.raw_device is dev2
+
+
+def test_base_instrument_driver_auto_clear_on_error():
+    from comfylab.devices.base import BaseInstrumentDriver
+
+    mock_dev = MagicMock()
+    mock_dev.resource_name = "USB0::0x5678::INSTR"
+    mock_dev.query.side_effect = RuntimeError("Stalled USB pipe")
+    mock_dev.read_raw.side_effect = RuntimeError("Read timeout")
+
+    driver = BaseInstrumentDriver(mock_dev)
+
+    with pytest.raises(RuntimeError):
+        driver.query(":WAVeform:PREamble?")
+    mock_dev.clear.assert_called()
+
+    mock_dev.clear.reset_mock()
+    with pytest.raises(RuntimeError):
+        driver.query_raw(":WAVeform:DATA?")
+    mock_dev.clear.assert_called()
+
+
