@@ -123,7 +123,8 @@ export const AboutModal: React.FC<AboutModalProps> = ({ onClose, updateInfo: ini
     try {
       const BACKEND_URL = getBackendUrls().http;
       const res = await axios.post(`${BACKEND_URL}/updates/apply`, {
-        install_type: updateInfo.install_type
+        install_type: updateInfo.install_type,
+        target_version: updateInfo.latest_version
       });
       if (res.data && res.data.status === 'success') {
         setUpdateSuccessMsg(res.data.message || t('aboutModal.updateSuccess', 'ComfyLAB was updated successfully!'));

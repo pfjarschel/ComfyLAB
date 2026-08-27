@@ -180,6 +180,17 @@ def save_cached_update_info(data: Dict[str, Any]):
         logger.debug(f"Failed to write update cache file: {e}")
 
 
+def clear_cached_update_info():
+    _IN_MEMORY_CACHE["timestamp"] = 0.0
+    _IN_MEMORY_CACHE["data"] = None
+    cache_file = get_cache_file_path()
+    if cache_file.exists():
+        try:
+            cache_file.unlink()
+        except Exception:
+            pass
+
+
 PYPI_API_URL = "https://pypi.org/pypi/comfylab/json"
 
 
@@ -327,13 +338,14 @@ async def check_updates(force: bool = Query(False)) -> Dict[str, Any]:
 
 class ApplyUpdatePayload(BaseModel):
     install_type: Optional[str] = None
+    target_version: Optional[str] = None
 
 
 @router.post("/apply")
 async def apply_update(payload: Optional[ApplyUpdatePayload] = None) -> Dict[str, Any]:
     """
     Applies an available update depending on the detected install type:
-    - pip: executes 'pip install --upgrade comfylab'
+    - pip: executes 'pip install --upgrade --no-cache-dir comfylab>=target_version'
     - portable_zip: downloads and extracts the release archive over the application root
     - standalone / git: returns error explaining that manual update is required
     """
@@ -341,8 +353,15 @@ async def apply_update(payload: Optional[ApplyUpdatePayload] = None) -> Dict[str
     req_type = payload.install_type if payload and payload.install_type else detected_type
 
     if req_type == "pip":
-        logger.info("Applying update via pip...")
-        cmd = [sys.executable, "-m", "pip", "install", "--upgrade", "comfylab"]
+        target_version = payload.target_version if payload and payload.target_version else None
+        if not target_version:
+            cached = load_cached_update_info()
+            if cached and cached.get("latest_version"):
+                target_version = cached.get("latest_version")
+
+        pkg_spec = f"comfylab>={target_version}" if target_version else "comfylab"
+        cmd = [sys.executable, "-m", "pip", "install", "--upgrade", "--no-cache-dir", pkg_spec]
+        logger.info(f"Applying update via pip: {' '.join(cmd)}")
         try:
             process = await asyncio.create_subprocess_exec(
                 *cmd,
@@ -350,16 +369,19 @@ async def apply_update(payload: Optional[ApplyUpdatePayload] = None) -> Dict[str
                 stderr=asyncio.subprocess.PIPE
             )
             stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=300.0)
+            stdout_text = stdout.decode().strip()
+            stderr_text = stderr.decode().strip()
             if process.returncode == 0:
-                logger.info("ComfyLAB upgraded successfully via pip.")
+                logger.info(f"ComfyLAB upgraded successfully via pip: {stdout_text}")
+                clear_cached_update_info()
                 return {
                     "status": "success",
                     "install_type": "pip",
                     "message": "ComfyLAB was upgraded successfully via pip! Please restart the application to apply changes.",
-                    "output": stdout.decode().strip()
+                    "output": stdout_text
                 }
             else:
-                err_msg = stderr.decode().strip() or stdout.decode().strip()
+                err_msg = stderr_text or stdout_text
                 logger.error(f"pip install failed (code {process.returncode}): {err_msg}")
                 raise HTTPException(
                     status_code=500,
