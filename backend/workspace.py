@@ -10,6 +10,7 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
 
+import os
 from pathlib import Path
 from typing import Optional
 
@@ -27,6 +28,8 @@ def get_workspace_path() -> Path:
     if _workspace_path is None:
         _workspace_path = get_default_workspace_path()
     _ensure_directory_exists(_workspace_path)
+    os.environ["COMFYLAB_WORKSPACE"] = str(_workspace_path)
+    os.environ["WORKSPACE"] = str(_workspace_path)
     return _workspace_path
 
 
@@ -41,6 +44,8 @@ def set_workspace_path(path: str | Path) -> Path:
     resolved = Path(path).resolve()
     _ensure_directory_exists(resolved)
     _workspace_path = resolved
+    os.environ["COMFYLAB_WORKSPACE"] = str(resolved)
+    os.environ["WORKSPACE"] = str(resolved)
     return _workspace_path
 
 

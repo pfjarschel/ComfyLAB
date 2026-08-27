@@ -22,7 +22,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 
 from comfylab.blocks.base import BaseBlock, ExecIn, ExecOut, DataIn, ExecutionContext
-from backend.workspace import get_temp_dir
+from backend.workspace import get_temp_dir, get_workspace_path
 
 logger = logging.getLogger("comfylab.blocks.base_script")
 
@@ -151,7 +151,11 @@ class BaseSubprocessScriptBlock(BaseScriptBlock):
 
     def _get_subprocess_env(self) -> Optional[Dict[str, str]]:
         """Returns environment variables to set when running the subprocess."""
-        return None
+        env = os.environ.copy()
+        ws_str = str(get_workspace_path())
+        env["COMFYLAB_WORKSPACE"] = ws_str
+        env["WORKSPACE"] = ws_str
+        return env
 
     async def _run_subprocess(self, code: str, inputs: Dict[str, Any], timeout: float):
         tmp_dir = get_temp_dir()
@@ -164,12 +168,14 @@ class BaseSubprocessScriptBlock(BaseScriptBlock):
             script_file.write_text(full_script, encoding="utf-8")
             args = self._get_subprocess_args(str(script_file))
             env = self._get_subprocess_env()
+            cwd = str(get_workspace_path())
 
             process = await asyncio.create_subprocess_exec(
                 *args,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
-                env=env
+                env=env,
+                cwd=cwd
             )
 
             try:

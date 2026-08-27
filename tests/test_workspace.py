@@ -131,6 +131,92 @@ class TestScriptBlockWorkspaceIntegration:
             assert engine.blocks["print"].last_printed == os.path.realpath(tmpdir)
 
     @pytest.mark.asyncio
+    async def test_workspace_env_vars_in_python_script(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            set_workspace_path(tmpdir)
+            blueprint = {
+                "blocks": [
+                    {
+                        "id": "script",
+                        "type": "script/python",
+                        "properties": {
+                            "code": (
+                                '# @output name="comfylab_ws" type="text"\n'
+                                '# @output name="generic_ws" type="text"\n'
+                                'import os\n'
+                                'comfylab_ws = os.environ.get("COMFYLAB_WORKSPACE", "")\n'
+                                'generic_ws = os.environ.get("WORKSPACE", "")\n'
+                            )
+                        }
+                    },
+                    {"id": "print1", "type": "outputs/basic/print", "properties": {}},
+                    {"id": "print2", "type": "outputs/basic/print", "properties": {}}
+                ],
+                "links": [
+                    {"id": "l1", "type": "exec", "source_block": "script", "source_pin": "Out", "target_block": "print1", "target_pin": "In"},
+                    {"id": "l2", "type": "data", "source_block": "script", "source_pin": "comfylab_ws", "target_block": "print1", "target_pin": "Value"},
+                    {"id": "l3", "type": "exec", "source_block": "print1", "source_pin": "Out", "target_block": "print2", "target_pin": "In"},
+                    {"id": "l4", "type": "data", "source_block": "script", "source_pin": "generic_ws", "target_block": "print2", "target_pin": "Value"}
+                ]
+            }
+
+            engine = ExecutionEngine()
+            engine.load_blueprint(blueprint)
+            await engine.run(start_block_id="script", start_pin_name="In")
+
+            expected = os.path.realpath(tmpdir)
+            assert engine.blocks["print1"].last_printed == expected
+            assert engine.blocks["print2"].last_printed == expected
+
+    @pytest.mark.asyncio
+    async def test_workspace_env_vars_in_subprocess_script(self):
+        from comfylab.engine.registry import register_block
+        from comfylab.blocks.script_external_python import ExternalPythonScriptBlock
+        register_block("script/python_external")(ExternalPythonScriptBlock)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            set_workspace_path(tmpdir)
+            blueprint = {
+                "blocks": [
+                    {
+                        "id": "script",
+                        "type": "script/python_external",
+                        "properties": {
+                            "code": (
+                                '# @output name="comfylab_ws" type="text"\n'
+                                '# @output name="generic_ws" type="text"\n'
+                                '# @output name="sub_cwd" type="text"\n'
+                                'import os\n'
+                                'comfylab_ws = os.environ.get("COMFYLAB_WORKSPACE", "")\n'
+                                'generic_ws = os.environ.get("WORKSPACE", "")\n'
+                                'sub_cwd = os.getcwd()\n'
+                            )
+                        }
+                    },
+                    {"id": "display", "type": "outputs/basic/display", "properties": {}}
+                ],
+                "links": [
+                    {"id": "l1", "type": "exec", "source_block": "script", "source_pin": "Out", "target_block": "display", "target_pin": "In"},
+                    {"id": "l2", "type": "data", "source_block": "script", "source_pin": "comfylab_ws", "target_block": "display", "target_pin": "Value"}
+                ]
+            }
+
+            telemetry = {}
+            async def cb(run_id, msg):
+                if isinstance(msg, dict) and msg.get("type") == "telemetry":
+                    telemetry[msg["block_id"]] = msg["data"]
+
+            engine = ExecutionEngine()
+            engine.telemetry_callback = cb
+            engine.load_blueprint(blueprint)
+            await engine.run(start_block_id="script", start_pin_name="In")
+
+            expected = os.path.realpath(tmpdir)
+            assert engine.blocks["script"]._computed_outputs.get("comfylab_ws") == expected
+            assert engine.blocks["script"]._computed_outputs.get("generic_ws") == expected
+            assert os.path.realpath(engine.blocks["script"]._computed_outputs.get("sub_cwd")) == expected
+
+    @pytest.mark.asyncio
     async def test_engine_restores_cwd_after_run(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             set_workspace_path(tmpdir)

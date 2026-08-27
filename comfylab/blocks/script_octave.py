@@ -69,7 +69,7 @@ class OctaveScriptBlock(BaseSubprocessScriptBlock):
         return ["octave", "--no-gui", "--no-window-system", "--silent", "--no-history", script_file_path]
 
     def _get_subprocess_env(self) -> Optional[Dict[str, str]]:
-        env = os.environ.copy()
+        env = super()._get_subprocess_env() or os.environ.copy()
         env["QT_QPA_PLATFORM"] = "offscreen"
         return env
 

@@ -12,6 +12,7 @@
 
 import asyncio
 import math
+import os
 import re
 import sys
 from typing import Any, Dict, List, Optional, Tuple
@@ -87,7 +88,10 @@ class PythonScriptBlock(BaseScriptBlock):
         namespace['run_id'] = context.run_id
 
         workspace_path = get_workspace_path()
-        namespace['workspace'] = str(workspace_path)
+        workspace_str = str(workspace_path)
+        namespace['workspace'] = workspace_str
+        os.environ["COMFYLAB_WORKSPACE"] = workspace_str
+        os.environ["WORKSPACE"] = workspace_str
         namespace['__file__'] = str(get_temp_dir() / f"script_{self.id}.py")
 
         namespace['np'] = np

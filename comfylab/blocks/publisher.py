@@ -133,6 +133,7 @@ def _build_python_template(display_name, class_name, type_name, category, icon, 
 
 import sys
 import asyncio
+import os
 from typing import Any
 from comfylab.blocks.base import BaseBlock, ExecIn, ExecOut, DataIn, DataOut, ExecutionContext
 from comfylab.engine.registry import register_block
@@ -165,7 +166,10 @@ class {class_name}(BaseBlock):
         for pin_name in [p.name for p in self.inputs_def if isinstance(p, DataIn)]:
             namespace[pin_name] = locals().get(pin_name)
         workspace_path = get_workspace_path()
-        namespace['workspace'] = str(workspace_path)
+        workspace_str = str(workspace_path)
+        namespace['workspace'] = workspace_str
+        os.environ["COMFYLAB_WORKSPACE"] = workspace_str
+        os.environ["WORKSPACE"] = workspace_str
         namespace['__file__'] = str(workspace_path / f"block_execute_{{self.id}}.py")
         try:
             import numpy as np

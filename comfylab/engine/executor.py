@@ -220,7 +220,10 @@ class ExecutionEngine:
         # Set the working directory to the workspace for this execution session.
         # This allows file-based blocks and script blocks to resolve relative paths
         # from the workspace root.
-        os.chdir(str(get_workspace_path()))
+        ws_str = str(get_workspace_path())
+        os.environ["COMFYLAB_WORKSPACE"] = ws_str
+        os.environ["WORKSPACE"] = ws_str
+        os.chdir(ws_str)
 
         try:
             if start_block_id and start_pin_name:
