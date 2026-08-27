@@ -30,6 +30,7 @@ from backend.routers.diagnostics import router as diagnostics_router
 from backend.routers.workspace import router as workspace_router
 from backend.routers.packages import router as packages_router
 from backend.routers.blocks import router as blocks_router
+from backend.routers.updates import router as updates_router
 import comfylab.engine.config as config_module
 from comfylab.engine.config import get_config
 from comfylab.engine.registry import BLOCK_REGISTRY, load_all_clusters_deferred
@@ -74,7 +75,7 @@ app = FastAPI(
     description="Backend API serving the ComfyLAB push/pull block execution engine and WebSocket telemetry."
 )
 
-API_PATHS = {"/run", "/pause", "/resume", "/abort", "/status", "/blocks", "/parse_script", "/validate_script", "/workspace", "/settings", "/restart"}
+API_PATHS = {"/run", "/pause", "/resume", "/abort", "/status", "/blocks", "/parse_script", "/validate_script", "/workspace", "/settings", "/restart", "/updates"}
 
 def is_test_environment() -> bool:
     """Checks if the application is running under an active test runner (pytest/unittest)."""
@@ -435,6 +436,7 @@ app.include_router(diagnostics_router)
 app.include_router(workspace_router)
 app.include_router(packages_router)
 app.include_router(blocks_router)
+app.include_router(updates_router)
 
 @app.on_event("startup")
 async def startup_event():

@@ -34,7 +34,9 @@
     "liteModeOn": "Modo Ligero: ACTIVADO — Clic para desactivar",
     "liteModeOff": "Modo Ligero: DESACTIVADO — Clic para activar (reduce efectos visuales para dispositivos de bajo consumo)",
     "language": "Idioma",
-    "about": "Acerca de ComfyLAB"
+    "about": "Acerca de ComfyLAB",
+    "updateAvailable": "Actualización disponible: v{{version}} — Clic para ver detalles",
+    "updateAvailableShort": "Actualización Disponible"
   },
   "splash": {
     "welcome": "Bienvenido a ComfyLAB",
@@ -335,7 +337,31 @@
     "visitGithubRepo": "Visita el repositorio de ComfyLAB en GitHub",
     "hideTokenTitle": "Ocultar Token de Acceso",
     "showTokenTitle": "Mostrar Token de Acceso",
-    "license": "Distribuido bajo la Licencia Pública General GNU v3.0"
+    "license": "Distribuido bajo la Licencia Pública General GNU v3.0",
+    "updateSectionTitle": "Actualizaciones de Software",
+    "upToDate": "ComfyLAB está actualizado.",
+    "checkingForUpdates": "Buscando actualizaciones...",
+    "checkForUpdates": "Buscar Actualizaciones",
+    "updateAvailableTitle": "Nueva Versión Disponible: v{{version}}",
+    "releaseNotes": "Notas de la Versión",
+    "viewReleaseNotes": "Ver Notas de la Versión",
+    "hideReleaseNotes": "Ocultar Notas de la Versión",
+    "installType": "Tipo de Instalación",
+    "installTypePip": "Paquete Python (pip)",
+    "installTypePortable": "Paquete Frontend Compilado (ZIP Portátil)",
+    "installTypeStandalone": "Ejecutable Independiente",
+    "installTypeGit": "Clon de Repositorio Git",
+    "btnUpdatePip": "Actualizar ComfyLAB (pip)",
+    "btnUpdatePortable": "Actualizar ComfyLAB (Portátil)",
+    "btnDownloadGitHub": "Descargar desde GitHub",
+    "gitUpdateHint": "Repositorio Git detectado. Actualice con 'git pull' en su terminal.",
+    "standaloneUpdateHint": "Ejecutable precompilado detectado. Descargue la última versión desde GitHub.",
+    "updating": "Actualizando ComfyLAB...",
+    "updateSuccess": "¡ComfyLAB se actualizó con éxito!",
+    "restartRequired": "Por favor, reinicie ComfyLAB para aplicar los cambios.",
+    "restartNow": "Reiniciar ComfyLAB Ahora",
+    "restarting": "Reiniciando servidor...",
+    "updateFailed": "Fallo en la actualización:"
   },
    "modals": {
     "confirmTitle": "Confirmar Acción",

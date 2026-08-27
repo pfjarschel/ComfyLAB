@@ -555,6 +555,26 @@ function Flow() {
     return localStorage.getItem('comfylab_hide_splash') !== 'true';
   });
 
+  // Software Update Notification States
+  const [updateInfo, setUpdateInfo] = useState<any>(null);
+
+  const fetchUpdateInfo = useCallback(async (force = false) => {
+    try {
+      const res = await axios.get(`${BACKEND_URL}/updates/check${force ? '?force=true' : ''}`);
+      if (res.data && res.data.status === 'success') {
+        setUpdateInfo(res.data);
+        return res.data;
+      }
+    } catch (err) {
+      console.debug('Update check skipped or failed:', err);
+    }
+    return null;
+  }, [BACKEND_URL]);
+
+  useEffect(() => {
+    fetchUpdateInfo(false);
+  }, [fetchUpdateInfo]);
+
   // Trust Warning Modal States
   const [trustWarningOpen, setTrustWarningOpen] = useState(false);
   const [trustWarningMessage, setTrustWarningMessage] = useState("");
@@ -3731,6 +3751,10 @@ return {
           onOpenSplash={() => setSplashOpen(true)}
           onOpenAbout={() => setAboutModalOpen(true)}
           onOpenQuickStart={() => setQuickStartModalOpen(true)}
+          updateAvailable={Boolean(updateInfo?.update_available)}
+          latestVersion={updateInfo?.latest_version}
+          updateInfo={updateInfo}
+          onCheckUpdate={fetchUpdateInfo}
           onLoadExample={() => setLoadExampleOpen(true)}
           onGroupCluster={handleGroupIntoCluster}
           onRun={handleRun}
@@ -4477,7 +4501,11 @@ return {
 
         {/* --- ABOUT MODAL --- */}
         {aboutModalOpen && (
-          <AboutModal onClose={() => setAboutModalOpen(false)} />
+          <AboutModal 
+            onClose={() => setAboutModalOpen(false)} 
+            updateInfo={updateInfo}
+            onCheckUpdate={fetchUpdateInfo}
+          />
         )}
 
         {/* --- QUICK START MODAL --- */}

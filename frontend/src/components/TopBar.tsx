@@ -60,6 +60,10 @@ interface TopBarProps {
   onResume: () => void;
   onAbort: () => void;
   onImportPackage: () => void;
+  updateAvailable?: boolean;
+  latestVersion?: string;
+  updateInfo?: any;
+  onCheckUpdate?: (force?: boolean) => Promise<any>;
 }
 
 export const TopBar = ({
@@ -104,6 +108,10 @@ export const TopBar = ({
   onResume,
   onAbort,
   onImportPackage,
+  updateAvailable,
+  latestVersion,
+  updateInfo,
+  onCheckUpdate,
 }: TopBarProps) => {
   const [showAboutModal, setShowAboutModal] = useState(false);
   const [showQuickStartModal, setShowQuickStartModal] = useState(false);
@@ -111,7 +119,13 @@ export const TopBar = ({
 
   return (
     <>
-      {showAboutModal && <AboutModal onClose={() => setShowAboutModal(false)} />}
+      {showAboutModal && (
+        <AboutModal 
+          onClose={() => setShowAboutModal(false)} 
+          updateInfo={updateInfo}
+          onCheckUpdate={onCheckUpdate}
+        />
+      )}
       {showQuickStartModal && <QuickStartModal onClose={() => setShowQuickStartModal(false)} />}
       <div className="top-bar">
       {/* Left section: Hamburger, Settings, Sidebar toggle, Workspace */}
@@ -394,6 +408,33 @@ export const TopBar = ({
               ComfyLAB
             </a> <span style={{ fontSize: '0.8em', opacity: 0.8 }}>v{import.meta.env.VITE_APP_VERSION}</span>
           </h1>
+          {updateAvailable && (
+            <button
+              onClick={() => onOpenAbout ? onOpenAbout() : setShowAboutModal(true)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '22px',
+                borderRadius: '11px',
+                padding: '0 8px',
+                border: '1px solid #10b981',
+                background: 'rgba(16, 185, 129, 0.15)',
+                color: '#10b981',
+                cursor: 'pointer',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                gap: '4px',
+                transition: 'all 0.2s ease',
+              }}
+              title={t('topbar.updateAvailable', 'Update available: v{{version}} — Click to view details', { version: latestVersion || '' })}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="18 15 12 9 6 15"></polyline>
+              </svg>
+              <span>v{latestVersion}</span>
+            </button>
+          )}
           <button
             onClick={() => onOpenQuickStart ? onOpenQuickStart() : setShowQuickStartModal(true)}
             style={{

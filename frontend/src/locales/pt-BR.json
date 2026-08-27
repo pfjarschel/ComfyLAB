@@ -34,7 +34,9 @@
     "liteModeOn": "Modo Leve: ATIVADO — Clique para desativar",
     "liteModeOff": "Modo Leve: DESATIVADO — Clique para ativar (reduz efeitos visuais para dispositivos de baixa potência)",
     "language": "Idioma",
-    "about": "Sobre o ComfyLAB"
+    "about": "Sobre o ComfyLAB",
+    "updateAvailable": "Atualização disponível: v{{version}} — Clique para ver detalhes",
+    "updateAvailableShort": "Atualização Disponível"
   },
   "splash": {
     "welcome": "Bem-vindo ao ComfyLAB",
@@ -335,7 +337,31 @@
     "visitGithub": "Visite o ComfyLAB no GitHub",
     "visitGithubRepo": "Visite o repositório do ComfyLAB no GitHub",
     "hideTokenTitle": "Ocultar Token de Acesso",
-    "showTokenTitle": "Mostrar Token de Acesso"
+    "showTokenTitle": "Mostrar Token de Acesso",
+    "updateSectionTitle": "Atualizações de Software",
+    "upToDate": "O ComfyLAB está atualizado.",
+    "checkingForUpdates": "Verificando atualizações...",
+    "checkForUpdates": "Verificar Atualizações",
+    "updateAvailableTitle": "Nova Versão Disponível: v{{version}}",
+    "releaseNotes": "Notas da Versão",
+    "viewReleaseNotes": "Ver Notas da Versão",
+    "hideReleaseNotes": "Ocultar Notas da Versão",
+    "installType": "Tipo de Instalação",
+    "installTypePip": "Pacote Python (pip)",
+    "installTypePortable": "Pacote Frontend Compilado (ZIP Portátil)",
+    "installTypeStandalone": "Executável Independente",
+    "installTypeGit": "Clone de Repositório Git",
+    "btnUpdatePip": "Atualizar ComfyLAB (pip)",
+    "btnUpdatePortable": "Atualizar ComfyLAB (Portátil)",
+    "btnDownloadGitHub": "Baixar do GitHub",
+    "gitUpdateHint": "Repositório Git detectado. Atualize com 'git pull' no terminal.",
+    "standaloneUpdateHint": "Executável pré-compilado detectado. Baixe a versão mais recente no GitHub.",
+    "updating": "Atualizando o ComfyLAB...",
+    "updateSuccess": "O ComfyLAB foi atualizado com sucesso!",
+    "restartRequired": "Por favor, reinicie o ComfyLAB para aplicar as alterações.",
+    "restartNow": "Reiniciar o ComfyLAB Agora",
+    "restarting": "Reiniciando servidor...",
+    "updateFailed": "Falha na atualização:"
   },
   "quickStart": {
     "title": "Guia de Início Rápido do ComfyLAB",

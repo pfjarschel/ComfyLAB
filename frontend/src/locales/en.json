@@ -35,7 +35,9 @@
     "liteModeOn": "Lite Mode: ON — Click to disable",
     "liteModeOff": "Lite Mode: OFF — Click to enable (reduces visual effects for low-power devices)",
     "language": "Language",
-    "about": "About ComfyLAB"
+    "about": "About ComfyLAB",
+    "updateAvailable": "Update available: v{{version}} — Click to view details",
+    "updateAvailableShort": "Update Available"
   },
   "splash": {
     "welcome": "Welcome to ComfyLAB",
@@ -335,7 +337,31 @@
     "visitGithub": "Visit ComfyLAB on GitHub",
     "visitGithubRepo": "Visit ComfyLAB repository on GitHub",
     "hideTokenTitle": "Hide Access Token",
-    "showTokenTitle": "Show Access Token"
+    "showTokenTitle": "Show Access Token",
+    "updateSectionTitle": "Software Updates",
+    "upToDate": "ComfyLAB is up to date.",
+    "checkingForUpdates": "Checking for updates...",
+    "checkForUpdates": "Check for Updates",
+    "updateAvailableTitle": "New Version Available: v{{version}}",
+    "releaseNotes": "Release Notes",
+    "viewReleaseNotes": "View Release Notes",
+    "hideReleaseNotes": "Hide Release Notes",
+    "installType": "Installation Type",
+    "installTypePip": "Python Package (pip)",
+    "installTypePortable": "Compiled Frontend Package (Portable ZIP)",
+    "installTypeStandalone": "Standalone Executable",
+    "installTypeGit": "Git Repository Clone",
+    "btnUpdatePip": "Update ComfyLAB (pip)",
+    "btnUpdatePortable": "Update ComfyLAB (Portable)",
+    "btnDownloadGitHub": "Download from GitHub",
+    "gitUpdateHint": "Git repository detected. Update with 'git pull' in your terminal.",
+    "standaloneUpdateHint": "Pre-compiled executable detected. Download the latest release from GitHub.",
+    "updating": "Updating ComfyLAB...",
+    "updateSuccess": "ComfyLAB was updated successfully!",
+    "restartRequired": "Please restart ComfyLAB to apply changes.",
+    "restartNow": "Restart ComfyLAB Now",
+    "restarting": "Restarting server...",
+    "updateFailed": "Update failed:"
   },
   "quickStart": {
     "title": "ComfyLAB Quick Start Guide",
