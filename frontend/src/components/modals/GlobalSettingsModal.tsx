@@ -36,6 +36,8 @@ interface GlobalSettingsProps {
     external_python_path: string;
     creator_identity: string;
     trusted_origins: string[];
+    plot_downsample_threshold?: number;
+    plot_downsample_target?: number;
     custom_users: Record<string, string>;
   };
   setSettings: (settings: any) => void;
@@ -198,6 +200,46 @@ export const GlobalSettingsModal = ({
                   <span className="setting-description" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
                     {t('settingsModal.enableLiteModeHint', 'Reduces visual effects, disables blur filters, diffuse shadows, and ambient animations to maximize responsiveness on low-resource hardware (e.g. Raspberry Pi).')}
                   </span>
+
+                  {/* Plot Downsampling Settings */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '12px' }}>
+                    <div>
+                      <label className="setting-label" style={{ fontSize: '0.8rem', fontWeight: 500 }}>
+                        {t('settingsModal.plotDownsampleThreshold', 'Plot Downsample Threshold')}
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="1000"
+                        value={settings.plot_downsample_threshold ?? 10000}
+                        onChange={(e) => setSettings({ ...settings, plot_downsample_threshold: Math.max(0, parseInt(e.target.value) || 0) })}
+                        className="setting-input-number"
+                        style={{ width: '100%', marginTop: '4px' }}
+                      />
+                      <span className="setting-description" style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block', marginTop: '2px' }}>
+                        {t('settingsModal.plotDownsampleThresholdHint', 'Points limit to trigger LTTB visual downsampling (0 = disabled).')}
+                      </span>
+                    </div>
+
+                    <div>
+                      <label className="setting-label" style={{ fontSize: '0.8rem', fontWeight: 500 }}>
+                        {t('settingsModal.plotDownsampleTarget', 'Downsample To')}
+                      </label>
+                      <input
+                        type="number"
+                        min="100"
+                        max="50000"
+                        step="500"
+                        value={settings.plot_downsample_target ?? 2000}
+                        onChange={(e) => setSettings({ ...settings, plot_downsample_target: Math.max(100, parseInt(e.target.value) || 2000) })}
+                        className="setting-input-number"
+                        style={{ width: '100%', marginTop: '4px' }}
+                      />
+                      <span className="setting-description" style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block', marginTop: '2px' }}>
+                        {t('settingsModal.plotDownsampleTargetHint', 'Rendered target point count for downsampled plots.')}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               )}
 

@@ -317,26 +317,7 @@ export function useFlowExecution({
         pendingUpdatesRef.current[blockId].statusMessage = msg.message || (msg.status === 'success' ? 'Success' : '');
       } else if (msg.type === 'telemetry') {
         const { block_id, data } = msg;
-        
-        // Find target block in active blocks or background running tab
-        const isForeground = activeTabIdRef.current === runningTabIdRef.current;
-        const existingNode = isForeground
-          ? blocksRef.current.find((n: any) => n.id === block_id)
-          : tabsRef.current.find((t: any) => t.id === runningTabIdRef.current)?.blocks?.find((n: any) => n.id === block_id);
-        
-        let hasArrayData = false;
-        
-        if (existingNode && data) {
-          if (!existingNode.data.results) existingNode.data.results = {};
-          
-          for (const key of Object.keys(data)) {
-            // If the payload contains a large array, intercept it to prevent React state freezes
-            if (Array.isArray(data[key]) && data[key].length > 100) {
-              existingNode.data.results[key] = data[key];
-              hasArrayData = true;
-            }
-          }
-        }
+        if (!data) return;
 
         if (!pendingUpdatesRef.current[block_id]) {
           pendingUpdatesRef.current[block_id] = {};
@@ -345,33 +326,23 @@ export function useFlowExecution({
           pendingUpdatesRef.current[block_id].results = {};
         }
 
-        // Generate messages based on the intercepted arrays on the block, since we are about to delete them from `data`
-        if (hasArrayData && existingNode) {
-          if (existingNode.data.results.waveform) {
-            pendingUpdatesRef.current[block_id].resultMessage = `Captured: ${existingNode.data.results.waveform.length} pts`;
-          } else if (existingNode.data.results.z) {
-             const zArr = existingNode.data.results.z;
-             pendingUpdatesRef.current[block_id].resultMessage = `Plotted 2D: ${zArr[0]?.length || 0}x${zArr.length || 0}`;
-          } else if (existingNode.data.results.x && existingNode.data.results.y) {
-            pendingUpdatesRef.current[block_id].resultMessage = `Plotted ${existingNode.data.results.y.length} pts`;
-          }
+        // Determine human-readable result message based on telemetry data
+        if (data.waveform && (Array.isArray(data.waveform) || ArrayBuffer.isView(data.waveform))) {
+          pendingUpdatesRef.current[block_id].resultMessage = `Captured: ${data.waveform.length} pts`;
+        } else if (data.z && Array.isArray(data.z)) {
+          const zArr = data.z;
+          pendingUpdatesRef.current[block_id].resultMessage = `Plotted 2D: ${zArr[0]?.length || 0}x${zArr.length || 0}`;
+        } else if (data.y && (Array.isArray(data.y) || ArrayBuffer.isView(data.y))) {
+          const ptCount = Array.isArray(data.y[0]) ? data.y[0].length : data.y.length;
+          pendingUpdatesRef.current[block_id].resultMessage = `Plotted ${ptCount} pts`;
+        } else if (data.state !== undefined) {
+          pendingUpdatesRef.current[block_id].resultMessage = `State: ${data.state ? 'ON' : 'OFF'}`;
         }
 
-        // Remove large arrays from data so they don't enter React's setBlocks pipeline
-        if (hasArrayData) {
-          for (const key of Object.keys(data)) {
-             if (Array.isArray(data[key]) && data[key].length > 100) {
-                 delete data[key];
-             }
-          }
-        }
-
-        pendingUpdatesRef.current[block_id].results = {
-          ...pendingUpdatesRef.current[block_id].results,
-          ...data
-        };
+        // Retain all telemetry keys intact in results (x, y, z, waveform, limits, logs, labels, etc.)
+        Object.assign(pendingUpdatesRef.current[block_id].results, data);
         
-        // Handle small/scalar data messages
+        // Handle scalar or time-series data values
         if (data.value !== undefined) {
           pendingUpdatesRef.current[block_id].value = data.value;
           if (!pendingUpdatesRef.current[block_id].valuesQueue) {
@@ -382,8 +353,6 @@ export function useFlowExecution({
             timestamp: data.timestamp,
             max_history: data.max_history
           });
-        } else if (data.state !== undefined) {
-          pendingUpdatesRef.current[block_id].resultMessage = `State: ${data.state ? 'ON' : 'OFF'}`;
         }
       } else if (msg.type === 'pin_values') {
         const { block_id, pin_values } = msg;
@@ -405,6 +374,9 @@ export function useFlowExecution({
           setIsRunning(false);
           setIsPaused(false);
           setRunningTabId(null);
+          isRunningRef.current = false;
+          isPausedRef.current = false;
+          runningTabIdRef.current = null;
           if (msg.status === 'failed') {
             setErrorMessage(msg.error || 'Execution failed.');
           }
@@ -480,6 +452,9 @@ export function useFlowExecution({
     setIsPaused(false);
     setErrorMessage(null);
     setRunningTabId(activeTabIdRef.current);
+    isRunningRef.current = true;
+    isPausedRef.current = false;
+    runningTabIdRef.current = activeTabIdRef.current;
 
     // Reset status on all blocks
     setBlocks((nds) =>
@@ -496,6 +471,7 @@ export function useFlowExecution({
         delete persistData.status;
         delete persistData.resultMessage;
         delete persistData.result;
+        delete persistData.results;
         delete persistData.waveform;
         delete persistData.history;
         return { id, type, position, data: persistData, style };
@@ -517,6 +493,9 @@ export function useFlowExecution({
       setIsRunning(false);
       setIsPaused(false);
       setRunningTabId(null);
+      isRunningRef.current = false;
+      isPausedRef.current = false;
+      runningTabIdRef.current = null;
       setErrorMessage(err.response?.data?.detail || 'Failed to start execution.');
     }
   }, [BACKEND_URL, exportBlueprint, currentBlueprintName, setBlocks, startTelemetryStream, setIsRunning, setIsPaused, setRunningTabId, setErrorMessage]);
@@ -545,6 +524,9 @@ export function useFlowExecution({
       setIsRunning(false);
       setIsPaused(false);
       setRunningTabId(null);
+      isRunningRef.current = false;
+      isPausedRef.current = false;
+      runningTabIdRef.current = null;
 
       setBlocks((nds) =>
         nds.map((block) => {

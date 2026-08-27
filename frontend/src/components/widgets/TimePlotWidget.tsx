@@ -12,11 +12,13 @@
  * GNU General Public License for more details.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import _Plot from 'react-plotly.js';
 const Plot: any = (_Plot as any).default ?? _Plot;
 import { ResizablePlotContainer } from '../common/ResizablePlotContainer';
 import { useReactFlow } from '@xyflow/react';
+import { SettingsContext } from '../../context/SettingsContext';
+import { downsampleLTTB } from '../../utils/downsample';
 
 interface TimePlotWidgetProps {
   blockId: string;
@@ -104,8 +106,8 @@ const PlotlyTimeRenderer = ({ blockId, strokeColor, dataKey, xLog = false, yLog 
       const results = eventResults || block?.data?.results;
       const points = results?.[dataKey];
       
-      if (points && Array.isArray(points)) {
-        setPlotData(points);
+      if (points && (Array.isArray(points) || ArrayBuffer.isView(points))) {
+        setPlotData(points as any);
       }
       
       if (results) {
@@ -207,27 +209,43 @@ const PlotlyTimeRenderer = ({ blockId, strokeColor, dataKey, xLog = false, yLog 
     yaxis.autorange = true;
   }
 
+  const settings = useContext(SettingsContext);
+  const downsampleThreshold = settings?.plot_downsample_threshold ?? 10000;
+  const downsampleTarget = settings?.plot_downsample_target ?? 2000;
+
   const colors = ['#60a5fa', '#f87171', '#34d399', '#fbbf24', '#a78bfa', '#2dd4bf'];
   
   const relativeTimeData = timeData.length > 0 ? timeData.map(t => t - timeData[0]) : [];
   
   let plotTraces: any[] = [];
   if (plotData && plotData.length > 0) {
-    const traceType = plotData.length > 5000 ? 'scattergl' : 'scatter';
-    const traceMode = plotData.length <= 300 ? 'lines+markers' : 'lines';
-    const markerConfig = plotData.length <= 300 ? { size: 4 } : undefined;
+    const isSingleBatchArray = plotData.length === 1 && (Array.isArray(plotData[0]) || ArrayBuffer.isView(plotData[0])) && (!traceLabels || traceLabels.length <= 1);
+    const effectiveData = isSingleBatchArray ? plotData[0] : plotData;
 
-    if (Array.isArray(plotData[0])) {
-      const numCurves = plotData[0].length;
+    if (Array.isArray(effectiveData[0])) {
+      const numCurves = effectiveData[0].length;
       for (let c = 0; c < numCurves; c++) {
-        const curveY = plotData.map(step => (Array.isArray(step) ? step[c] : step));
+        let curveY: number[] = effectiveData.map((step: any) => Number(Array.isArray(step) ? step[c] : step));
         const defaultX = Array.from({ length: curveY.length }, (_, i) => i);
+        let traceX = relativeTimeData.length > 0 ? relativeTimeData : defaultX;
+
+        if (downsampleThreshold > 0 && curveY.length > downsampleThreshold) {
+          const downsampled = downsampleLTTB(traceX, curveY, downsampleTarget);
+          traceX = downsampled.x;
+          curveY = downsampled.y;
+        }
+
+        const pointCount = curveY.length;
+        const traceType = pointCount > 5000 ? 'scattergl' : 'scatter';
+        const traceMode = pointCount <= 300 ? 'lines+markers' : 'lines';
+        const markerConfig = pointCount <= 300 ? { size: 4 } : undefined;
+
         const traceObj: any = {
-          x: relativeTimeData.length > 0 ? relativeTimeData : defaultX,
+          x: traceX,
           y: curveY,
           type: traceType,
           mode: traceMode,
-          marker: markerConfig,
+          ...(markerConfig ? { marker: markerConfig } : {}),
           line: { color: colors[c % colors.length], width: 1.5 },
           hoverinfo: 'x+y',
           name: traceLabels?.[c] || `Trace ${c + 1}`
@@ -235,13 +253,27 @@ const PlotlyTimeRenderer = ({ blockId, strokeColor, dataKey, xLog = false, yLog 
         plotTraces.push(traceObj);
       }
     } else {
-      const defaultX = Array.from({ length: plotData.length }, (_, i) => i);
+      let curveY: number[] = Array.from(effectiveData as any, Number);
+      const defaultX = Array.from({ length: curveY.length }, (_, i) => i);
+      let traceX = relativeTimeData.length > 0 ? relativeTimeData : defaultX;
+
+      if (downsampleThreshold > 0 && curveY.length > downsampleThreshold) {
+        const downsampled = downsampleLTTB(traceX, curveY, downsampleTarget);
+        traceX = downsampled.x;
+        curveY = downsampled.y;
+      }
+
+      const pointCount = curveY.length;
+      const traceType = pointCount > 5000 ? 'scattergl' : 'scatter';
+      const traceMode = pointCount <= 300 ? 'lines+markers' : 'lines';
+      const markerConfig = pointCount <= 300 ? { size: 4 } : undefined;
+
       const traceObj: any = {
-        x: relativeTimeData.length > 0 ? relativeTimeData : defaultX,
-        y: plotData,
+        x: traceX,
+        y: curveY,
         type: traceType,
         mode: traceMode,
-        marker: markerConfig,
+        ...(markerConfig ? { marker: markerConfig } : {}),
         line: { color: strokeColor, width: 1.5 },
         hoverinfo: 'x+y',
         name: traceLabels?.[0] || 'Trace 1'

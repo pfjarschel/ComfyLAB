@@ -45,6 +45,7 @@ import './App.css';
 import dagre from '@dagrejs/dagre';
 
 import { RegistryContext } from './context/RegistryContext';
+import { SettingsContext } from './context/SettingsContext';
 import { useTranslation } from './i18n';
 import { RemoteAccessAuthPanel } from './components/modals/RemoteAccessAuthPanel';
 import { GlobalSettingsModal } from './components/modals/GlobalSettingsModal';
@@ -513,6 +514,8 @@ function Flow() {
     external_python_path: string;
     creator_identity: string;
     trusted_origins: string[];
+    plot_downsample_threshold: number;
+    plot_downsample_target: number;
     custom_users: Record<string, string>;
   }>({
     custom_block_dirs: [],
@@ -533,6 +536,8 @@ function Flow() {
     external_python_path: '',
     creator_identity: '',
     trusted_origins: [],
+    plot_downsample_threshold: 10000,
+    plot_downsample_target: 2000,
     custom_users: {}
   });
   const [newDirInput, setNewDirInput] = useState('');
@@ -3563,7 +3568,8 @@ return {
 
   return (
     <RegistryContext.Provider value={blockRegistry}>
-      <div className="app-container">
+      <SettingsContext.Provider value={settings}>
+        <div className="app-container">
         {/* --- TOP BAR / TOOLBAR --- */}
         <TopBar
           menuOpen={menuOpen}
@@ -4516,7 +4522,8 @@ return {
           onLoadExampleByName={handleLoadExampleByName}
           BACKEND_URL={BACKEND_URL}
         />
-      </div>
+        </div>
+      </SettingsContext.Provider>
     </RegistryContext.Provider>
   );
 

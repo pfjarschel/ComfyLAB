@@ -56,6 +56,8 @@ class SettingsPayload(BaseModel):
     external_python_path: str = ""
     creator_identity: str = ""
     trusted_origins: List[str] = []
+    plot_downsample_threshold: int = 10000
+    plot_downsample_target: int = 2000
     custom_users: Dict[str, str] = {}
 
 

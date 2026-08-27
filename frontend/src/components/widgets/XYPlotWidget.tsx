@@ -12,11 +12,13 @@
  * GNU General Public License for more details.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import _Plot from 'react-plotly.js';
 const Plot: any = (_Plot as any).default ?? _Plot;
 import { ResizablePlotContainer } from '../common/ResizablePlotContainer';
 import { useReactFlow } from '@xyflow/react';
+import { SettingsContext } from '../../context/SettingsContext';
+import { downsampleLTTB } from '../../utils/downsample';
 
 interface XYPlotWidgetProps {
   blockId: string;
@@ -106,7 +108,8 @@ const PlotlyXYRenderer = ({ blockId, xLabel, yLabel, xLog = false, yLog = false,
       const traceLabels = results?.labels || [];
       
       if (y.length > 0) {
-        const finalX = x.length > 0 ? x : Array.from({ length: y.length }, (_, i) => i);
+        const pointLen = Array.isArray(y[0]) ? y[0].length : y.length;
+        const finalX = (x && x.length > 0) ? x : Array.from({ length: pointLen }, (_, i) => i);
         setPlotData({ x: finalX, y, labels: traceLabels });
       }
 
@@ -205,33 +208,65 @@ const PlotlyXYRenderer = ({ blockId, xLabel, yLabel, xLog = false, yLog = false,
     yaxis.autorange = true;
   }
 
+  const settings = useContext(SettingsContext);
+  const downsampleThreshold = settings?.plot_downsample_threshold ?? 10000;
+  const downsampleTarget = settings?.plot_downsample_target ?? 2000;
+
   const colors = ['#60a5fa', '#f87171', '#34d399', '#fbbf24', '#a78bfa', '#2dd4bf'];
   
   let plotTraces: any[] = [];
   if (plotData.y && plotData.y.length > 0) {
-    const pointCount = Array.isArray(plotData.y[0]) ? plotData.y[0].length : plotData.y.length;
-    const traceType = pointCount > 5000 ? 'scattergl' : 'scatter';
-    const traceMode = pointCount <= 300 ? 'lines+markers' : 'lines';
-    const markerConfig = pointCount <= 300 ? { size: 4 } : undefined;
-
     if (Array.isArray(plotData.y[0])) {
-      plotTraces = plotData.y.map((yArray: any[], i: number) => ({
-        x: (plotData.x && Array.isArray(plotData.x[0])) ? plotData.x[i] : plotData.x,
-        y: yArray,
-        type: traceType,
-        mode: traceMode,
-        marker: markerConfig,
-        line: { color: colors[i % colors.length], width: 2 },
-        hoverinfo: 'x+y',
-        name: plotData.labels?.[i] || `Trace ${i + 1}`
-      }));
+      plotTraces = plotData.y.map((yArray: any[], i: number) => {
+        const rawX = (plotData.x && Array.isArray(plotData.x[0])) ? plotData.x[i] : plotData.x;
+        let traceX = rawX;
+        let traceY = yArray;
+        const count = traceY.length;
+
+        if (downsampleThreshold > 0 && count > downsampleThreshold) {
+          const downsampled = downsampleLTTB(rawX, traceY, downsampleTarget);
+          traceX = downsampled.x;
+          traceY = downsampled.y;
+        }
+
+        const pointCount = traceY.length;
+        const traceType = pointCount > 5000 ? 'scattergl' : 'scatter';
+        const traceMode = pointCount <= 300 ? 'lines+markers' : 'lines';
+        const markerConfig = pointCount <= 300 ? { size: 4 } : undefined;
+
+        return {
+          x: traceX,
+          y: traceY,
+          type: traceType,
+          mode: traceMode,
+          ...(markerConfig ? { marker: markerConfig } : {}),
+          line: { color: colors[i % colors.length], width: 2 },
+          hoverinfo: 'x+y',
+          name: plotData.labels?.[i] || `Trace ${i + 1}`
+        };
+      });
     } else {
+      let traceX = plotData.x;
+      let traceY = plotData.y;
+      const count = traceY.length;
+
+      if (downsampleThreshold > 0 && count > downsampleThreshold) {
+        const downsampled = downsampleLTTB(plotData.x, traceY, downsampleTarget);
+        traceX = downsampled.x;
+        traceY = downsampled.y;
+      }
+
+      const pointCount = traceY.length;
+      const traceType = pointCount > 5000 ? 'scattergl' : 'scatter';
+      const traceMode = pointCount <= 300 ? 'lines+markers' : 'lines';
+      const markerConfig = pointCount <= 300 ? { size: 4 } : undefined;
+
       plotTraces = [{
-        x: plotData.x,
-        y: plotData.y,
+        x: traceX,
+        y: traceY,
         type: traceType,
         mode: traceMode,
-        marker: markerConfig,
+        ...(markerConfig ? { marker: markerConfig } : {}),
         line: { color: colors[0], width: 2 },
         hoverinfo: 'x+y',
         name: plotData.labels?.[0] || 'Trace 1'

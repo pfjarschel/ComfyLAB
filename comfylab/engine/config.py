@@ -42,6 +42,8 @@ DEFAULT_CONFIG = {
     "external_python_path": "",
     "creator_identity": "",
     "trusted_origins": [],
+    "plot_downsample_threshold": 10000,
+    "plot_downsample_target": 2000,
     "custom_users": {}
 }
 
