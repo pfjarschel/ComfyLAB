@@ -199,11 +199,11 @@ def get_version(script_dir):
         return version_file.read_text().strip()
     return "0.0.0"
 
-def run_staged_build(script_dir, version):
+def run_staged_build(script_dir, version, build_wheel=False):
     """
     Cloud/FUSE-safe release build: stages everything to a local home directory,
-    compiles the frontend and assembles/compresses the package there, then copies
-    only the final .zip back to the repo directory.
+    compiles the frontend and assembles/compresses the package there, copies
+    the fresh compiled frontend back to the repo directory, and builds release packages.
     """
     stage_dir = Path.home() / ".comfylab" / "release_stage"
     print(f"\n[Build] Unsupported filesystem (FUSE/cloud mount). Staging build to local directory: {stage_dir}")
@@ -226,11 +226,30 @@ def run_staged_build(script_dir, version):
         check_prerequisites()
         build_frontend(stage_dir)
 
+        # 2b. Copy compiled frontend bundle back to script_dir/frontend/dist so repository stays fresh
+        print(" -> Copying freshly compiled frontend bundle back to repository...")
+        dest_frontend_dist = script_dir / "frontend" / "dist"
+        if dest_frontend_dist.exists():
+            shutil.rmtree(dest_frontend_dist)
+        shutil.copytree(stage_dir / "frontend" / "dist", dest_frontend_dist)
+
         # 3. Assemble the release structure locally
         release_dir = assemble_release(stage_dir)
 
         # 4. Compress, writing the final .zip back to the repo directory
         compress_release(script_dir, release_dir, version)
+
+        # 5. Build wheel package directly inside staging where symlinks work and files are clean
+        if build_wheel:
+            print("\n[Build Wheel] Building Python wheel and sdist package in local staging...")
+            dist_target = script_dir / "dist"
+            dist_target.mkdir(parents=True, exist_ok=True)
+            subprocess.run(
+                [sys.executable, "-m", "build", "--outdir", str(dist_target)],
+                cwd=str(stage_dir),
+                check=True
+            )
+            print(f"\033[1;32m[Success] Python wheel and sdist package built successfully in dist/\033[0m")
     finally:
         # Always clean up the local staging area, even on failure
         print(" -> Cleaning up local staging files...")
@@ -242,6 +261,12 @@ def run_staged_build(script_dir, version):
 def build_wheel_package(script_dir):
     print("\n[Build Wheel] Building Python wheel and sdist package (pip/PyPI)...")
     try:
+        # Verify frontend/dist exists
+        frontend_dist = script_dir / "frontend" / "dist"
+        if not frontend_dist.exists():
+            print(" -> Compiled frontend not found. Building frontend first...")
+            check_prerequisites()
+            build_frontend(script_dir)
         subprocess.run([sys.executable, "-m", "build", "--outdir", str(script_dir / "dist")], cwd=str(script_dir), check=True)
         print("\033[1;32m[Success] Python wheel and sdist package built successfully in dist/\033[0m")
     except Exception as e:
@@ -266,15 +291,14 @@ def main():
     # On cloud/FUSE drives (no symlink support), stage the whole build locally
     # to avoid sync churn and npm/vite flakiness; otherwise build in place.
     if not check_symlink_support(script_dir):
-        run_staged_build(script_dir, version)
+        run_staged_build(script_dir, version, build_wheel=args.wheel)
     else:
         check_prerequisites()
         build_frontend(script_dir)
         release_dir = assemble_release(script_dir)
         compress_release(script_dir, release_dir, version)
-
-    if args.wheel:
-        build_wheel_package(script_dir)
+        if args.wheel:
+            build_wheel_package(script_dir)
 
 if __name__ == "__main__":
     main()

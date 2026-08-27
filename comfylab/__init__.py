@@ -24,7 +24,7 @@ def _get_version():
     for p in [Path(__file__).resolve().parent.parent / "VERSION", Path(__file__).resolve().parent / "VERSION"]:
         if p.exists():
             return p.read_text().strip()
-    return "0.3.0"
+    return "0.0.0"
 
 __version__ = _get_version()
 

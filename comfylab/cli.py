@@ -86,7 +86,7 @@ def get_installed_version() -> str:
     for path in [Path(__file__).resolve().parent.parent / "VERSION", Path(__file__).resolve().parent / "VERSION"]:
         if path.exists():
             return path.read_text().strip()
-    return "0.3.0"
+    return "0.0.0"
 
 def main():
     args = parse_args()

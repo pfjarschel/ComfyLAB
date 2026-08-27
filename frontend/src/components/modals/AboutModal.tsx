@@ -208,7 +208,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ onClose, updateInfo: ini
             </a>
           </h2>
           <div style={{ marginBottom: '6px', fontWeight: 'bold', color: 'var(--text-muted)' }}>
-            {t('aboutModal.version', 'Version')} {import.meta.env.VITE_APP_VERSION}
+            {t('aboutModal.version', 'Version')} {updateInfo?.current_version || import.meta.env.VITE_APP_VERSION}
           </div>
           <div style={{ marginBottom: '20px', fontSize: '0.85rem' }}>
             <span style={{ color: 'var(--text-muted)', marginRight: '6px' }}>{t('aboutModal.homepage', 'Project Homepage:')}</span>

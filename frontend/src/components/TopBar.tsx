@@ -406,7 +406,7 @@ export const TopBar = ({
           <h1 className="logo-title" style={{ margin: 0 }}>
             <a href="https://github.com/pfjarschel/ComfyLAB" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} title="Visit ComfyLAB on GitHub">
               ComfyLAB
-            </a> <span style={{ fontSize: '0.8em', opacity: 0.8 }}>v{import.meta.env.VITE_APP_VERSION}</span>
+            </a> <span style={{ fontSize: '0.8em', opacity: 0.8 }}>v{updateInfo?.current_version || import.meta.env.VITE_APP_VERSION}</span>
           </h1>
           {updateAvailable && (
             <button
