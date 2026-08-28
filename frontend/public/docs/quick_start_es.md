@@ -1,5 +1,5 @@
 # ComfyLAB: Guía de Inicio Rápido y Resumen General
-*Comfortable Lab Automation Blocks — Manual de Usuario, Resumen del Software y Referencia de Tutoriales Prácticos*
+*Comfortable Lab Automation Blocks — Manual de Usuario, Resumen del Software y Referencia Práctica*
 
 ---
 
@@ -15,29 +15,13 @@ ComfyLAB resuelve este desafío proporcionando una interfaz gráfica limpia y mo
 ---
 
 ### 1.2 Arquitectura Dual: Interfaz Web + Motor de Servidor en Python
-ComfyLAB opera bajo un modelo cliente-servidor desacoplado:
-<div style="page-break-before: always; break-before: page;"></div>
+ComfyLAB opera bajo un modelo cliente-servidor desacoplado, separando la interacción del usuario de la ejecución y comunicación de hardware:
 
-```
-┌──────────────────────────────────────────────────────────┐
-│                   INTERFAZ WEB (FRONT-END)               │
-│ - Lienzo Web (React + XY Flow)                           │
-│ - Colocación y Conexión de Bloques Drag-and-Drop         │
-│ - Cockpit Dedicado de Dashboard del Operador (Atajo: D)  │
-│ - Gráficos Interactivos 2D y 3D y Pantallas en Vivo      │
-│ - Capa de Pizarra Digital (Whiteboard) y Anotaciones     │
-└────────────────────────────┬─────────────────────────────┘
-                             │ WebSocket / API HTTP
-┌────────────────────────────▼─────────────────────────────┐
-│             SERVIDOR DE EJECUCIÓN (BACK-END)             │
-│ - Motor Central en Python + API (FastAPI)                │
-│ - Ejecutor de Máquina de Estados Híbrida Push/Pull       │
-│ - Drivers de Hardware VISA y Gestor de Bloqueo Serial    │
-│ - Servidor de Instrumentos Virtuales Embebidos (SCPI)    │
-│ - Procesamiento de Señales NumPy/SciPy y FFT             │
-│ - Scripting Multilenguaje e Invocación DLL / SO          │
-└──────────────────────────────────────────────────────────┘
-```
+| Capa | Rol Principal | Características Clave | Tecnologías |
+| :--- | :--- | :--- | :--- |
+| **Interfaz Web (Front-End)** | Interacción y Visualización | • Lienzo infinito con conexión visual drag-and-drop<br>• Cockpit dedicado de Dashboard del Operador (`D`)<br>• Gráficos 2D/3D en vivo y pizarra digital | React, XY Flow, Plotly |
+| **API de Comunicación** | Transporte de Datos | • Transmisión bidireccional de telemetría vía WebSocket<br>• Endpoints REST para control de ejecución y estado | WebSockets, FastAPI |
+| **Servidor (Back-End)** | Ejecución y Hardware | • Ejecutor de máquina de estados híbrida push/pull<br>• Gestor de bloqueos VISA y puertos serie<br>• Servidor de Instrumentos Virtuales integrados (SCPI)<br>• Matemática NumPy/SciPy y scripts políglotas | Python, PyVISA, NumPy, SciPy |
 
 * **Lienzo Front-End & Dashboard**: Se ejecuta en navegadores web modernos (o como aplicación de escritorio compilada). Proporciona manipulación gráfica fluida, herramientas de auto-organización, zoom/pan interactivo en gráficos, capa de pizarra digital y un **Dashboard del Operador** que organiza tarjetas fijadas, controles y monitores en una sala de control simplificada.
 * **Servidor Back-End**: Impulsado por Python y FastAPI. Administra bloqueos de hardware en tiempo real, consultas VISA/SCPI, cálculos matriciales pesados, ejecución multihilo, persistencia de archivos, entornos virtuales de Python y un proceso en segundo plano para **Instrumentos Virtuales**.
@@ -61,20 +45,20 @@ ComfyLAB fue diseñado desde cero para ofrecer máxima flexibilidad sin limitar 
 
 ### 2.1 Qué se Puede Hacer con ComfyLAB
 
-| Área de Recurso | Capacidades y Extensibilidad |
+| Área de Recurso | Capacidades y Puntos Clave |
 | :--- | :--- |
-| **Control de Hardware Físico** | Compatibilidad completa con **VISA** (GPIB, USB TMC, Ethernet/LXI, Serial RS-232/RS-485) y comandos estándar **SCPI**. Bloques integrados para osciloscopios comerciales, multímetros, fuentes de alimentación, generadores de funciones y espectrómetros Horiba. |
-| **Instrumentos Virtuales Embebidos** | ¡Instrumentos de prueba y medición simulados por software listos para usar! Incluye un **Osciloscopio Virtual** (`virt_osc`) y un **Generador de Funciones Virtual** (`virt_siggen`) acoplados a una simulación de **Circuito RC**, permitiendo desarrollo y enseñanza completa offline sin hardware físico. |
-| **Dashboard del Operador** | Vista dedicada de **Dashboard** (atajo `D`). Fija cualquier bloque, parámetro de control o gráfico en un cockpit de operación limpio. Reordena y redimensiona tarjetas para crear paneles listos para presentaciones y ensayos. |
-| **Temporización y Monitoreo de Progreso** | Seguimiento visual de ejecución con **Countdown Wait** (reloj digital regresivo, barra de progreso y botón para saltar la espera), widgets de **Barra de Progreso** (0–100%), reloj digital de **Tiempo Restante Estimado (ETR)** y bucles inteligentes. |
-| **Suite Completa de Gráficos Científicos** | Gráficos interactivos 2D y 3D en tiempo real: **Gráfico XY / Línea** (trazo simple/múltiple, log/lineal), **Gráfico Dual-Y** (dos ejes Y independientes), **Gráfico de Barras**, **Box Plot** (distribución estadística y valores atípicos), **Histograma**, **Superficie 3D y Dispersión 3D**, **Gráfico Polar**, **Cascada Espectral (Waterfall)** y Heatmaps 2D. |
-| **Invocación de Bibliotecas Nativas** | Llama directamente a bibliotecas compartidas compiladas en C/C++ (`.dll` en Windows, `.so` en Linux/macOS) usando un **Editor de Firmas** interactivo sin escribir código Ctypes en Python. |
-| **Scripts Multilenguaje Personalizados** | Crea **Bloques de Script** en 9 lenguajes: Python, Rust, JavaScript, TypeScript, Julia, R, Lua, Octave y Wolfram. Acceso a la variable de entorno `COMFYLAB_WORKSPACE` para leer y escribir archivos en la carpeta del proyecto. |
-| **Acceso al Ecosistema Python** | Conecta bloques de script a entornos virtuales locales (`.venv`), con acceso completo a `scipy`, `numpy`, `pandas`, `opencv`, `scikit-learn`, `matplotlib` y paquetes de PyPI. |
-| **Publicación de Bloques y Paquetes (.cfy)** | Publica bloques de script directamente en la paleta lateral o empaqueta flujos completos (blueprints, scripts y archivos) en archivos comprimidos redistribuibles `.cfy`. |
-| **Procesamiento de Señales y Matemáticas** | Operaciones matriciales en NumPy, análisis espectral FFT, ajuste de curvas (Gaussiana, Exponencial, Polinómica, Personalizada), filtrado (pasa-bajos, pasa-altos, pasa-banda), eliminación de tendencia (detrend) y detección de picos. |
-| **Sub-Lienzos Modulares (Clústeres)** | Agrupa sub-grafos complejos en **Bloques de Clúster** con pines de entrada y salida dinámicos para mantener diagramas limpios y jerárquicos. |
-| **Capa de Pizarra Digital (Whiteboard)** | Añade notas adhesivas, texto enriquecido, figuras geométricas, flechas y dibujos libres directamente sobre el lienzo para documentación y organización visual. |
+| **Control de Hardware** | Soporte completo a VISA (GPIB, USB-TMC, TCP/IP, Serie RS-232/485) y SCPI. Drivers integrados para osciloscopios, DMMs, fuentes y espectrómetros. |
+| **Instrumentos Virtuales** | Osciloscopio (`virt_osc`), generador de señales (`virt_siggen`) y circuito RC simulados. Pruebas y educación offline sin hardware físico. |
+| **Dashboard del Operador** | Vista dedicada en cockpit (atajo `D`). Fija bloques o gráficos en Tarjetas de Control y Monitoreo organizadas. |
+| **Tiempo y Progreso** | Bloque Countdown Wait (con botón saltar), barras de progreso (0–100%), reloj ETR y bucles inteligentes con salidas de `%` y ETR. |
+| **Gráficos Científicos** | 2D y 3D en tiempo real: XY (lineal/log), Dual-Y, Barras, Box plot, Histograma, Superficie/Dispersión 3D, Polar, Cascada y Heatmaps. |
+| **Bibliotecas Nativas** | Invocación directa de C/C++ (`.dll` en Windows, `.so` en Linux/macOS) mediante Editor de Firmas interactivo, sin código wrapper. |
+| **Scripts Políglotas** | Bloques de script en 9 lenguajes: Python, Rust, JS, TS, Julia, R, Lua, Octave y Wolfram. Acceso a `COMFYLAB_WORKSPACE`. |
+| **Ecosistema Python** | Conexión directa con entornos virtuales (`.venv`), permitiendo cualquier paquete PyPI (`scipy`, `pandas`, `torch`, `opencv`). |
+| **Publicación y Paquetes** | Publica bloques de script directamente en la paleta lateral o empaqueta flujos completos en paquetes `.cfy`. |
+| **Procesamiento de Señales** | Operaciones matriciales NumPy, espectro FFT, ajuste de curvas (Gaussiana, exponencial, polinómica), filtros digitales y detección de picos. |
+| **Sub-Lienzos** | Agrupación de sub-grafos complejos en bloques de Clúster modulares y reutilizables con pines dinámicos de E/S. |
+| **Capa de Pizarra** | Dibujos libres, notas y cajas geométricas de agrupación directamente sobre el lienzo (atajo `4`). |
 
 ---
 
@@ -94,17 +78,17 @@ Aunque ComfyLAB maneja prácticamente cualquier tarea de medición científica, 
 
 Comprender cómo se compara ComfyLAB con las herramientas de laboratorio tradicionales destaca sus ventajas tanto para la enseñanza como para la investigación:
 
-| Característica / Aspecto | Scripts Python Puros (PyVISA, Matplotlib) | National Instruments LabVIEW | MATLAB / Simulink | **ComfyLAB** |
+| Característica / Aspecto | Python Puro | NI LabVIEW | MATLAB / Simulink | ComfyLAB |
 | :--- | :--- | :--- | :--- | :--- |
-| **Licencia y Costo** | Gratuito y Código Abierto | Licenciamiento Comercial Costoso | Licenciamiento Comercial Costoso | **Gratuito y Código Abierto (GPLv3)** |
-| **Paradigma de Programación** | Código Basado en Texto | Código Gráfico Propietario G | Diagramas Gráficos / Código | **Diagramas de Bloques Web + Código Políglota** |
-| **Curva de Aprendizaje** | Alta (Requiere experiencia en programación)| Media (Convenciones estrictas de G) | Media (Sintaxis y toolboxes complejas) | **Baja (Lienzo intuitivo drag-and-drop)** |
-| **Configuración de GUI y Gráficos** | Manual (PyQt, Tkinter, Matplotlib) | Panel Frontal Integrado | Ventanas de Figuras Integradas | **Gráficos 2D/3D, Polar, Cascada y Dashboard Instantáneos** |
-| **Simulación Offline** | Requiere librerías mock manuales | Simulación de software básica | Modelado físico en Simulink | **Osciloscopio, Generador y Circuito SCPI Virtuales Integrados** |
-| **Formato de Archivo y Git** | Texto plano `.py` (Amigable con Git) | Binario Propietario `.vi` (Difícil diff en Git) | `.m` / Binario `.slx` | **Blueprints JSON Limpios (Compatibles con Git)** |
-| **Código Personalizado** | Nativo | Nodos de Llamada Complejos C/Python | Funciones S / Código MATLAB | **Bloques de Script Políglotas (Python, C/C++, Rust, etc.)** |
-| **Arquitectura** | Script monohilo / hilos manuales | Aplicación de Escritorio Monolítica | Entorno de Escritorio Pesado | **Interfaz Web Desacoplada + Servidor FastAPI** |
-| **Bloqueo de Hardware (Locking)** | Requiere implementación manual de locks | Drivers Integrados VISA / DAQmx | Instrument Control Toolbox | **Gestor Automático de Bloqueo Asíncrono VISA** |
+| **Licencia y Costo** | Gratuito y Código Abierto | Comercial de alto costo | Comercial de alto costo | **Gratuito y Código Abierto (GPLv3)** |
+| **Paradigma** | Script textual | Gráfico propietario G | Diagrama de bloques / script | **Diagrama Web + Código Políglota** |
+| **Curva de Aprendizaje** | Alta (sintaxis, APIs) | Empinada (convenciones G) | Moderada (toolboxes) | **Baja (Drag-and-drop visual)** |
+| **Interfaz y Gráficos** | Manual (PyQt, Tkinter) | Panel Frontal Integrado | Ventanas de Figura | **Gráficos 2D/3D & Dashboard (`D`)** |
+| **Simulación Offline** | Mocks manuales | Mocks de software básicos | Motor físico de Simulink | **Instrumentos Virtuales SCPI Integrados** |
+| **Archivos y Git** | Texto plano `.py` (Git-friendly) | Binario `.vi` (Conflictos en Git)| `.m` / Binario `.slx` | **Blueprints JSON Limpios (Git-friendly)** |
+| **Código Personalizado** | Nativo en Python | Nodos complejos C/Python | Funciones S / MATLAB | **Scripts en 9 Lenguajes y DLL/SO** |
+| **Arquitectura** | Script monolítico | Aplicación desktop pesada | Entorno desktop pesado | **Interfaz Web + Servidor FastAPI** |
+| **Bloqueos de Hardware** | Implementación manual | Integrado en DAQmx | Instrument Toolbox | **Gestor de Bloqueo VISA Asíncrono** |
 
 ### Conclusiones Principales:
 1. **Vs. Python Puro**: Python es sumamente potente, pero construir interfaces gráficas, gráficos interactivos en tiempo real, bucles de hardware y diagramas visuales exige cientos de líneas de código repetitivo. ComfyLAB mantiene todo el poder analítico de Python ofreciendo una interfaz visual inmediata y cockpit de operación.
@@ -197,7 +181,7 @@ Las conexiones entre bloques en ComfyLAB se dividen estrictamente en dos categor
 
 ### 4.4 Funciones Avanzadas
 
-* **Dashboard del Operador y Tarjetas Fijadas (📊 / `D`)**: El Dashboard ofrece una vista despejada tipo sala de control para operar experimentos, presentar resultados o realizar prácticas de laboratorio sin la distracción de cables y bloques.
+* **Dashboard del Operador y Tarjetas Fijadas (📊 / `D`)**: El Dashboard ofrece una vista despejada tipo sala de control para operar experimentos, presentar resultados u operar bancos de ensayo sin la distracción visual de cables y bloques.
   * **Fijar Bloques en el Dashboard**: Cualquier bloque o pin puede fijarse al Dashboard. Haz clic derecho en el bloque y selecciona **Pin to Dashboard**, presiona el icono de alfiler en el Inspector de Bloques o usa el botón correspondiente en widgets compatibles.
   * **Organización Inteligente**: Las entradas y controles se agrupan en **Tarjetas de Control**, mientras que los gráficos, indicadores y cronómetros forman **Tarjetas de Monitoreo**.
   * **Personalización**: Reordena tarjetas arriba/abajo, arrastra las esquinas de los gráficos para redimensionarlos o haz clic en el icono de salto para regresar instantáneamente al bloque en el lienzo.
@@ -213,18 +197,18 @@ Las conexiones entre bloques en ComfyLAB se dividen estrictamente en dos categor
 
 ## 5. Resumen de Categorías de Bloques Nativos
 
-| Categoría | Descripción y Bloques Comunes |
+| Categoría | Función Principal y Bloques Clave |
 | :--- | :--- |
-| 🔄 **Control de Flujo y Tiempo** | Bucle For, Bucle Para Cada (For Each), Bucle While, Bifurcación If/Else, Retraso/Sleep, Countdown Wait, Medidor de Tiempo (Measure Time), Detener Ejecución. |
-| 🔢 **Matemáticas y Lógica** | Suma, Resta, Multiplicación, División, Evaluador de Fórmulas, Seno/Coseno, Trigonometría, Exponencial, Logaritmo, Comparaciones (`>`, `<`, `==`), Lógica AND, OR, NOT. |
-| 📝 **Datos y Cadenas** | Concatenar Cadenas, Formatear Texto, Búsqueda Regex, Divisor de Texto, Creador de Listas, Indexador de Listas, Creador de Diccionarios, Obtener Valor por Clave. |
-| 📊 **Arreglos y Señales** | Crear Arreglo, Range/Linspace, Fatiado de Arreglos, Espectro de Potencia FFT, Filtros Paso Bajo/Paso Alto, Detrend, Estadísticas (Media, Desv. Estándar, Mín, Máx), Detector de Picos, Ajuste de Curvas (Gaussiana, Exponencial, Polinómica, Personalizada). |
-| 💾 **E/S de Archivos** | Leer/Escribir archivos CSV, E/S de JSON, Almacenamiento Parquet, Leer/Escribir Archivos de Texto, Cargar/Guardar Imágenes. |
-| 📡 **VISA y Hardware Físico** | Abrir Recurso VISA, Escritura SCPI, Lectura SCPI, Consulta SCPI (Query), Cerrar VISA, Abrir/Leer/Escribir Puerto Serie, Detección Automática de Instrumentos. |
-| 🖥️ **Instrumentos Virtuales** | **VirtOsc** (Conexión, Base de Tiempo, Canales 1 y 2, Disparo/Trigger, Estado, Adquisición de Señal), **VirtSigGen** (Conexión, Onda Senoidal/Cuadrada/Triangular, Barrido Chirp, Nivel de Salida), Circuito RC Simulado. |
-| 🔬 **Controladores de Instrumentos** | Osciloscopios (Tektronix, Keysight, Agilent), Multímetros Digitales (HP/Agilent 34401A, DMM Genérico), Fuentes DC (Keysight, Keithley), Generadores de Funciones, Espectrómetros Horiba Jobin Yvon, Digitalizadores CAEN, Motores Thorlabs. |
-| 📈 **Pantalla, Gráficos y UI** | **Gráfico XY / Línea** (trazo simple/múltiple, log/lineal), **Gráfico Dual-Y**, **Gráfico de Barras**, **Box Plot**, **Histograma**, **Superficie 3D y Dispersión 3D**, **Gráfico Polar**, **Cascada Espectral (Waterfall)**, Matriz 2D Heatmap, Tabla, Medidor Digital, Indicador LED, **Barra de Progreso**, **Reloj ETR**, **Reloj Regresivo**. |
-| ⚙️ **Nativo y Scripting** | Invocación de Biblioteca Nativa (DLL/SO) con Editor de Firmas, Nodos de Script Políglotas (Python, JS/TS, Julia, Rust, Lua, Octave, R, Wolfram) con soporte a la variable `COMFYLAB_WORKSPACE`. |
+| 🔄 **Control de Flujo y Tiempo** | Orquestación de bucles y temporización: `Bucle For` (`For Loop`), `Bucle Para Cada`, `Bucle While`, `Si/Sino` (`If/Else`), `Esperar` (`Sleep`), `Espera con Cuenta Regresiva` (`Countdown Wait`), `Medir Tiempo`, `Temporizador`. |
+| 🔢 **Matemáticas y Lógica** | Aritmética, lógica booleana y ecuaciones: `Sumar`, `Restar`, `Multiplicar`, `Dividir`, `Potencia`, `Calculadora` (`Calculator`), `Trigonometría`, comparaciones (`>`, `<`, `==`), compuertas lógicas (`AND`, `OR`, `NOT`). |
+| 📝 **Datos y Cadenas** | Manipulación de texto y diccionarios: `Concatenar`, `Formatear Cadena`, `Dividir Cadena`, `Reemplazar Cadena`, `Crear Diccionario`, `Obtener Valor`, `Definir Clave/Valor`. |
+| 📊 **Arreglos y Señales** | Procesamiento de matrices numéricas y señales: `Crear NDArray`, `Linspace`, `Cortar NDArray`, `Espectro FFT` (`FFT Spectrum`), `Filtro de Señal`, `Ajuste de Curva` (`Curve Fit`). |
+| 💾 **Entrada/Salida de Archivos** | Persistencia y exportación de datos: `Guardar CSV` (`Save CSV`), `Cargar CSV`, `Guardar JSON`, `Cargar JSON`, `Guardar Parquet`, `Cargar Parquet`, `Imagen a Matriz`. |
+| 📡 **VISA y Hardware Físico** | Comunicación con instrumentos: `Dispositivo VISA` (`VISA Device`), `Consulta VISA` (`VISA Query`), `Lectura VISA` (`VISA Read`), `Escritura VISA` (`VISA Write`), `Administrador de Recursos VISA`. |
+| 🖥️ **Instrumentos Virtuales** | Simulación sin hardware: `Conexión VirtOsc`, `Adquirir VirtOsc`, `Conexión VirtSigGen`, `Configurar Onda VirtSigGen`, `Circuito RC Simulado`. |
+| 🔬 **Drivers de Fabricantes** | Drivers integrados: Osciloscopios (Tektronix, Keysight), Multímetros (HP/Agilent 34401A), Fuentes DC, Espectrómetros Horiba, Digitalizadores CAEN, Motores Thorlabs. |
+| 📈 **Visualización y Dashboard** | Visualización de datos y monitoreo: `Gráfico XY` (`XY Plot`), `Gráfico de Tiempo`, `Gráfico de Doble Eje Y`, `Gráfico Box / Violin`, `Gráfico de Barras`, `Histograma`, `Gráfico 3D`, `Gráfico Polar`, `Espectrograma Cascada`, `Mapa de Calor`, `Barra de Progreso`, `Reloj ETR`. |
+| ⚙️ **Scripts y Nativo** | Extensiones personalizadas: `Script Python` (`Python Script`), `Python Externo`, `Script JavaScript`, `Script TypeScript`, `Script Julia`, `Script Rust`, `Script Lua`, `Script Octave`, `Script R`, `Script Wolfram`, `Cargar DLL/SO`.
 
 <div style="page-break-before: always; break-before: page;"></div>
 
@@ -232,52 +216,52 @@ Las conexiones entre bloques en ComfyLAB se dividen estrictamente en dos categor
 
 ## 6. Tutoriales Prácticos de Iniciación
 
-Utiliza estos breves ejercicios paso a paso para familiarizarte con ComfyLAB antes o durante tu sesión de laboratorio.
+Sigue estos ejemplos prácticos paso a paso para dominar rápidamente los flujos y capacidades de ComfyLAB.
 
 <div style="page-break-before: always; break-before: page;"></div>
 
 ---
 
 ### Tutorial 1: Pipeline Matemático e Inspección en Vivo
-**Objetivo**: Crear dos números, multiplicarlos, aplicar una fórmula matemática e inspeccionar el resultado en el Inspector de Bloques.
+**Objetivo**: Crear dos números, multiplicarlos, evaluar una expresión matemática usando el bloque **Calculadora** (`Calculator`) e inspeccionar el resultado en el Inspector de Bloques.
 
 ```
 ┌──────────────┐
-│ Número (5.0) ├──┐   ┌───────────┐   ┌─────────────┐
-│ Salida Datos │  ├──▶│Multiplicar├──▶│ Fórmula     ├──► Salida
-└──────────────┘  │   └───────────┘   │ "x^2 + 10"  │
-┌──────────────┐  │                   └─────────────┘
+│ Número (5.0) ├──┐   ┌─────────────┐   ┌─────────────┐
+│ Salida       │  ├──▶│ Multiplicar ├──▶│ Calculadora ├──► Resultado
+└──────────────┘  │   └─────────────┘   │ "x^2 + 10"  │
+┌──────────────┐  │                     └─────────────┘
 │ Número (3.0) ├──┘
-│ Salida Datos │
+│ Salida       │
 └──────────────┘
 ```
 
 #### Instrucciones Paso a Paso:
 1. Abre ComfyLAB y crea un nuevo workspace/blueprint.
-2. En la **Barra Lateral** izquierda, busca `Number` y arrastra **dos** bloques de Número al lienzo.
+2. En la **Barra Lateral** izquierda, busca **Número** (`Number`, en *Constantes*) y arrastra **dos** bloques Número al lienzo.
 3. Establece el valor del primer bloque en `5.0` y el del segundo en `3.0`.
-4. Arrastra un bloque **Multiply** (de la categoría *Matemáticas y Lógica*) al lienzo.
-5. Conecta el pin de datos del Número 1 a la Entrada A del bloque Multiply, y el Número 2 a la Entrada B.
-6. Arrastra un bloque **Formula** al lienzo. Define su ecuación como `x^2 + 10`.
-7. Conecta el pin de salida de Multiply (`15.0`) a la entrada `x` del bloque Formula.
+4. Arrastra un bloque **Multiplicar** (`Multiply`, en *Matemáticas / Básica*) al lienzo.
+5. Conecta el pin de datos del Número 1 a la Entrada A del bloque Multiplicar, y el Número 2 a la Entrada B.
+6. Arrastra un bloque **Calculadora** (`Calculator`, en *Matemáticas / Básica*) al lienzo. En el Inspector de Bloques, define la expresión como `x^2 + 10` y añade la variable `x`.
+7. Conecta el pin de salida de Multiplicar (`15.0`) a la entrada `x` del bloque Calculadora.
 8. Haz clic en **Ejecutar Blueprint** (▶️ o `Ctrl+R`) en la barra superior.
-9. Haz clic en el bloque **Formula** para abrir el **Inspector de Bloques** en la derecha.
-10. **Verificación**: En el Inspector, revisa el valor de salida en vivo. Debería evaluarse como `(15)^2 + 10 = 235.0`.
+9. Haz clic en el bloque **Calculadora** para abrir el **Inspector de Bloques** a la derecha.
+10. **Verificación**: En el Inspector, revisa el valor en vivo en el pin **Resultado** (`Result`). Debe evaluarse como `(15)^2 + 10 = 235.0`.
 
 <div style="page-break-before: always; break-before: page;"></div>
 
 ---
 
 ### Tutorial 2: Generación de Señal Sintética y Graficado en Vivo
-**Objetivo**: Generar un arreglo de onda senoidal ruidosa, calcular su espectro FFT y mostrarlo en un gráfico interactivo.
+**Objetivo**: Generar un arreglo de onda senoidal ruidosa, calcular su espectro FFT y mostrarlo en un bloque **Gráfico XY** (`XY Plot`).
 
 ```
 ┌────────────────────┐     ┌────────────────────┐
-│ Linspace (0 a 10s) ├────▶│ Generador Onda Seno├─┐
+│ Linspace (0 a 10s) ├────▶│Onda Senoidal (5 Hz)├─┐
 └────────────────────┘     └────────────────────┘ │
                                                   ▼
 ┌────────────────────┐     ┌────────────────────┐ │
-│ Gráfico Interactivo│◀────┤ Señal + Ruido      │◀┘
+│ Bloque Gráfico XY  │◀────┤ Sumar(Señal+Ruido) │◀┘
 └────────────────────┘     └─────────┬──────────┘
                                      │
                                      ▼
@@ -287,57 +271,58 @@ Utiliza estos breves ejercicios paso a paso para familiarizarte con ComfyLAB ant
 ```
 
 #### Instrucciones Paso a Paso:
-1. Busca `Linspace` en la Barra Lateral. Establece `Start = 0`, `Stop = 10`, `Points = 1000` para generar un vector de tiempo.
-2. Busca `Sine` (en *Matemáticas y Lógica* o *Arreglos*). Conecta la salida de Linspace a la entrada de tiempo del bloque Sine. Establece la frecuencia en `5.0 Hz`.
-3. Agrega un bloque **Random Noise** y un bloque **Add** para sumar ruido blanco a la onda senoidal (`Señal + Ruido`).
-4. Arrastra un bloque **Interactive Plotter** (XY Plot) al lienzo.
-5. Conecta el arreglo de tiempo al **Pin X** del gráfico y la señal con ruido al **Pin Y**.
-6. (Opcional) Conecta la señal con ruido a un bloque **FFT Spectrum** y envía la salida FFT a un segundo trazo en el graficador.
-7. Haz clic en **Ejecutar Blueprint** (▶️).
-8. **Verificación**: El widget del gráfico mostrará inmediatamente la onda senoidal con ruido en tiempo real. ¡Usa la rueda del ratón para hacer zoom y arrastra para desplazarte por los ejes!
+1. Busca **Linspace** (en *Arreglos Numéricos*) en la Barra Lateral. Establece `Start = 0`, `Stop = 10`, `Points = 1000` para generar un vector de tiempo.
+2. Busca **Onda Senoidal** (`Sine Wave`, en *Matemáticas / Funciones*). Conecta la salida de Linspace a la entrada `X` del bloque Onda Senoidal. Establece `Frecuencia = 5.0` Hz.
+3. Agrega un bloque **Matriz Aleatoria** (`Random Array`, en *Matemáticas / Aleatorio*, establece `Forma = 1000`, `Mín = -0.2`, `Máx = 0.2`) y un bloque **Sumar** (`Add`) para sumar el ruido a la señal.
+4. Arrastra un bloque **Gráfico XY** (`XY Plot`, en *Gráficos*) al lienzo.
+5. Conecta el arreglo de tiempo de Linspace al pin **X** del Gráfico XY y la señal con ruido al pin **Y**. Conecta un cable de ejecución al pin **Graficar** (`Plot`).
+6. (Opcional) Conecta la señal a un bloque **Espectro FFT** (`FFT Spectrum`, en *Matemáticas / Procesamiento de Señales*) para visualizar los picos de frecuencia.
+7. Haz clic en **Ejecutar Blueprint** (▶️ o `Ctrl+R`).
+8. **Verificación**: El widget del Gráfico XY mostrará inmediatamente la onda senoidal con ruido en tiempo real. ¡Usa la rueda del ratón para hacer zoom y arrastra para desplazarte por los ejes!
 
 <div style="page-break-before: always; break-before: page;"></div>
 
 ---
 
 ### Tutorial 3: Barrido Automatizado de Parámetros y Registro en CSV
-**Objetivo**: Usar un `Bucle For` para simular el barrido de voltaje de una fuente, calcular la corriente, mostrar la curva en vivo y guardar los datos en un archivo CSV.
+**Objetivo**: Usar un **Bucle For** (`For Loop`) para barrer voltajes, calcular la corriente y guardar los datos en un archivo CSV con el bloque **Guardar CSV** (`Save CSV`).
 
 ```
 ┌─────────────────────┐    ┌────────────────────┐
-│ Bucle For (0 a 50)  │▶──▶│ Escritor CSV       │
-└──────────┬──────────┘    └────────────────────┘
-           │ (Índice)
+│ Bucle For (0 a 50)  │▶──▶│ Guardar CSV        │
+└──────────┬──────────┘    │ "sweep_results.csv"│
+           │ (Índice)      └────────────────────┘
            ▼
 ┌─────────────────────┐
 │ Voltaje = Ind*0.1   │
 └──────────┬──────────┘
            ▼
 ┌─────────────────────┐
-│ Corriente = V / R   ├─► Graficador en Vivo
+│ Corriente = V / R   ├─► Gráfico XY
 └─────────────────────┘
 ```
 
 #### Instrucciones Paso a Paso:
-1. Arrastra un bloque **For Loop** al lienzo.
-2. Establece la cantidad de iteraciones en `50`. Observa que el bloque proporciona pines de porcentaje (`%`) y tiempo restante estimado (`ETR`).
-3. Dentro de la ruta de ejecución del bucle, multiplica el pin `Iteration Index` por `0.1` usando un bloque **Multiply** para crear un barrido de `0.0 V` a `5.0 V`.
-4. Divide el voltaje entre una resistencia fija (`R = 100 Ohms`) usando un bloque **Divide** para obtener la corriente `I`.
-5. Conecta los valores de Voltaje y Corriente a un bloque **CSV Writer**. Nombra el archivo como `sweep_results.csv`.
-6. Conecta el cable de ejecución de salida del bloque CSV de regreso al pin de paso del bucle para completar la iteración.
-7. Haz clic en **Ejecutar Blueprint** (▶️).
-8. **Verificación**: Observa el avance paso a paso con las líneas violetas animadas. Al finalizar, abre la carpeta de tu espacio de trabajo: ¡encontrarás `sweep_results.csv` con las 50 filas registradas!
+1. Arrastra un bloque **Bucle For** (`For Loop`, en *Control de Flujo*) al lienzo.
+2. Establece `Iteraciones = 50`. Observa que el bloque proporciona pines de porcentaje (`%`) y tiempo restante estimado (`ETR`).
+3. Dentro de la ruta de ejecución del bucle, multiplica el pin `Índice` (`Index`) por `0.1` usando un bloque **Multiplicar** (`Multiply`) para crear un barrido de `0.0 V` a `5.0 V`.
+4. Divide el voltaje entre una resistencia fija (`R = 100 Ohms`) usando un bloque **Dividir** (`Divide`) para obtener la corriente `I`.
+5. Arrastra un bloque **Guardar CSV** (`Save CSV`, en *Entrada / Salida*) al lienzo. Nombra `Ruta de Archivo` (`FilePath`) como `sweep_results.csv`.
+6. Conecta los valores al pin `Datos` (`Data`) de Guardar CSV. Conecta el cable de ejecución `Cuerpo` (`Body`) del bucle al pin `Escribir` (`Write`) de Guardar CSV.
+7. Conecta el cable de ejecución `Salida` (`Out`) de Guardar CSV de regreso a la entrada `Paso` (`Step`) del bucle para completar la iteración.
+8. Haz clic en **Ejecutar Blueprint** (▶️ o `Ctrl+R`).
+9. **Verificación**: Observa el avance paso a paso. Al finalizar, abre la carpeta de tu espacio de trabajo: ¡encontrarás `sweep_results.csv` con las 50 filas registradas!
 
 <div style="page-break-before: always; break-before: page;"></div>
 
 ---
 
-### Tutorial 4: Creación y Publicación de un Bloque de Script en Python
-**Objetivo**: Crear un bloque de script personalizado que filtre valores por debajo de un umbral, probarlo y publicarlo en la paleta lateral izquierda.
+### Tutorial 4: Creación y Publicación de un Bloque Script Python Personalizado
+**Objetivo**: Crear un bloque **Script Python** (`Python Script`) personalizado que filtre valores por debajo de un umbral, probarlo y publicarlo en la paleta de la barra lateral.
 
 ```
 ┌──────────────────────────────────────────────────┐
-│ Bloque de Script Personalizado (Python)          │
+│ Bloque Script Python                             │
 │ Entradas: data_in (Arreglo), threshold (Número)  │
 │ Salidas:  filtered_data (Arreglo), count (Número)│
 ├──────────────────────────────────────────────────┤
@@ -349,76 +334,72 @@ Utiliza estos breves ejercicios paso a paso para familiarizarte con ComfyLAB ant
 ```
 
 #### Instrucciones Paso a Paso:
-1. Arrastra un bloque **Script Block** (de *Scripting & Native*) al lienzo. Selecciona **Python** como lenguaje.
-2. En el **Inspector de Bloques**, haz clic en **Edit Pins**:
-   * Entrada: `data_in` (Tipo: Array)
-   * Entrada: `threshold` (Tipo: Number)
-   * Salida: `filtered_data` (Tipo: Array)
-   * Salida: `count_passed` (Tipo: Number)
-3. Haz doble clic en el Bloque de Script para abrir el editor integrado.
-4. Escribe el código mostrado arriba. (Ten en cuenta que `os.environ["COMFYLAB_WORKSPACE"]` está disponible para interactuar con archivos de tu proyecto).
-5. Conecta un arreglo de prueba en `data_in` y establece `threshold = 2.5`.
-6. Haz clic en **Ejecutar Blueprint** (▶️) y revisa `filtered_data` y `count_passed` en el Inspector.
-7. Una vez comprobado, haz clic en **Publish Block** en el Inspector. Nómbralo como `Filtro Umbral`, asigna un icono y guárdalo en la categoría `Arrays`.
-8. **Verificación**: Abre la paleta de la **Barra Lateral**. ¡Tu nuevo bloque estará permanentemente disponible para usarlo en cualquier blueprint!
+1. Arrastra un bloque **Script Python** (`Python Script`, de *Scripts*) al lienzo.
+2. En el **Inspector de Bloques**, haz clic en **Editar Pines** (`Edit Pins`):
+   * Añadir Pin de Entrada: `data_in` (Tipo: Array)
+   * Añadir Pin de Entrada: `threshold` (Tipo: Number)
+   * Añadir Pin de Salida: `filtered_data` (Tipo: Array)
+   * Añadir Pin de Salida: `count_passed` (Tipo: Number)
+3. Haz doble clic en el bloque Script Python para abrir el editor Monaco integrado.
+4. Escribe el código Python mostrado arriba. (Observa que `os.environ["COMFYLAB_WORKSPACE"]` está disponible si tu script necesita acceder a archivos del proyecto).
+5. Conecta un arreglo de prueba a `data_in` y establece `threshold = 2.5`.
+6. Haz clic en **Ejecutar Blueprint** (▶️) y revisa `filtered_data` y `count_passed` en el Inspector de Bloques.
+7. Una vez comprobado, haz clic en **Publicar Bloque** (`Publish Block`) en el Inspector. Nómbralo `Filtro Umbral`, elige un icono y asígnalo a la categoría `Arrays`.
+8. **Verificación**: Observa tu **Barra Lateral** izquierda: ¡tu nuevo bloque `Filtro Umbral` estará disponible permanentemente para ser usado en cualquier lienzo de tu espacio de trabajo!
 
 <div style="page-break-before: always; break-before: page;"></div>
 
 ---
 
 ### Tutorial 5: Interfaz de Hardware VISA (Consulta SCPI de Identificación)
-**Objetivo**: Conectar a un instrumento físico o simulado mediante VISA, enviar una consulta SCPI `*IDN?` y mostrar la identificación del fabricante.
+**Objetivo**: Conectar a un instrumento mediante VISA usando el bloque **Dispositivo VISA** (`VISA Device`), enviar una consulta con **Consulta VISA** (`VISA Query`) y mostrar la respuesta de identificación del fabricante.
 
 ```
-┌───────────┐     ┌───────────┐     ┌───────────┐
-│ Abrir VISA│▶───▶│Query SCPI │▶───▶│Cerrar VISA│
-│ Recurso   ├────▶│ "*IDN?"   ├────▶│ Handle    │
-└───────────┘     └─────┬─────┘     └───────────┘
-                        │ Cadena de Respuesta
-                        ▼
-                  [Inspector de Bloques]
+┌──────────────────┐     ┌──────────────────┐
+│ Dispositivo VISA │▶───▶│ Consulta VISA    ├──► Respuesta: "*IDN?..."
+│ Dirección: ...   ├────▶│ Comando: *IDN?   │
+└──────────────────┘     └──────────────────┘
 ```
 
 #### Instrucciones Paso a Paso:
-1. Arrastra un bloque **VISA Open** al lienzo. Establece la cadena de recurso con la dirección de tu instrumento (ej. `TCPIP0::192.168.1.100::INSTR`, `GPIB0::14::INSTR` o `COM3`).
-2. Arrastra un bloque **SCPI Query**. Conecta el `ExecOut` de VISA Open al `ExecIn` de SCPI Query.
-3. Conecta el pin de salida `VISA Handle` (cian) de VISA Open a la entrada `VISA Handle` de SCPI Query.
-4. Establece la orden en SCPI Query como `*IDN?
-`.
-5. Arrastra un bloque **VISA Close** y conecta el cable de ejecución y el handle VISA para garantizar la liberación limpia del recurso.
-6. Haz clic en **Ejecutar Blueprint** (▶️).
-7. **Verificación**: Haz clic en el bloque **SCPI Query** y revisa el Inspector de Bloques. El pin de salida mostrará la identificación (ej. `HEWLETT-PACKARD,34401A,0,11-5-2` o `KEYSIGHT TECHNOLOGIES,DSOX2002A,...`).
-8. **Consejo**: ¡También puedes usar el Administrador de Recursos VISA para descubrir instrumentos automáticamente!
+1. Arrastra un bloque **Dispositivo VISA** (`VISA Device`, en *Instrumentos / VISA*) al lienzo. Establece `Dirección` (`Address`) con la dirección de tu instrumento (ej. `TCPIP0::192.168.1.100::INSTR`, `GPIB0::14::INSTR`, `COM3` o `VIRT::OSC`).
+2. Arrastra un bloque **Consulta VISA** (`VISA Query`, en *Instrumentos / VISA*) al lienzo.
+3. Conecta el cable de ejecución `Salida` (`Out`) de Dispositivo VISA a la entrada `Entrada` (`In`) de Consulta VISA.
+4. Conecta el pin `Dispositivo` (`Device`, cian) de Dispositivo VISA a la entrada `Dispositivo` (`Device`) de Consulta VISA.
+5. Establece el parámetro `Comando` (`Command`) en Consulta VISA como `*IDN?`.
+6. Haz clic en **Ejecutar Blueprint** (▶️ o `Ctrl+R`). (ComfyLAB administra automáticamente bloqueos y apagado seguro).
+7. **Verificación**: Haz clic en el bloque **Consulta VISA** y revisa el Inspector de Bloques. El pin de salida `Respuesta` (`Response`) mostrará la identificación (ej. `HEWLETT-PACKARD,34401A,0,11-5-2` o `KEYSIGHT TECHNOLOGIES,DSOX2002A,...`).
+8. **Consejo**: ¡También puedes usar el bloque **Administrador de Recursos VISA** (`VISA Resource Manager`) para descubrir instrumentos automáticamente!
 
 <div style="page-break-before: always; break-before: page;"></div>
 
 ---
 
-### Tutorial 6: Automatización Offline con Instrumentos Virtuales Embebidos
-**Objetivo**: Conectar a los instrumentos virtuales integrados en ComfyLAB, configurar un generador de señales simulado, capturar la forma de onda en el osciloscopio virtual y monitorear los resultados en el Dashboard sin requerir hardware físico.
+### Tutorial 6: Automatización Offline con Instrumentos Virtuales Integrados
+**Objetivo**: Conectar a los instrumentos virtuales de ComfyLAB, configurar un generador de señales simulado, capturar la forma de onda con el osciloscopio virtual y monitorear los resultados en el Dashboard sin necesidad de hardware físico.
 
 ```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│ VirtSigGen Conn │▶───▶│ Config Wave     │▶───▶│ VirtOsc Connect │
-│ (TCP Virtual)   ├────▶│ Freq: 1 kHz     │     │ (TCP Virtual)   │
-└─────────────────┘     └─────────────────┘     └────────┬────────┘
-                                                         │
-                                                         ▼
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│ Fijar en        │◀────┤ Widget Gráfico  │◀────┤ Adquirir Señal  │
-│ Dashboard (D)   │     │ Tiempo vs Volts │     │ Canal 1         │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
+┌─────────────────────┐     ┌─────────────────────┐     ┌─────────────────────┐
+│ Conexión VirtSigGen │▶───▶│Configurar Onda VirtS│▶───▶│ Conexión VirtOsc     │
+│ (TCP Virtual)       ├────▶│ Freq: 1 kHz         │     │ (TCP Virtual)       │
+└─────────────────────┘     └─────────────────────┘     └──────────┬──────────┘
+                                                                   │
+                                                                   ▼
+┌─────────────────────┐     ┌─────────────────────┐     ┌─────────────────────┐
+│ Fijar en            │◀────┤ Bloque Gráfico XY   │◀────┤ Adquirir VirtOsc    │
+│ Dashboard (D)       │     │ Tiempo vs Tensión   │     │ Datos Canal 1       │
+└─────────────────────┘     └─────────────────────┘     └─────────────────────┘
 ```
 
 #### Instrucciones Paso a Paso:
-1. En la Barra Lateral, abre la categoría **Dispositivos > Virtual**.
-2. Arrastra un bloque **VirtSigGen Connect** y un bloque **VirtSigGen Config Wave**. Conéctalos para emitir una onda senoidal de 1,0 kHz a 2,0 Vpp.
-3. Arrastra un bloque **VirtOsc Connect** y un bloque **VirtOsc Acquire**. Conecta los cables de ejecución y los identificadores de dispositivo.
-4. Arrastra un bloque **XY Plot**. Conecta el arreglo de tiempo a **X** y la señal de voltaje a **Y**.
-5. Haz clic derecho en el bloque **XY Plot** y elige **Pin to Dashboard**.
-6. Presiona `D` en el teclado (o haz clic en el botón **Dashboard** en la barra superior) para abrir el panel de operación.
+1. En la Barra Lateral, navega hasta la categoría **Dispositivos > Virtual**.
+2. Arrastra un bloque **Conexión VirtSigGen** (`VirtSigGen Connect`) y un bloque **Configurar Onda VirtSigGen** (`VirtSigGen Config Wave`). Conéctalos para generar una onda senoidal de 1.0 kHz a 2.0 Vpp.
+3. Arrastra un bloque **Conexión VirtOsc** (`VirtOsc Connect`) y un bloque **Adquirir VirtOsc** (`VirtOsc Acquire`). Conecta el flujo de ejecución y los identificadores de dispositivo.
+4. Arrastra un bloque **Gráfico XY** (`XY Plot`). Conecta la salida de tiempo del osciloscopio a **X** y el trazo de voltaje a **Y**.
+5. Haz clic derecho en el bloque **Gráfico XY** y selecciona **Fijar en Dashboard** (`Pin to Dashboard`).
+6. Presiona `D` en tu teclado (o haz clic en **Dashboard** en la barra superior) para abrir el panel del operador.
 7. Haz clic en **Ejecutar Blueprint** (▶️ o `Ctrl+R`).
-8. **Verificación**: ComfyLAB iniciará automáticamente el servidor de simulación en segundo plano. El Dashboard mostrará de inmediato la señal capturada en tiempo real. También puedes abrir el ejemplo **Bode Diagram Virtual** en **Menú Archivo > Cargar Ejemplo > Bode_Diagram_Virtual.json** para ver un barrido automatizado con gráficos de Bode completos.
+8. **Verificación**: ComfyLAB iniciará automáticamente el servidor de simulación en segundo plano. El Dashboard mostrará de inmediato la forma de onda capturada. ¡También puedes abrir el ejemplo **Bode Diagram Virtual** desde **Menú Archivo > Cargar Ejemplo > Bode_Diagram_Virtual.json** para observar un barrido de frecuencia completo con diagramas de Bode!
 
 <div style="page-break-before: always; break-before: page;"></div>
 
@@ -430,36 +411,21 @@ Utiliza estos breves ejercicios paso a paso para familiarizarte con ComfyLAB ant
 
 | Acción | Atajo | Descripción |
 | :--- | :--- | :--- |
-| **Alternar Dashboard** | `D` | Abrir o cerrar el panel dedicado del Dashboard del Operador. |
-| **Ejecutar / Pausar / Reanudar** | `Ctrl + R` | Iniciar la ejecución del blueprint, pausarla o reanudarla. |
-| **Detener Ejecución** | `Ctrl + Shift + R` | Interrumpir la ejecución de inmediato y ejecutar rutinas de seguridad. |
-| **Duplicar Bloque(s)** | `Ctrl + D` | Duplicar los bloques seleccionados manteniendo su configuración. |
-| **Herramienta Selección** | `1` | Modo estándar para seleccionar, mover bloques y conectar pines. |
-| **Herramienta Desplazamiento (Pan)** | `2` | Mover la vista del lienzo sin arrastrar bloques. |
-| **Herramienta Cortar Cable** | `3` | Pasar la cuchilla para borrar cables rápidamente. |
-| **Herramienta Pizarra** | `4` | Alternar la capa de dibujo para notas, figuras y anotaciones. |
-| **Desplazar Lienzo** | `Espacio` + Arrastrar | Mantener presionada la barra espaciadora y arrastrar el fondo. |
-| **Zoom en Lienzo** | `Rueda del Ratón` | Girar la rueda para acercar o alejar la vista. |
-| **Guardar Blueprint** | `Ctrl + S` | Guardar el plano actual en el JSON del workspace (`Ctrl + Shift + S` para Guardar Como). |
-| **Abrir Blueprint** | `Ctrl + O` | Abrir la ventana de diálogo para cargar un blueprint. |
-| **Deshacer / Rehacer** | `Ctrl + Z` / `Ctrl + Y` | Deshacer o rehacer acciones recientes en el lienzo. |
-| **Copiar / Pegar** | `Ctrl + C` / `Ctrl + V` | Copiar y pegar bloques seleccionados. |
-| **Eliminar Bloque / Cable** | `Delete` o `Backspace` | Eliminar los bloques o cables seleccionados del lienzo. |
-| **Navegar en Clúster** | `Doble Clic en Clúster` | Entrar al sub-lienzo interno del bloque Clúster. |
-
-<div style="page-break-before: always; break-before: page;"></div>
-
----
-
-## 8. Lista de Verificación para la Sesión de Laboratorio
-
-Antes de comenzar tu sesión de práctica en el laboratorio, comprueba que:
-* [ ] ComfyLAB esté instalado y se abra correctamente (`http://localhost:8000`).
-* [ ] La carpeta del espacio de trabajo activo esté configurada.
-* [ ] Los backends NI-VISA / PyVISA sean detectados si se realizarán pruebas con hardware real.
-* [ ] Los Instrumentos Virtuales funcionen offline sin necesidad de hardware físico (`Bode_Diagram_Virtual.json`).
-* [ ] El panel de Dashboard (`D`) haya sido probado para desplegar gráficos y controles en vivo.
-* [ ] Los blueprints de ejemplo en `src/comfylab/examples` estén accesibles para demostración.
-
+| **Alternar Dashboard** | `D` | Abrir o cerrar el cockpit del Dashboard del Operador |
+| **Ejecutar / Pausar / Reanudar** | `Ctrl + R` | Iniciar la ejecución del blueprint, pausar o reanudar |
+| **Detener Ejecución** | `Ctrl + Shift + R` | Interrumpir la ejecución de inmediato y ejecutar rutinas de seguridad |
+| **Duplicar Bloque(s)** | `Ctrl + D` | Clonar bloques seleccionados manteniendo su configuración |
+| **Herramienta Selección** | `1` | Modo estándar: seleccionar, mover bloques y conectar pines |
+| **Herramienta Pan** | `2` | Mover la vista del lienzo sin arrastrar bloques |
+| **Herramienta Cortar Cable** | `3` | Pasar la cuchilla para borrar cables rápidamente |
+| **Herramienta Pizarra** | `4` | Alternar la capa de dibujo para notas, figuras y anotaciones |
+| **Desplazar Lienzo** | `Espacio + Arrastrar` | Mantener presionada la barra espaciadora y arrastrar el fondo |
+| **Zoom en Lienzo** | `Rueda del Ratón` | Girar la rueda para acercar o alejar la vista |
+| **Guardar Blueprint** | `Ctrl + S` | Guardar el plano actual en el JSON del workspace (`Ctrl + Shift + S` para Guardar Como) |
+| **Abrir Blueprint** | `Ctrl + O` | Abrir la ventana de diálogo para cargar un blueprint |
+| **Deshacer / Rehacer** | `Ctrl + Z` / `Ctrl + Y` | Deshacer o rehacer acciones recientes en el lienzo |
+| **Copiar / Pegar** | `Ctrl + C` / `Ctrl + V` | Copiar y pegar bloques seleccionados |
+| **Eliminar** | `Delete` / `Backspace` | Eliminar los bloques o cables seleccionados |
+| **Navegar en Clúster** | `Doble Clic` | Entrar al sub-lienzo interno del bloque Clúster |
 ---
 *ComfyLAB se distribuye bajo la Licencia Pública General GNU v3.0 (GPLv3). Desarrollado por Paulo Felipe Jarschel, GATE/EIT, IFGW, Unicamp.*

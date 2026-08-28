@@ -1,7 +1,35 @@
 # ComfyLAB: Quick Start Guide & Comprehensive Overview
-*Comfortable Lab Automation Blocks — User Manual, Software Overview & Hands-On Tutorial Reference*
+*Comfortable Lab Automation Blocks — User Manual, Software Overview & Practical Reference*
 
+<style>
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 12px 0 16px 0;
+    font-size: 0.92em;
+  }
+  th, td {
+    border: 1px solid #b0bec5;
+    padding: 6px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background-color: #f1f5f9;
+    font-weight: 700;
+    border-bottom: 2px solid #64748b;
+  }
+  tr:nth-child(even) td {
+    background-color: #f8fafc;
+  }
+  @media (prefers-color-scheme: dark) {
+    th, td { border-color: #475569; }
+    th { background-color: #1e293b; border-bottom: 2px solid #94a3b8; }
+    tr:nth-child(even) td { background-color: #0f172a; }
+  }
+</style>
 ---
+
 
 ## 1. Introduction & Philosophy
 
@@ -15,29 +43,13 @@ ComfyLAB resolves this by providing a clean, modular graphical interface where u
 ---
 
 ### 1.2 Dual Architecture: Web UI + Python Server Engine
-ComfyLAB operates on a decoupled client-server model:
-<div style="page-break-before: always; break-before: page;"></div>
+ComfyLAB operates on a decoupled client-server model separating user interaction from backend execution and hardware communication:
 
-```
-┌──────────────────────────────────────────────────────────┐
-│                      FRONT-END UI                        │
-│ - Web Canvas (React + XY Flow)                           │
-│ - Drag-and-Drop Block Placement & Wiring                 │
-│ - Dedicated Operator Dashboard Cockpit (Hotkey: D)       │
-│ - 2D & 3D Interactive Plotting & Data Displays           │
-│ - Whiteboard Overlay & Freehand Annotations              │
-└────────────────────────────┬─────────────────────────────┘
-                             │ WebSocket / HTTP API
-┌────────────────────────────▼─────────────────────────────┐
-│                 BACKEND EXECUTION SERVER                 │
-│ - Python Core Engine + API (FastAPI)                     │
-│ - Push/Pull Hybrid State Machine Executor                │
-│ - Physical VISA Hardware & Serial Lock Manager           │
-│ - Built-in Virtual Instruments Server (SCPI Simulation)  │
-│ - NumPy/SciPy Signal Processing & FFT Math               │
-│ - Multi-Language Scripting & Native DLL / SO Invocation  │
-└──────────────────────────────────────────────────────────┘
-```
+| Layer | Primary Role | Key Capabilities | Stack |
+| :--- | :--- | :--- | :--- |
+| **Front-End UI** | User Interaction | • Infinite canvas with drag-and-drop wiring<br>• Dedicated Operator Dashboard cockpit (`D`)<br>• Real-time 2D/3D plots & whiteboard overlay | React, XY Flow, Plotly |
+| **API Layer** | Data Transport | • Bidirectional WebSocket telemetry streaming<br>• REST endpoints for execution & diagnostics | WebSockets, FastAPI |
+| **Backend Server** | Execution & Hardware | • Push/pull hybrid state machine executor<br>• VISA & Serial port lock manager<br>• Virtual Instruments simulation server (SCPI)<br>• Signal processing, NumPy/SciPy math & scripts | Python, PyVISA, NumPy, SciPy |
 
 * **Front-End Canvas & Dashboard**: Runs in modern web browsers (or single-file Desktop app builds). Provides fluid graphical manipulation, auto-layout tools, interactive graph zoom/pan, a digital whiteboard layer, and a dedicated **Operator Dashboard** that displays pinned cards, controls, and monitors in a streamlined control-room layout.
 * **Backend Server**: Powered by Python and FastAPI. Handles real-time hardware locks, VISA/SCPI queries, heavy matrix calculations, multi-threaded execution, file persistence, Python virtual environment management, and an automated background simulation server for **Virtual Instruments**.
@@ -61,20 +73,20 @@ ComfyLAB was built from the ground up to offer extreme flexibility without restr
 
 ### 2.1 What Can Be Done with ComfyLAB
 
-| Feature Area | Capabilities & Extensibility |
+| Feature Area | Capabilities & Highlights |
 | :--- | :--- |
-| **Physical Hardware Control** | Full support for **VISA** (GPIB, USB TMC, Ethernet/LXI, RS-232/RS-485 Serial) and **SCPI** standard command sets. Built-in driver blocks for popular commercial oscilloscopes, multimeters, power supplies, function generators, and Horiba spectrometers. |
-| **Built-in Virtual Instruments** | Complete software-simulated laboratory instruments right out of the box! Includes a **Virtual Oscilloscope** (`virt_osc`) and **Virtual Signal Generator** (`virt_siggen`) connected to a simulated **RC Circuit** with realistic frequency response—enabling complete offline testing and education without any physical hardware. |
-| **Operator Experiment Dashboard** | Dedicated **Dashboard View** (hotkey `D`). Pin any block, control parameter, or visualization widget to a sleek operator cockpit. Reorder and resize cards to create clean, presentation-ready control stations for experiment runs. |
-| **Execution Progress & Timing** | Visual execution tracking with **Countdown Wait** (live digital clock, draining progress bar, and skip button), standalone **Progress Bar** widgets (0–100%), mission-control **ETR Displays** (Estimated Time Remaining), and smart loop blocks. |
-| **Comprehensive Scientific Plots** | Real-time interactive 2D and 3D plotting: **XY / Line Plot** (single/multi-trace, log/linear), **Dual-Y Plot** (two distinct Y scales), **Bar Plot**, **Box Plot** (statistical distribution & outliers), **Histogram Plot**, **3D Surface & Scatter Plot**, **Polar Plot**, **Waterfall Spectral Plot**, and 2D Matrix Heatmaps. |
-| **Native Library Invocation** | Directly call custom C/C++ compiled shared libraries (`.dll` on Windows, `.so` on Linux/macOS) using an interactive **Signature Editor** without writing Ctypes Python wrapper code. |
-| **Multi-Language Custom Scripting** | Create inline **Script Blocks** in 9 programming languages: Python, Rust, JavaScript, TypeScript, Julia, R, Lua, Octave, and Wolfram. Access the `COMFYLAB_WORKSPACE` environment variable to read/write project files effortlessly. |
-| **Python Ecosystem Access** | Connect custom script blocks to local Python virtual environments (`.venv`), providing full access to `scipy`, `numpy`, `pandas`, `opencv`, `scikit-learn`, `matplotlib`, and custom PyPI packages. |
-| **Block Publishing & Package Bundles** | Publish custom script blocks directly to your sidebar palette or package entire workflows (with blueprints, scripts, and uploaded assets) into redistributable `.cfy` compressed package files. |
-| **Advanced Signal Processing & Math** | High-performance NumPy array operations, FFT power spectrum analysis, curve fitting (Gaussian, Exponential, Polynomial, Custom non-linear), filtering (lowpass, highpass, bandpass), detrending, and peak detection. |
-| **Modular Sub-Canvases (Clusters)** | Group complex sub-graphs into custom **Cluster Blocks** with dynamic input and output pins to maintain clean hierarchical blueprint diagrams. |
-| **Whiteboard Canvas Overlay** | Add sticky notes, rich text, shapes, arrows, and freehand ink sketches directly on top of block canvas diagrams for presentation and documentation. Use shapes to visually group blocks together inside boundary rectangles. |
+| **Hardware Control** | Full VISA support (GPIB, USB-TMC, TCP/IP, Serial RS-232/485) and SCPI. Built-in drivers for oscilloscopes, DMMs, power supplies, spectrometers. |
+| **Virtual Instruments** | Built-in simulated oscilloscope (`virt_osc`), signal generator (`virt_siggen`), and RC circuit. Full offline testing without physical hardware. |
+| **Operator Dashboard** | Dedicated cockpit view (hotkey `D`). Pin any block, control, or plot into organized Control and Monitor cards. |
+| **Progress & Timing** | Countdown wait block (with skip button), progress bar widgets (0–100%), ETR clocks, and smart loops with `%` / ETR outputs. |
+| **Scientific Plots** | Real-time 2D & 3D: XY line (linear/log), Dual-Y, Bar, Box plot, Histogram, 3D Surface/Scatter, Polar, Waterfall, and 2D Heatmaps. |
+| **Native Libraries** | Direct C/C++ library calling (`.dll` on Windows, `.so` on Linux/macOS) via interactive Signature Editor without Python wrappers. |
+| **Polyglot Scripting** | Inline custom blocks in 9 languages: Python, Rust, JS, TS, Julia, R, Lua, Octave, Wolfram. Access to `COMFYLAB_WORKSPACE`. |
+| **Python Ecosystem** | Seamless integration with virtual environments (`.venv`), allowing any PyPI package (`scipy`, `pandas`, `torch`, `opencv`). |
+| **Packaging & Export** | Publish custom blocks directly to the sidebar palette or bundle complete workflows into redistributable `.cfy` packages. |
+| **Signal Processing** | NumPy matrix math, FFT power spectrum, curve fitting (Gaussian, exponential, polynomial), digital filtering, and peak detection. |
+| **Sub-Canvases** | Group complex sub-graphs into clean, reusable Cluster blocks with dynamic I/O pins. |
+| **Whiteboard Layer** | Draw freehand annotations, place notes, and draw geometric grouping boxes directly on the canvas (hotkey `4`). |
 
 ---
 
@@ -94,17 +106,17 @@ While ComfyLAB handles almost any scientific measurement, automation, and data p
 
 Understanding how ComfyLAB compares to traditional lab software tools highlights why it is a compelling choice for both teaching and research.
 
-| Feature / Aspect | Pure Python Scripts (PyVISA, Matplotlib) | National Instruments LabVIEW | MATLAB / Simulink | **ComfyLAB** |
+| Feature / Aspect | Pure Python | NI LabVIEW | MATLAB / Simulink | ComfyLAB |
 | :--- | :--- | :--- | :--- | :--- |
-| **License & Cost** | Free & Open Source | Expensive Commercial Licensing | Expensive Commercial Licensing | **Free & Open Source (GPLv3)** |
-| **Programming Paradigm** | Text-based Code | Proprietary G Graphical Code | Text & Graphical Block Diagram | **Visual Web Block Diagrams + Polyglot Code** |
-| **Learning Curve** | High (Requires programming proficiency) | Medium (Steep G language conventions) | Medium (Requires syntax & toolboxes) | **Low (Drag-and-drop intuitive canvas)** |
-| **GUI & Plotting Setup** | Manual (PyQt, Tkinter, Matplotlib) | Integrated Front Panel | Integrated Figure Windows | **Instant Live Plotting, 3D/Polar/Waterfall & Dashboard** |
-| **Offline Simulation** | Requires manual mock libraries | Basic software simulation | Simulink physical modeling | **Built-in Virtual SCPI Oscilloscope, SigGen & Circuit** |
-| **File Format & Versioning**| Plain text `.py` (Git-friendly) | Proprietary Binary `.vi` (Difficult Git diffs) | `.m` / Proprietary `.slx` binary | **Clean JSON Blueprints (Git-friendly)** |
-| **Custom Code Extension** | Native | Complex C/Python Call Nodes | S-Functions / MATLAB Code | **Inline Polyglot Script Blocks (Python, C/C++, Rust, etc.)** |
-| **Architecture** | Single-threaded script / manual threads | Monolithic Desktop Application | Heavy Desktop Environment | **Modern Decoupled Web UI + FastAPI Server** |
-| **Hardware Locking** | Manual lock implementation needed | Built-in VISA / DAQmx drivers | VISA / Instrument Control Toolbox | **Automated Asynchronous VISA Lock Manager** |
+| **License & Cost** | Free & Open-Source | Expensive commercial | Expensive commercial | **Free & Open-Source (GPLv3)** |
+| **Paradigm** | Text-based script | Proprietary graphical G | Block diagram / script | **Web Block Diagram + Polyglot** |
+| **Learning Curve** | High (syntax, APIs) | Steep (G conventions) | Moderate (toolboxes) | **Low (Visual drag-and-drop)** |
+| **GUI & Plotting** | Manual (PyQt, Tkinter) | Built-in Front Panel | Built-in Figure windows | **Instant 2D/3D & Dashboard (`D`)** |
+| **Offline Simulation** | Manual mock libraries | Basic software mocks | Simulink physics engine | **Built-in SCPI Virtual Instruments** |
+| **Files & Versioning** | Plain text `.py` (Git-friendly) | Binary `.vi` (Merge conflicts) | `.m` / Binary `.slx` | **Clean JSON Blueprints (Git-friendly)** |
+| **Custom Code** | Native Python | Complex C/Python nodes | S-Functions / MATLAB | **9-Language Script Blocks & DLL/SO** |
+| **Architecture** | Monolithic script | Heavy desktop app | Heavy desktop suite | **Decoupled Web UI + FastAPI Server** |
+| **Hardware Locks** | Manual implementation | Built-in DAQmx | Instrument Toolbox | **Automatic async VISA lock manager** |
 
 ### Key Takeaways:
 1. **Vs. Pure Python**: Python is powerful, but creating user interfaces, real-time interactive plots, hardware state loops, and visual workflows requires hundreds of lines of boilerplate code. ComfyLAB keeps Python's full analytical power while providing an immediate visual UI and experiment dashboard.
@@ -197,7 +209,7 @@ Connections between blocks in ComfyLAB are strictly divided into two distinct ca
 
 ### 4.4 Advanced Features
 
-* **Experiment Dashboard & Pinned Cards (📊 / `D`)**: The Dashboard provides a clean, distraction-free "operator cockpit" for running experiments, presenting results, or conducting student lab sessions without the visual complexity of block diagrams and wires.
+* **Experiment Dashboard & Pinned Cards (📊 / `D`)**: The Dashboard provides a clean, distraction-free "operator cockpit" for running experiments, presenting results, or conducting practical lab work without the visual complexity of block diagrams and wires.
   * **Pinning Blocks**: Any block or pin can be pinned to the Dashboard. Right-click a block and select **Pin to Dashboard**, click the pin icon in the Block Inspector header, or use the card pin icon on supported widgets.
   * **Automatic Organization**: Inputs, sliders, and constants are organized into interactive **Control Cards**, while graphs, gauges, indicators, and timers become dedicated **Monitor Cards**.
   * **Layout Customization**: Reorder cards up/down, drag corners to resize plots, toggle card controls, or click the jump icon to instantly navigate back to the corresponding canvas block.
@@ -213,18 +225,18 @@ Connections between blocks in ComfyLAB are strictly divided into two distinct ca
 
 ## 5. Summary of Built-in Block Categories
 
-| Category | Description & Common Blocks |
+| Category | Primary Function & Key Blocks |
 | :--- | :--- |
-| 🔄 **Control Flow & Timing** | For Loop, For Each Loop, While Loop, If/Else Branch, Delay/Sleep, Countdown Wait, Execution Timer / Measure Time, Stop Execution. |
-| 🔢 **Math & Logic** | Addition, Subtraction, Multiplication, Division, Formula Evaluator, Sine/Cosine, Trigonometry, Exponential, Logarithm, Comparisons (`>`, `<`, `==`), AND, OR, NOT logic. |
-| 📝 **Data & Strings** | String Concatenate, Text Format, Regex Search, String Splitter, List Builder, List Indexer, Dictionary Builder, Key-Value Getter. |
-| 📊 **Arrays & Signal** | Array Create, Range/Linspace, Array Slicing, FFT Power Spectrum, Lowpass/Bandpass Filters, Detrend, Statistics (Mean, Std, Min, Max), Peak Detector, Curve Fitting (Gaussian, Exponential, Polynomial, Custom non-linear). |
-| 💾 **File I/O** | Read/Write CSV files, JSON I/O, Parquet storage, Text File Read/Write, Image Loader/Saver. |
-| 📡 **VISA & Hardware** | VISA Resource Open, SCPI Write, SCPI Read, SCPI Query, VISA Close, Serial Port Open/Read/Write, VISA Resource Manager auto-discovery. |
-| 🖥️ **Virtual Instruments** | **VirtOsc** (Connect, Timebase, Channel 1 & 2 Setup, Trigger, State, Acquire Waveform), **VirtSigGen** (Connect, Waveform Setup: Sine/Square/Triangle, Chirp Sweep, Output Level), Simulated RC Circuit. |
-| 🔬 **Instrument Drivers** | Oscilloscopes (Tektronix, Keysight, Agilent), Digital Multimeters (HP/Agilent 34401A, Generic DMM), DC Power Supplies (Keysight, Keithley), Function Generators, Horiba Spectrometers, CAEN digitizers, Thorlabs motion/power. |
-| 📈 **Display, Plots & UI** | **XY / Line Plot** (single/multi-trace, log/linear), **Dual-Y Plot**, **Bar Plot**, **Box Plot**, **Histogram Plot**, **3D Surface & Scatter Plot**, **Polar Plot**, **Waterfall Spectral Plot**, 2D Matrix Heatmap, Table Viewer, Gauge, Status/LED, **Progress Bar**, **ETR Display**, **Countdown Clock**. |
-| ⚙️ **Native & Scripting** | Native Library (DLL/SO) Invocation with Signature Editor, Polyglot Script Node (Python, JS/TS, Julia, Rust, Lua, Octave, R, Wolfram) with `COMFYLAB_WORKSPACE` environment variable support. |
+| 🔄 **Control Flow & Timing** | Loop orchestration and execution timing: `For Loop`, `For Each Loop`, `While Loop`, `If/Else`, `Sleep`, `Countdown Wait`, `Measure Time`, `Stop Execution`. |
+| 🔢 **Math & Logic** | Arithmetic, boolean logic, and formulas: `Add`, `Subtract`, `Multiply`, `Divide`, `Calculator`, `Trigonometry`, `Exponential`, `Log`, comparisons (`>`, `<`, `==`), `AND/OR/NOT`. |
+| 📝 **Data & Strings** | Text manipulation and structures: `String Concat`, `Format Text`, `Regex Search`, `String Split`, `List Builder`, `List Indexer`, `Dict Builder`, `Dict Get`. |
+| 📊 **Arrays & Signals** | Signal processing and arrays: `Create Array`, `Linspace`, `Array Slice`, `FFT Spectrum`, `Digital Filters` (low/high/bandpass), `Detrend`, `Peak Detector`, `Curve Fitting`. |
+| 💾 **File I/O** | Persistence and data export: `Save CSV`, `Load CSV`, `JSON I/O`, `Parquet Storage`, `Text File I/O`, `Image Loader/Saver`. |
+| 📡 **VISA & Physical Hardware** | Instrument communication: `VISA Device`, `VISA Query`, `VISA Read`, `VISA Write`, `Serial Port Open/Read/Write`, `Auto Resource Discovery`. |
+| 🖥️ **Virtual Instruments** | Zero-hardware simulation: `VirtOsc Connect/Acquire`, `VirtSigGen Connect/Config Wave`, `Simulated RC Circuit`. |
+| 🔬 **Device Drivers** | Vendor instrument drivers: Oscilloscopes (Tektronix, Keysight), Multimeters (HP/Agilent 34401A), Power Supplies, Horiba Spectrometers, CAEN Digitizers, Thorlabs Motors. |
+| 📈 **Display & Dashboard** | Data visualization and monitoring: `XY Plot`, `Dual Y-Axis Plot`, `Bar Plot`, `Box / Violin Plot`, `Histogram`, `3D Surface/Scatter`, `Polar Plot`, `Waterfall Spectrogram`, `Heatmap Plot`, `Progress Bar`, `ETR Clock`. |
+| ⚙️ **Scripting & Native** | Custom extensions: `Native Library Invocation` (C/C++ DLL/SO via Signature Editor), `Multi-Language Script Blocks` (Python, JS/TS, Julia, Rust, Lua, Octave, R, Wolfram). |
 
 <div style="page-break-before: always; break-before: page;"></div>
 
@@ -232,19 +244,19 @@ Connections between blocks in ComfyLAB are strictly divided into two distinct ca
 
 ## 6. Hands-On Starter Tutorials
 
-Use these short, step-by-step exercises to get comfortable with ComfyLAB before or during your tutorial session.
+Follow these step-by-step practical examples to quickly master core ComfyLAB workflows and features.
 
 <div style="page-break-before: always; break-before: page;"></div>
 
 ---
 
 ### Tutorial 1: Math Pipeline & Live Inspection
-**Goal**: Create two numbers, multiply them, apply a mathematical formula, and inspect the result in the Block Inspector.
+**Goal**: Create two numbers, multiply them, evaluate a mathematical expression using `Calculator`, and inspect the result in the Block Inspector.
 
 ```
 ┌──────────────┐
 │ Number (5.0) ├──┐   ┌───────────┐   ┌─────────────┐
-│ Output Data  │  ├──▶│ Multiply  ├──▶│ Formula     ├──► Output
+│ Output Data  │  ├──▶│ Multiply  ├──▶│ Calculator  ├──► Result
 └──────────────┘  │   └───────────┘   │ "x^2 + 10"  │
 ┌──────────────┐  │                   └─────────────┘
 │ Number (3.0) ├──┘
@@ -254,79 +266,80 @@ Use these short, step-by-step exercises to get comfortable with ComfyLAB before 
 
 #### Step-by-Step Instructions:
 1. Open ComfyLAB and create a new workspace/blueprint.
-2. In the left **Sidebar**, search for `Number` and drag **two** Number blocks onto the canvas.
+2. In the left **Sidebar**, search for `Number` (under *Constants*) and drag **two** Number blocks onto the canvas.
 3. Set the value of the first Number block to `5.0` and the second to `3.0`.
-4. Drag a **Multiply** block (from *Math & Logic*) onto the canvas.
+4. Drag a **Multiply** block (from *Math / Basic*) onto the canvas.
 5. Connect the data output pin of Number 1 to Input A of the Multiply block, and Number 2 to Input B.
-6. Drag a **Formula** block onto the canvas. Set its equation string parameter to `x^2 + 10`.
-7. Connect the output pin of the Multiply block (`15.0`) to input `x` of the Formula block.
+6. Drag a **Calculator** block (from *Math / Basic*) onto the canvas. In the Block Inspector, set its expression to `x^2 + 10` and add variable input `x`.
+7. Connect the output pin of the Multiply block (`15.0`) to input pin `x` of the Calculator block.
 8. Click **Run Blueprint** (▶️ or `Ctrl+R`) on the top toolbar.
-9. Click the **Formula** block to open the **Block Inspector** on the right sidebar.
-10. **Verification**: In the Block Inspector, check the live output pin value. It should evaluate to `(15)^2 + 10 = 235.0`.
+9. Click the **Calculator** block to open the **Block Inspector** on the right sidebar.
+10. **Verification**: In the Block Inspector, check the live `Result` output pin value. It should evaluate to `(15)^2 + 10 = 235.0`.
 
 <div style="page-break-before: always; break-before: page;"></div>
 
 ---
 
 ### Tutorial 2: Synthetic Signal Generation & Live Plotting
-**Goal**: Generate a noisy sine wave array, calculate its FFT power spectrum, and render it on an interactive plotter.
+**Goal**: Generate a noisy sine wave array, calculate its FFT power spectrum, and render it on an `XY Plot`.
 
 ```
 ┌────────────────────┐     ┌────────────────────┐
-│ Linspace (0 to 10s)├────▶│ Sine Wave Generator├─┐
+│ Linspace (0 to 10s)├────▶│ Sine Wave (5.0 Hz) ├─┐
 └────────────────────┘     └────────────────────┘ │
                                                   ▼
 ┌────────────────────┐     ┌────────────────────┐ │
-│ Interactive Chart  │◀────┤ Signal + Noise     │◀┘
+│ XY Plot Widget     │◀────┤ Add (Signal+Noise) │◀┘
 └────────────────────┘     └─────────┬──────────┘
                                      │
                                      ▼
                            ┌────────────────────┐
-                           │ FFT Power Spectrum │
+                           │ FFT Spectrum       │
                            └────────────────────┘
 ```
 
 #### Step-by-Step Instructions:
-1. Search for `Linspace` in the Sidebar. Set `Start = 0`, `Stop = 10`, `Points = 1000` to create a time vector array.
-2. Search for `Sine` (under *Math & Logic* or *Arrays*). Connect the Linspace output to the time input of the Sine block. Set frequency parameter to `5.0 Hz`.
-3. Add a **Random Noise** block and an **Add** block to corrupt the sine wave with white noise (`Signal + Noise`).
-4. Drag an **Interactive Plotter** block onto the canvas.
-5. Connect the time array to the **X Pin** of the Plotter and the noisy signal array to the **Y Pin**.
-6. (Optional) Connect the noisy signal to an **FFT Spectrum** block, and wire the FFT output to a second trace on the Plotter.
-7. Click **Run Blueprint** (▶️).
-8. **Verification**: The Plotter widget on your canvas will immediately display the live noisy sine wave. Use your mouse wheel over the graph to zoom in/out and drag to pan across axes!
+1. Search for `Linspace` (under *Numeric Arrays*) in the Sidebar. Set `Start = 0`, `Stop = 10`, `Points = 1000` to create a time vector array.
+2. Search for `Sine Wave` (under *Math / Functions*). Connect the Linspace output array to the `X` input of the Sine Wave block. Set `Frequency = 5.0` Hz.
+3. Add a **Random Array** block (under *Math / Random*, set `Shape = 1000`, `Min = -0.2`, `Max = 0.2`) and an **Add** block to sum the sine wave with noise.
+4. Drag an **XY Plot** block (under *Plots*) onto the canvas.
+5. Connect the Linspace time array to the **X** pin of the XY Plot and the noisy signal array to the **Y** pin. Connect an execution wire to the `Plot` pin.
+6. (Optional) Wire the signal to an **FFT Spectrum** block (under *Math / Signal Processing*) to view frequency peaks.
+7. Click **Run Blueprint** (▶️ or `Ctrl+R`).
+8. **Verification**: The XY Plot widget on your canvas will immediately display the live noisy sine wave. Use your mouse wheel over the graph to zoom in/out and drag to pan across axes!
 
 <div style="page-break-before: always; break-before: page;"></div>
 
 ---
 
 ### Tutorial 3: Automated Parameter Sweep & CSV Logging
-**Goal**: Use a `For Loop` to simulate sweeping a power supply voltage, calculate power consumption, display the live curve, and log data to a CSV file.
+**Goal**: Use a `For Loop` to simulate sweeping a voltage, calculate current, and log data to a CSV file using `Save CSV`.
 
 ```
 ┌─────────────────────┐    ┌────────────────────┐
-│ For Loop (0 to 50)  │▶──▶│ CSV File Writer    │
-└──────────┬──────────┘    └────────────────────┘
-           │ (Index)
+│ For Loop (0 to 50)  │▶──▶│ Save CSV           │
+└──────────┬──────────┘    │ "sweep_results.csv"│
+           │ (Index)       └────────────────────┘
            ▼
 ┌─────────────────────┐
 │ Voltage = Index*0.1 │
 └──────────┬──────────┘
            ▼
 ┌─────────────────────┐
-│ Current = V / R     ├─► Live Plotter
+│ Current = V / R     ├─► XY Plot
 └─────────────────────┘
 ```
 
 #### Step-by-Step Instructions:
-1. Drag a **For Loop** block onto the canvas. 
-2. Set the `For Loop` iterations count to `50`. Notice that the block also provides live `%` (percentage) and `ETR` output pins!
-3. Inside the loop execution path, multiply the `Iteration Index` pin by `0.1` using a **Multiply** block to generate a voltage sweep from `0.0 V` to `5.0 V`.
+1. Drag a **For Loop** block (under *Control Flow*) onto the canvas. 
+2. Set the `For Loop` iterations count to `50`. Notice that the block provides live `%` (percentage) and `ETR` output pins!
+3. Inside the loop execution path, multiply the `Index` pin by `0.1` using a **Multiply** block to generate a voltage sweep from `0.0 V` to `5.0 V`.
 4. Divide the voltage by a constant resistance (`R = 100 Ohms`) using a **Divide** block to calculate current `I`.
-5. Connect both Voltage and Current values to a **CSV Writer** block. Set the filename option to `sweep_results.csv`.
-6. Wire the output execution pin of the CSV block back to the loop step input to complete the iteration.
-7. Click **Run Blueprint** (▶️).
-8. **Verification**: Watch the loop run step-by-step with animated violet execution lines. After execution completes, open your active workspace folder—you will find `sweep_results.csv` populated with all 50 data rows!
+5. Drag a **Save CSV** block (under *File I/O*) onto the canvas. Set `FilePath` to `sweep_results.csv`.
+6. Connect the data values to the `Data` pin of `Save CSV`. Connect the `Body` execution wire of the loop to the `Write` pin of `Save CSV`.
+7. Wire the `Out` execution pin of `Save CSV` back to the loop `Step` input to advance the iteration.
+8. Click **Run Blueprint** (▶️ or `Ctrl+R`).
+9. **Verification**: Watch the loop run step-by-step with animated violet execution wires. After completion, check your active workspace folder—you will find `sweep_results.csv` populated with all 50 data rows!
 
 <div style="page-break-before: always; break-before: page;"></div>
 
@@ -349,13 +362,13 @@ Use these short, step-by-step exercises to get comfortable with ComfyLAB before 
 ```
 
 #### Step-by-Step Instructions:
-1. Drag a **Script Block** (from *Scripting & Native*) onto the canvas. Select **Python** as the language.
+1. Drag a **Python Script** block (from *Scripts*) onto the canvas.
 2. In the **Block Inspector**, click **Edit Pins**:
    * Add Input Pin: `data_in` (Type: Array)
    * Add Input Pin: `threshold` (Type: Number)
    * Add Output Pin: `filtered_data` (Type: Array)
    * Add Output Pin: `count_passed` (Type: Number)
-3. Double-click the Script Block to open the built-in code editor.
+3. Double-click the Python Script block to open the built-in Monaco code editor.
 4. Enter the Python code snippet shown above. (Notice that `os.environ["COMFYLAB_WORKSPACE"]` is also available if your script needs local files!).
 5. Connect a sample array to `data_in` and set `threshold = 2.5`.
 6. Click **Run Blueprint** (▶️) and inspect `filtered_data` and `count_passed` in the Block Inspector.
@@ -367,28 +380,24 @@ Use these short, step-by-step exercises to get comfortable with ComfyLAB before 
 ---
 
 ### Tutorial 5: VISA Hardware Interfacing (SCPI Identification Query)
-**Goal**: Connect to a physical or simulated instrument over VISA, send an SCPI `*IDN?` query, and display the instrument model response.
+**Goal**: Connect to a physical or simulated instrument over VISA using `VISA Device`, send an SCPI `*IDN?` query using `VISA Query`, and display the instrument model response.
 
 ```
-┌───────────┐     ┌───────────┐     ┌───────────┐
-│ VISA Open │▶───▶│ SCPI Query│▶───▶│ VISA Close│
-│ Resource  ├────▶│ "*IDN?"   ├────▶│ Handle    │
-└───────────┘     └─────┬─────┘     └───────────┘
-                        │ Response String
-                        ▼
-                  [Block Inspector]
+┌──────────────┐     ┌──────────────┐
+│ VISA Device  │▶───▶│ VISA Query   ├──► Response: "*IDN?..."
+│ Address: ... ├────▶│ Command:*IDN?│
+└──────────────┘     └──────────────┘
 ```
 
 #### Step-by-Step Instructions:
-1. Drag a **VISA Open** block onto the canvas. Set the Resource String parameter to your instrument address (e.g. `TCPIP0::192.168.1.100::INSTR`, `GPIB0::14::INSTR`, or `COM3`).
-2. Drag a **SCPI Query** block. Connect the `ExecOut` of VISA Open to `ExecIn` of SCPI Query.
-3. Connect the `VISA Handle` output pin (cyan handle pin) from VISA Open to the `VISA Handle` input of SCPI Query.
-4. Set the command string parameter in SCPI Query to `*IDN?
-`.
-5. Drag a **VISA Close** block and wire the execution line and VISA handle to it to ensure clean resource release.
-6. Click **Run Blueprint** (▶️).
-7. **Verification**: Click the **SCPI Query** block and look at the Block Inspector. The output string pin will display the manufacturer identification string (e.g., `HEWLETT-PACKARD,34401A,0,11-5-2` or `KEYSIGHT TECHNOLOGIES,DSOX2002A,...`).
-8. **Tip**: You can also take advantage of the VISA Resource Manager block to discover connected instruments automatically!
+1. Drag a **VISA Device** block (under *VISA / Core*) onto the canvas. Set the `Address` parameter to your instrument address (e.g. `TCPIP0::192.168.1.100::INSTR`, `GPIB0::14::INSTR`, `COM3`, or `VIRT::OSC`).
+2. Drag a **VISA Query** block (under *VISA / Core*) onto the canvas.
+3. Connect the `Out` execution pin of VISA Device to the `In` execution pin of VISA Query.
+4. Connect the `Device` handle output pin (cyan pin) from VISA Device to the `Device` input pin of VISA Query.
+5. Set the `Command` parameter in VISA Query to `*IDN?`.
+6. Click **Run Blueprint** (▶️ or `Ctrl+R`). (ComfyLAB automatically manages connection caching, locks, and safe teardown).
+7. **Verification**: Click the **VISA Query** block and check the Block Inspector. The `Response` output pin displays the instrument identification string (e.g. `HEWLETT-PACKARD,34401A,0,11-5-2` or `KEYSIGHT TECHNOLOGIES,DSOX2002A,...`).
+8. **Tip**: You can also use the **VISA Resource Manager** block to discover connected physical instruments automatically!
 
 <div style="page-break-before: always; break-before: page;"></div>
 
@@ -430,36 +439,21 @@ Use these short, step-by-step exercises to get comfortable with ComfyLAB before 
 
 | Action | Shortcut | Description |
 | :--- | :--- | :--- |
-| **Toggle Dashboard** | `D` | Toggle the dedicated Operator Dashboard panel open or closed. |
-| **Run / Pause / Resume** | `Ctrl + R` | Start blueprint execution, pause if running, or resume if paused. |
-| **Stop Execution** | `Ctrl + Shift + R` | Immediately abort execution and trigger instrument safety teardown hooks. |
-| **Duplicate Block(s)** | `Ctrl + D` | Duplicate currently selected blocks keeping settings intact. |
-| **Select Tool** | `1` | Default mode to select, move blocks, and wire pins. |
-| **Pan Tool** | `2` | Pan across the canvas without dragging blocks. |
-| **Cut Wire Tool** | `3` | Slice across connected wires to quickly delete them. |
-| **Whiteboard Tool** | `4` | Toggle drawing overlay for notes, shapes, and ink annotations. |
-| **Pan Canvas** | `Space` + Drag | Hold spacebar and drag background to pan. |
-| **Zoom Canvas** | `Mouse Wheel` | Scroll wheel to zoom in or out. |
-| **Save Blueprint** | `Ctrl + S` | Save active blueprint layout to workspace JSON (`Ctrl + Shift + S` for Save As). |
-| **Open Blueprint** | `Ctrl + O` | Open workspace blueprint dialog. |
-| **Undo / Redo** | `Ctrl + Z` / `Ctrl + Y` | Undo or redo recent canvas actions. |
-| **Copy / Paste** | `Ctrl + C` / `Ctrl + V` | Copy and paste selected blocks. |
-| **Delete Block / Wire** | `Delete` or `Backspace` | Remove selected blocks or wires from canvas. |
-| **Sub-canvas Navigation** | `Double Click Cluster` | Drill down into a Cluster sub-canvas. |
-
-<div style="page-break-before: always; break-before: page;"></div>
-
----
-
-## 8. Summary Checklist for Tutorial Session
-
-Before starting your lab tutorial session, verify that:
-* [ ] ComfyLAB is installed and launches successfully (`http://localhost:8000`).
-* [ ] Active workspace folder is initialized.
-* [ ] NI-VISA / PyVISA backends are detected if physical hardware testing is planned.
-* [ ] Built-in Virtual Instruments work offline without any physical hardware (`Bode_Diagram_Virtual.json`).
-* [ ] Operator Dashboard (`D`) is tested for presenting live graphs and parameter controls.
-* [ ] Example blueprints in `src/comfylab/examples` are accessible for demonstration.
-
+| **Toggle Dashboard** | `D` | Open or close the operator Dashboard cockpit |
+| **Run / Pause / Resume** | `Ctrl + R` | Start blueprint execution, pause, or resume |
+| **Stop Execution** | `Ctrl + Shift + R` | Abort execution immediately and run safety shutdown hooks |
+| **Duplicate Block(s)** | `Ctrl + D` | Clone selected blocks preserving configured parameters |
+| **Select Tool** | `1` | Default mode: select, move blocks, and connect wire pins |
+| **Pan Tool** | `2` | Pan canvas viewport without selecting blocks |
+| **Cut Wire Tool** | `3` | Slice across wires with cursor blade to delete connections |
+| **Whiteboard Tool** | `4` | Toggle drawing overlay for notes, shapes, and freehand ink |
+| **Pan Canvas** | `Space + Drag` | Hold spacebar and drag background to pan |
+| **Zoom Canvas** | `Mouse Wheel` | Scroll wheel to zoom in or out centered at cursor |
+| **Save Blueprint** | `Ctrl + S` | Save current blueprint (`Ctrl + Shift + S` for Save As) |
+| **Open Blueprint** | `Ctrl + O` | Open file dialog to load blueprint JSON |
+| **Undo / Redo** | `Ctrl + Z` / `Ctrl + Y` | Undo or redo recent canvas actions |
+| **Copy / Paste** | `Ctrl + C` / `Ctrl + V` | Copy and paste selected blocks |
+| **Delete** | `Delete` / `Backspace` | Remove selected blocks or wires |
+| **Enter Cluster** | `Double Click` | Drill down into Cluster sub-canvas |
 ---
 *ComfyLAB is released under the GNU General Public License v3.0 (GPLv3). Developed by Paulo Felipe Jarschel, GATE/EIT, IFGW, Unicamp.*

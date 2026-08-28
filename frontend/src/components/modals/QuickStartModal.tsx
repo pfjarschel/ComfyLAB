@@ -184,16 +184,23 @@ export const QuickStartModal: React.FC<QuickStartModalProps> = ({ onClose }) => 
         .qs-section-content table {
           width: 100%;
           border-collapse: collapse;
-          margin-bottom: 1em;
+          margin: 12px 0 18px 0;
+          font-size: 0.9em;
         }
         .qs-section-content th, .qs-section-content td {
-          border: 1px solid var(--block-border);
-          padding: 8px 12px;
+          border: 1px solid rgba(140, 150, 165, 0.45);
+          padding: 6px 10px;
           text-align: left;
+          vertical-align: top;
         }
         .qs-section-content th {
-          background: var(--dnd-bg);
-          font-weight: 600;
+          background: var(--input-bg);
+          font-weight: 700;
+          border-bottom: 2px solid rgba(140, 150, 165, 0.7);
+          color: var(--text-color);
+        }
+        .qs-section-content tr:nth-child(even) td {
+          background: rgba(128, 128, 128, 0.05);
         }
       `}</style>
       <div
