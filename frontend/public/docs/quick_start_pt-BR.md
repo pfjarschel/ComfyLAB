@@ -176,10 +176,13 @@ As conexões entre blocos no ComfyLAB são estritamente divididas em duas catego
 * **Gatilho de Execução**: Clicar em **Run Blueprint** (▶️) inicia a execução nos blocos de entrada (blocos sem conexões de execução de entrada) e segue os fios de execução fluxo abaixo.
 * **Cadeias de Execução Independentes**: Se o canvas contiver grupos de blocos separados e não conectados entre si, o ComfyLAB os trata automaticamente como cadeias de execução paralelas, permitindo que loops de aquisição independentes rodem concorrentemente.
 * **Blocos de Controle de Fluxo**:
-  * **For Loop**: Executa um sub-loop por uma quantidade fixa de iterações.
+  * **For Loop**: Executa um sub-loop por uma quantidade fixa de iterações, emitindo o índice atual, a porcentagem de conclusão e a estimativa de tempo restante (ETR).
+  * **For Each Loop**: Itera sobre cada item em uma lista ou array, fornecendo saídas de item, índice, porcentagem e tempo restante (ETR).
   * **While Loop**: Executa continuamente um sub-loop enquanto a condição Booleana do pino permanecer `True`.
   * **If / Else Branch**: Direciona o fluxo de execução para uma saída `True` ou `False` com base em uma condição.
   * **Delay / Sleep**: Pausa o fluxo de execução por uma duração especificada (ms ou segundos).
+  * **Countdown Wait**: Pausa a execução com relógio regressivo digital em tempo real, barra de progresso e botão para pular a espera.
+  * **Barra de Progresso & Relógio ETR**: Displays visuais para acompanhamento de porcentagem ao vivo, tempo restante e relógio estilo sala de controle.
 
 ---
 

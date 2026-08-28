@@ -327,7 +327,13 @@ export function useFlowExecution({
         }
 
         // Determine human-readable result message based on telemetry data
-        if (data.waveform && (Array.isArray(data.waveform) || ArrayBuffer.isView(data.waveform))) {
+        if (data.resultMessage !== undefined) {
+          pendingUpdatesRef.current[block_id].resultMessage = data.resultMessage;
+        } else if (data.statusMessage !== undefined) {
+          pendingUpdatesRef.current[block_id].resultMessage = data.statusMessage;
+        } else if (data.message !== undefined) {
+          pendingUpdatesRef.current[block_id].resultMessage = data.message;
+        } else if (data.waveform && (Array.isArray(data.waveform) || ArrayBuffer.isView(data.waveform))) {
           pendingUpdatesRef.current[block_id].resultMessage = `Captured: ${data.waveform.length} pts`;
         } else if (data.z && Array.isArray(data.z)) {
           const zArr = data.z;

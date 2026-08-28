@@ -176,10 +176,13 @@ Connections between blocks in ComfyLAB are strictly divided into two distinct ca
 * **Execution Trigger**: Clicking **Run Blueprint** (▶️) starts execution at entry blocks (blocks with no incoming execution connections) and follows execution wires downstream.
 * **Independent Execution Chains**: If the canvas contains separate, unconnected block groups, ComfyLAB automatically treats them as parallel execution chains, allowing independent acquisition loops to run concurrently.
 * **Control Flow Blocks**:
-  * **For Loop**: Executes a sub-loop for a specified iteration count.
+  * **For Loop**: Executes a sub-loop for a specified iteration count, outputting current index, completion percentage, and estimated time remaining (ETR).
+  * **For Each Loop**: Iterates through each item in a list or array, providing item, index, percentage, and ETR outputs.
   * **While Loop**: Continually executes a sub-loop while a Boolean condition pin remains `True`.
   * **If / Else Branch**: Routes execution flow to either a `True` or `False` output path based on a condition.
   * **Delay / Sleep**: Pauses execution flow for a specified duration (ms or seconds).
+  * **Countdown Wait**: Pauses execution for a specified duration with an active live countdown clock, draining progress bar, and skip control.
+  * **Progress Bar & ETR Clock**: Visual output displays for tracking live percentage, remaining durations, and mission-control style time readouts.
 
 ---
 

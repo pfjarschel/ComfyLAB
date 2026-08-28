@@ -91,14 +91,14 @@ Seleccionar cualquier bloque en el lienzo abre el panel del **Inspector de Bloqu
 
 | Categoría | Descripción y Bloques Comunes |
 | :--- | :--- |
-| 🔄 **Flujo de Control** | Bucle For, Bucle While, Bifurcación If/Else, Retraso/Pausa, Detener Ejecución. |
+| 🔄 **Flujo de Control** | Bucle For, Bucle Para Cada (For Each), Bucle While, Bifurcación If/Else, Retraso/Pausa, Espera con Cuenta Regresiva (Countdown Wait), Detener Ejecución. |
 | 🔢 **Matemáticas y Lógica** | Suma, Resta, Multiplicación, División, Evaluador de Fórmulas, Seno/Coseno, Trigonometría, Exponencial, Logaritmo, Comparaciones (`>`, `<`, `==`), Lógica AND, OR, NOT. |
 | 📝 **Datos y Cadenas** | Concatenar Cadenas, Formatear Texto, Búsqueda Regex, Divisor de Cadenas, Creador de Listas, Indexador de Listas, Creador de Diccionarios, Obtener Valor por Clave. |
 | 📊 **Arreglos y Señales** | Crear Arreglo, Range/Linspace, Corte de Arreglos, Espectro de Potencia FFT, Filtros Paso Bajo/Paso Alto, Detrend, Estadísticas (Media, Desv. Estándar, Mín, Máx), Detector de Picos, Ajuste de Curvas (Gaussiana, Exponencial, Polinómica, Personalizada). |
 | 💾 **E/S de Archivos** | Leer/Escribir archivos CSV, E/S de JSON, Almacenamiento Parquet, Leer/Escribir Archivos de Texto, Cargar/Guardar Imágenes. |
 | 📡 **VISA y Hardware** | Abrir Recurso VISA, Escritura SCPI, Lectura SCPI, Consulta SCPI, Cerrar VISA, Abrir/Leer/Escribir Puerto Serie. |
 | 🔬 **Controladores de Instrumentos** | Configuración de Osciloscopio y Lectura de Ondas, Lectura de Multímetro Digital (DMM), Ajuste/Lectura de Fuente de Alimentación de CC, Configuración de Generador de Funciones y muchos más. |
-| 📈 **Pantalla e Interfaz** | Graficador de Líneas Interactivo (Trazo Único y Múltiple, Ejes Log/Lineal), Visor de Matrices de Imágenes, Visor de Tabla de Datos, Medidor Digital, Indicador de Estado. |
+| 📈 **Pantalla e Interfaz** | Barra de Progreso, Reloj ETR, Graficador de Líneas Interactivo (Trazo Único y Múltiple, Ejes Log/Lineal), Visor de Matrices de Imágenes, Visor de Tabla de Datos, Medidor Digital, Indicador de Estado. |
 | ⚙️ **Nativo y Scripts** | Invocación de Biblioteca Nativa (DLL/SO), Nodo Script Políglota (Python, JS, Julia, Rust, etc.). |
 
 <div style="page-break-before: always; break-before: page;"></div>

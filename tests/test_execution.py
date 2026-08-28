@@ -128,6 +128,104 @@ async def test_for_loop_execution():
     assert engine.blocks["print"].last_printed == 3
     # Index output pin on loop should end at 3
     assert engine.blocks["loop"]._index == 3
+    assert engine.blocks["loop"]._percentage == 100.0
+    assert engine.blocks["loop"]._etr == 0.0
+
+
+@pytest.mark.asyncio
+async def test_for_loop_percentage_and_eta():
+    blueprint = {
+        "blocks": [
+            {"id": "loop", "type": "control_flow/loops/for_loop", "properties": {"Count": 4}},
+            {"id": "acc_pct", "type": "Lists/manipulation/accumulate", "properties": {}},
+            {"id": "acc_eta", "type": "Lists/manipulation/accumulate", "properties": {}},
+            {"id": "delay", "type": "control_flow/timing/sleep", "properties": {"Delay": 0.02}}
+        ],
+        "links": [
+            # loop.LoopBody -> delay.In
+            {"id": "l1", "type": "exec", "source_block": "loop", "source_pin": "LoopBody", "target_block": "delay", "target_pin": "In"},
+            # delay.Out -> acc_pct.Append
+            {"id": "l2", "type": "exec", "source_block": "delay", "source_pin": "Out", "target_block": "acc_pct", "target_pin": "Append"},
+            # loop.Percentage -> acc_pct.Value
+            {"id": "l3", "type": "data", "source_block": "loop", "source_pin": "Percentage", "target_block": "acc_pct", "target_pin": "Value"},
+            # acc_pct.Out -> acc_eta.Append
+            {"id": "l4", "type": "exec", "source_block": "acc_pct", "source_pin": "Out", "target_block": "acc_eta", "target_pin": "Append"},
+            # loop.ETR -> acc_eta.Value
+            {"id": "l5", "type": "data", "source_block": "loop", "source_pin": "ETR", "target_block": "acc_eta", "target_pin": "Value"}
+        ]
+    }
+
+    engine = ExecutionEngine()
+    engine.load_blueprint(blueprint)
+
+    await engine.run(start_block_id="loop", start_pin_name="Start")
+
+    # Step progress for 4 iterations: 25%, 50%, 75%, 100%
+    assert engine.blocks["acc_pct"]._list == [25.0, 50.0, 75.0, 100.0]
+
+    # Iteration 0 has ETR == 0.0 (baseline not yet established), subsequent iterations have ETR > 0.0
+    eta_list = engine.blocks["acc_eta"]._list
+    assert len(eta_list) == 4
+    assert eta_list[0] == 0.0
+    assert eta_list[1] > 0.0
+    assert eta_list[2] > 0.0
+    # Final iteration remaining = 0 iterations after completion
+    assert engine.blocks["loop"]._percentage == 100.0
+    assert engine.blocks["loop"]._etr == 0.0
+
+
+@pytest.mark.asyncio
+async def test_for_each_loop_execution_and_metrics():
+    blueprint = {
+        "blocks": [
+            {"id": "loop", "type": "control_flow/loops/for_each", "properties": {"Items": ["alpha", "beta", "gamma", "delta"]}},
+            {"id": "acc_pct", "type": "Lists/manipulation/accumulate", "properties": {}},
+            {"id": "acc_items", "type": "Lists/manipulation/accumulate", "properties": {}},
+            {"id": "acc_idx", "type": "Lists/manipulation/accumulate", "properties": {}}
+        ],
+        "links": [
+            {"id": "l1", "type": "exec", "source_block": "loop", "source_pin": "LoopBody", "target_block": "acc_pct", "target_pin": "Append"},
+            {"id": "l2", "type": "data", "source_block": "loop", "source_pin": "Percentage", "target_block": "acc_pct", "target_pin": "Value"},
+            {"id": "l3", "type": "exec", "source_block": "acc_pct", "source_pin": "Out", "target_block": "acc_items", "target_pin": "Append"},
+            {"id": "l4", "type": "data", "source_block": "loop", "source_pin": "Item", "target_block": "acc_items", "target_pin": "Value"},
+            {"id": "l5", "type": "exec", "source_block": "acc_items", "source_pin": "Out", "target_block": "acc_idx", "target_pin": "Append"},
+            {"id": "l6", "type": "data", "source_block": "loop", "source_pin": "Index", "target_block": "acc_idx", "target_pin": "Value"}
+        ]
+    }
+
+    engine = ExecutionEngine()
+    engine.load_blueprint(blueprint)
+
+    await engine.run(start_block_id="loop", start_pin_name="Start")
+
+    assert engine.blocks["acc_pct"]._list == [25.0, 50.0, 75.0, 100.0]
+    assert engine.blocks["acc_items"]._list == ["alpha", "beta", "gamma", "delta"]
+    assert engine.blocks["acc_idx"]._list == [0, 1, 2, 3]
+    assert engine.blocks["loop"]._percentage == 100.0
+    assert engine.blocks["loop"]._etr == 0.0
+
+
+@pytest.mark.asyncio
+async def test_for_each_loop_empty_items():
+    blueprint = {
+        "blocks": [
+            {"id": "loop", "type": "control_flow/loops/for_each", "properties": {"Items": []}},
+            {"id": "print", "type": "outputs/basic/print", "properties": {}}
+        ],
+        "links": [
+            {"id": "l1", "type": "exec", "source_block": "loop", "source_pin": "LoopBody", "target_block": "print", "target_pin": "In"}
+        ]
+    }
+
+    engine = ExecutionEngine()
+    engine.load_blueprint(blueprint)
+
+    await engine.run(start_block_id="loop", start_pin_name="Start")
+
+    # Body should not have executed
+    assert engine.blocks["print"].last_printed is None
+    assert engine.blocks["loop"]._percentage == 100.0
+    assert engine.blocks["loop"]._etr == 0.0
 
 
 @pytest.mark.asyncio
@@ -595,6 +693,96 @@ async def test_accumulator_block_execution():
     # 4. Trigger Reset
     await engine.run(start_block_id="accum", start_pin_name="Reset")
     assert engine.blocks["accum"]._list == []
+
+
+@pytest.mark.asyncio
+async def test_progress_bar_block():
+    blueprint = {
+        "blocks": [
+            {"id": "pbar", "type": "outputs/basic/progress_bar", "properties": {"Progress": 42.5, "Label": "Test Sweep"}},
+            {"id": "print", "type": "outputs/basic/print", "properties": {}}
+        ],
+        "links": [
+            {"id": "l1", "type": "exec", "source_block": "pbar", "source_pin": "Out", "target_block": "print", "target_pin": "In"},
+            {"id": "l2", "type": "data", "source_block": "pbar", "source_pin": "Value", "target_block": "print", "target_pin": "Value"}
+        ]
+    }
+
+    engine = ExecutionEngine()
+    engine.load_blueprint(blueprint)
+
+    await engine.run(start_block_id="pbar", start_pin_name="In")
+
+    assert engine.blocks["pbar"]._value == 42.5
+    assert engine.blocks["print"].last_printed == 42.5
+
+
+@pytest.mark.asyncio
+async def test_etr_display_block():
+    blueprint = {
+        "blocks": [
+            {"id": "etr", "type": "outputs/basic/etr_display", "properties": {"Seconds": 3725.0, "Label": "T-"}},
+            {"id": "print", "type": "outputs/basic/print", "properties": {}}
+        ],
+        "links": [
+            {"id": "l1", "type": "exec", "source_block": "etr", "source_pin": "Out", "target_block": "print", "target_pin": "In"},
+            {"id": "l2", "type": "data", "source_block": "etr", "source_pin": "Formatted", "target_block": "print", "target_pin": "Value"}
+        ]
+    }
+
+    engine = ExecutionEngine()
+    engine.load_blueprint(blueprint)
+
+    await engine.run(start_block_id="etr", start_pin_name="In")
+
+    # 3725 seconds = 01:02:05
+    assert engine.blocks["etr"]._formatted == "01:02:05"
+    assert engine.blocks["print"].last_printed == "01:02:05"
+
+
+@pytest.mark.asyncio
+async def test_countdown_wait_block():
+    blueprint = {
+        "blocks": [
+            {"id": "wait", "type": "control_flow/timing/countdown_wait", "properties": {"Duration": 0.15}},
+            {"id": "print", "type": "outputs/basic/print", "properties": {}}
+        ],
+        "links": [
+            {"id": "l1", "type": "exec", "source_block": "wait", "source_pin": "Out", "target_block": "print", "target_pin": "In"},
+            {"id": "l2", "type": "data", "source_block": "wait", "source_pin": "Percentage", "target_block": "print", "target_pin": "Value"}
+        ]
+    }
+
+    engine = ExecutionEngine()
+    engine.load_blueprint(blueprint)
+
+    await engine.run(start_block_id="wait", start_pin_name="In")
+
+    assert engine.blocks["wait"]._percentage == 100.0
+    assert engine.blocks["wait"]._remaining == 0.0
+    assert engine.blocks["print"].last_printed == 100.0
+
+
+@pytest.mark.asyncio
+async def test_countdown_wait_skip():
+    blueprint = {
+        "blocks": [
+            {"id": "wait", "type": "control_flow/timing/countdown_wait", "properties": {"Duration": 10.0, "skip": True}},
+            {"id": "print", "type": "outputs/basic/print", "properties": {}}
+        ],
+        "links": [
+            {"id": "l1", "type": "exec", "source_block": "wait", "source_pin": "Out", "target_block": "print", "target_pin": "In"}
+        ]
+    }
+
+    engine = ExecutionEngine()
+    engine.load_blueprint(blueprint)
+
+    # With skip property set, it should advance immediately rather than waiting 10s
+    await engine.run(start_block_id="wait", start_pin_name="In")
+
+    assert engine.blocks["wait"]._skipped is True
+    assert engine.blocks["wait"]._remaining == 0.0
 
 
 

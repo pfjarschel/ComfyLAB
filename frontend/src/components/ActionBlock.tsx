@@ -35,6 +35,9 @@ import { DisplayScreenWidget } from './widgets/DisplayScreenWidget';
 import { ImageDisplayWidget } from './widgets/ImageDisplayWidget';
 import { ArrayDisplayWidget } from './widgets/ArrayDisplayWidget';
 import { TableViewWidget } from './widgets/TableViewWidget';
+import { ProgressBarWidget } from './widgets/ProgressBarWidget';
+import { CountdownWaitWidget } from './widgets/CountdownWaitWidget';
+import { ETRDisplayWidget } from './widgets/ETRDisplayWidget';
 import BeepWidget from './widgets/BeepWidget';
 
 // Re-export pin color resolver for compatibility with App.tsx and BlockInspectorPanel.tsx
@@ -379,6 +382,12 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
       bodyHeight += 164;
     } else if (registryLayout?.ui_behavior?.custom_widget === 'calculator') {
       bodyHeight += 130;
+    } else if (registryLayout?.ui_behavior?.custom_widget === 'progress_bar') {
+      bodyHeight += 64;
+    } else if (registryLayout?.ui_behavior?.custom_widget === 'countdown_wait') {
+      bodyHeight += 74;
+    } else if (registryLayout?.ui_behavior?.custom_widget === 'etr_display') {
+      bodyHeight += 84;
     }
 
     // Dynamic inputs (checks both showOptional and connected optional pins)
@@ -418,6 +427,9 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
       registryLayout?.ui_behavior?.custom_widget === 'image_display' ||
       registryLayout?.ui_behavior?.custom_widget === 'array_display' ||
       registryLayout?.ui_behavior?.custom_widget === 'table_view' ||
+      registryLayout?.ui_behavior?.custom_widget === 'progress_bar' ||
+      registryLayout?.ui_behavior?.custom_widget === 'countdown_wait' ||
+      registryLayout?.ui_behavior?.custom_widget === 'etr_display' ||
       registryLayout?.ui_behavior?.custom_widget === 'calculator'
     )) {
       const visiblePins = (layout.dataIns || []).filter((pin: any) => !pin.optional || showOptional || edges.some(e => e.target === id && e.targetHandle === pin.name));
@@ -526,13 +538,15 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
         const msgEl = document.getElementById(`block-msg-${id}`);
         if (msgEl) {
           if (status === 'running') {
-            msgEl.innerText = '⏳ Running...';
+            msgEl.innerText = resultMessage
+              ? (resultMessage.startsWith('⏳') ? resultMessage : `⏳ ${resultMessage}`)
+              : '⏳ Running...';
           } else if (status === 'stopped') {
             msgEl.innerText = '⏹️ Stopped';
           } else if (resultMessage !== undefined) {
             msgEl.innerText = resultMessage || 'Idle';
-          } else if (status === 'success' && msgEl.innerText === '⏳ Running...') {
-            msgEl.innerText = 'Idle';
+          } else if (status === 'success' && (msgEl.innerText === '⏳ Running...' || msgEl.innerText.startsWith('⏳ '))) {
+            msgEl.innerText = resultMessage || 'Idle';
           }
         }
       }
@@ -1577,6 +1591,30 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
           />
         )}
 
+        {registryLayout?.ui_behavior?.custom_widget === 'progress_bar' && (
+          <ProgressBarWidget
+            blockId={id}
+            initialPercentage={data.results?.percentage ?? 0}
+            initialLabel={data.Label || data.results?.label || ''}
+          />
+        )}
+
+        {registryLayout?.ui_behavior?.custom_widget === 'countdown_wait' && (
+          <CountdownWaitWidget
+            blockId={id}
+            initialDuration={data.Duration ?? 10}
+            onBlockDataChange={data.onChange}
+          />
+        )}
+
+        {registryLayout?.ui_behavior?.custom_widget === 'etr_display' && (
+          <ETRDisplayWidget
+            blockId={id}
+            initialFormatted={data.results?.formatted || '00:00:00'}
+            initialLabel={data.Label || data.results?.label || 'T-'}
+          />
+        )}
+
         {/* Render dynamic input parameter widgets dynamically based on Registry schema definitions */}
         {registryLayout?.ui_behavior?.custom_widget === 'beep_widget' && (
           <BeepWidget blockId={id} />
@@ -1774,6 +1812,9 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
           'box_plot',
           'plot_3d',
           'waterfall_plot',
+          'progress_bar',
+          'countdown_wait',
+          'etr_display',
           'calculator'
         ].includes(registryLayout?.ui_behavior?.custom_widget as string) && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -1945,7 +1986,11 @@ export const ActionBlock = ({ id, data, selected }: NodeProps<any>) => {
       {/* --- STATUS BAR --- */}
       <div ref={statusBarRef} id={`block-status-${id}`} className={`block-status nodrag ${data.status || 'idle'}`}>
         <span id={`block-msg-${id}`}>
-          {data.status === 'running' ? '⏳ Running...' : data.status === 'stopped' ? '⏹️ Stopped' : (data.resultMessage || 'Idle')}
+          {data.status === 'running'
+            ? (data.resultMessage ? (data.resultMessage.startsWith('⏳') ? data.resultMessage : `⏳ ${data.resultMessage}`) : '⏳ Running...')
+            : data.status === 'stopped'
+            ? '⏹️ Stopped'
+            : (data.resultMessage || 'Idle')}
         </span>
       </div>
     </div>

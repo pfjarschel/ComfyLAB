@@ -31,6 +31,9 @@ import { WaterfallPlotWidget } from './WaterfallPlotWidget';
 import { TableViewWidget } from './TableViewWidget';
 import { ImageDisplayWidget } from './ImageDisplayWidget';
 import { ArrayDisplayWidget } from './ArrayDisplayWidget';
+import { ProgressBarWidget } from './ProgressBarWidget';
+import { CountdownWaitWidget } from './CountdownWaitWidget';
+import { ETRDisplayWidget } from './ETRDisplayWidget';
 
 export interface DashboardItem {
   id: string;
@@ -532,6 +535,30 @@ export const DashboardMonitorCard: React.FC<DashboardMonitorCardProps> = ({
 
         {customWidget === 'array_display' && (
           <ArrayDisplayWidget blockId={block.id} />
+        )}
+
+        {customWidget === 'progress_bar' && (
+          <ProgressBarWidget
+            blockId={block.id}
+            initialPercentage={data.results?.percentage ?? 0}
+            initialLabel={data.Label || data.results?.label || ''}
+          />
+        )}
+
+        {customWidget === 'countdown_wait' && (
+          <CountdownWaitWidget
+            blockId={block.id}
+            initialDuration={data.Duration ?? 10}
+            onBlockDataChange={onBlockDataChange}
+          />
+        )}
+
+        {customWidget === 'etr_display' && (
+          <ETRDisplayWidget
+            blockId={block.id}
+            initialFormatted={data.results?.formatted || '00:00:00'}
+            initialLabel={data.Label || data.results?.label || 'T-'}
+          />
         )}
 
         {!customWidget && (

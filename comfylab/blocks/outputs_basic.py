@@ -14,7 +14,7 @@ import logging
 import numpy as np
 from typing import Any, Optional, Dict
 from comfylab.engine.registry import register_block
-from comfylab.blocks.base import BaseBlock, ExecIn, ExecOut, DataIn, ExecutionContext
+from comfylab.blocks.base import BaseBlock, ExecIn, ExecOut, DataIn, DataOut, ExecutionContext
 
 logger = logging.getLogger("comfylab.blocks.outputs_basic")
 
@@ -427,3 +427,174 @@ class LEDBlock(BaseBlock):
             await context.send_telemetry(self.id, {"state": state})
             return "Out"
         return None
+
+
+@register_block("outputs/basic/progress_bar")
+class ProgressBarBlock(BaseBlock):
+    """Displays a clean visual progress bar with percentage and custom label."""
+    icon = "📊"
+    display_name = "Progress Bar"
+    description = "Displays a clean visual progress bar with percentage and custom label."
+    ui_behavior = {"custom_widget": "progress_bar"}
+
+    inputs_def = [
+        ExecIn("In"),
+        DataIn("Progress", type_hint=float, default=0.0, min_val=0.0, max_val=100.0, widget="number"),
+        DataIn("Label", type_hint=str, default="", widget="text", optional=True)
+    ]
+    outputs_def = [
+        ExecOut("Out"),
+        DataOut("Value", type_hint=float)
+    ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Barra de Progresso",
+            "description": "Exibe uma barra de progresso visual com porcentagem e rótulo personalizado.",
+            "category": "Saídas",
+            "pins": {
+                "In": "Entrada",
+                "Progress": "Progresso",
+                "Label": "Rótulo",
+                "Out": "Saída",
+                "Value": "Valor"
+            }
+        },
+        "es": {
+            "display_name": "Barra de Progreso",
+            "description": "Muestra una barra de progreso visual con porcentaje y etiqueta personalizada.",
+            "category": "Salidas",
+            "pins": {
+                "In": "Entrada",
+                "Progress": "Progreso",
+                "Label": "Etiqueta",
+                "Out": "Salida",
+                "Value": "Valor"
+            }
+        }
+    }
+
+    def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
+        super().__init__(block_id, properties)
+        self._value = 0.0
+
+    async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
+        raw_progress = await context.pull(self.id, "Progress")
+        raw_label = await context.pull(self.id, "Label")
+
+        try:
+            val = float(raw_progress) if raw_progress is not None else 0.0
+        except (ValueError, TypeError):
+            val = 0.0
+
+        pct = max(0.0, min(100.0, val))
+        self._value = pct
+        label = str(raw_label) if raw_label is not None else ""
+
+        msg = f"{pct:.1f}%" if pct < 100.0 else "100% (Completed)"
+        telemetry_data: Dict[str, Any] = {
+            "percentage": pct,
+            "displayValue": f"{pct:.1f}%",
+            "label": label,
+            "resultMessage": msg
+        }
+
+        await context.send_telemetry(self.id, telemetry_data)
+        return "Out"
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Value":
+            return self._value
+        return None
+
+    async def clear_data(self) -> None:
+        self._value = 0.0
+
+
+@register_block("outputs/basic/etr_display")
+class ETRDisplayBlock(BaseBlock):
+    """Mission Control style digital clock display showing estimated time remaining (T- 00:00:00)."""
+    icon = "⏲️"
+    display_name = "ETR Clock"
+    description = "Displays a mission-control style digital countdown clock showing estimated time remaining."
+    ui_behavior = {"custom_widget": "etr_display"}
+
+    inputs_def = [
+        ExecIn("In"),
+        DataIn("Seconds", type_hint=float, default=0.0, min_val=0.0, widget="number"),
+        DataIn("Label", type_hint=str, default="T-", widget="text", optional=True)
+    ]
+    outputs_def = [
+        ExecOut("Out"),
+        DataOut("Formatted", type_hint=str)
+    ]
+
+    i18n = {
+        "pt-BR": {
+            "display_name": "Relógio ETR",
+            "description": "Exibe um relógio digital em estilo sala de controle mostrando o tempo estimado restante.",
+            "category": "Saídas",
+            "pins": {
+                "In": "Entrada",
+                "Seconds": "Segundos",
+                "Label": "Rótulo",
+                "Out": "Saída",
+                "Formatted": "Formatado"
+            }
+        },
+        "es": {
+            "display_name": "Reloj ETR",
+            "description": "Muestra un reloj digital de estilo sala de control que muestra el tiempo estimado restante.",
+            "category": "Salidas",
+            "pins": {
+                "In": "Entrada",
+                "Seconds": "Segundos",
+                "Label": "Etiqueta",
+                "Out": "Salida",
+                "Formatted": "Formateado"
+            }
+        }
+    }
+
+    def __init__(self, block_id: str, properties: Optional[Dict[str, Any]] = None):
+        super().__init__(block_id, properties)
+        self._formatted = "00:00:00"
+
+    async def execute(self, context: ExecutionContext, trigger_pin: str) -> Optional[str]:
+        raw_seconds = await context.pull(self.id, "Seconds")
+        raw_label = await context.pull(self.id, "Label")
+
+        try:
+            sec = max(0.0, float(raw_seconds)) if raw_seconds is not None else 0.0
+        except (ValueError, TypeError):
+            sec = 0.0
+
+        label = str(raw_label) if raw_label is not None else "T-"
+
+        total_sec = int(sec)
+        h = total_sec // 3600
+        m = (total_sec % 3600) // 60
+        s = total_sec % 60
+        tenth = int((sec - total_sec) * 10)
+
+        formatted = f"{h:02d}:{m:02d}:{s:02d}"
+        formatted_tenth = f"{h:02d}:{m:02d}:{s:02d}.{tenth}"
+        self._formatted = formatted
+
+        telemetry_data = {
+            "seconds": sec,
+            "formatted": formatted,
+            "formatted_tenth": formatted_tenth,
+            "label": label,
+            "resultMessage": f"{label} {formatted}"
+        }
+        await context.send_telemetry(self.id, telemetry_data)
+        return "Out"
+
+    async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
+        if pin_name == "Formatted":
+            return self._formatted
+        return None
+
+    async def clear_data(self) -> None:
+        self._formatted = "00:00:00"
