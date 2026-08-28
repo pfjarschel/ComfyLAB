@@ -745,11 +745,10 @@ async def test_countdown_wait_block():
     blueprint = {
         "blocks": [
             {"id": "wait", "type": "control_flow/timing/countdown_wait", "properties": {"Duration": 0.15}},
-            {"id": "print", "type": "outputs/basic/print", "properties": {}}
+            {"id": "print", "type": "outputs/basic/print", "properties": {"Value": 99.0}}
         ],
         "links": [
-            {"id": "l1", "type": "exec", "source_block": "wait", "source_pin": "Out", "target_block": "print", "target_pin": "In"},
-            {"id": "l2", "type": "data", "source_block": "wait", "source_pin": "Percentage", "target_block": "print", "target_pin": "Value"}
+            {"id": "l1", "type": "exec", "source_block": "wait", "source_pin": "Out", "target_block": "print", "target_pin": "In"}
         ]
     }
 
@@ -760,7 +759,7 @@ async def test_countdown_wait_block():
 
     assert engine.blocks["wait"]._percentage == 100.0
     assert engine.blocks["wait"]._remaining == 0.0
-    assert engine.blocks["print"].last_printed == 100.0
+    assert engine.blocks["print"].last_printed == 99.0
 
 
 @pytest.mark.asyncio

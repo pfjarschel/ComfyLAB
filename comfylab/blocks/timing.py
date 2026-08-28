@@ -282,10 +282,7 @@ class CountdownWaitBlock(BaseBlock):
         ExecIn("Skip")
     ]
     outputs_def = [
-        ExecOut("Out"),
-        DataOut("Remaining", type_hint=float),
-        DataOut("Elapsed", type_hint=float),
-        DataOut("Percentage", type_hint=float)
+        ExecOut("Out")
     ]
 
     i18n = {
@@ -297,10 +294,7 @@ class CountdownWaitBlock(BaseBlock):
                 "In": "Entrada",
                 "Duration": "Duração",
                 "Skip": "Pular",
-                "Out": "Saída",
-                "Remaining": "Restante",
-                "Elapsed": "Decorrido",
-                "Percentage": "Porcentagem"
+                "Out": "Saída"
             }
         },
         "es": {
@@ -311,10 +305,7 @@ class CountdownWaitBlock(BaseBlock):
                 "In": "Entrada",
                 "Duration": "Duración",
                 "Skip": "Saltar",
-                "Out": "Salida",
-                "Remaining": "Restante",
-                "Elapsed": "Transcurrido",
-                "Percentage": "Porcentaje"
+                "Out": "Salida"
             }
         }
     }
@@ -403,12 +394,6 @@ class CountdownWaitBlock(BaseBlock):
         return "Out"
 
     async def pull_data(self, context: ExecutionContext, pin_name: str) -> Any:
-        if pin_name == "Remaining":
-            return self._remaining
-        elif pin_name == "Elapsed":
-            return self._elapsed
-        elif pin_name == "Percentage":
-            return self._percentage
         return None
 
     async def clear_data(self) -> None:
