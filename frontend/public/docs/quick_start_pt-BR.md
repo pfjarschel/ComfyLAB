@@ -232,7 +232,7 @@ As conexões entre blocos no ComfyLAB são estritamente divididas em duas catego
 
 ## 6. Tutoriais Práticos de Iniciação
 
-Utilize estes exercícios passo a passo rápidos para se familiarizar com o ComfyLAB antes ou durante a sua sessão de tutorial.
+Utilize estes exercícios passo a passo rápidos para se familiarizar com o ComfyLAB.
 
 <div style="page-break-before: always; break-before: page;"></div>
 
@@ -446,20 +446,5 @@ Utilize estes exercícios passo a passo rápidos para se familiarizar com o Comf
 | **Copiar / Colar** | `Ctrl + C` / `Ctrl + V` | Copiar e colar blocos selecionados. |
 | **Excluir Bloco / Fio** | `Delete` ou `Backspace` | Remover blocos ou fios selecionados do canvas. |
 | **Navegação Sub-canvas** | `Duplo Clique no Cluster` | Entrar no sub-canvas de um Bloco de Cluster. |
-
-<div style="page-break-before: always; break-before: page;"></div>
-
----
-
-## 8. Lista de Verificação para a Sessão de Tutorial
-
-Antes de iniciar sua sessão de tutorial no laboratório, verifique se:
-* [ ] O ComfyLAB está instalado e inicializa com sucesso (`http://localhost:8000`).
-* [ ] A pasta do workspace ativo está inicializada.
-* [ ] Os back-ends NI-VISA / PyVISA são detectados caso testes com hardware físico estejam planejados.
-* [ ] Os Instrumentos Virtuais funcionam offline sem necessidade de hardware físico (`Bode_Diagram_Virtual.json`).
-* [ ] O Painel de Dashboard (`D`) foi testado para exibição de gráficos e controles em tempo real.
-* [ ] Os blueprints de exemplo em `src/comfylab/examples` estão acessíveis para demonstração.
-
 ---
 *O ComfyLAB é disponibilizado sob a licença GNU General Public License v3.0 (GPLv3). Desenvolvido por Paulo Felipe Jarschel, GATE/EIT, IFGW, Unicamp.*
