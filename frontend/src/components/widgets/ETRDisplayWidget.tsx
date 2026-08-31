@@ -13,6 +13,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '../../i18n';
 import { useReactFlow } from '@xyflow/react';
 
 interface ETRDisplayWidgetProps {
@@ -26,6 +27,7 @@ export const ETRDisplayWidget: React.FC<ETRDisplayWidgetProps> = ({
   initialFormatted = '00:00:00',
   initialLabel = 'T-',
 }) => {
+  const { t } = useTranslation();
   const { getNode } = useReactFlow();
   const [formatted, setFormatted] = useState<string>(initialFormatted);
   const [label, setLabel] = useState<string>(initialLabel);
@@ -120,7 +122,7 @@ export const ETRDisplayWidget: React.FC<ETRDisplayWidgetProps> = ({
               textTransform: 'uppercase',
             }}
           >
-            {label || 'T- MINUS'}
+            {label || t('dashboard.tMinus', 'T- MINUS')}
           </span>
         </div>
 
@@ -132,7 +134,7 @@ export const ETRDisplayWidget: React.FC<ETRDisplayWidgetProps> = ({
             color: '#64748b',
           }}
         >
-          ETR CLOCK
+          {t('dashboard.etrClock', 'ETR CLOCK')}
         </span>
       </div>
 

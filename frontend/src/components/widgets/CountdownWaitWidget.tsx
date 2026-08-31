@@ -13,6 +13,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '../../i18n';
 import { useReactFlow } from '@xyflow/react';
 
 interface CountdownWaitWidgetProps {
@@ -26,6 +27,7 @@ export const CountdownWaitWidget: React.FC<CountdownWaitWidgetProps> = ({
   initialDuration = 10,
   onBlockDataChange,
 }) => {
+  const { t } = useTranslation();
   const { getNode, setNodes } = useReactFlow();
   const [duration, setDuration] = useState<number>(initialDuration);
   const [remaining, setRemaining] = useState<number>(initialDuration);
@@ -100,7 +102,7 @@ export const CountdownWaitWidget: React.FC<CountdownWaitWidgetProps> = ({
   return (
     <div
       className="countdown-wait-widget nodrag"
-      title={`Duration: ${duration}s | Remaining: ${remaining.toFixed(1)}s`}
+      title={`${t('dashboard.duration', 'Duration')}: ${duration}s | ${t('dashboard.remaining', 'Remaining')}: ${remaining.toFixed(1)}s`}
       style={{
         width: '100%',
         padding: '10px',
@@ -144,7 +146,7 @@ export const CountdownWaitWidget: React.FC<CountdownWaitWidgetProps> = ({
         {isRunning && (
           <button
             onClick={handleSkip}
-            title="Skip remaining delay immediately"
+            title={t('dashboard.skipDelayTitle', 'Skip remaining delay immediately')}
             style={{
               background: 'rgba(239, 68, 68, 0.15)',
               border: '1px solid rgba(239, 68, 68, 0.35)',
@@ -167,7 +169,7 @@ export const CountdownWaitWidget: React.FC<CountdownWaitWidgetProps> = ({
               (e.currentTarget as HTMLElement).style.background = 'rgba(239, 68, 68, 0.15)';
             }}
           >
-            Skip
+            {t('dashboard.skip', 'Skip')}
           </button>
         )}
       </div>

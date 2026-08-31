@@ -13,6 +13,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from '../../i18n';
 import { FormattedDisplay } from '../common/FormattedDisplay';
 import { useReactFlow } from '@xyflow/react';
 
@@ -22,6 +23,7 @@ interface DisplayScreenWidgetProps {
 }
 
 export const DisplayScreenWidget = ({ blockId, initialValue }: DisplayScreenWidgetProps) => {
+  const { t } = useTranslation();
   const [displayValue, setDisplayValue] = useState<any>(initialValue);
   const [copied, setCopied] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -91,7 +93,7 @@ export const DisplayScreenWidget = ({ blockId, initialValue }: DisplayScreenWidg
       {hasValue && (
         <button
           onClick={handleCopy}
-          title={copied ? "Copied!" : "Copy raw value"}
+          title={copied ? t('common.copied', 'Copied!') : t('dashboard.copyRawValue', 'Copy raw value')}
           style={{
             position: 'absolute',
             top: '4px',
@@ -115,7 +117,7 @@ export const DisplayScreenWidget = ({ blockId, initialValue }: DisplayScreenWidg
           onMouseDown={(e) => e.stopPropagation()}
         >
           <span>{copied ? '✓' : '📋'}</span>
-          {copied && <span style={{ fontSize: '0.6rem', fontWeight: 600 }}>Copied</span>}
+          {copied && <span style={{ fontSize: '0.6rem', fontWeight: 600 }}>{t('common.copied', 'Copied')}</span>}
         </button>
       )}
 

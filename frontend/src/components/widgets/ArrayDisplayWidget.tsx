@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '../../i18n';
 import { ResizablePlotContainer } from '../common/ResizablePlotContainer';
 
 interface ArrayDisplayWidgetProps {
@@ -6,6 +7,7 @@ interface ArrayDisplayWidgetProps {
 }
 
 export const ArrayDisplayWidget: React.FC<ArrayDisplayWidgetProps> = ({ blockId }) => {
+  const { t } = useTranslation();
   const [imageData, setImageData] = useState<string | null>(null);
 
   useEffect(() => {
@@ -41,7 +43,7 @@ export const ArrayDisplayWidget: React.FC<ArrayDisplayWidgetProps> = ({ blockId 
             color: 'var(--text-muted)',
             fontSize: '0.85rem'
           }}>
-            No Array Data
+            {t('dashboard.noArrayData', 'No Array Data')}
           </div>
         )}
       </ResizablePlotContainer>

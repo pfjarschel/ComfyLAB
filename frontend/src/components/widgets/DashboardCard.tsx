@@ -13,6 +13,7 @@
  */
 
 import React from 'react';
+import { useTranslation } from '../../i18n';
 import { getBlockTitle, getPinLabel } from '../../utils/blockI18n';
 import { NumericTextInput } from '../common/NumericTextInput';
 
@@ -81,13 +82,15 @@ export const DashboardControlCard: React.FC<DashboardControlCardProps> = ({
   onMoveDown,
   onBlockDataChange,
 }) => {
+  const { t, currentLanguage } = useTranslation();
   if (!block) return null;
 
   const data = block.data || {};
-  const blockTitle = data.customName || (layout ? getBlockTitle(layout) : data.action || 'Block');
+  const blockTitle = data.customName || (layout ? getBlockTitle(layout, currentLanguage) : data.action || 'Block');
   const icon = layout?.icon || '⚙️';
   const status = data.status || 'idle';
   const statusColor = status === 'running' ? '#38bdf8' : status === 'success' ? '#10b981' : status === 'error' ? '#ef4444' : '#64748b';
+  const statusLabel = status === 'running' ? t('dashboard.statusRunning', 'Running') : status === 'success' ? t('dashboard.statusSuccess', 'Success') : status === 'error' ? t('dashboard.statusError', 'Error') : t('dashboard.statusIdle', 'Idle');
 
   return (
     <div className="dashboard-card nodrag">
@@ -103,7 +106,7 @@ export const DashboardControlCard: React.FC<DashboardControlCardProps> = ({
               boxShadow: status === 'running' ? `0 0 6px ${statusColor}` : 'none',
               flexShrink: 0,
             }}
-            title={`Status: ${status}`}
+            title={`${t('dashboard.status', 'Status')}: ${statusLabel}`}
           />
           <span className="dashboard-card-title">{blockTitle}</span>
           {group.pins.length > 1 && (
@@ -114,19 +117,19 @@ export const DashboardControlCard: React.FC<DashboardControlCardProps> = ({
         </div>
         <div className="dashboard-card-actions">
           {onMoveUp && (
-            <button className="dashboard-icon-btn" onClick={onMoveUp} title="Move up">
+            <button className="dashboard-icon-btn" onClick={onMoveUp} title={t('dashboard.moveUp', 'Move up')}>
               ▲
             </button>
           )}
           {onMoveDown && (
-            <button className="dashboard-icon-btn" onClick={onMoveDown} title="Move down">
+            <button className="dashboard-icon-btn" onClick={onMoveDown} title={t('dashboard.moveDown', 'Move down')}>
               ▼
             </button>
           )}
-          <button className="dashboard-icon-btn" onClick={() => onJumpToBlock(block.id)} title="Locate on Canvas">
+          <button className="dashboard-icon-btn" onClick={() => onJumpToBlock(block.id)} title={t('dashboard.locateOnCanvas', 'Locate on Canvas')}>
             🎯
           </button>
-          <button className="dashboard-icon-btn" onClick={() => onRemoveBlock(block.id)} title="Remove from Dashboard">
+          <button className="dashboard-icon-btn" onClick={() => onRemoveBlock(block.id)} title={t('dashboard.removeFromDashboard', 'Remove from Dashboard')}>
             ✕
           </button>
         </div>
@@ -139,7 +142,7 @@ export const DashboardControlCard: React.FC<DashboardControlCardProps> = ({
             {layout?.ui_behavior?.custom_widget === 'constant_boolean' ? (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 4px' }}>
                 <span style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-color)' }}>
-                  State: {data.value ? 'ON' : 'OFF'}
+                  {t('dashboard.state', 'State')}: {data.value ? t('dashboard.on', 'ON') : t('dashboard.off', 'OFF')}
                 </span>
                 <div
                   className={`toggle-switch ${data.value ? 'active' : ''}`}
@@ -207,7 +210,7 @@ export const DashboardControlCard: React.FC<DashboardControlCardProps> = ({
           <div className="dashboard-controls-list">
             {group.pins.map(({ itemId, pinName }) => {
               const pinSchema = layout?.dataIns?.find((p: any) => p.name === pinName);
-              const pinLabel = layout ? getPinLabel(layout, pinName) : (pinSchema?.label || pinName);
+              const pinLabel = layout ? getPinLabel(layout, pinName, currentLanguage) : (pinSchema?.label || pinName);
               const pinType = pinSchema?.type || 'any';
               const pinWidget = pinSchema?.widget || (pinType === 'boolean' ? 'checkbox' : pinType === 'number' ? 'number' : 'text');
               let pinVal = data[pinName];
@@ -224,7 +227,7 @@ export const DashboardControlCard: React.FC<DashboardControlCardProps> = ({
                     <button
                       className="dashboard-pin-remove-btn"
                       onClick={() => onRemovePin(itemId)}
-                      title={`Remove ${pinLabel} from Dashboard`}
+                      title={t('dashboard.removePinItem', 'Remove {{pin}} from Dashboard', { pin: pinLabel })}
                     >
                       ✕
                     </button>
@@ -234,7 +237,7 @@ export const DashboardControlCard: React.FC<DashboardControlCardProps> = ({
                     {pinWidget === 'checkbox' || pinType === 'boolean' ? (
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '2px 0' }}>
                         <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-color)' }}>
-                          {pinVal ? 'ON' : 'OFF'}
+                          {pinVal ? t('dashboard.on', 'ON') : t('dashboard.off', 'OFF')}
                         </span>
                         <div
                           className={`toggle-switch ${pinVal ? 'active' : ''}`}
@@ -268,7 +271,7 @@ export const DashboardControlCard: React.FC<DashboardControlCardProps> = ({
                     ) : pinWidget === 'slider' ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--text-color)' }}>
-                          <span style={{ color: 'var(--text-muted)' }}>Value:</span>
+                          <span style={{ color: 'var(--text-muted)' }}>{t('dashboard.value', 'Value')}:</span>
                           <span style={{ fontWeight: 600 }}>{pinVal}</span>
                         </div>
                         <input
@@ -351,13 +354,15 @@ export const DashboardMonitorCard: React.FC<DashboardMonitorCardProps> = ({
   onMoveDown,
   onBlockDataChange,
 }) => {
+  const { t, currentLanguage } = useTranslation();
   if (!block) return null;
 
   const data = block.data || {};
-  const blockTitle = data.customName || (layout ? getBlockTitle(layout) : data.action || 'Block');
+  const blockTitle = data.customName || (layout ? getBlockTitle(layout, currentLanguage) : data.action || 'Block');
   const icon = layout?.icon || '⚙️';
   const status = data.status || 'idle';
   const statusColor = status === 'running' ? '#38bdf8' : status === 'success' ? '#10b981' : status === 'error' ? '#ef4444' : '#64748b';
+  const statusLabel = status === 'running' ? t('dashboard.statusRunning', 'Running') : status === 'success' ? t('dashboard.statusSuccess', 'Success') : status === 'error' ? t('dashboard.statusError', 'Error') : t('dashboard.statusIdle', 'Idle');
 
   const customWidget = layout?.ui_behavior?.custom_widget;
 
@@ -379,25 +384,25 @@ export const DashboardMonitorCard: React.FC<DashboardMonitorCardProps> = ({
               boxShadow: status === 'running' ? `0 0 6px ${statusColor}` : 'none',
               flexShrink: 0,
             }}
-            title={`Status: ${status}`}
+            title={`${t('dashboard.status', 'Status')}: ${statusLabel}`}
           />
           <span className="dashboard-card-title">{blockTitle}</span>
         </div>
         <div className="dashboard-card-actions">
           {onMoveUp && (
-            <button className="dashboard-icon-btn" onClick={onMoveUp} title="Move up">
+            <button className="dashboard-icon-btn" onClick={onMoveUp} title={t('dashboard.moveUp', 'Move up')}>
               ▲
             </button>
           )}
           {onMoveDown && (
-            <button className="dashboard-icon-btn" onClick={onMoveDown} title="Move down">
+            <button className="dashboard-icon-btn" onClick={onMoveDown} title={t('dashboard.moveDown', 'Move down')}>
               ▼
             </button>
           )}
-          <button className="dashboard-icon-btn" onClick={() => onJumpToBlock(block.id)} title="Locate on Canvas">
+          <button className="dashboard-icon-btn" onClick={() => onJumpToBlock(block.id)} title={t('dashboard.locateOnCanvas', 'Locate on Canvas')}>
             🎯
           </button>
-          <button className="dashboard-icon-btn" onClick={() => onRemove(item.id)} title="Remove from Dashboard">
+          <button className="dashboard-icon-btn" onClick={() => onRemove(item.id)} title={t('dashboard.removeFromDashboard', 'Remove from Dashboard')}>
             ✕
           </button>
         </div>

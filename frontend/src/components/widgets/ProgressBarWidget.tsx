@@ -13,6 +13,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '../../i18n';
 import { useReactFlow } from '@xyflow/react';
 
 interface ProgressBarWidgetProps {
@@ -26,6 +27,7 @@ export const ProgressBarWidget: React.FC<ProgressBarWidgetProps> = ({
   initialPercentage = 0,
   initialLabel = '',
 }) => {
+  const { t } = useTranslation();
   const { getNode } = useReactFlow();
   const [percentage, setPercentage] = useState<number>(initialPercentage);
   const [label, setLabel] = useState<string>(initialLabel);
@@ -98,9 +100,9 @@ export const ProgressBarWidget: React.FC<ProgressBarWidgetProps> = ({
             whiteSpace: 'nowrap',
             maxWidth: '65%',
           }}
-          title={label}
+          title={label || t('dashboard.progress', 'Progress')}
         >
-          {label || 'Progress'}
+          {label || t('dashboard.progress', 'Progress')}
         </span>
 
         <span

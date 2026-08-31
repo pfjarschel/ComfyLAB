@@ -184,7 +184,7 @@ export const DashboardPanel: React.FC<DashboardPanelProps> = ({
         <div
           className="sidebar-resize-handle left-edge"
           onMouseDown={onResizeHandleMouseDown}
-          title="Drag to resize dashboard"
+          title={t('dashboard.resizeHandle', 'Drag to resize dashboard')}
         />
       )}
 

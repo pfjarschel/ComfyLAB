@@ -13,6 +13,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '../../i18n';
 import { useReactFlow } from '@xyflow/react';
 import { ResizablePlotContainer } from '../common/ResizablePlotContainer';
 
@@ -29,6 +30,7 @@ interface TableTelemetryPayload {
 }
 
 export const TableViewWidget: React.FC<TableViewWidgetProps> = ({ blockId }) => {
+  const { t } = useTranslation();
   const [tableData, setTableData] = useState<TableTelemetryPayload | null>(null);
   const [copied, setCopied] = useState(false);
   const { getNode } = useReactFlow();
@@ -115,7 +117,7 @@ export const TableViewWidget: React.FC<TableViewWidgetProps> = ({ blockId }) => 
               userSelect: 'none'
             }}>
               <span style={{ fontSize: '1.4rem' }}>📋</span>
-              <span>No Table Data</span>
+              <span>{t('dashboard.noTableData', 'No Table Data')}</span>
             </div>
           );
         }
@@ -150,7 +152,7 @@ export const TableViewWidget: React.FC<TableViewWidgetProps> = ({ blockId }) => 
               gap: '6px'
             }}>
               <span>
-                {totalRows} {totalRows === 1 ? 'row' : 'rows'} × {totalCols} {totalCols === 1 ? 'col' : 'cols'}
+                {totalRows} {totalRows === 1 ? t('dashboard.row', 'row') : t('dashboard.rows', 'rows')} × {totalCols} {totalCols === 1 ? t('dashboard.col', 'col') : t('dashboard.cols', 'cols')}
               </span>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -164,15 +166,15 @@ export const TableViewWidget: React.FC<TableViewWidgetProps> = ({ blockId }) => 
                       fontWeight: 600,
                       fontSize: '0.65rem'
                     }}
-                    title="Dataset exceeds max row/col view limits (1000 x 1000)"
+                    title={t('dashboard.maxLimitTooltip', 'Dataset exceeds max row/col view limits (1000 x 1000)')}
                   >
-                    ⚠️ Max 1000 limit
+                    ⚠️ {t('dashboard.max1000Limit', 'Max 1000 limit')}
                   </span>
                 )}
 
                 <button
                   onClick={handleCopyTSV}
-                  title={copied ? "Copied table as TSV to clipboard!" : "Copy table data as TSV (pasteable to Excel/Sheets)"}
+                  title={copied ? t('dashboard.copiedTSV', 'Copied table as TSV to clipboard!') : t('dashboard.copyTableTSV', 'Copy table data as TSV (pasteable to Excel/Sheets)')}
                   style={{
                     background: copied ? 'rgba(34, 197, 94, 0.25)' : 'rgba(255, 255, 255, 0.08)',
                     border: `1px solid ${copied ? 'rgba(34, 197, 94, 0.6)' : 'rgba(255, 255, 255, 0.15)'}`,
@@ -191,7 +193,7 @@ export const TableViewWidget: React.FC<TableViewWidgetProps> = ({ blockId }) => 
                   onMouseDown={(e) => e.stopPropagation()}
                 >
                   <span>{copied ? '✓' : '📋'}</span>
-                  <span>{copied ? 'Copied TSV' : 'Copy Table'}</span>
+                  <span>{copied ? t('dashboard.copiedTSVShort', 'Copied TSV') : t('dashboard.copyTable', 'Copy Table')}</span>
                 </button>
               </div>
             </div>

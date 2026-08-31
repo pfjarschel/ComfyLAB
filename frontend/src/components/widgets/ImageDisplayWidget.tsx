@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '../../i18n';
 
 interface ImageDisplayWidgetProps {
   blockId: string;
@@ -8,6 +9,7 @@ import { getBackendUrls } from '../../App';
 import { ResizablePlotContainer } from '../common/ResizablePlotContainer';
 
 export const ImageDisplayWidget: React.FC<ImageDisplayWidgetProps> = ({ blockId }) => {
+  const { t } = useTranslation();
   const [imagePath, setImagePath] = useState<string | null>(null);
   const BACKEND_URL = getBackendUrls().http;
 
@@ -33,7 +35,7 @@ export const ImageDisplayWidget: React.FC<ImageDisplayWidgetProps> = ({ blockId 
         minHeight="150px" 
         background="var(--panel-bg)" 
         padding="0px" 
-        borderRadius="4px"
+        borderRadius="4px" 
         border="1px dashed var(--block-border)"
       >
         {(width, height) => (
@@ -45,7 +47,7 @@ export const ImageDisplayWidget: React.FC<ImageDisplayWidgetProps> = ({ blockId 
             height: height ? `${height}px` : '100%',
             color: 'var(--text-muted)'
           }}>
-            No Image
+            {t('dashboard.noImage', 'No Image')}
           </div>
         )}
       </ResizablePlotContainer>
