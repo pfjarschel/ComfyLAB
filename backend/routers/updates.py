@@ -32,7 +32,7 @@ logger = logging.getLogger("backend.routers.updates")
 
 router = APIRouter(prefix="/updates")
 
-GITHUB_REPO = "pfjarschel/ComfyLAB"
+GITHUB_REPO = "gateeit/ComfyLAB"
 GITHUB_API_URL = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 CACHE_TTL_SECONDS = 6 * 3600  # 6 hours
 

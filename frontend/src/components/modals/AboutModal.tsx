@@ -199,7 +199,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ onClose, updateInfo: ini
         <div className="modal-body" style={{ padding: '24px 20px', lineHeight: '1.6', textAlign: 'center' }}>
           <h2 style={{ marginBottom: '8px', fontSize: '2rem', color: 'var(--text-color)' }}>
             <a 
-              href="https://github.com/pfjarschel/ComfyLAB" 
+              href="https://github.com/gateeit/ComfyLAB" 
               target="_blank" 
               rel="noopener noreferrer"
               style={{ color: 'inherit', textDecoration: 'none' }}
@@ -214,13 +214,13 @@ export const AboutModal: React.FC<AboutModalProps> = ({ onClose, updateInfo: ini
           <div style={{ marginBottom: '20px', fontSize: '0.85rem' }}>
             <span style={{ color: 'var(--text-muted)', marginRight: '6px' }}>{t('aboutModal.homepage', 'Project Homepage:')}</span>
             <a 
-              href="https://github.com/pfjarschel/ComfyLAB" 
+              href="https://github.com/gateeit/ComfyLAB" 
               target="_blank" 
               rel="noopener noreferrer"
               style={{ color: 'var(--accent-color, #a855f7)', textDecoration: 'none', fontWeight: 500 }}
               title={t('aboutModal.visitGithubRepo', 'Visit ComfyLAB repository on GitHub')}
             >
-              https://github.com/pfjarschel/ComfyLAB
+              https://github.com/gateeit/ComfyLAB
             </a>
           </div>
           
@@ -401,7 +401,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ onClose, updateInfo: ini
                       {t('aboutModal.standaloneUpdateHint', 'Pre-compiled executable detected. Download the latest release from GitHub.')}
                     </p>
                     <a
-                      href={updateInfo.release_url || 'https://github.com/pfjarschel/ComfyLAB/releases/latest'}
+                      href={updateInfo.release_url || 'https://github.com/gateeit/ComfyLAB/releases/latest'}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="button-primary"
@@ -428,7 +428,7 @@ export const AboutModal: React.FC<AboutModalProps> = ({ onClose, updateInfo: ini
                         git pull
                       </code>
                       <a
-                        href={updateInfo.release_url || 'https://github.com/pfjarschel/ComfyLAB/releases/latest'}
+                        href={updateInfo.release_url || 'https://github.com/gateeit/ComfyLAB/releases/latest'}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="button-secondary"

@@ -71,8 +71,8 @@ test = [
 comfylab = "comfylab.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/pfjarschel/ComfyLAB"
-Repository = "https://github.com/pfjarschel/ComfyLAB"
+Homepage = "https://github.com/gateeit/ComfyLAB"
+Repository = "https://github.com/gateeit/ComfyLAB"
 
 [tool.setuptools.dynamic]
 version = {file = "VERSION"}

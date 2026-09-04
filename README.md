@@ -1,11 +1,11 @@
 # ComfyLAB — Visual Lab Automation Environment
 
-[![Website](https://img.shields.io/badge/Website-pfjarschel.github.io%2FComfyLAB-7c3aed.svg)](https://pfjarschel.github.io/ComfyLAB/)
+[![Website](https://img.shields.io/badge/Website-gateeit.github.io%2FComfyLAB-7c3aed.svg)](https://gateeit.github.io/ComfyLAB/)
 [![PyPI version](https://img.shields.io/pypi/v/comfylab.svg)](https://pypi.org/project/comfylab/)
 [![Python versions](https://img.shields.io/pypi/pyversions/comfylab.svg)](https://pypi.org/project/comfylab/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 
-🌐 **Official Website & Interactive Showcase:** [https://pfjarschel.github.io/ComfyLAB/](https://pfjarschel.github.io/ComfyLAB/)
+🌐 **Official Website & Interactive Showcase:** [https://gateeit.github.io/ComfyLAB/](https://gateeit.github.io/ComfyLAB/)
 
 ComfyLAB (**Comf**ortable **L**ab **A**utomation **B**locks) is a visual, block-based software platform for automating scientific and test & measurement laboratory experiments. It allows researchers, students, and engineers to connect instruments, run analysis code, and view live plots using an intuitive drag-and-drop workspace.
 
