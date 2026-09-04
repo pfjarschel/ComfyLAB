@@ -450,7 +450,7 @@ export const TopBar = ({
         </button>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
           <h1 className="logo-title" style={{ margin: 0 }}>
-            <a href="https://github.com/gateeit/ComfyLAB" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} title="Visit ComfyLAB on GitHub">
+            <a href="https://github.com/gateeit-ifgw/ComfyLAB" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }} title="Visit ComfyLAB on GitHub">
               ComfyLAB
             </a> <span style={{ fontSize: '0.8em', opacity: 0.8 }}>v{updateInfo?.current_version || import.meta.env.VITE_APP_VERSION}</span>
           </h1>

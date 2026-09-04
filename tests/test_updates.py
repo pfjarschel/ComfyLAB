@@ -91,12 +91,12 @@ def test_check_updates_endpoint_newer_available(monkeypatch):
         "tag_name": "v0.5.0",
         "name": "ComfyLAB v0.5.0 Release",
         "body": "- New awesome features\n- Bug fixes",
-        "html_url": "https://github.com/gateeit/ComfyLAB/releases/tag/v0.5.0",
+        "html_url": "https://github.com/gateeit-ifgw/ComfyLAB/releases/tag/v0.5.0",
         "published_at": "2026-08-27T12:00:00Z",
         "assets": [
             {
                 "name": "comfylab-release-v0.5.0.zip",
-                "browser_download_url": "https://github.com/gateeit/ComfyLAB/releases/download/v0.5.0/comfylab-release-v0.5.0.zip",
+                "browser_download_url": "https://github.com/gateeit-ifgw/ComfyLAB/releases/download/v0.5.0/comfylab-release-v0.5.0.zip",
                 "size": 1234567,
             }
         ],
@@ -128,7 +128,7 @@ def test_check_updates_endpoint_up_to_date(monkeypatch):
         "tag_name": "v0.5.0",
         "name": "ComfyLAB v0.5.0 Release",
         "body": "No updates needed",
-        "html_url": "https://github.com/gateeit/ComfyLAB/releases/tag/v0.5.0",
+        "html_url": "https://github.com/gateeit-ifgw/ComfyLAB/releases/tag/v0.5.0",
         "assets": [],
     }
 
@@ -242,7 +242,7 @@ def test_check_updates_prefers_pypi_when_newer(monkeypatch):
         "tag_name": "v0.4.2",
         "name": "ComfyLAB v0.4.2 Release",
         "body": "Older release",
-        "html_url": "https://github.com/gateeit/ComfyLAB/releases/tag/v0.4.2",
+        "html_url": "https://github.com/gateeit-ifgw/ComfyLAB/releases/tag/v0.4.2",
         "assets": [],
     }
     mock_pypi = {
