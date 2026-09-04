@@ -1,8 +1,11 @@
 # ComfyLAB — Visual Lab Automation Environment
 
+[![Website](https://img.shields.io/badge/Website-pfjarschel.github.io%2FComfyLAB-7c3aed.svg)](https://pfjarschel.github.io/ComfyLAB/)
 [![PyPI version](https://img.shields.io/pypi/v/comfylab.svg)](https://pypi.org/project/comfylab/)
 [![Python versions](https://img.shields.io/pypi/pyversions/comfylab.svg)](https://pypi.org/project/comfylab/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+
+🌐 **Official Website & Interactive Showcase:** [https://pfjarschel.github.io/ComfyLAB/](https://pfjarschel.github.io/ComfyLAB/)
 
 ComfyLAB (**Comf**ortable **L**ab **A**utomation **B**locks) is a visual, block-based software platform for automating scientific and test & measurement laboratory experiments. It allows researchers, students, and engineers to connect instruments, run analysis code, and view live plots using an intuitive drag-and-drop workspace.
 
@@ -16,7 +19,7 @@ ComfyLAB (**Comf**ortable **L**ab **A**utomation **B**locks) is a visual, block-
 
 - **Visual Block Programming**: Design automation procedures by connecting blocks together. No complex programming required.
 - **Rich Block Library**: Extensive set of built-in blocks covering math, curve fitting, signal processing, array manipulation, control flow, file I/O, live plotting, instrument drivers, and utility functions.
-- **Run Scripts in Other Languages**: Run code blocks written in Python, Rust, JavaScript, TypeScript, Julia, R, Lua, Octave, or Wolfram directly in your pipeline.
+- **Run Scripts in 13+ Languages & Native DLLs**: Run code blocks written in Python, Rust, C#, Julia, R, JavaScript, TypeScript, Lua, Octave, Maxima, Sage, Wolfram, or PowerShell, and bridge compiled C/C++ DLLs/.so or Windows ActiveX/COM controllers directly in your pipeline.
 - **Equipment Control**: Connect and control physical laboratory hardware via VISA/SCPI protocol and dedicated instrument drivers.
 - **Built-in Laboratory Safety**: If an automation run fails, is stopped, or encounters an error, ComfyLAB automatically triggers safety shutdown routines on instruments (e.g. turning off lasers or signal generator outputs) to protect your hardware.
 - **Real-Time Live & Multi-Trace Graphs**: Stream data in real time with single and multi-trace live plotting widgets, custom axis limits, and persistent settings.

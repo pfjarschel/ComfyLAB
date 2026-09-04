@@ -1,0 +1,1656 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ComfyLAB — Visual Laboratory Automation Environment</title>
+  <meta name="description" content="Visual block platform for laboratory instrument automation, data acquisition, and real-time analysis. Developed at IFGW / UNICAMP." />
+  <link rel="icon" type="image/svg+xml" href="./assets/images/favicon.svg" />
+
+  <!-- Open Graph / Meta -->
+  <meta property="og:title" content="ComfyLAB — Visual Laboratory Automation Environment" />
+  <meta property="og:description" content="Visual, block-based open-source laboratory automation. Zero licensing fees, universal VISA/SCPI instrument control, real-time plotting." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="./assets/images/landing_page.png" />
+
+  <!-- Google Fonts & Tailwind CSS CDN -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              300: '#93c5fd',
+              400: '#60a5fa',
+              500: '#3b82f6',
+              600: '#2563eb',
+            },
+            purpleBrand: {
+              300: '#c4b5fd',
+              400: '#a78bfa',
+              500: '#8b5cf6',
+              600: '#7c3aed',
+              700: '#6d28d9',
+            },
+            dark: {
+              950: '#070b14',
+              900: '#0b1120',
+              850: '#0f172a',
+              800: '#17223b',
+              700: '#1e293b',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    .glow-radial {
+      background: radial-gradient(circle at 50% -10%, rgba(139, 92, 246, 0.22) 0%, rgba(59, 130, 246, 0.12) 35%, transparent 75%);
+    }
+    .brand-gradient-btn {
+      background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    }
+    .brand-gradient-btn:hover {
+      background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+    }
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #070b14;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #8b5cf6;
+    }
+  </style>
+</head>
+
+<body class="bg-dark-950 text-slate-100 font-sans antialiased selection:bg-purpleBrand-500 selection:text-white">
+
+  <!-- ========================================================================= -->
+  <!-- NAVIGATION BAR                                                            -->
+  <!-- ========================================================================= -->
+  <header class="sticky top-0 z-50 w-full border-b border-slate-800/80 bg-dark-950/90 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Brand Logo with official SVG -->
+      <a href="#" class="flex items-center gap-3 group">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-500 to-purpleBrand-600 p-1.5 flex items-center justify-center shadow-lg shadow-purpleBrand-500/25 group-hover:scale-105 transition-transform">
+          <img src="./assets/images/favicon.svg" alt="ComfyLAB Logo" class="w-full h-full object-contain filter drop-shadow" />
+        </div>
+        <div>
+          <span class="font-extrabold text-xl tracking-tight text-white flex items-center gap-1.5">
+            Comfy<span class="bg-gradient-to-r from-brand-400 to-purpleBrand-400 bg-clip-text text-transparent">LAB</span>
+          </span>
+          <span class="text-[10px] text-slate-400 font-medium block leading-none">IFGW • UNICAMP</span>
+        </div>
+      </a>
+
+      <!-- Desktop Nav Links -->
+      <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-slate-300">
+        <a href="#features" data-i18n="nav_features" class="hover:text-purpleBrand-300 transition-colors">Features</a>
+        <a href="#motivation" data-i18n="nav_motivation" class="hover:text-purpleBrand-300 transition-colors">Lab Motivation</a>
+        <a href="#workflow" data-i18n="nav_workflow" class="hover:text-purpleBrand-300 transition-colors">How It Works</a>
+        <a href="#extensibility" data-i18n="nav_extensibility" class="hover:text-purpleBrand-300 transition-colors">Extensibility</a>
+        <a href="#quickstart" data-i18n="nav_quickstart" class="hover:text-purpleBrand-300 transition-colors">Quickstart</a>
+        <a href="#downloads" data-i18n="nav_guides" class="hover:text-purpleBrand-300 transition-colors">User Guide (PDF)</a>
+      </nav>
+
+      <!-- Language Selector & Actions -->
+      <div class="flex items-center gap-3">
+        
+        <!-- Language Selector Dropdown -->
+        <div class="relative">
+          <button id="langBtn" class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-dark-850 hover:bg-dark-800 border border-slate-700/80 text-xs font-semibold text-slate-200 transition-colors shadow-sm" aria-label="Change Language">
+            <span id="currentLangFlag" class="inline-flex items-center"></span>
+            <span id="currentLangLabel">EN</span>
+            <i data-lucide="chevron-down" class="w-3 h-3 text-slate-400"></i>
+          </button>
+          <div id="langMenu" class="hidden absolute right-0 mt-1.5 w-44 rounded-xl bg-dark-850 border border-slate-700 shadow-2xl py-1 z-50 text-xs">
+            <button onclick="setLanguage('en')" class="w-full text-left px-3.5 py-2 hover:bg-dark-800 text-slate-200 flex items-center justify-between group transition-colors">
+              <div class="flex items-center gap-2.5">
+                <svg class="w-5 h-3.5 rounded-[2px] overflow-hidden border border-slate-700/80 shadow-sm flex-shrink-0" viewBox="0 0 20 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <g>
+                    <rect x="0" y="0" width="10" height="14" fill="#b22234"/>
+                    <rect x="0" y="2.15" width="10" height="1.08" fill="#fff"/>
+                    <rect x="0" y="4.3" width="10" height="1.08" fill="#fff"/>
+                    <rect x="0" y="6.45" width="10" height="1.08" fill="#fff"/>
+                    <rect x="0" y="8.6" width="10" height="1.08" fill="#fff"/>
+                    <rect x="0" y="10.75" width="10" height="1.08" fill="#fff"/>
+                    <rect x="0" y="12.9" width="10" height="1.08" fill="#fff"/>
+                    <rect x="0" y="0" width="5.2" height="7.5" fill="#3c3b6e"/>
+                    <circle cx="1.6" cy="1.9" r="0.55" fill="#fff"/>
+                    <circle cx="3.6" cy="1.9" r="0.55" fill="#fff"/>
+                    <circle cx="2.6" cy="3.75" r="0.55" fill="#fff"/>
+                    <circle cx="1.6" cy="5.6" r="0.55" fill="#fff"/>
+                    <circle cx="3.6" cy="5.6" r="0.55" fill="#fff"/>
+                  </g>
+                  <g>
+                    <rect x="10" y="0" width="10" height="14" fill="#012169"/>
+                    <path d="M10,0 L20,14 M20,0 L10,14" stroke="#fff" stroke-width="2.2"/>
+                    <path d="M10,0 L20,14 M20,0 L10,14" stroke="#c8102e" stroke-width="1.1"/>
+                    <path d="M15,0 V14 M10,7 H20" stroke="#fff" stroke-width="3.2"/>
+                    <path d="M15,0 V14 M10,7 H20" stroke="#c8102e" stroke-width="1.8"/>
+                  </g>
+                  <line x1="10" y1="0" x2="10" y2="14" stroke="rgba(255,255,255,0.4)" stroke-width="0.75"/>
+                </svg>
+                <span class="font-medium">English</span>
+              </div>
+              <span class="text-[10px] text-slate-400 font-mono group-hover:text-purpleBrand-300">EN</span>
+            </button>
+            <button onclick="setLanguage('pt')" class="w-full text-left px-3.5 py-2 hover:bg-dark-800 text-slate-200 flex items-center justify-between group transition-colors">
+              <div class="flex items-center gap-2.5">
+                <svg class="w-5 h-3.5 rounded-[2px] overflow-hidden border border-slate-700/80 shadow-sm flex-shrink-0" viewBox="0 0 20 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="20" height="14" fill="#009b3a"/>
+                  <polygon points="10,1.5 18.5,7 10,12.5 1.5,7" fill="#fedf00"/>
+                  <circle cx="10" cy="7" r="3.5" fill="#002776"/>
+                  <path d="M 6.8 7.1 C 7.9 5.9, 12.1 5.9, 13.2 7.5" stroke="#ffffff" stroke-width="0.65" fill="none"/>
+                </svg>
+                <span class="font-medium">Português</span>
+              </div>
+              <span class="text-[10px] text-slate-400 font-mono group-hover:text-purpleBrand-300">PT</span>
+            </button>
+            <button onclick="setLanguage('es')" class="w-full text-left px-3.5 py-2 hover:bg-dark-800 text-slate-200 flex items-center justify-between group transition-colors">
+              <div class="flex items-center gap-2.5">
+                <svg class="w-5 h-3.5 rounded-[2px] overflow-hidden border border-slate-700/80 shadow-sm flex-shrink-0" viewBox="0 0 20 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="20" height="3.5" fill="#aa151b"/>
+                  <rect y="3.5" width="20" height="7" fill="#f1bf00"/>
+                  <rect y="10.5" width="20" height="3.5" fill="#aa151b"/>
+                  <g transform="translate(4, 4.5)">
+                    <rect x="0" y="1" width="2.8" height="3.5" rx="0.4" fill="#aa151b"/>
+                    <rect x="0.4" y="1.4" width="2" height="2.7" fill="#f1bf00"/>
+                    <path d="M0,1 L1.4,-0.2 L2.8,1 Z" fill="#aa151b"/>
+                    <line x1="-0.7" y1="0.5" x2="-0.7" y2="4.5" stroke="#aa151b" stroke-width="0.5"/>
+                    <line x1="3.5" y1="0.5" x2="3.5" y2="4.5" stroke="#aa151b" stroke-width="0.5"/>
+                  </g>
+                </svg>
+                <span class="font-medium">Español</span>
+              </div>
+              <span class="text-[10px] text-slate-400 font-mono group-hover:text-purpleBrand-300">ES</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- GitHub Button with Crisp SVG Icon -->
+        <a href="https://github.com/pfjarschel/ComfyLAB" target="_blank" rel="noopener noreferrer" 
+           class="hidden sm:flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg bg-dark-850 hover:bg-dark-800 border border-slate-700 text-slate-200 transition-all hover:border-slate-600">
+          <svg class="w-4 h-4 text-slate-300" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd" />
+          </svg>
+          <span>GitHub</span>
+        </a>
+
+        <!-- Install CTA Button -->
+        <a href="#quickstart" 
+           class="hidden sm:flex items-center gap-2 px-3.5 py-1.5 text-xs font-bold rounded-lg brand-gradient-btn text-white shadow-md shadow-purpleBrand-500/25 transition-all hover:scale-[1.02]">
+          <i data-lucide="terminal" class="w-3.5 h-3.5"></i>
+          <span data-i18n="btn_install">Install</span>
+        </a>
+
+        <!-- Mobile Hamburger Button -->
+        <button id="mobileMenuBtn" class="md:hidden p-2 text-slate-400 hover:text-white" aria-label="Toggle Menu">
+          <i data-lucide="menu" class="w-6 h-6"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Dropdown -->
+    <div id="mobileMenu" class="hidden md:hidden border-b border-slate-800 bg-dark-900 px-6 py-4 space-y-3">
+      <!-- Mobile Language Bar -->
+      <div class="pb-3 border-b border-slate-800 flex items-center justify-between">
+        <span class="text-xs text-slate-400 font-medium" data-i18n="mobile_lang_label">Language:</span>
+        <div class="flex items-center gap-1.5 bg-dark-950 p-1 rounded-lg border border-slate-800">
+          <button onclick="setLanguage('en')" id="mobileLang_en" class="px-2.5 py-1 rounded-md flex items-center gap-1.5 text-xs text-slate-300 hover:text-white transition-colors">
+            <svg class="w-4 h-2.5 rounded-[1px] overflow-hidden border border-slate-700/80 flex-shrink-0" viewBox="0 0 20 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <g>
+                <rect x="0" y="0" width="10" height="14" fill="#b22234"/>
+                <rect x="0" y="2.15" width="10" height="1.08" fill="#fff"/>
+                <rect x="0" y="4.3" width="10" height="1.08" fill="#fff"/>
+                <rect x="0" y="6.45" width="10" height="1.08" fill="#fff"/>
+                <rect x="0" y="8.6" width="10" height="1.08" fill="#fff"/>
+                <rect x="0" y="10.75" width="10" height="1.08" fill="#fff"/>
+                <rect x="0" y="12.9" width="10" height="1.08" fill="#fff"/>
+                <rect x="0" y="0" width="5.2" height="7.5" fill="#3c3b6e"/>
+                <circle cx="1.6" cy="1.9" r="0.55" fill="#fff"/>
+                <circle cx="3.6" cy="1.9" r="0.55" fill="#fff"/>
+                <circle cx="2.6" cy="3.75" r="0.55" fill="#fff"/>
+                <circle cx="1.6" cy="5.6" r="0.55" fill="#fff"/>
+                <circle cx="3.6" cy="5.6" r="0.55" fill="#fff"/>
+              </g>
+              <g>
+                <rect x="10" y="0" width="10" height="14" fill="#012169"/>
+                <path d="M10,0 L20,14 M20,0 L10,14" stroke="#fff" stroke-width="2.2"/>
+                <path d="M10,0 L20,14 M20,0 L10,14" stroke="#c8102e" stroke-width="1.1"/>
+                <path d="M15,0 V14 M10,7 H20" stroke="#fff" stroke-width="3.2"/>
+                <path d="M15,0 V14 M10,7 H20" stroke="#c8102e" stroke-width="1.8"/>
+              </g>
+              <line x1="10" y1="0" x2="10" y2="14" stroke="rgba(255,255,255,0.4)" stroke-width="0.75"/>
+            </svg>
+            <span class="font-semibold">EN</span>
+          </button>
+          <button onclick="setLanguage('pt')" id="mobileLang_pt" class="px-2.5 py-1 rounded-md flex items-center gap-1.5 text-xs text-slate-300 hover:text-white transition-colors">
+            <svg class="w-4 h-2.5 rounded-[1px] overflow-hidden border border-slate-700/80 flex-shrink-0" viewBox="0 0 20 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="20" height="14" fill="#009b3a"/>
+              <polygon points="10,1.5 18.5,7 10,12.5 1.5,7" fill="#fedf00"/>
+              <circle cx="10" cy="7" r="3.5" fill="#002776"/>
+              <path d="M 6.8 7.1 C 7.9 5.9, 12.1 5.9, 13.2 7.5" stroke="#ffffff" stroke-width="0.65" fill="none"/>
+            </svg>
+            <span class="font-semibold">PT</span>
+          </button>
+          <button onclick="setLanguage('es')" id="mobileLang_es" class="px-2.5 py-1 rounded-md flex items-center gap-1.5 text-xs text-slate-300 hover:text-white transition-colors">
+            <svg class="w-4 h-2.5 rounded-[1px] overflow-hidden border border-slate-700/80 flex-shrink-0" viewBox="0 0 20 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="20" height="3.5" fill="#aa151b"/>
+              <rect y="3.5" width="20" height="7" fill="#f1bf00"/>
+              <rect y="10.5" width="20" height="3.5" fill="#aa151b"/>
+              <g transform="translate(4, 4.5)">
+                <rect x="0" y="1" width="2.8" height="3.5" rx="0.4" fill="#aa151b"/>
+                <rect x="0.4" y="1.4" width="2" height="2.7" fill="#f1bf00"/>
+                <path d="M0,1 L1.4,-0.2 L2.8,1 Z" fill="#aa151b"/>
+                <line x1="-0.7" y1="0.5" x2="-0.7" y2="4.5" stroke="#aa151b" stroke-width="0.5"/>
+                <line x1="3.5" y1="0.5" x2="3.5" y2="4.5" stroke="#aa151b" stroke-width="0.5"/>
+              </g>
+            </svg>
+            <span class="font-semibold">ES</span>
+          </button>
+        </div>
+      </div>
+      <a href="#features" data-i18n="nav_features" class="block text-sm font-medium text-slate-300 hover:text-purpleBrand-300 py-1">Features</a>
+      <a href="#motivation" data-i18n="nav_motivation" class="block text-sm font-medium text-slate-300 hover:text-purpleBrand-300 py-1">Lab Motivation</a>
+      <a href="#workflow" data-i18n="nav_workflow" class="block text-sm font-medium text-slate-300 hover:text-purpleBrand-300 py-1">How It Works</a>
+      <a href="#extensibility" data-i18n="nav_extensibility" class="block text-sm font-medium text-slate-300 hover:text-purpleBrand-300 py-1">Extensibility</a>
+      <a href="#quickstart" data-i18n="nav_quickstart" class="block text-sm font-medium text-slate-300 hover:text-purpleBrand-300 py-1">Quickstart</a>
+      <a href="#downloads" data-i18n="nav_guides" class="block text-sm font-medium text-slate-300 hover:text-purpleBrand-300 py-1">User Guide (PDF)</a>
+      <div class="pt-3 flex gap-3 border-t border-slate-800">
+        <a href="https://github.com/pfjarschel/ComfyLAB" target="_blank" class="flex-1 py-2 text-center text-xs font-semibold rounded-lg bg-dark-850 border border-slate-700 text-white flex items-center justify-center gap-2">
+          <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd" /></svg>
+          <span>GitHub</span>
+        </a>
+        <a href="#quickstart" class="flex-1 py-2 text-center text-xs font-bold rounded-lg brand-gradient-btn text-white" data-i18n="btn_install">Install</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- HERO SECTION                                                              -->
+  <!-- ========================================================================= -->
+  <section class="relative pt-16 pb-20 md:pt-24 md:pb-32 overflow-hidden glow-radial">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      
+      <!-- Badges -->
+      <div class="flex flex-wrap items-center justify-center gap-2.5 mb-8">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-purpleBrand-500/15 border border-purpleBrand-500/30 text-purpleBrand-300 text-xs font-semibold tracking-wide shadow-sm">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5 text-purpleBrand-400"></i>
+          <span data-i18n="hero_badge_opensource">Free & Open-Source Laboratory Platform</span>
+        </div>
+        <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-800/80 border border-slate-700 text-slate-300 text-xs font-medium">
+          <i data-lucide="flask-conical" class="w-3.5 h-3.5 text-brand-400"></i>
+          <span>IFGW • UNICAMP</span>
+        </div>
+      </div>
+
+      <!-- Main Headline & Subtitle -->
+      <div class="text-center max-w-4xl mx-auto">
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.15] text-white">
+          <span data-i18n="hero_title_1">Visual Laboratory Automation for</span> 
+          <span class="bg-gradient-to-r from-brand-400 via-purpleBrand-300 to-purpleBrand-500 bg-clip-text text-transparent" data-i18n="hero_title_2">Experimental Science</span>
+        </h1>
+        <p class="mt-6 text-lg sm:text-xl text-slate-300 font-normal leading-relaxed max-w-3xl mx-auto" data-i18n="hero_subtitle">
+          Connect physical laboratory instruments, orchestrate automated characterization loops, and stream live measurements with visual node dataflows. Zero recurring license fees, zero boilerplate code.
+        </p>
+
+        <!-- Command Line Copy Widget & Main CTAs -->
+        <div class="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+          
+          <!-- One-click pip install button -->
+          <div class="w-full sm:w-auto flex items-center justify-between gap-3 bg-dark-900/95 border border-slate-700/80 rounded-xl px-4 py-2.5 shadow-xl hover:border-purpleBrand-500/50 transition-colors group">
+            <div class="flex items-center gap-2.5 font-mono text-sm text-slate-200">
+              <span class="text-purpleBrand-400 select-none font-bold">$</span>
+              <span>pip install comfylab</span>
+            </div>
+            <button onclick="copyInstallCmd()" id="copyBtn" class="text-slate-400 hover:text-purpleBrand-300 p-1 rounded transition-colors" title="Copy to clipboard">
+              <i data-lucide="copy" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <a href="#quickstart" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl brand-gradient-btn text-white font-bold text-sm shadow-lg shadow-purpleBrand-500/25 transition-all hover:scale-[1.02]">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            <span data-i18n="hero_btn_start">Get Started Free</span>
+          </a>
+
+          <a href="#downloads" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-dark-850 hover:bg-dark-800 border border-slate-700 text-slate-200 font-semibold text-sm transition-all hover:border-slate-600">
+            <i data-lucide="file-text" class="w-4 h-4 text-brand-400"></i>
+            <span data-i18n="hero_btn_guides">User Guide (PDF)</span>
+          </a>
+        </div>
+
+        <!-- Micro Feature Badges -->
+        <div class="mt-8 flex flex-wrap items-center justify-center gap-y-2 gap-x-6 text-xs text-slate-400">
+          <div class="flex items-center gap-1.5">
+            <i data-lucide="check" class="w-4 h-4 text-purpleBrand-400"></i>
+            <span>GPL-3.0 License</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <i data-lucide="check" class="w-4 h-4 text-purpleBrand-400"></i>
+            <span data-i18n="badge_hardware">Universal VISA / SCPI Hardware</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <i data-lucide="check" class="w-4 h-4 text-purpleBrand-400"></i>
+            <span data-i18n="badge_languages">Multi-Language UI (EN / PT / ES)</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <i data-lucide="check" class="w-4 h-4 text-purpleBrand-400"></i>
+            <span data-i18n="badge_safety">Automated Hardware Safety Shutdown</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero Screenshot Showcase -->
+      <div class="mt-14 relative mx-auto max-w-6xl">
+        <div class="absolute -inset-1.5 bg-gradient-to-r from-brand-500/25 via-purpleBrand-500/30 to-purpleBrand-600/25 rounded-2xl blur-xl opacity-60"></div>
+        <div class="relative rounded-2xl overflow-hidden border border-slate-700/80 bg-dark-900 shadow-2xl">
+          
+          <!-- Window Header -->
+          <div class="bg-dark-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-3 h-3 rounded-full bg-rose-500/80"></div>
+              <div class="w-3 h-3 rounded-full bg-amber-500/80"></div>
+              <div class="w-3 h-3 rounded-full bg-emerald-500/80"></div>
+              <span class="ml-2 text-xs font-mono text-slate-400 hidden sm:inline" data-i18n="hero_window_title">ComfyLAB Workspace — Live Experiment Blueprint</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 text-[11px] font-mono rounded bg-purpleBrand-500/20 text-purpleBrand-300 border border-purpleBrand-500/30">Backend: Online (Port 8000)</span>
+            </div>
+          </div>
+
+          <!-- Screenshot Image -->
+          <img src="./assets/images/landing_page.png" 
+               alt="ComfyLAB Visual Workspace showing instrument nodes, real-time plots, and dataflow connections" 
+               class="w-full h-auto object-cover select-none" />
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- MOTIVATION & LAB REALITIES (INCORPORATING SURVEY TRENDS ELEGANTLY)        -->
+  <!-- ========================================================================= -->
+  <section id="motivation" class="py-20 md:py-28 bg-dark-900 border-y border-slate-800/80 relative">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <!-- Section Header -->
+      <div class="text-center max-w-3xl mx-auto">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-400 text-xs font-semibold mb-3">
+          <i data-lucide="compass" class="w-3.5 h-3.5"></i>
+          <span data-i18n="motivation_badge">Rooted in Lab Experience</span>
+        </div>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight" data-i18n="motivation_title">
+          Built for the Realities of Experimental Laboratories
+        </h2>
+        <p class="mt-4 text-base sm:text-lg text-slate-300" data-i18n="motivation_desc">
+          Informed by a comprehensive survey with over 190 experimental researchers and students across departments at UNICAMP, ComfyLAB was designed from the ground up to solve the most frequent operational hurdles of benchtop automation.
+        </p>
+      </div>
+
+      <!-- 4 Core Problem-Solution Pillars -->
+      <div class="mt-14 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        
+        <!-- Pillar 1: Visual Accessibility -->
+        <div class="bg-dark-850 rounded-2xl p-6 border border-slate-800 hover:border-purpleBrand-500/40 transition-all shadow-lg flex flex-col justify-between">
+          <div>
+            <div class="w-10 h-10 rounded-xl bg-purpleBrand-500/10 border border-purpleBrand-500/30 flex items-center justify-center text-purpleBrand-400 mb-4">
+              <i data-lucide="mouse-pointer-click" class="w-5 h-5"></i>
+            </div>
+            <h3 class="text-base font-bold text-white mb-2" data-i18n="pillar_1_title">Zero Programming Hurdle</h3>
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed" data-i18n="pillar_1_desc">
+              Researchers overwhelmingly expressed the need for a straightforward visual environment. Connect instruments, signal sweeps, and processors without having to debug line-by-line syntax.
+            </p>
+          </div>
+          <div class="mt-4 pt-3 border-t border-slate-800/80 text-xs text-purpleBrand-300 font-medium" data-i18n="pillar_1_sub">
+            Drag, connect, and automate.
+          </div>
+        </div>
+
+        <!-- Pillar 2: Eliminating Script Setup Loss -->
+        <div class="bg-dark-850 rounded-2xl p-6 border border-slate-800 hover:border-brand-500/40 transition-all shadow-lg flex flex-col justify-between">
+          <div>
+            <div class="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/30 flex items-center justify-center text-brand-400 mb-4">
+              <i data-lucide="clock" class="w-5 h-5"></i>
+            </div>
+            <h3 class="text-base font-bold text-white mb-2" data-i18n="pillar_2_title">Hours Saved Every Setup</h3>
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed" data-i18n="pillar_2_desc">
+              Instead of spending days configuring and troubleshooting individual ad-hoc measurement scripts, standard routine flows can be assembled and verified in 15 minutes.
+            </p>
+          </div>
+          <div class="mt-4 pt-3 border-t border-slate-800/80 text-xs text-brand-300 font-medium" data-i18n="pillar_2_sub">
+            Fast iterative prototyping.
+          </div>
+        </div>
+
+        <!-- Pillar 3: Documentation & Continuity -->
+        <div class="bg-dark-850 rounded-2xl p-6 border border-slate-800 hover:border-purpleBrand-500/40 transition-all shadow-lg flex flex-col justify-between">
+          <div>
+            <div class="w-10 h-10 rounded-xl bg-purpleBrand-500/10 border border-purpleBrand-500/30 flex items-center justify-center text-purpleBrand-400 mb-4">
+              <i data-lucide="share-2" class="w-5 h-5"></i>
+            </div>
+            <h3 class="text-base font-bold text-white mb-2" data-i18n="pillar_3_title">Long-Term Continuity</h3>
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed" data-i18n="pillar_3_desc">
+              One of the greatest lab frustrations is inherited undocumented code. ComfyLAB blueprints are visual diagrams that any student or technician can understand instantly.
+            </p>
+          </div>
+          <div class="mt-4 pt-3 border-t border-slate-800/80 text-xs text-purpleBrand-300 font-medium" data-i18n="pillar_3_sub">
+            Self-documenting workflows.
+          </div>
+        </div>
+
+        <!-- Pillar 4: Eliminating License Bottlenecks -->
+        <div class="bg-dark-850 rounded-2xl p-6 border border-slate-800 hover:border-brand-500/40 transition-all shadow-lg flex flex-col justify-between">
+          <div>
+            <div class="w-10 h-10 rounded-xl bg-brand-500/10 border border-brand-500/30 flex items-center justify-center text-brand-400 mb-4">
+              <i data-lucide="unlock" class="w-5 h-5"></i>
+            </div>
+            <h3 class="text-base font-bold text-white mb-2" data-i18n="pillar_4_title">Zero License Friction</h3>
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed" data-i18n="pillar_4_desc">
+              Proprietary seat licenses create bottlenecks and prevent deploying automation to every workstation. ComfyLAB is free software you can install on any number of PCs.
+            </p>
+          </div>
+          <div class="mt-4 pt-3 border-t border-slate-800/80 text-xs text-brand-300 font-medium" data-i18n="pillar_4_sub">
+            100% Free & Open-Source.
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- KEY FEATURES                                                              -->
+  <!-- ========================================================================= -->
+  <section id="features" class="py-20 md:py-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center max-w-3xl mx-auto mb-16">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purpleBrand-500/10 border border-purpleBrand-500/30 text-purpleBrand-400 text-xs font-semibold mb-3">
+        <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+        <span data-i18n="features_badge">Platform Features</span>
+      </div>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight" data-i18n="features_title">
+        Engineered for Reliability, Safety, and Speed
+      </h2>
+      <p class="mt-4 text-base sm:text-lg text-slate-300" data-i18n="features_desc">
+        Everything you need to automate physical research benches, acquire sensor data, and run multi-instrument characterization loops.
+      </p>
+    </div>
+
+    <!-- Feature Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      
+      <!-- Feature 1 -->
+      <div class="bg-dark-900 border border-slate-800 rounded-2xl p-7 hover:border-purpleBrand-500/40 transition-all group">
+        <div class="w-12 h-12 rounded-xl bg-purpleBrand-500/10 border border-purpleBrand-500/30 flex items-center justify-center text-purpleBrand-400 mb-5 group-hover:scale-110 transition-transform">
+          <i data-lucide="workflow" class="w-6 h-6"></i>
+        </div>
+        <h3 class="text-lg font-bold text-white mb-2" data-i18n="feat_1_title">Visual Node Dataflow</h3>
+        <p class="text-slate-300 text-sm leading-relaxed" data-i18n="feat_1_desc">
+          Assemble complex acquisition loops by wiring functional blocks together. No obscure syntax, no missing semicolons, and no hidden state.
+        </p>
+      </div>
+
+      <!-- Feature 2 -->
+      <div class="bg-dark-900 border border-slate-800 rounded-2xl p-7 hover:border-brand-500/40 transition-all group">
+        <div class="w-12 h-12 rounded-xl bg-brand-500/10 border border-brand-500/30 flex items-center justify-center text-brand-400 mb-5 group-hover:scale-110 transition-transform">
+          <i data-lucide="cable" class="w-6 h-6"></i>
+        </div>
+        <h3 class="text-lg font-bold text-white mb-2" data-i18n="feat_2_title">Universal VISA & SCPI Control</h3>
+        <p class="text-slate-300 text-sm leading-relaxed" data-i18n="feat_2_desc">
+          Direct hardware communication via PyVISA. Supports USB, GPIB, Ethernet, and RS-232 instruments from Keysight, Keithley, Rigol, Thorlabs, and more.
+        </p>
+      </div>
+
+      <!-- Feature 3 -->
+      <div class="bg-dark-900 border border-slate-800 rounded-2xl p-7 hover:border-rose-500/40 transition-all group">
+        <div class="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 mb-5 group-hover:scale-110 transition-transform">
+          <i data-lucide="shield-alert" class="w-6 h-6"></i>
+        </div>
+        <h3 class="text-lg font-bold text-white mb-2" data-i18n="feat_3_title">Fail-Safe Hardware Protection</h3>
+        <p class="text-slate-300 text-sm leading-relaxed" data-i18n="feat_3_desc">
+          If an automation stops, crashes, or encounters an unexpected error, ComfyLAB immediately executes safety routines to shut down pump lasers, bias voltages, and high power supplies.
+        </p>
+      </div>
+
+      <!-- Feature 4 -->
+      <div class="bg-dark-900 border border-slate-800 rounded-2xl p-7 hover:border-purpleBrand-500/40 transition-all group">
+        <div class="w-12 h-12 rounded-xl bg-purpleBrand-500/10 border border-purpleBrand-500/30 flex items-center justify-center text-purpleBrand-400 mb-5 group-hover:scale-110 transition-transform">
+          <i data-lucide="code-2" class="w-6 h-6"></i>
+        </div>
+        <h3 class="text-lg font-bold text-white mb-2" data-i18n="feat_4_title">Multi-Language & Native Bridges</h3>
+        <p class="text-slate-300 text-sm leading-relaxed" data-i18n="feat_4_desc">
+          Execute in 13+ languages directly in-canvas or interface with vendor C/C++ DLLs, Linux shared objects (.so), and Windows ActiveX/COM objects seamlessly.
+        </p>
+      </div>
+
+      <!-- Feature 5 -->
+      <div class="bg-dark-900 border border-slate-800 rounded-2xl p-7 hover:border-brand-500/40 transition-all group">
+        <div class="w-12 h-12 rounded-xl bg-brand-500/10 border border-brand-500/30 flex items-center justify-center text-brand-400 mb-5 group-hover:scale-110 transition-transform">
+          <i data-lucide="line-chart" class="w-6 h-6"></i>
+        </div>
+        <h3 class="text-lg font-bold text-white mb-2" data-i18n="feat_5_title">Real-Time Multi-Trace Graphs</h3>
+        <p class="text-slate-300 text-sm leading-relaxed" data-i18n="feat_5_desc">
+          High-frequency canvas charting with persistent axis settings, live spectrum traces, multi-channel overlays, and instant CSV / HDF5 export.
+        </p>
+      </div>
+
+      <!-- Feature 6 -->
+      <div class="bg-dark-900 border border-slate-800 rounded-2xl p-7 hover:border-purpleBrand-500/40 transition-all group">
+        <div class="w-12 h-12 rounded-xl bg-purpleBrand-500/10 border border-purpleBrand-500/30 flex items-center justify-center text-purpleBrand-400 mb-5 group-hover:scale-110 transition-transform">
+          <i data-lucide="wifi" class="w-6 h-6"></i>
+        </div>
+        <h3 class="text-lg font-bold text-white mb-2" data-i18n="feat_6_title">Secure Remote Lab Access</h3>
+        <p class="text-slate-300 text-sm leading-relaxed" data-i18n="feat_6_desc">
+          Monitor multi-hour measurements remotely from your office or home. Protected by two-word zero-setup security tokens without compromising lab LAN safety.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- HOW IT WORKS (3 SIMPLE STEPS)                                             -->
+  <!-- ========================================================================= -->
+  <section id="workflow" class="py-20 bg-dark-900 border-y border-slate-800/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-2xl mx-auto mb-16">
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight" data-i18n="workflow_title">
+          How It Works in 3 Steps
+        </h2>
+        <p class="mt-3 text-slate-300 text-base" data-i18n="workflow_desc">From raw hardware to synchronized acquisition in minutes.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+        
+        <!-- Step 1 -->
+        <div class="bg-dark-850 border border-slate-800 rounded-2xl p-7 relative z-10">
+          <div class="w-10 h-10 rounded-lg bg-brand-500 text-white font-extrabold flex items-center justify-center text-lg mb-4">1</div>
+          <h3 class="text-lg font-bold text-white mb-2" data-i18n="step_1_title">Detect Your Instruments</h3>
+          <p class="text-slate-300 text-sm leading-relaxed" data-i18n="step_1_desc">
+            Plug your instrument into USB, GPIB, or Ethernet. ComfyLAB automatically lists VISA resources and ready-to-use device drivers.
+          </p>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="bg-dark-850 border border-slate-800 rounded-2xl p-7 relative z-10">
+          <div class="w-10 h-10 rounded-lg bg-purpleBrand-500 text-white font-extrabold flex items-center justify-center text-lg mb-4">2</div>
+          <h3 class="text-lg font-bold text-white mb-2" data-i18n="step_2_title">Connect Your Dataflow</h3>
+          <p class="text-slate-300 text-sm leading-relaxed" data-i18n="step_2_desc">
+            Drag generator and reader blocks onto the canvas. Wire frequency sweeps, power increments, and analysis blocks with intuitive color-coded pins.
+          </p>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="bg-dark-850 border border-slate-800 rounded-2xl p-7 relative z-10">
+          <div class="w-10 h-10 rounded-lg bg-gradient-to-tr from-brand-500 to-purpleBrand-500 text-white font-extrabold flex items-center justify-center text-lg mb-4">3</div>
+          <h3 class="text-lg font-bold text-white mb-2" data-i18n="step_3_title">Stream & Protect</h3>
+          <p class="text-slate-300 text-sm leading-relaxed" data-i18n="step_3_desc">
+            Hit <em>Start</em>. Watch real-time multi-trace plots update live. Data automatically logs to disk, while hardware safety guards monitor limits in the background.
+          </p>
+        </div>
+
+      </div>
+
+      <!-- Screenshot preview -->
+      <div class="mt-14 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="rounded-xl overflow-hidden border border-slate-800 bg-dark-950 shadow-xl">
+          <div class="p-3 border-b border-slate-800 text-xs font-semibold text-slate-400 flex items-center gap-2">
+            <i data-lucide="eye" class="w-4 h-4 text-brand-400"></i>
+            <span data-i18n="preview_ex1">Example 1: Signal Generator & Oscilloscope Sweeps</span>
+          </div>
+          <img src="./assets/images/example_1.png" alt="ComfyLAB Example 1 Flow" class="w-full h-auto object-cover" />
+        </div>
+        <div class="rounded-xl overflow-hidden border border-slate-800 bg-dark-950 shadow-xl">
+          <div class="p-3 border-b border-slate-800 text-xs font-semibold text-slate-400 flex items-center gap-2">
+            <i data-lucide="activity" class="w-4 h-4 text-purpleBrand-400"></i>
+            <span data-i18n="preview_ex2">Example 2: Multi-Trace Real-Time Spectrum Analysis</span>
+          </div>
+          <img src="./assets/images/example_2.png" alt="ComfyLAB Example 2 Flow" class="w-full h-auto object-cover" />
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- EXTENSIBILITY & SCRIPT BLOCKS (EXPANDED & DETAILED)                       -->
+  <!-- ========================================================================= -->
+  <section id="extensibility" class="py-20 md:py-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center max-w-3xl mx-auto mb-16">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purpleBrand-500/10 border border-purpleBrand-500/30 text-purpleBrand-400 text-xs font-semibold mb-3">
+        <i data-lucide="puzzle" class="w-3.5 h-3.5"></i>
+        <span data-i18n="ext_badge">Infinite Customization</span>
+      </div>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight" data-i18n="ext_title">
+        Extensible by Design: Adapt to Any Experiment
+      </h2>
+      <p class="mt-4 text-base sm:text-lg text-slate-300" data-i18n="ext_desc">
+        ComfyLAB is not a closed black box. Inject scripts across 13+ languages, bridge native C/C++ DLLs and ActiveX/COM instruments, group sub-circuits into reusable clusters, or author native hardware drivers from scratch.
+      </p>
+    </div>
+
+    <!-- 4 Extensibility Pillars Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+      
+      <!-- Pillar 1: Multi-Language Script Blocks -->
+      <div class="bg-dark-900 border border-slate-800 hover:border-purpleBrand-500/40 rounded-2xl p-6 shadow-xl flex flex-col justify-between transition-all">
+        <div>
+          <div class="w-11 h-11 rounded-xl bg-purpleBrand-500/10 border border-purpleBrand-500/30 flex items-center justify-center text-purpleBrand-400 mb-4">
+            <i data-lucide="code-2" class="w-5 h-5"></i>
+          </div>
+          <h3 class="text-base font-bold text-white mb-2" data-i18n="ext_card1_title">13+ Language Script Blocks</h3>
+          <p class="text-slate-300 text-xs sm:text-sm leading-relaxed mb-3" data-i18n="ext_card1_desc">
+            Embed code directly on the canvas without leaving ComfyLAB. Automatic input and output pins using intuitive decorators.
+          </p>
+          <div class="flex flex-wrap gap-1 text-[10px] font-mono text-purpleBrand-300 mb-3">
+            <span class="px-1.5 py-0.5 rounded bg-dark-950 border border-slate-800">Python</span>
+            <span class="px-1.5 py-0.5 rounded bg-dark-950 border border-slate-800">C# / .NET</span>
+            <span class="px-1.5 py-0.5 rounded bg-dark-950 border border-slate-800">Rust</span>
+            <span class="px-1.5 py-0.5 rounded bg-dark-950 border border-slate-800">Julia</span>
+            <span class="px-1.5 py-0.5 rounded bg-dark-950 border border-slate-800">R</span>
+            <span class="px-1.5 py-0.5 rounded bg-dark-950 border border-slate-800">JS / TS</span>
+            <span class="px-1.5 py-0.5 rounded bg-dark-950 border border-slate-800">Lua</span>
+            <span class="px-1.5 py-0.5 rounded bg-dark-950 border border-slate-800">Octave</span>
+            <span class="px-1.5 py-0.5 rounded bg-dark-950 border border-slate-800">Maxima</span>
+            <span class="px-1.5 py-0.5 rounded bg-dark-950 border border-slate-800">Sage</span>
+            <span class="px-1.5 py-0.5 rounded bg-dark-950 border border-slate-800">Wolfram</span>
+            <span class="px-1.5 py-0.5 rounded bg-dark-950 border border-slate-800">PowerShell</span>
+          </div>
+        </div>
+        <div class="pt-3 border-t border-slate-800 text-[11px] text-slate-400" data-i18n="ext_card1_sub">
+          Built-in Monaco editor with live execution.
+        </div>
+      </div>
+
+      <!-- Pillar 2: DLL / SO / ActiveX / COM Bridges -->
+      <div class="bg-dark-900 border border-slate-800 hover:border-accent-500/40 rounded-2xl p-6 shadow-xl flex flex-col justify-between transition-all">
+        <div>
+          <div class="w-11 h-11 rounded-xl bg-accent-500/10 border border-accent-500/30 flex items-center justify-center text-accent-400 mb-4">
+            <i data-lucide="binary" class="w-5 h-5"></i>
+          </div>
+          <h3 class="text-base font-bold text-white mb-2" data-i18n="ext_card_dll_title">DLL, .SO & ActiveX/COM</h3>
+          <p class="text-slate-300 text-xs sm:text-sm leading-relaxed mb-3" data-i18n="ext_card_dll_desc">
+            Directly call vendor-provided C/C++ compiled dynamic libraries (.dll on Windows, .so on Linux) with thread safety, or drive 32/64-bit Windows ActiveX & COM controllers.
+          </p>
+          <ul class="text-xs text-slate-300 space-y-1.5 font-medium">
+            <li class="flex items-center gap-1.5">
+              <i data-lucide="check" class="w-3.5 h-3.5 text-accent-400"></i>
+              <span data-i18n="ext_card_dll_f1">C/C++ .dll & .so function calling</span>
+            </li>
+            <li class="flex items-center gap-1.5">
+              <i data-lucide="check" class="w-3.5 h-3.5 text-accent-400"></i>
+              <span data-i18n="ext_card_dll_f2">ActiveX / COM ProgID Automation</span>
+            </li>
+            <li class="flex items-center gap-1.5">
+              <i data-lucide="check" class="w-3.5 h-3.5 text-accent-400"></i>
+              <span data-i18n="ext_card_dll_f3">Supports Thorlabs, Horiba & Newport</span>
+            </li>
+          </ul>
+        </div>
+        <div class="pt-3 border-t border-slate-800 text-[11px] text-slate-400" data-i18n="ext_card_dll_sub">
+          Bridge legacy instruments without rewriting code.
+        </div>
+      </div>
+
+      <!-- Pillar 3: Modular Clusters (Macro-Nodes) -->
+      <div class="bg-dark-900 border border-slate-800 hover:border-brand-500/40 rounded-2xl p-6 shadow-xl flex flex-col justify-between transition-all">
+        <div>
+          <div class="w-11 h-11 rounded-xl bg-brand-500/10 border border-brand-500/30 flex items-center justify-center text-brand-400 mb-4">
+            <i data-lucide="box" class="w-5 h-5"></i>
+          </div>
+          <h3 class="text-base font-bold text-white mb-2" data-i18n="ext_card2_title">Modular Clusters (Macro-Nodes)</h3>
+          <p class="text-slate-300 text-xs sm:text-sm leading-relaxed mb-3" data-i18n="ext_card2_desc">
+            Select a sub-network of connected blocks and collapse them into a single reusable Cluster with a single keypress. Expose only the pins you need.
+          </p>
+          <ul class="text-xs text-slate-300 space-y-1.5 font-medium">
+            <li class="flex items-center gap-1.5">
+              <i data-lucide="check" class="w-3.5 h-3.5 text-brand-400"></i>
+              <span data-i18n="ext_card2_f1">Single-click cluster creation (Ctrl+G)</span>
+            </li>
+            <li class="flex items-center gap-1.5">
+              <i data-lucide="check" class="w-3.5 h-3.5 text-brand-400"></i>
+              <span data-i18n="ext_card2_f2">Custom input & output pin mapping</span>
+            </li>
+            <li class="flex items-center gap-1.5">
+              <i data-lucide="check" class="w-3.5 h-3.5 text-brand-400"></i>
+              <span data-i18n="ext_card2_f3">Shareable across blueprints and labs</span>
+            </li>
+          </ul>
+        </div>
+        <div class="pt-3 border-t border-slate-800 text-[11px] text-slate-400" data-i18n="ext_card2_sub">
+          Encapsulate complexity and foster team reuse.
+        </div>
+      </div>
+
+      <!-- Pillar 4: Native Hardware Drivers from Scratch -->
+      <div class="bg-dark-900 border border-slate-800 hover:border-purpleBrand-500/40 rounded-2xl p-6 shadow-xl flex flex-col justify-between transition-all">
+        <div>
+          <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-brand-500/20 to-purpleBrand-500/20 border border-purpleBrand-500/30 flex items-center justify-center text-purpleBrand-300 mb-4">
+            <i data-lucide="cpu" class="w-5 h-5"></i>
+          </div>
+          <h3 class="text-base font-bold text-white mb-2" data-i18n="ext_card3_title">Native Nodes from Scratch</h3>
+          <p class="text-slate-300 text-xs sm:text-sm leading-relaxed mb-3" data-i18n="ext_card3_desc">
+            Build first-class permanent blocks or drivers for custom rigs and sensors using Python's BaseBlock architecture and register into the palette.
+          </p>
+          <ul class="text-xs text-slate-300 space-y-1.5 font-medium">
+            <li class="flex items-center gap-1.5">
+              <i data-lucide="check" class="w-3.5 h-3.5 text-purpleBrand-400"></i>
+              <span data-i18n="ext_card3_f1">Automated VISA resource detection</span>
+            </li>
+            <li class="flex items-center gap-1.5">
+              <i data-lucide="check" class="w-3.5 h-3.5 text-purpleBrand-400"></i>
+              <span data-i18n="ext_card3_f2">Thread-safe hardware locking</span>
+            </li>
+            <li class="flex items-center gap-1.5">
+              <i data-lucide="check" class="w-3.5 h-3.5 text-purpleBrand-400"></i>
+              <span data-i18n="ext_card3_f3">One-click zip package import</span>
+            </li>
+          </ul>
+        </div>
+        <div class="pt-3 border-t border-slate-800 text-[11px] text-slate-400" data-i18n="ext_card3_sub">
+          Permanent palette integration and distribution.
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Dual Tab Code Showcase Box -->
+    <div class="rounded-2xl border border-slate-800 bg-dark-900 overflow-hidden shadow-2xl">
+      
+      <!-- Code Tab Controls -->
+      <div class="bg-dark-950 border-b border-slate-800 px-5 py-3 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-1.5">
+            <div class="w-3 h-3 rounded-full bg-rose-500/80"></div>
+            <div class="w-3 h-3 rounded-full bg-amber-500/80"></div>
+            <div class="w-3 h-3 rounded-full bg-emerald-500/80"></div>
+          </div>
+          <div class="flex items-center rounded-lg bg-dark-900 p-1 border border-slate-800 text-xs">
+            <button id="tabBtnScript" onclick="switchCodeTab('script')" class="px-3 py-1 rounded-md bg-purpleBrand-600 text-white font-medium transition-all" data-i18n="code_tab_script">
+              In-Canvas Script Block (Fast & Simple)
+            </button>
+            <button id="tabBtnNative" onclick="switchCodeTab('native')" class="px-3 py-1 rounded-md text-slate-400 hover:text-white transition-all" data-i18n="code_tab_native">
+              Native Block from Scratch (Python Class)
+            </button>
+          </div>
+        </div>
+        <span id="codeLangBadge" class="text-[11px] font-mono text-purpleBrand-400 px-2.5 py-0.5 rounded bg-purpleBrand-500/10 border border-purpleBrand-500/30">
+          In-Canvas Script Syntax
+        </span>
+      </div>
+
+      <!-- Tab 1: In-Canvas Script Block Code -->
+      <div id="codeViewScript" class="p-5 sm:p-6 font-mono text-xs sm:text-sm text-slate-200 overflow-x-auto leading-relaxed">
+        <span class="text-slate-500"># 1. Define your block pins with declarative decorators right inside your script:</span><br/>
+        <span class="text-purpleBrand-400"># @input</span> <span class="text-emerald-300">name="trace"</span> <span class="text-brand-300">type="ndarray"</span><br/>
+        <span class="text-purpleBrand-400"># @input</span> <span class="text-emerald-300">name="cutoff_db"</span> <span class="text-brand-300">type="number"</span> <span class="text-amber-300">default=-40.0</span><br/>
+        <span class="text-purpleBrand-400"># @output</span> <span class="text-emerald-300">name="filtered_data"</span> <span class="text-brand-300">type="ndarray"</span><br/>
+        <span class="text-purpleBrand-400"># @output</span> <span class="text-emerald-300">name="peak_val"</span> <span class="text-brand-300">type="number"</span><br/>
+        <br/>
+        <span class="text-purpleBrand-400">import</span> numpy <span class="text-purpleBrand-400">as</span> np<br/>
+        <br/>
+        <span class="text-slate-500"># 2. Variables match input pin names automatically. Simply compute and assign outputs:</span><br/>
+        filtered_data = trace[trace &gt; cutoff_db]<br/>
+        peak_val = <span class="text-brand-300">float</span>(np.max(filtered_data)) <span class="text-purpleBrand-400">if</span> <span class="text-brand-300">len</span>(filtered_data) &gt; <span class="text-amber-300">0</span> <span class="text-purpleBrand-400">else</span> <span class="text-amber-300">0.0</span>
+      </div>
+
+      <!-- Tab 2: Native Node from Scratch Code (Hidden by default) -->
+      <div id="codeViewNative" class="hidden p-5 sm:p-6 font-mono text-xs sm:text-sm text-slate-200 overflow-x-auto leading-relaxed">
+        <span class="text-purpleBrand-400">from</span> comfylab.engine.registry <span class="text-purpleBrand-400">import</span> register_block<br/>
+        <span class="text-purpleBrand-400">from</span> comfylab.blocks.base <span class="text-purpleBrand-400">import</span> BaseBlock, ExecIn, ExecOut, DataIn, DataOut, ExecutionContext<br/>
+        <span class="text-purpleBrand-400">import</span> numpy <span class="text-purpleBrand-400">as</span> np<br/>
+        <br/>
+        <span class="text-slate-500"># Register a permanent custom block in the ComfyLAB block registry:</span><br/>
+        <span class="text-purpleBrand-400">@register_block</span>(<span class="text-emerald-300">"my_lab/custom_analyzer"</span>)<br/>
+        <span class="text-purpleBrand-400">class</span> <span class="text-brand-300">CustomAnalyzerBlock</span>(BaseBlock):<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;icon = <span class="text-emerald-300">"🔬"</span><br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;display_name = <span class="text-emerald-300">"Custom Spectrum Analyzer"</span><br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;category = <span class="text-emerald-300">"My Research Lab"</span><br/>
+        <br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;inputs = [ExecIn(<span class="text-emerald-300">"In"</span>), DataIn(<span class="text-emerald-300">"raw_signal"</span>, <span class="text-brand-300">type</span>=<span class="text-emerald-300">"ndarray"</span>)]<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;outputs = [ExecOut(<span class="text-emerald-300">"Out"</span>), DataOut(<span class="text-emerald-300">"fft_spectrum"</span>, <span class="text-brand-300">type</span>=<span class="text-emerald-300">"ndarray"</span>)]<br/>
+        <br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="text-purpleBrand-400">def</span> <span class="text-brand-300">execute</span>(self, ctx: ExecutionContext):<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;data = ctx.get_input(<span class="text-emerald-300">"raw_signal"</span>)<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ctx.set_output(<span class="text-emerald-300">"fft_spectrum"</span>, np.abs(np.fft.rfft(data)))<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text-purpleBrand-400">return</span> ctx.trigger_exec(<span class="text-emerald-300">"Out"</span>)
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- QUICKSTART & INSTALLATION                                                 -->
+  <!-- ========================================================================= -->
+  <section id="quickstart" class="py-20 md:py-28 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center max-w-3xl mx-auto mb-14">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purpleBrand-500/10 border border-purpleBrand-500/30 text-purpleBrand-400 text-xs font-semibold mb-3">
+        <i data-lucide="terminal" class="w-3.5 h-3.5"></i>
+        <span data-i18n="quickstart_badge">Flexible Deployment</span>
+      </div>
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight" data-i18n="quickstart_title">
+        Install ComfyLAB in Seconds
+      </h2>
+      <p class="mt-3 text-slate-300 text-base" data-i18n="quickstart_desc">Choose the installation method that fits your lab PC setup.</p>
+    </div>
+
+    <!-- Installation Options Cards -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      
+      <!-- Option 1: PyPI -->
+      <div class="bg-dark-900 border-2 border-purpleBrand-500/50 rounded-2xl p-7 shadow-xl relative flex flex-col justify-between">
+        <div class="absolute -top-3 right-6 px-2.5 py-0.5 rounded-full brand-gradient-btn text-white text-[11px] font-extrabold uppercase tracking-wider" data-i18n="opt_recommended">
+          Recommended
+        </div>
+        <div>
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl bg-purpleBrand-500/15 border border-purpleBrand-500/30 flex items-center justify-center text-purpleBrand-400">
+              <i data-lucide="package" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h3 class="text-lg font-bold text-white">PyPI (Python pip)</h3>
+              <span class="text-xs text-slate-400" data-i18n="opt_os_support">Windows, Linux, macOS</span>
+            </div>
+          </div>
+          <p class="text-sm text-slate-300 mb-5" data-i18n="opt_pypi_desc">
+            The quickest and cleanest way. Installs directly via official Python package repository.
+          </p>
+
+          <div class="bg-dark-950 border border-slate-800 rounded-xl p-3 font-mono text-xs text-slate-200 mb-3 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-slate-400" data-i18n="cmd_step_install"># 1. Install</span>
+            </div>
+            <div class="text-purpleBrand-300">pip install comfylab</div>
+            <div class="flex items-center justify-between pt-1 border-t border-slate-800">
+              <span class="text-slate-400" data-i18n="cmd_step_run"># 2. Run anywhere</span>
+            </div>
+            <div class="text-brand-400">comfylab</div>
+          </div>
+        </div>
+
+        <div class="mt-4 pt-4 border-t border-slate-800 text-xs text-slate-400 flex items-center gap-2">
+          <i data-lucide="info" class="w-4 h-4 text-purpleBrand-400 flex-shrink-0"></i>
+          <span data-i18n="opt_pypi_note">Requires Python 3.10 or higher. Automatically opens browser at localhost:8000.</span>
+        </div>
+      </div>
+
+      <!-- Option 2: Pre-compiled Standalone Binary -->
+      <div class="bg-dark-900 border border-slate-800 rounded-2xl p-7 shadow-xl flex flex-col justify-between">
+        <div>
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl bg-brand-500/15 border border-brand-500/30 flex items-center justify-center text-brand-400">
+              <i data-lucide="download-cloud" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h3 class="text-lg font-bold text-white" data-i18n="opt_bin_title">Pre-compiled Executable</h3>
+              <span class="text-xs text-slate-400" data-i18n="opt_bin_sub">Zero Dependencies Needed</span>
+            </div>
+          </div>
+          <p class="text-sm text-slate-300 mb-5" data-i18n="opt_bin_desc">
+            For lab computers without Python or where user account restrictions prevent installing new software packages.
+          </p>
+
+          <div class="space-y-2.5">
+            <a href="https://github.com/pfjarschel/ComfyLAB/releases" target="_blank" class="flex items-center justify-between p-3 rounded-xl bg-dark-950 border border-slate-800 hover:border-slate-700 text-xs font-semibold text-slate-200 transition-all group">
+              <span class="flex items-center gap-2">
+                <i data-lucide="monitor" class="w-4 h-4 text-purpleBrand-400"></i>
+                <span data-i18n="opt_bin_win">ComfyLAB for Windows (.exe)</span>
+              </span>
+              <i data-lucide="external-link" class="w-3.5 h-3.5 text-slate-500 group-hover:text-white"></i>
+            </a>
+            <a href="https://github.com/pfjarschel/ComfyLAB/releases" target="_blank" class="flex items-center justify-between p-3 rounded-xl bg-dark-950 border border-slate-800 hover:border-slate-700 text-xs font-semibold text-slate-200 transition-all group">
+              <span class="flex items-center gap-2">
+                <i data-lucide="cpu" class="w-4 h-4 text-brand-400"></i>
+                <span data-i18n="opt_bin_linux">ComfyLAB for Linux (Binary)</span>
+              </span>
+              <i data-lucide="external-link" class="w-3.5 h-3.5 text-slate-500 group-hover:text-white"></i>
+            </a>
+          </div>
+        </div>
+
+        <div class="mt-4 pt-4 border-t border-slate-800 text-xs text-slate-400 flex items-center gap-2">
+          <i data-lucide="check-circle" class="w-4 h-4 text-brand-400 flex-shrink-0"></i>
+          <span data-i18n="opt_bin_note">Portable single executable. Double-click and start measuring.</span>
+        </div>
+      </div>
+
+      <!-- Option 3: From Source -->
+      <div class="bg-dark-900 border border-slate-800 rounded-2xl p-7 shadow-xl flex flex-col justify-between">
+        <div>
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300">
+              <i data-lucide="git-branch" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h3 class="text-lg font-bold text-white" data-i18n="opt_src_title">From Git Source</h3>
+              <span class="text-xs text-slate-400" data-i18n="opt_src_sub">For Developers & Drivers</span>
+            </div>
+          </div>
+          <p class="text-sm text-slate-300 mb-5" data-i18n="opt_src_desc">
+            Clone the GitHub repository to write new instrument nodes, contribute features, or modify UI components.
+          </p>
+
+          <div class="bg-dark-950 border border-slate-800 rounded-xl p-3 font-mono text-xs text-slate-200 space-y-1">
+            <div class="text-slate-400">git clone https://github.com/pfjarschel/ComfyLAB.git</div>
+            <div class="text-slate-400">cd ComfyLAB</div>
+            <div><span class="text-purpleBrand-300 font-bold">bash start.sh</span> <span class="text-slate-500" data-i18n="cmd_or_bat"># or start.bat</span></div>
+          </div>
+        </div>
+
+        <div class="mt-4 pt-4 border-t border-slate-800 text-xs text-slate-400 flex items-center gap-2">
+          <i data-lucide="sparkles" class="w-4 h-4 text-purpleBrand-400 flex-shrink-0"></i>
+          <span data-i18n="opt_src_note">Auto-installs venv, builds frontend, and runs hot-reload dev servers.</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- DOWNLOAD USER GUIDE (DYNAMIC SINGLE CARD FOR SELECTED LANGUAGE)           -->
+  <!-- ========================================================================= -->
+  <section id="downloads" class="py-20 bg-dark-900 border-t border-slate-800/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      
+      <div class="text-center max-w-2xl mx-auto mb-12">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purpleBrand-500/10 border border-purpleBrand-500/30 text-purpleBrand-400 text-xs font-semibold mb-3">
+          <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
+          <span data-i18n="guides_badge">Documentation & Guides</span>
+        </div>
+        <h2 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight" data-i18n="guides_title">
+          Comprehensive User Guide
+        </h2>
+        <p class="mt-3 text-slate-300 text-base" data-i18n="guides_desc">
+          Download the complete quickstart manual with step-by-step starter tutorials and interface diagrams.
+        </p>
+      </div>
+
+      <!-- Dynamic Single Download Card -->
+      <div class="max-w-2xl mx-auto">
+        <div class="bg-dark-850 border border-slate-800 hover:border-purpleBrand-500/40 rounded-2xl p-7 sm:p-8 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-6 transition-all">
+          <div class="flex items-center gap-5 text-center sm:text-left">
+            <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-brand-500/20 to-purpleBrand-500/20 border border-purpleBrand-500/30 flex items-center justify-center text-purpleBrand-400 flex-shrink-0 shadow-lg shadow-purpleBrand-500/10">
+              <i data-lucide="file-text" class="w-7 h-7"></i>
+            </div>
+            <div>
+              <h3 id="docCardTitle" class="text-lg font-bold text-white" data-i18n="doc_card_title">Quick Start Guide</h3>
+              <p id="docCardSub" class="text-xs sm:text-sm text-slate-400 mt-1" data-i18n="doc_card_sub">English • Comprehensive Overview (PDF)</p>
+              <div class="mt-2 flex items-center gap-2 text-[11px] text-slate-500">
+                <span class="inline-flex items-center gap-1 text-purpleBrand-400">
+                  <i data-lucide="check" class="w-3 h-3"></i>
+                  <span data-i18n="doc_badge_updated">Updated with figures & diagrams</span>
+                </span>
+                <span>•</span>
+                <span>A4 PDF</span>
+              </div>
+            </div>
+          </div>
+
+          <a id="docDownloadBtn" href="./assets/docs/ComfyLAB_Quickstart_EN.pdf" download 
+             class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl brand-gradient-btn text-white font-bold text-sm shadow-lg shadow-purpleBrand-500/25 transition-all hover:scale-105 flex-shrink-0">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            <span id="docBtnLabel" data-i18n="doc_btn_label">Download Guide (PDF)</span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- COMMUNITY / COLLABORATION BANNER                                          -->
+  <!-- ========================================================================= -->
+  <section class="py-16 bg-dark-950 border-t border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="rounded-2xl bg-gradient-to-r from-dark-900 via-dark-850 to-dark-900 border border-slate-800 p-8 md:p-12 flex flex-col md:flex-row items-center justify-between gap-8">
+        <div>
+          <div class="text-xs font-bold text-purpleBrand-400 tracking-wider uppercase mb-2" data-i18n="collab_badge">Open Science & Collaboration</div>
+          <h3 class="text-2xl sm:text-3xl font-extrabold text-white" data-i18n="collab_title">Have an instrument you want supported?</h3>
+          <p class="mt-2 text-slate-300 text-sm max-w-xl" data-i18n="collab_desc">
+            ComfyLAB is built by experimentalists for experimentalists. If your laboratory at UNICAMP or beyond has custom hardware or protocols you want integrated, let's collaborate!
+          </p>
+        </div>
+        <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+          <a href="https://github.com/pfjarschel/ComfyLAB/issues" target="_blank" 
+             class="w-full sm:w-auto text-center px-5 py-3 rounded-xl brand-gradient-btn text-white font-bold text-xs transition-all" data-i18n="collab_btn_req">
+            Request Driver / Open Issue
+          </a>
+          <a href="https://github.com/pfjarschel/ComfyLAB" target="_blank" 
+             class="w-full sm:w-auto text-center px-5 py-3 rounded-xl bg-dark-850 hover:bg-dark-800 border border-slate-700 text-slate-200 font-semibold text-xs transition-all flex items-center justify-center gap-2" data-i18n="collab_btn_git">
+            <svg class="w-3.5 h-3.5 text-slate-300" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd" /></svg>
+            <span>Contribute on GitHub</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- FOOTER                                                                    -->
+  <!-- ========================================================================= -->
+  <footer class="py-12 bg-dark-950 border-t border-slate-850 text-xs text-slate-400">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+      
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-brand-500 to-purpleBrand-600 p-1.5 flex items-center justify-center">
+          <img src="./assets/images/favicon.svg" alt="ComfyLAB Logo" class="w-full h-full object-contain" />
+        </div>
+        <div>
+          <span class="font-bold text-white">ComfyLAB</span> <span data-i18n="footer_tagline">— Visual Laboratory Automation</span>
+          <div class="text-slate-400 text-[11px]" data-i18n="footer_attribution">
+            Electronics & Instrumentation Team • IFGW • University of Campinas (UNICAMP)
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-6 text-slate-400">
+        <a href="https://github.com/pfjarschel/ComfyLAB" target="_blank" class="hover:text-white transition-colors flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5 text-slate-400" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd" /></svg>
+          <span data-i18n="footer_github">GitHub Repository</span>
+        </a>
+        <a href="https://pypi.org/project/comfylab/" target="_blank" class="hover:text-white transition-colors" data-i18n="footer_pypi">PyPI Package</a>
+        <a href="https://github.com/pfjarschel/ComfyLAB/blob/main/LICENSE" target="_blank" class="hover:text-white transition-colors" data-i18n="footer_license">GPL-3.0 License</a>
+        <a href="#quickstart" class="hover:text-white transition-colors" data-i18n="nav_quickstart">Quickstart</a>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- ========================================================================= -->
+  <!-- I18N DICTIONARY & CLIENT-SIDE LOGIC                                       -->
+  <!-- ========================================================================= -->
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+    // Mobile Menu Toggle
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    mobileMenuBtn.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+    });
+
+    // Language Dropdown Toggle
+    const langBtn = document.getElementById('langBtn');
+    const langMenu = document.getElementById('langMenu');
+    langBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      langMenu.classList.toggle('hidden');
+    });
+    document.addEventListener('click', () => {
+      if (!langMenu.classList.contains('hidden')) {
+        langMenu.classList.add('hidden');
+      }
+    });
+
+    // Copy Install Command
+    function copyInstallCmd() {
+      navigator.clipboard.writeText("pip install comfylab");
+      const btn = document.getElementById('copyBtn');
+      btn.innerHTML = '<i data-lucide="check" class="w-4 h-4 text-purpleBrand-400"></i>';
+      lucide.createIcons();
+      setTimeout(() => {
+        btn.innerHTML = '<i data-lucide="copy" class="w-4 h-4"></i>';
+        lucide.createIcons();
+      }, 2000);
+    }
+
+    // Code Tab Switcher
+    function switchCodeTab(tab) {
+      const btnScript = document.getElementById('tabBtnScript');
+      const btnNative = document.getElementById('tabBtnNative');
+      const viewScript = document.getElementById('codeViewScript');
+      const viewNative = document.getElementById('codeViewNative');
+      const badge = document.getElementById('codeLangBadge');
+
+      if (tab === 'script') {
+        btnScript.className = "px-3 py-1 rounded-md bg-purpleBrand-600 text-white font-medium transition-all";
+        btnNative.className = "px-3 py-1 rounded-md text-slate-400 hover:text-white transition-all";
+        viewScript.classList.remove('hidden');
+        viewNative.classList.add('hidden');
+        badge.textContent = translations[currentLang]?.code_badge_script || "In-Canvas Script Syntax";
+      } else {
+        btnNative.className = "px-3 py-1 rounded-md bg-purpleBrand-600 text-white font-medium transition-all";
+        btnScript.className = "px-3 py-1 rounded-md text-slate-400 hover:text-white transition-all";
+        viewNative.classList.remove('hidden');
+        viewScript.classList.add('hidden');
+        badge.textContent = translations[currentLang]?.code_badge_native || "Native Block from Scratch (Python)";
+      }
+    }
+
+    // Dynamic PDF Download URLs
+    const pdfMap = {
+      en: "./assets/docs/ComfyLAB_Quickstart_EN.pdf",
+      pt: "./assets/docs/ComfyLAB_Guia_Rapido_PT.pdf",
+      es: "./assets/docs/ComfyLAB_Guia_Rapido_ES.pdf"
+    };
+
+    // Translations Dictionary
+    const translations = {
+      en: {
+        nav_features: "Features",
+        nav_motivation: "Lab Motivation",
+        nav_workflow: "How It Works",
+        nav_extensibility: "Extensibility",
+        nav_quickstart: "Quickstart",
+        nav_guides: "User Guide (PDF)",
+        btn_install: "Install",
+        btn_download: "Download",
+        hero_badge_opensource: "Free & Open-Source Laboratory Platform",
+        hero_title_1: "Visual Laboratory Automation for",
+        hero_title_2: "Experimental Science",
+        hero_subtitle: "Connect physical laboratory instruments, orchestrate automated characterization loops, and stream live measurements with visual node dataflows. Zero recurring license fees, zero boilerplate code.",
+        hero_btn_start: "Get Started Free",
+        hero_btn_guides: "User Guide (PDF)",
+        badge_hardware: "Universal VISA / SCPI Hardware",
+        badge_languages: "Multi-Language UI (EN / PT / ES)",
+        badge_safety: "Automated Hardware Safety Shutdown",
+        hero_window_title: "ComfyLAB Workspace — Live Experiment Blueprint",
+        motivation_badge: "Rooted in Lab Experience",
+        motivation_title: "Built for the Realities of Experimental Laboratories",
+        motivation_desc: "Informed by a comprehensive survey with over 190 experimental researchers and students across departments at UNICAMP, ComfyLAB was designed from the ground up to solve the most frequent operational hurdles of benchtop automation.",
+        pillar_1_title: "Zero Programming Hurdle",
+        pillar_1_desc: "Researchers overwhelmingly expressed the need for a straightforward visual environment. Connect instruments, signal sweeps, and processors without having to debug line-by-line syntax.",
+        pillar_1_sub: "Drag, connect, and automate.",
+        pillar_2_title: "Hours Saved Every Setup",
+        pillar_2_desc: "Instead of spending days configuring and troubleshooting individual ad-hoc measurement scripts, standard routine flows can be assembled and verified in 15 minutes.",
+        pillar_2_sub: "Fast iterative prototyping.",
+        pillar_3_title: "Long-Term Continuity",
+        pillar_3_desc: "One of the greatest lab frustrations is inherited undocumented code. ComfyLAB blueprints are visual diagrams that any student or technician can understand instantly.",
+        pillar_3_sub: "Self-documenting workflows.",
+        pillar_4_title: "Zero License Friction",
+        pillar_4_desc: "Proprietary seat licenses create bottlenecks and prevent deploying automation to every workstation. ComfyLAB is free software you can install on any number of PCs.",
+        pillar_4_sub: "100% Free & Open-Source.",
+        features_badge: "Platform Features",
+        features_title: "Engineered for Reliability, Safety, and Speed",
+        features_desc: "Everything you need to automate physical research benches, acquire sensor data, and run multi-instrument characterization loops.",
+        feat_1_title: "Visual Node Dataflow",
+        feat_1_desc: "Assemble complex acquisition loops by wiring functional blocks together. No obscure syntax, no missing semicolons, and no hidden state.",
+        feat_2_title: "Universal VISA & SCPI Control",
+        feat_2_desc: "Direct hardware communication via PyVISA. Supports USB, GPIB, Ethernet, and RS-232 instruments from Keysight, Keithley, Rigol, Thorlabs, and more.",
+        feat_3_title: "Fail-Safe Hardware Protection",
+        feat_3_desc: "If an automation stops, crashes, or encounters an unexpected error, ComfyLAB immediately executes safety routines to shut down pump lasers, bias voltages, and high power supplies.",
+        feat_4_title: "Multi-Language & Native Bridges",
+        feat_4_desc: "Execute in 13+ languages directly in-canvas or interface with vendor C/C++ DLLs, Linux shared objects (.so), and Windows ActiveX/COM objects seamlessly.",
+        feat_5_title: "Real-Time Multi-Trace Graphs",
+        feat_5_desc: "High-frequency canvas charting with persistent axis settings, live spectrum traces, multi-channel overlays, and instant CSV / HDF5 export.",
+        feat_6_title: "Secure Remote Lab Access",
+        feat_6_desc: "Monitor multi-hour measurements remotely from your office or home. Protected by two-word zero-setup security tokens without compromising lab LAN safety.",
+        workflow_title: "How It Works in 3 Steps",
+        workflow_desc: "From raw hardware to synchronized acquisition in minutes.",
+        step_1_title: "Detect Your Instruments",
+        step_1_desc: "Plug your instrument into USB, GPIB, or Ethernet. ComfyLAB automatically lists VISA resources and ready-to-use device drivers.",
+        step_2_title: "Connect Your Dataflow",
+        step_2_desc: "Drag generator and reader blocks onto the canvas. Wire frequency sweeps, power increments, and analysis blocks with intuitive color-coded pins.",
+        step_3_title: "Stream & Protect",
+        step_3_desc: "Hit Start. Watch real-time multi-trace plots update live. Data automatically logs to disk, while hardware safety guards monitor limits in the background.",
+        preview_ex1: "Example 1: Signal Generator & Oscilloscope Sweeps",
+        preview_ex2: "Example 2: Multi-Trace Real-Time Spectrum Analysis",
+        ext_badge: "Infinite Customization",
+        ext_title: "Extensible by Design: Adapt to Any Experiment",
+        ext_desc: "ComfyLAB is not a closed black box. Inject scripts across 13+ languages, bridge native C/C++ DLLs and ActiveX/COM instruments, group sub-circuits into reusable clusters, or author native hardware drivers from scratch.",
+        ext_card1_title: "13+ Language Script Blocks",
+        ext_card1_desc: "Embed code directly on the canvas without leaving ComfyLAB. Automatic input and output pins using intuitive decorators.",
+        ext_card1_sub: "Built-in Monaco editor with live execution.",
+        ext_card_dll_title: "DLL, .SO & ActiveX/COM",
+        ext_card_dll_desc: "Directly call vendor-provided C/C++ compiled dynamic libraries (.dll on Windows, .so on Linux) with thread safety, or drive 32/64-bit Windows ActiveX & COM controllers.",
+        ext_card_dll_f1: "C/C++ .dll & .so function calling",
+        ext_card_dll_f2: "ActiveX / COM ProgID Automation",
+        ext_card_dll_f3: "Supports Thorlabs, Horiba & Newport",
+        ext_card_dll_sub: "Bridge legacy instruments without rewriting code.",
+        ext_card2_title: "Modular Clusters (Macro-Nodes)",
+        ext_card2_desc: "Select a sub-network of connected blocks and collapse them into a single reusable Cluster with a single keypress. Expose only the pins you need.",
+        ext_card2_f1: "Single-click cluster creation (Ctrl+G)",
+        ext_card2_f2: "Custom input & output pin mapping",
+        ext_card2_f3: "Shareable across blueprints and labs",
+        ext_card2_sub: "Encapsulate complexity and foster team reuse.",
+        ext_card3_title: "Native Nodes from Scratch",
+        ext_card3_desc: "Build first-class permanent blocks or drivers for custom rigs and sensors using Python's BaseBlock architecture and register into the palette.",
+        ext_card3_f1: "Automated VISA resource detection",
+        ext_card3_f2: "Thread-safe hardware locking",
+        ext_card3_f3: "One-click zip package import",
+        ext_card3_sub: "Permanent palette integration and distribution.",
+        code_tab_script: "In-Canvas Script Block (Fast & Simple)",
+        code_tab_native: "Native Block from Scratch (Python Class)",
+        code_badge_script: "In-Canvas Script Syntax",
+        code_badge_native: "Native Block from Scratch (Python)",
+        quickstart_badge: "Flexible Deployment",
+        quickstart_title: "Install ComfyLAB in Seconds",
+        quickstart_desc: "Choose the installation method that fits your lab PC setup.",
+        opt_recommended: "Recommended",
+        opt_os_support: "Windows, Linux, macOS",
+        cmd_step_install: "# 1. Install",
+        cmd_step_run: "# 2. Run anywhere",
+        opt_pypi_desc: "The quickest and cleanest way. Installs directly via official Python package repository.",
+        opt_pypi_note: "Requires Python 3.10 or higher. Automatically opens browser at localhost:8000.",
+        opt_bin_title: "Pre-compiled Executable",
+        opt_bin_sub: "Zero Dependencies Needed",
+        opt_bin_desc: "For lab computers without Python or where user account restrictions prevent installing new software packages.",
+        opt_bin_win: "ComfyLAB for Windows (.exe)",
+        opt_bin_linux: "ComfyLAB for Linux (Binary)",
+        opt_bin_note: "Portable single executable. Double-click and start measuring.",
+        opt_src_title: "From Git Source",
+        opt_src_sub: "For Developers & Drivers",
+        opt_src_desc: "Clone the GitHub repository to write new instrument nodes, contribute features, or modify UI components.",
+        cmd_or_bat: "# or start.bat",
+        opt_src_note: "Auto-installs venv, builds frontend, and runs hot-reload dev servers.",
+        guides_badge: "Documentation & Guides",
+        guides_title: "Comprehensive User Guide",
+        guides_desc: "Download the complete quickstart manual with step-by-step starter tutorials and interface diagrams.",
+        doc_card_title: "Quick Start Guide",
+        doc_card_sub: "English • Comprehensive Overview (PDF)",
+        doc_badge_updated: "Updated with figures & diagrams",
+        doc_btn_label: "Download Guide (PDF)",
+        collab_badge: "Open Science & Collaboration",
+        collab_title: "Have an instrument you want supported?",
+        collab_desc: "ComfyLAB is built by experimentalists for experimentalists. If your laboratory at UNICAMP or beyond has custom hardware or protocols you want integrated, let's collaborate!",
+        collab_btn_req: "Request Driver / Open Issue",
+        collab_btn_git: "Contribute on GitHub",
+        footer_tagline: "— Visual Laboratory Automation",
+        footer_attribution: "Electronics & Instrumentation Team • IFGW • University of Campinas (UNICAMP)",
+        footer_github: "GitHub Repository",
+        footer_pypi: "PyPI Package",
+        footer_license: "GPL-3.0 License",
+        mobile_lang_label: "Language:"
+      },
+      pt: {
+        nav_features: "Recursos",
+        nav_motivation: "Motivação",
+        nav_workflow: "Como Funciona",
+        nav_extensibility: "Extensibilidade",
+        nav_quickstart: "Instalação",
+        nav_guides: "Guia de Uso (PDF)",
+        btn_install: "Instalar",
+        btn_download: "Baixar",
+        hero_badge_opensource: "Plataforma Livre e Gratuita para Laboratórios",
+        hero_title_1: "Automação Visual de Laboratórios para a",
+        hero_title_2: "Pesquisa Experimental",
+        hero_subtitle: "Conecte instrumentos de bancada, automatize ensaios de medição e acompanhe gráficos em tempo real com fluxos visuais por blocos. Sem custos de licença, sem códigos complicados.",
+        hero_btn_start: "Começar Gratuitamente",
+        hero_btn_guides: "Guia de Uso (PDF)",
+        badge_hardware: "Controle Universal VISA / SCPI",
+        badge_languages: "Interface Trilíngue (PT / EN / ES)",
+        badge_safety: "Desligamento Automático de Segurança",
+        hero_window_title: "Área de Trabalho ComfyLAB — Fluxo de Ensaio Ativo",
+        motivation_badge: "Nascido da Prática Experimental",
+        motivation_title: "Desenvolvido para a Realidade dos Laboratórios",
+        motivation_desc: "Apoiado em um diagnóstico abrangente com mais de 190 pesquisadores, docentes e estudantes da UNICAMP, o ComfyLAB foi projetado para eliminar os principais gargalos operacionais da automação de bancadas.",
+        pillar_1_title: "Acessível a Quem Não Programa",
+        pillar_1_desc: "A grande maioria dos pesquisadores apontou a necessidade de uma interface visual amigável. Conecte instrumentos, varreduras e cálculos sem travar em erros de sintaxe de programação.",
+        pillar_1_sub: "Arraste, conecte e meça.",
+        pillar_2_title: "Horas Recuperadas por Ensaio",
+        pillar_2_desc: "Em vez de perder dias programando e depurando scripts individuais de medição, ensaios completos são estruturados e validados em menos de 15 minutos.",
+        pillar_2_sub: "Prototipagem ágil de experimentos.",
+        pillar_3_title: "Continuidade no Laboratório",
+        pillar_3_desc: "Um dos maiores problemas relatados foi o código legado sem documentação deixado por colegas que se formam. No ComfyLAB, o experimento é um diagrama visual autoexplicativo.",
+        pillar_3_sub: "Rotinas que permanecem úteis.",
+        pillar_4_title: "Sem Fila de Licenças",
+        pillar_4_desc: "Softwares comerciais proprietários limitam o número de computadores e travam a bancada. O ComfyLAB é livre para instalação em quantas máquinas forem necessárias.",
+        pillar_4_sub: "100% Livre e Gratuito.",
+        features_badge: "Recursos da Plataforma",
+        features_title: "Criado para Confiabilidade, Segurança e Agilidade",
+        features_desc: "Tudo o que sua bancada experimental necessita para automatizar instrumentos, registrar dados e executar varreduras complexas.",
+        feat_1_title: "Fluxo de Dados Visual por Blocos",
+        feat_1_desc: "Monte rotinas complexas ligando blocos funcionais com fios virtuais. Sem sintaxe oculta, variáveis perdidas ou estruturas confusas de código.",
+        feat_2_title: "Controle Universal VISA & SCPI",
+        feat_2_desc: "Comunicação direta com instrumentos via PyVISA. Compatível com equipamentos USB, GPIB, Ethernet e Serial da Keysight, Keithley, Rigol, Thorlabs e outros.",
+        feat_3_title: "Proteção e Desligamento de Segurança",
+        feat_3_desc: "Se o ensaio for interrompido ou ocorrer um erro inesperado, o ComfyLAB executa rotinas de corte automático desligando lasers de bombeio, fontes de alta tensão e saídas sensíveis.",
+        feat_4_title: "Multilinguagem & Pontes Nativas",
+        feat_4_desc: "Execute em mais de 13 linguagens diretamente no canvas ou integre DLLs em C/C++, bibliotecas .so no Linux e objetos ActiveX/COM no Windows sem atrito.",
+        feat_5_title: "Gráficos em Tempo Real com Múltiplos Traços",
+        feat_5_desc: "Visualização rápida em canvas com eixos persistentes, traços simultâneos de espectro, sobreposição multicanal e exportação instantânea para CSV ou HDF5.",
+        feat_6_title: "Acesso Remoto Seguro à Bancada",
+        feat_6_desc: "Acompanhe medições demoradas diretamente da sua sala, escritório ou de casa com autenticação por token de duas palavras sem comprometer a rede local do laboratório.",
+        workflow_title: "Como Funciona em 3 Passos",
+        workflow_desc: "Do instrumento na bancada à coleta de dados em poucos minutos.",
+        step_1_title: "Reconheça seus Equipamentos",
+        step_1_desc: "Conecte o instrumento via USB, GPIB ou rede. O ComfyLAB identifica automaticamente os recursos VISA disponíveis e os blocos de controle correspondentes.",
+        step_2_title: "Desenhe seu Fluxo de Medição",
+        step_2_desc: "Arraste blocos geradores e leitores para o canvas. Conecte varreduras de frequência, incremento de potência e blocos de análise com fios coloridos.",
+        step_3_title: "Execute e Monitore com Segurança",
+        step_3_desc: "Clique em Iniciar. Acompanhe gráficos em tempo real, salve dados automaticamente e conte com o monitoramento contínuo de segurança em segundo plano.",
+        preview_ex1: "Exemplo 1: Varreduras com Gerador de Sinais e Osciloscópio",
+        preview_ex2: "Exemplo 2: Análise de Espectro em Tempo Real com Múltiplos Traços",
+        ext_badge: "Customização Ilimitada",
+        ext_title: "Extensível por Projeto: Adapte a Qualquer Experimento",
+        ext_desc: "O ComfyLAB não é uma caixa preta fechada. Insira scripts em mais de 13 linguagens, faça pontes com DLLs C/C++ e controladores ActiveX/COM, agrupe fluxos em macro-blocos ou crie novos drivers do zero.",
+        ext_card1_title: "Blocos de Script em 13+ Linguagens",
+        ext_card1_desc: "Incorpore código diretamente no canvas sem sair do ComfyLAB. Definição automática de pinos de entrada e saída por comentários declarativos.",
+        ext_card1_sub: "Editor Monaco embutido com execução em tempo real.",
+        ext_card_dll_title: "DLL, .SO & ActiveX/COM",
+        ext_card_dll_desc: "Invoque funções diretamente de bibliotecas dinâmicas C/C++ (.dll no Windows, .so no Linux) com segurança assíncrona, ou comande objetos ActiveX/COM de 32 e 64 bits.",
+        ext_card_dll_f1: "Chamada direta de funções em DLLs e .so",
+        ext_card_dll_f2: "Automação ActiveX / COM por ProgID",
+        ext_card_dll_f3: "Suporte a Thorlabs, Horiba e Newport",
+        ext_card_dll_sub: "Aproveite equipamentos legados sem reescrever código.",
+        ext_card2_title: "Clusters Modulares (Macro-Blocos)",
+        ext_card2_desc: "Selecione uma sub-rede de blocos conectados e comprima-os em um único Cluster reutilizável com apenas uma tecla. Exponha apenas os pinos necessários.",
+        ext_card2_f1: "Criação de cluster em um clique (Ctrl+G)",
+        ext_card2_f2: "Mapeamento personalizado de pinos de entrada e saída",
+        ext_card2_f3: "Compartilhável entre diferentes ensaios e laboratórios",
+        ext_card2_sub: "Encapsule a complexidade e promova o reúso em equipe.",
+        ext_card3_title: "Blocos Nativos do Zero",
+        ext_card3_desc: "Construa blocos permanentes ou drivers dedicados para novas bancadas e sensores usando a classe BaseBlock em Python e registre-os na paleta.",
+        ext_card3_f1: "Identificação automática de recursos VISA",
+        ext_card3_f2: "Gerenciamento de travas de hardware thread-safe",
+        ext_card3_f3: "Importação de pacotes zip em um clique",
+        ext_card3_sub: "Integração e distribuição permanente na paleta.",
+        code_tab_script: "Bloco de Script no Canvas (Rápido e Simples)",
+        code_tab_native: "Bloco Nativo do Zero (Classe Python)",
+        code_badge_script: "Sintaxe Simples de Script no Canvas",
+        code_badge_native: "Bloco Nativo Criado do Zero (Python)",
+        quickstart_badge: "Instalação Flexível",
+        quickstart_title: "Instale o ComfyLAB em Poucos Segundos",
+        quickstart_desc: "Escolha a forma mais conveniente para o computador do seu laboratório.",
+        opt_recommended: "Recomendado",
+        opt_os_support: "Windows, Linux e macOS",
+        cmd_step_install: "# 1. Instalar",
+        cmd_step_run: "# 2. Executar de qualquer lugar",
+        opt_pypi_desc: "A maneira mais rápida e limpa. Instala diretamente pelo repositório oficial de pacotes Python.",
+        opt_pypi_note: "Requer Python 3.10 ou superior. Abre automaticamente no navegador em localhost:8000.",
+        opt_bin_title: "Executável Pronto (Binário)",
+        opt_bin_sub: "Sem Necessidade de Dependências",
+        opt_bin_desc: "Para computadores de bancada sem Python instalado ou com restrições administrativas para novas instalações.",
+        opt_bin_win: "ComfyLAB para Windows (.exe)",
+        opt_bin_linux: "ComfyLAB para Linux (Binário)",
+        opt_bin_note: "Executável único e portátil. Dê dois cliques e comece a medir.",
+        opt_src_title: "A Partir do Código-Fonte",
+        opt_src_sub: "Para Desenvolvedores e Novos Drivers",
+        opt_src_desc: "Clone o repositório do GitHub para implementar drivers de novos equipamentos, contribuir com recursos ou customizar a interface.",
+        cmd_or_bat: "# ou start.bat",
+        opt_src_note: "Configura ambiente virtual, compila o frontend e inicia os servidores com recarga ao vivo.",
+        guides_badge: "Documentação & Manuais",
+        guides_title: "Guia Completo de Utilização",
+        guides_desc: "Faça o download do manual completo com tutoriais práticos passo a passo e diagramas da interface.",
+        doc_card_title: "Guia de Início Rápido",
+        doc_card_sub: "Português • Visão Geral Completa (PDF)",
+        doc_badge_updated: "Atualizado com fotos e diagramas",
+        doc_btn_label: "Baixar Guia (PDF)",
+        collab_badge: "Ciência Aberta & Colaboração",
+        collab_title: "Tem um equipamento que gostaria de ver integrado?",
+        collab_desc: "O ComfyLAB é construído por experimentalistas para experimentalistas. Se o seu laboratório na UNICAMP ou em outra instituição possui equipamentos ou protocolos específicos, vamos colaborar!",
+        collab_btn_req: "Sugerir Driver / Abrir Chamado",
+        collab_btn_git: "Contribuir no GitHub",
+        footer_tagline: "— Automação Visual de Laboratórios",
+        footer_attribution: "Equipe de Eletrônica e Instrumentação • IFGW • Universidade Estadual de Campinas (UNICAMP)",
+        footer_github: "Repositório no GitHub",
+        footer_pypi: "Pacote no PyPI",
+        footer_license: "Licença GPL-3.0",
+        mobile_lang_label: "Idioma:"
+      },
+      es: {
+        nav_features: "Características",
+        nav_motivation: "Motivación",
+        nav_workflow: "Cómo Funciona",
+        nav_extensibility: "Extensibilidad",
+        nav_quickstart: "Instalación",
+        nav_guides: "Guía de Usuario (PDF)",
+        btn_install: "Instalar",
+        btn_download: "Descargar",
+        hero_badge_opensource: "Plataforma Libre y Gratuita para Laboratorios",
+        hero_title_1: "Automatización Visual de Laboratorios para la",
+        hero_title_2: "Investigación Experimental",
+        hero_subtitle: "Conecte instrumentos de laboratorio, automatice rutinas de medición y observe gráficos en tiempo real con flujos visuales por bloques. Sin costos de licencias, sin código complejo.",
+        hero_btn_start: "Comenzar Gratis",
+        hero_btn_guides: "Guía de Usuario (PDF)",
+        badge_hardware: "Control Universal VISA / SCPI",
+        badge_languages: "Interfaz Trilingüe (ES / PT / EN)",
+        badge_safety: "Apagado Automático de Seguridad",
+        hero_window_title: "Área de Trabajo ComfyLAB — Flujo de Ensayo Activo",
+        motivation_badge: "Nacido de la Práctica Experimental",
+        motivation_title: "Desarrollado para la Realidad de los Laboratorios",
+        motivation_desc: "Basado en un diagnóstico exhaustivo con más de 190 investigadores, profesores y estudiantes de la UNICAMP, ComfyLAB fue diseñado para resolver los principales obstáculos en la automatización de bancos de prueba.",
+        pillar_1_title: "Accesible para Quien No Programa",
+        pillar_1_desc: "La gran mayoría de los investigadores señaló la necesidad de un entorno visual intuitivo. Conecte instrumentos, barridos y análisis sin lidiar con errores de sintaxis de código.",
+        pillar_1_sub: "Arrastre, conecte y mida.",
+        pillar_2_title: "Horas Ahorradas por Ensayo",
+        pillar_2_desc: "En lugar de perder días programando y depurando scripts individuales, las rutinas completas se configuran y verifican en menos de 15 minutos.",
+        pillar_2_sub: "Prototipado ágil de ensayos.",
+        pillar_3_title: "Continuidad a Largo Plazo",
+        pillar_3_desc: "Uno de los mayores problemas reportados fue el código heredado sin documentación. En ComfyLAB, el experimento es un diagrama visual autoexplicativo.",
+        pillar_3_sub: "Flujos siempre comprensibles.",
+        pillar_4_title: "Sin Barreras de Licencias",
+        pillar_4_desc: "El software comercial propietario limita los puestos de trabajo. ComfyLAB es software libre que puede instalarse en cualquier cantidad de computadoras.",
+        pillar_4_sub: "100% Libre y Gratuito.",
+        features_badge: "Características de la Plataforma",
+        features_title: "Diseñado para Confiabilidad, Seguridad y Rapidez",
+        features_desc: "Todo lo que su laboratorio experimental necesita para automatizar instrumentos, adquirir datos y ejecutar caracterizaciones complejas.",
+        feat_1_title: "Flujo Visual de Datos por Bloques",
+        feat_1_desc: "Arme rutinas complejas conectando bloques funcionales mediante cables virtuales. Sin sintaxis oculta ni estados confusos.",
+        feat_2_title: "Control Universal VISA & SCPI",
+        feat_2_desc: "Comunicación directa con hardware mediante PyVISA. Compatible con instrumentos USB, GPIB, Ethernet y Serie de Keysight, Keithley, Rigol, Thorlabs y más.",
+        feat_3_title: "Protección y Apagado Seguro",
+        feat_3_desc: "Si un ensayo se detiene o encuentra un error inesperado, ComfyLAB ejecuta de inmediato rutinas de seguridad apagando láseres de bombeo y fuentes de alta tensión.",
+        feat_4_title: "Multilenguaje y Puentes Nativos",
+        feat_4_desc: "Ejecute en más de 13 lenguajes directamente en el lienzo o interactúe con DLLs en C/C++, bibliotecas .so en Linux y objetos ActiveX/COM en Windows.",
+        feat_5_title: "Gráficos en Tiempo Real Multitraza",
+        feat_5_desc: "Visualización rápida con persistencia de ejes, trazas simultáneas de espectro, superposición multicanal y exportación instantánea a CSV o HDF5.",
+        feat_6_title: "Acceso Remoto Seguro",
+        feat_6_desc: "Monitoree mediciones prolongadas desde su oficina o su hogar mediante tokens de seguridad de dos palabras sin comprometer la red del laboratorio.",
+        workflow_title: "Cómo Funciona en 3 Pasos",
+        workflow_desc: "Del instrumento en el banco a la adquisición de datos en pocos minutos.",
+        step_1_title: "Reconozca sus Equipos",
+        step_1_desc: "Conecte el instrumento por USB, GPIB o red. ComfyLAB lista automáticamente los recursos VISA y los controladores listos para usar.",
+        step_2_title: "Conecte su Flujo de Datos",
+        step_2_desc: "Arrastre bloques generadores y de lectura al lienzo. Enlace barridos de frecuencia, incrementos de potencia y cálculos con pines codificados por color.",
+        step_3_title: "Ejecute y Monitoree",
+        step_3_desc: "Haga clic en Iniciar. Observe gráficos multitraza en tiempo real. Los datos se guardan en disco mientras las protecciones de hardware vigilan los límites.",
+        preview_ex1: "Ejemplo 1: Barridos con Generador de Señales y Osciloscopio",
+        preview_ex2: "Ejemplo 2: Análisis de Espectro en Tiempo Real Multitraza",
+        ext_badge: "Personalización Ilimitada",
+        ext_title: "Extensible por Diseño: Adáptelo a Cualquier Experimento",
+        ext_desc: "ComfyLAB no es una caja negra cerrada. Inserte scripts en más de 13 lenguajes, conecte DLLs de C/C++ y objetos ActiveX/COM, agrupe flujos en macro-bloques o programe nuevos controladores desde cero.",
+        ext_card1_title: "Bloques de Script en 13+ Lenguajes",
+        ext_card1_desc: "Incorpore código directamente en el lienzo sin salir de ComfyLAB. Definición automática de pines de entrada y salida mediante decoradores simples.",
+        ext_card1_sub: "Editor Monaco integrado con ejecución en vivo.",
+        ext_card_dll_title: "DLL, .SO y ActiveX/COM",
+        ext_card_dll_desc: "Invoque funciones de bibliotecas dinámicas C/C++ (.dll en Windows, .so en Linux) con seguridad asíncrona, o controle objetos ActiveX/COM en 32 y 64 bits.",
+        ext_card_dll_f1: "Llamada directa a funciones DLL y .so",
+        ext_card_dll_f2: "Automatización ActiveX / COM por ProgID",
+        ext_card_dll_f3: "Compatible con Thorlabs, Horiba y Newport",
+        ext_card_dll_sub: "Aproveche hardware existente sin reescribir código.",
+        ext_card2_title: "Clusters Modulares (Macro-Bloques)",
+        ext_card2_desc: "Seleccione una subred de bloques conectados y colápsela en un único Cluster reutilizable con una sola tecla. Exponga solo los pines necesarios para mantener sus blueprints organizados.",
+        ext_card2_f1: "Creación de clusters con un solo clic (Ctrl+G)",
+        ext_card2_f2: "Mapeo personalizado de pines de entrada y salida",
+        ext_card2_f3: "Compartible entre diferentes ensayos y laboratorios",
+        ext_card2_sub: "Encapsule la complejidad y fomente la reutilización en equipo.",
+        ext_card3_title: "Bloques Nativos Desde Cero",
+        ext_card3_desc: "Construya bloques permanentes o controladores para nuevos bancos de prueba usando la clase BaseBlock en Python y regístrelos en la paleta.",
+        ext_card3_f1: "Detección automática de recursos VISA",
+        ext_card3_f2: "Gestión segura de bloqueos de hardware",
+        ext_card3_f3: "Importación de paquetes zip con un clic",
+        ext_card3_sub: "Integración permanente en la paleta y distribución.",
+        code_tab_script: "Bloque de Script en Lienzo (Rápido y Simple)",
+        code_tab_native: "Bloque Nativo Desde Cero (Clase Python)",
+        code_badge_script: "Sintaxis Simple de Script en Lienzo",
+        code_badge_native: "Bloque Nativo Creado Desde Cero (Python)",
+        quickstart_badge: "Instalación Flexible",
+        quickstart_title: "Instale ComfyLAB en Segundos",
+        quickstart_desc: "Elija el método de instalación que mejor se adapte a su computadora de laboratorio.",
+        opt_recommended: "Recomendado",
+        opt_os_support: "Windows, Linux y macOS",
+        cmd_step_install: "# 1. Instalar",
+        cmd_step_run: "# 2. Ejecutar desde cualquier lugar",
+        opt_pypi_desc: "La forma más rápida y limpia. Se instala directamente desde el repositorio oficial de paquetes de Python.",
+        opt_pypi_note: "Requiere Python 3.10 o superior. Abre automáticamente el navegador en localhost:8000.",
+        opt_bin_title: "Ejecutable Precompilado",
+        opt_bin_sub: "Sin Necesidad de Dependencias",
+        opt_bin_desc: "Para computadoras de laboratorio sin Python o con restricciones administrativas que impidan instalar paquetes.",
+        opt_bin_win: "ComfyLAB para Windows (.exe)",
+        opt_bin_linux: "ComfyLAB para Linux (Binario)",
+        opt_bin_note: "Ejecutable único y portátil. Haga doble clic y comience a medir.",
+        opt_src_title: "Desde el Código Fuente",
+        opt_src_sub: "Para Desarrolladores y Nuevos Drivers",
+        opt_src_desc: "Clone el repositorio de GitHub para programar drivers de nuevos instrumentos o modificar componentes de la interfaz.",
+        cmd_or_bat: "# o start.bat",
+        opt_src_note: "Configura el entorno virtual, compila el frontend e inicia los servidores con recarga en vivo.",
+        guides_badge: "Documentación & Guías",
+        guides_title: "Guía Completa de Usuario",
+        guides_desc: "Descargue el manual completo con tutoriales paso a paso y diagramas explicativos de la interfaz.",
+        doc_card_title: "Guía de Inicio Rápido",
+        doc_card_sub: "Español • Visión General Completa (PDF)",
+        doc_badge_updated: "Actualizado con fotos y diagramas",
+        doc_btn_label: "Descargar Guía (PDF)",
+        collab_badge: "Ciencia Abierta & Colaboración",
+        collab_title: "¿Tiene un instrumento que desea integrar?",
+        collab_desc: "ComfyLAB está hecho por experimentalistas para experimentalistas. Si su laboratorio en la UNICAMP o cualquier institución tiene hardware personalizado, ¡colaboremos!",
+        collab_btn_req: "Solicitar Driver / Abrir Incidencia",
+        collab_btn_git: "Contribuir en GitHub",
+        footer_tagline: "— Automatización Visual de Laboratorios",
+        footer_attribution: "Equipo de Electrónica e Instrumentación • IFGW • Universidad Estadual de Campinas (UNICAMP)",
+        footer_github: "Repositorio en GitHub",
+        footer_pypi: "Paquete en PyPI",
+        footer_license: "Licencia GPL-3.0",
+        mobile_lang_label: "Idioma:"
+      }
+    };
+
+    // Flag SVGs for language selector
+    const flagSVGs = {
+      en: `<svg class="w-5 h-3.5 rounded-[2px] overflow-hidden border border-slate-700/80 shadow-sm flex-shrink-0" viewBox="0 0 20 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g>
+          <rect x="0" y="0" width="10" height="14" fill="#b22234"/>
+          <rect x="0" y="2.15" width="10" height="1.08" fill="#fff"/>
+          <rect x="0" y="4.3" width="10" height="1.08" fill="#fff"/>
+          <rect x="0" y="6.45" width="10" height="1.08" fill="#fff"/>
+          <rect x="0" y="8.6" width="10" height="1.08" fill="#fff"/>
+          <rect x="0" y="10.75" width="10" height="1.08" fill="#fff"/>
+          <rect x="0" y="12.9" width="10" height="1.08" fill="#fff"/>
+          <rect x="0" y="0" width="5.2" height="7.5" fill="#3c3b6e"/>
+          <circle cx="1.6" cy="1.9" r="0.55" fill="#fff"/>
+          <circle cx="3.6" cy="1.9" r="0.55" fill="#fff"/>
+          <circle cx="2.6" cy="3.75" r="0.55" fill="#fff"/>
+          <circle cx="1.6" cy="5.6" r="0.55" fill="#fff"/>
+          <circle cx="3.6" cy="5.6" r="0.55" fill="#fff"/>
+        </g>
+        <g>
+          <rect x="10" y="0" width="10" height="14" fill="#012169"/>
+          <path d="M10,0 L20,14 M20,0 L10,14" stroke="#fff" stroke-width="2.2"/>
+          <path d="M10,0 L20,14 M20,0 L10,14" stroke="#c8102e" stroke-width="1.1"/>
+          <path d="M15,0 V14 M10,7 H20" stroke="#fff" stroke-width="3.2"/>
+          <path d="M15,0 V14 M10,7 H20" stroke="#c8102e" stroke-width="1.8"/>
+        </g>
+        <line x1="10" y1="0" x2="10" y2="14" stroke="rgba(255,255,255,0.4)" stroke-width="0.75"/>
+      </svg>`,
+      pt: `<svg class="w-5 h-3.5 rounded-[2px] overflow-hidden border border-slate-700/80 shadow-sm flex-shrink-0" viewBox="0 0 20 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="20" height="14" fill="#009b3a"/>
+        <polygon points="10,1.5 18.5,7 10,12.5 1.5,7" fill="#fedf00"/>
+        <circle cx="10" cy="7" r="3.5" fill="#002776"/>
+        <path d="M 6.8 7.1 C 7.9 5.9, 12.1 5.9, 13.2 7.5" stroke="#ffffff" stroke-width="0.65" fill="none"/>
+      </svg>`,
+      es: `<svg class="w-5 h-3.5 rounded-[2px] overflow-hidden border border-slate-700/80 shadow-sm flex-shrink-0" viewBox="0 0 20 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="20" height="3.5" fill="#aa151b"/>
+        <rect y="3.5" width="20" height="7" fill="#f1bf00"/>
+        <rect y="10.5" width="20" height="3.5" fill="#aa151b"/>
+        <g transform="translate(4, 4.5)">
+          <rect x="0" y="1" width="2.8" height="3.5" rx="0.4" fill="#aa151b"/>
+          <rect x="0.4" y="1.4" width="2" height="2.7" fill="#f1bf00"/>
+          <path d="M0,1 L1.4,-0.2 L2.8,1 Z" fill="#aa151b"/>
+          <line x1="-0.7" y1="0.5" x2="-0.7" y2="4.5" stroke="#aa151b" stroke-width="0.5"/>
+          <line x1="3.5" y1="0.5" x2="3.5" y2="4.5" stroke="#aa151b" stroke-width="0.5"/>
+        </g>
+      </svg>`
+    };
+
+    // Current Language State
+    let currentLang = localStorage.getItem('comfylab_lang') || 'en';
+
+    function setLanguage(lang) {
+      if (!translations[lang]) return;
+      currentLang = lang;
+      localStorage.setItem('comfylab_lang', lang);
+
+      // Update button flag and label
+      const labels = { en: 'EN', pt: 'PT', es: 'ES' };
+      const flagContainer = document.getElementById('currentLangFlag');
+      if (flagContainer && flagSVGs[lang]) {
+        flagContainer.innerHTML = flagSVGs[lang];
+      }
+      document.getElementById('currentLangLabel').textContent = labels[lang];
+
+      // Update HTML lang attribute (pt-BR for Brazilian Portuguese)
+      document.documentElement.lang = (lang === 'pt') ? 'pt-BR' : lang;
+
+      // Update mobile language pills active state
+      ['en', 'pt', 'es'].forEach(code => {
+        const mBtn = document.getElementById(`mobileLang_${code}`);
+        if (mBtn) {
+          if (code === lang) {
+            mBtn.className = 'px-2.5 py-1 rounded-md flex items-center gap-1.5 text-xs font-semibold bg-purpleBrand-600/30 text-white border border-purpleBrand-500/50 shadow-sm';
+          } else {
+            mBtn.className = 'px-2.5 py-1 rounded-md flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-slate-200 transition-colors';
+          }
+        }
+      });
+
+      // Update dynamic download card link
+      const downloadBtn = document.getElementById('docDownloadBtn');
+      if (downloadBtn && pdfMap[lang]) {
+        downloadBtn.href = pdfMap[lang];
+      }
+
+      // Update all data-i18n elements
+      const elements = document.querySelectorAll('[data-i18n]');
+      elements.forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (translations[lang][key]) {
+          el.textContent = translations[lang][key];
+        }
+      });
+
+      // Update code badge based on current active tab
+      const viewScript = document.getElementById('codeViewScript');
+      const badge = document.getElementById('codeLangBadge');
+      if (viewScript && !viewScript.classList.contains('hidden')) {
+        badge.textContent = translations[lang]?.code_badge_script || "In-Canvas Script Syntax";
+      } else {
+        badge.textContent = translations[lang]?.code_badge_native || "Native Block from Scratch (Python)";
+      }
+
+      // Close menu
+      langMenu.classList.add('hidden');
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      // Check browser language if not explicitly stored
+      if (!localStorage.getItem('comfylab_lang')) {
+        const userNavLang = navigator.language || navigator.userLanguage || 'en';
+        if (userNavLang.startsWith('pt')) currentLang = 'pt';
+        else if (userNavLang.startsWith('es')) currentLang = 'es';
+        else currentLang = 'en';
+      }
+      setLanguage(currentLang);
+    });
+  </script>
+
+</body>
+</html>
